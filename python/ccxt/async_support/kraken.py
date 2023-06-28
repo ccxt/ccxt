@@ -1194,6 +1194,8 @@ class kraken(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the kraken api endpoint
+        :param bool params.postOnly:
+        :param bool params.reduceOnly:
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1366,11 +1368,12 @@ class kraken(Exchange, ImplicitAPI):
             price = self.safe_string(description, 'price2')
         if (price is None) or Precise.string_equals(price, '0'):
             price = self.safe_string(order, 'price', price)
+        flags = self.safe_string(order, 'oflags', '')
+        isPostOnly = flags.find('post') > -1
         average = self.safe_number(order, 'price')
         if market is not None:
             symbol = market['symbol']
             if 'fee' in order:
-                flags = order['oflags']
                 feeCost = self.safe_string(order, 'fee')
                 fee = {
                     'cost': feeCost,
@@ -1399,7 +1402,7 @@ class kraken(Exchange, ImplicitAPI):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
-            'postOnly': None,
+            'postOnly': isPostOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1465,7 +1468,15 @@ class kraken(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_2(params, 'timeInForce', 'timeinforce')
         if timeInForce is not None:
             request['timeinforce'] = timeInForce
-        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close', 'timeInForce'])
+        isMarket = (type == 'market')
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, False, params)
+        if postOnly:
+            request['oflags'] = 'post'
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly:
+            request['reduce_only'] = True
+        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly'])
         return [request, params]
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):

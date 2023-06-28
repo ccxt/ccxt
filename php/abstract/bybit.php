@@ -604,6 +604,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_user_v3_private_query_api($params = array()) {
         return $this->request('user/v3/private/query-api', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_user_v3_private_get_member_type($params = array()) {
+        return $this->request('user/v3/private/get-member-type', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_asset_v3_private_transfer_transfer_coin_list_query($params = array()) {
         return $this->request('asset/v3/private/transfer/transfer-coin/list/query', 'private', 'GET', $params, null, null, array("cost" => 0.84));
     }
@@ -1923,6 +1926,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privateGetUserV3PrivateQueryApi($params = array()) {
         return $this->request('user/v3/private/query-api', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetUserV3PrivateGetMemberType($params = array()) {
+        return $this->request('user/v3/private/get-member-type', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetAssetV3PrivateTransferTransferCoinListQuery($params = array()) {
         return $this->request('asset/v3/private/transfer/transfer-coin/list/query', 'private', 'GET', $params, null, null, array("cost" => 0.84));

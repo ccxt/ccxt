@@ -162,6 +162,7 @@ export default class okx extends Exchange {
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
+                        'market/history-trades': 2,
                         'market/platform-24-volume': 10,
                         'market/open-oracle': 40,
                         'market/index-components': 1,
@@ -1897,11 +1898,11 @@ export default class okx extends Exchange {
         if (since !== undefined) {
             const now = this.milliseconds ();
             const difference = now - since;
-            // if the since timestamp is more than limit candles back in the past
-            if (difference > 1440 * duration * 1000) {
+            const durationInMilliseconds = duration * 1000;
+            // if the since timestamp is more than limit candles back in the past (additional one bar because of maximal offset to round the current day to UTC)
+            if (difference > (1440 - limit - 1) * durationInMilliseconds) {
                 defaultType = 'HistoryCandles';
             }
-            const durationInMilliseconds = duration * 1000;
             const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;
             request['after'] = this.sum (startTime, durationInMilliseconds * limit);

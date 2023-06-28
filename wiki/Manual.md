@@ -159,7 +159,7 @@ The CCXT library currently supports the following 98 cryptocurrency exchange mar
 | [![wavesexchange](https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg)](https://waves.exchange)                                                                 | wavesexchange      | [Waves.Exchange](https://waves.exchange)                                                                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.waves.exchange)                                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
 | [![wazirx](https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg)](https://wazirx.com/invite/k7rrnks5)                                                          | wazirx             | [WazirX](https://wazirx.com/invite/k7rrnks5)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.wazirx.com/#public-rest-api-for-wazirx)                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | whitebit           | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                      | woo                | [WOO X](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                      | woo                | [WOO X](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                                | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                                          | yobit              | [YoBit](https://www.yobit.net)                                                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                        |                                                                                                                             |                                                                              |
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                                 | zaif               | [Zaif](https://zaif.jp)                                                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                  |                                                                                                                             |                                                                              |
 | [![zonda](https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                 | zonda              | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zonda.exchange/)                                                         |                                                                                                                             |                                                                              |
@@ -714,7 +714,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
 - `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
 
-## Network structure
+## Network Structure
 
 ```javascript
 {
@@ -818,7 +818,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `optionType`. The type of the option, `call` option represents an option with the right to buy and `put` an option with the right to sell.
 - `strike`. Price at which an option can be bought or sold when it is exercised.
 
-## Active status
+## Active Status
 
 The `active` flag is typically used in [`currencies`](#currency-structure) and [`markets`](#market-structure). The exchanges might put a slightly different meaning into it. If a currency is inactive, most of the time all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated information. The user should check if the currency is `active` and [reload markets periodically](#market-cache-force-reload).
 
@@ -1442,7 +1442,6 @@ var_dump (new \ccxt\kraken ()); // PHP
 
 - methods in this documentation that are documented as **contract only** or **margin only** are only intended to be used for contract trading and margin trading respectively. They may work when trading in other types of markets but will most likely return irrelevant information.
 
-
 ## Synchronous vs Asynchronous Calls
 
 ### JavaScript
@@ -1660,7 +1659,7 @@ In most cases users are **required to use at least some type of pagination** in 
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
 
-#### Working With Datetimes and Timestamps
+### Working With Datetimes And Timestamps
 
 The set of methods for working with UTC dates and timestamps and for converting between them:
 
@@ -1671,7 +1670,7 @@ exchange.seconds ()      // integer UTC timestamp in seconds
 exchange.milliseconds () // integer UTC timestamp in milliseconds
 ```
 
-### Date-based pagination
+### Date-based Pagination
 
 This is the type of pagination currently used throughout the CCXT Unified API. The user supplies a `since` timestamp **in milliseconds** (!) and a number to `limit` results. To traverse the objects of interest page by page, the user runs the following (below is pseudocode, it may require overriding some exchange-specific params, depending on the exchange in question):
 
@@ -1735,7 +1734,7 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
-### id-based pagination
+### id-based Pagination
 
 The user supplies a `from_id` of the object, from where the query should continue returning results, and a number to `limit` results. This is the default with some exchanges, however, this type is not unified (yet). To paginate objects based on their ids, the user would run the following:
 
@@ -1805,7 +1804,7 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
-### Pagenumber-based (cursor) pagination
+### Pagenumber-based (Cursor) Pagination
 
 The user supplies a page number or an *initial "cursor"* value. The exchange returns a page of results and the *next "cursor"* value, to proceed from. Most of exchanges that implement this type of pagination will either return the next cursor within the response itself or will return the next cursor values within HTTP response headers.
 
@@ -1920,7 +1919,6 @@ Parameters
 Returns
 
 - An [order book structure](#order-book-structure)
-
 
 ```javascript
 async fetchOrderBooks (symbols = undefined, limit = undefined, params = {})
@@ -2111,7 +2109,7 @@ Check the `exchange.has['fetchTicker']` and `exchange.has['fetchTickers']` prope
 
 **Please, note, that calling `fetchTickers ()` without a symbol is usually strictly rate-limited, an exchange may ban you if you poll that endpoint too frequently.**
 
-### Ticker structure
+### Ticker Structure
 
 A ticker is a statistical calculation with the information calculated over the past 24 hours for a specific market.
 
@@ -2626,7 +2624,6 @@ Returns
 
 - A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
 
-
 ### Borrow Rate Structure
 
 ```javascript
@@ -2660,7 +2657,6 @@ Parameters
 Returns
 
 - An array of [borrow rate structures](#borrow-rate-structure)
-
 
 ## Leverage Tiers
 
@@ -2784,7 +2780,6 @@ Returns
 
 - a dictionary of [funding rate structures](#funding-rate-structure) indexed by market symbols
 
-
 ### Funding Rate Structure
 
 ```javascript
@@ -2859,7 +2854,7 @@ Returns
 
 - A dictionary of [open interest structures](#open-interest-structure)
 
-## Open Interest History
+### Open Interest History
 
 *contract only*
 
@@ -2967,7 +2962,7 @@ In order to create API keys find the API tab or button in your user settings on 
 
 **Remember to keep your apiKey and secret key safe from unauthorized use, do not send or tell it to anybody. A leak of the secret key or a breach in security can cost you a fund loss.**
 
-### Credential Validation
+#### Credential Validation
 
 For checking if the user has supplied all the required credentials the `Exchange` base class has a method called `exchange.checkRequiredCredentials()` or `exchange.check_required_credentials()`. Calling that method will throw an `AuthenticationError`, if some of the credentials are missing or empty. The `Exchange` base class also has  property `exchange.requiredCredentials` that allows a user to see which credentials are required for this or that exchange, as shown below:
 
@@ -2995,7 +2990,7 @@ var_dump($exchange->requiredCredentials); // prints required credentials
 $exchange->check_required_credentials(); // throws AuthenticationError
 ```
 
-### Configuring API Keys
+#### Configuring API Keys
 
 To set up an exchange for trading just assign the API credentials to an existing exchange instance or pass them to exchange constructor upon instantiation, like so:
 
@@ -3076,7 +3071,7 @@ $exchange = new $exchange_class (array (
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
 
-### Sign In
+#### Sign In
 
 Some exchanges required you to sign in prior to calling private methods, which can be done using the `signIn` method
 
@@ -3092,7 +3087,7 @@ Returns
 
 - response from the exchange
 
-### Overriding The Nonce
+## Overriding The Nonce
 
 **The default nonce is defined by the underlying exchange. You can override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read [API docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) carefully!**
 
@@ -3806,7 +3801,6 @@ Stop orders, are placed onto the order book when the price of the underlying ass
 * Or they can be attached to a primary order ([Conditional Stop Orders](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
 * Stop Orders can be limit or market orders
 
-
 ##### Trigger Orders
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open and close a position.
@@ -3941,7 +3935,6 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ##### Take Profit Orders
 
 The same as Stop Loss Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter (for the take profit triggerPrice).
-
 
 Suppose you entered a long position (you bought) at 1000 and want to get your profits from a possible price pump above 1300. You would place a take profit order with triggerPrice at 1300. For that take profit order either you would specify a limit price or it will be executed at market price.
 
@@ -4151,9 +4144,7 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 ))
 ```
 
-
-
-## Editing Orders
+### Editing Orders
 
 To edit an order, you can use the `editOrder` method
 
@@ -4184,7 +4175,7 @@ Returns
 
 ### Canceling Orders
 
-To cancel an existing use
+To cancel an existing order use
 
 - `cancelOrder ()` for a single order
 - `cancelOrders ()` for multiple orders
@@ -4204,7 +4195,6 @@ Returns
 
 - An [order structure](#order-structure)
 
-
 ```javascript
 cancelOrders (ids, symbol = undefined, params = {})
 ```
@@ -4219,7 +4209,6 @@ Returns
 
 - An array of [order structures](#order-structure)
 
-
 ```javascript
 async cancelAllOrders (symbol = undefined, params = {})
 ```
@@ -4233,7 +4222,7 @@ Returns
 
 - An array of [order structures](#order-structure)
 
-#### Exceptions on order canceling
+#### Exceptions Upon Canceling Orders
 
 The `cancelOrder()` is usually used on open orders only. However, it may happen that your order gets executed (filled and closed)
 before your cancel-request comes in, so a cancel-request might hit an already-closed order.
@@ -4372,7 +4361,7 @@ if ($exchange->has['fetchMyTrades']) {
 
 Returns ordered array `[]` of trades (most recent trade last).
 
-#### Trade structure
+#### Trade Structure
 
 ```javascript
 {
@@ -4435,8 +4424,6 @@ if ($exchange->has['fetchOrderTrades']) {
     $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
 }
 ```
-
-
 
 ## Ledger
 
@@ -4508,7 +4495,7 @@ Returns
 }
 ```
 
-#### Notes on Ledger Entry Structure
+#### Notes On Ledger Entry Structure
 
 The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
 
@@ -4568,7 +4555,6 @@ Returns
 
 - An array of [transaction structures](#transaction-structure)
 
-
 ## Withdrawal
 
 The `withdraw` method can be used to withdraw funds from an account
@@ -4576,7 +4562,6 @@ The `withdraw` method can be used to withdraw funds from an account
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
-
 
 ```javascript
 // JavaScript
@@ -4862,7 +4847,7 @@ Returns
 
 - an array of [address structures](#address-structure)
 
-#### Address structure
+### Address Structure
 
 The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses`, `fetchDepositAddressesByNetwork` and `createDepositAddress` look like this:
 
@@ -5134,8 +5119,7 @@ Returns
 
 - An array of [trading fee structures](#trading-fee-structure)
 
-
-##### Trading Fee Structure
+#### Trading Fee Structure
 
 ```javascript
 {
@@ -5198,7 +5182,7 @@ Returns
 
 - An array of [transaction fee structures](#transaction-fee-structure)
 
-##### Transaction Fee Structure
+#### Transaction Fee Structure
 
 ```javascript
 {
@@ -5251,7 +5235,7 @@ Returns
 }
 ```
 
-## Borrow and Repay Margin
+## Borrow And Repay Margin
 
 *margin only*
 
@@ -5352,7 +5336,7 @@ Returns
 
 - response from the exchange
 
-### Exchanges without setMarginMode
+### Exchanges Without setMarginMode
 
 Common reasons for why an exchange might have
 
@@ -5365,7 +5349,8 @@ include
 - the exchange does not offer leveraged trading
 - the exchange only offers one of `cross` or `isolated` margin modes, but does not offer both
 - margin mode must be set using an exchange specific parameter within `params` when using `createOrder`
-### Notes on suppressed errors for setMarginMode
+
+### Notes On Suppressed Errors For setMarginMode
 
 Some exchange apis return an error response when a request is sent to set the margin mode to the mode that it is already set to (e.g. Sending a request to set the margin mode to `cross` for the market `BTC/USDT:USDT` when the account already has `BTC/USDT:USDT` set to use cross margin). CCXT doesn't see this as an error because the end result is what the user wanted, so the error is suppressed and the error result is returned as an object.
 
@@ -5393,7 +5378,7 @@ Returns
 
 - response from the exchange
 
-## Contract trading
+## Contract Trading
 
 This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
 Information about the positions can be served from different endpoints depending on the exchange.
@@ -5475,7 +5460,7 @@ It is recommended to use the `maintenanceMargin` and `initialMargin` instead of 
 
 An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
 
-### Liquidation price
+### Liquidation Price
 
 It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
 
@@ -5822,7 +5807,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
 - Make sure that your system time in sync with the rest of the world's clocks since otherwise you may get invalid nonce errors.
 
-### Notes
+## Notes
 
 - Use the `verbose = true` option or instantiate your troublesome exchange with `new ccxt.exchange ({ 'verbose': true })` to see the HTTP requests and responses in details. The verbose output will also be of use for us to debug it if you submit an issue on GitHub.
 - Use DEBUG logging in Python!

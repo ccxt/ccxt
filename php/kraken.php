@@ -1229,6 +1229,8 @@ class kraken extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @param {bool} $params->postOnly
+         * @param {bool} $params->reduceOnly
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1414,11 +1416,12 @@ class kraken extends Exchange {
         if (($price === null) || Precise::string_equals($price, '0')) {
             $price = $this->safe_string($order, 'price', $price);
         }
+        $flags = $this->safe_string($order, 'oflags', '');
+        $isPostOnly = mb_strpos($flags, 'post') > -1;
         $average = $this->safe_number($order, 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array($order) && array_key_exists('fee', $order)) {
-                $flags = $order['oflags'];
                 $feeCost = $this->safe_string($order, 'fee');
                 $fee = array(
                     'cost' => $feeCost,
@@ -1451,7 +1454,7 @@ class kraken extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
-            'postOnly' => null,
+            'postOnly' => $isPostOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
@@ -1527,7 +1530,17 @@ class kraken extends Exchange {
         if ($timeInForce !== null) {
             $request['timeinforce'] = $timeInForce;
         }
-        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2', 'close', 'timeInForce' ));
+        $isMarket = ($type === 'market');
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
+        if ($postOnly) {
+            $request['oflags'] = 'post';
+        }
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly) {
+            $request['reduce_only'] = true;
+        }
+        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly' ));
         return array( $request, $params );
     }
 

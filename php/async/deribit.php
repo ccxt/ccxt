@@ -559,6 +559,7 @@ class deribit extends Exchange {
             //         testnet => false
             //     }
             //
+            $parsedMarkets = array();
             $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
             $result = array();
             for ($i = 0; $i < count($currenciesResult); $i++) {
@@ -683,6 +684,11 @@ class deribit extends Exchange {
                             }
                         }
                     }
+                    $parsedMarketValue = $this->safe_value($parsedMarkets, $symbol);
+                    if ($parsedMarketValue) {
+                        continue;
+                    }
+                    $parsedMarkets[$symbol] = true;
                     $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
                     $tickSize = $this->safe_number($market, 'tick_size');
                     $result[] = array(

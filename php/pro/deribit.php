@@ -474,7 +474,7 @@ class deribit extends \ccxt\async\deribit {
         $channel = $this->safe_string($params, 'channel');
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
-        $timestamp = $this->safe_number($data, 'timestamp');
+        $timestamp = $this->safe_integer($data, 'timestamp');
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         if ($storedOrderBook === null) {
             $storedOrderBook = $this->counted_order_book();
