@@ -2354,7 +2354,8 @@ export default class wavesexchange extends Exchange {
         //    }
         //
         for (let i = 0; i < promises.length; i++) {
-            data = this.arrayConcat (data, promises[i]);
+            const items = this.safeValue (promises[i], 'items');
+            data = this.arrayConcat (data, items);
         }
         return this.parseDepositWithdrawFees (data, codes, 'id');
     }
