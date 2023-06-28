@@ -1884,11 +1884,12 @@ export default class okx extends Exchange {
         if (since !== undefined) {
             const now = this.milliseconds();
             const difference = now - since;
-            // if the since timestamp is more than limit candles back in the past
-            if (difference > 1440 * duration * 1000) {
+            const durationInMilliseconds = duration * 1000;
+            // if the since timestamp is more than limit candles back in the past (additional one bar because of maximal offset to round the current day to UTC)
+            const calc = (1440 - limit - 1) * durationInMilliseconds;
+            if (difference > calc) {
                 defaultType = 'HistoryCandles';
             }
-            const durationInMilliseconds = duration * 1000;
             const startTime = Math.max(since - 1, 0);
             request['before'] = startTime;
             request['after'] = this.sum(startTime, durationInMilliseconds * limit);
