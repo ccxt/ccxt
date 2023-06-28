@@ -879,7 +879,7 @@ Examples:
 
 *The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders.*
 
-#### Notes On Precision And Limits
+### Notes On Precision And Limits
 
 The user is required to stay within all limits and precision! The values of the order should satisfy the following conditions:
 
@@ -894,7 +894,7 @@ The user is required to stay within all limits and precision! The values of the 
 
 The above values can be missing with some exchanges that don't provide info on limits from their API or don't have it implemented yet.
 
-#### Methods For Formatting Decimals
+### Methods For Formatting Decimals
 
 Each exchange has its own rounding, counting and padding modes.
 
@@ -905,7 +905,7 @@ Supported rounding modes are:
 
 The decimal precision counting mode is available in the `exchange.precisionMode` property.
 
-##### Precision Mode
+#### Precision Mode
 
 Supported precision modes in `exchange['precisionMode']` are:
 
@@ -913,14 +913,14 @@ Supported precision modes in `exchange['precisionMode']` are:
 - `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
 - `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` and `ftx` use this mode, for example). In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
 
-##### Padding Mode
+#### Padding Mode
 
 Supported padding modes are:
 
 - `NO_PADDING` – default for most cases
 - `PAD_WITH_ZERO` – appends zero characters up to precision
 
-##### Formatting To Precision
+#### Formatting To Precision
 
 Most of the time the user does not have to take care of precision formatting, since CCXT will handle that for the user when the user places orders or sends withdrawal requests, if the user follows the rules as described on [Precision And Limits](#precision-and-limits). However, in some cases precision-formatting details may be important, so the following methods may be useful in the userland.
 
