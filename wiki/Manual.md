@@ -1805,7 +1805,7 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
-### Pagenumber-based (cursor) pagination
+### Pagenumber-based (Cursor) Pagination
 
 The user supplies a page number or an *initial "cursor"* value. The exchange returns a page of results and the *next "cursor"* value, to proceed from. Most of exchanges that implement this type of pagination will either return the next cursor within the response itself or will return the next cursor values within HTTP response headers.
 
