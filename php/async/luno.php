@@ -791,7 +791,7 @@ class luno extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id'],
+                'pair' => $market['id'],
             );
             $response = Async\await($this->privateGetFeeInfo (array_merge($request, $params)));
             //

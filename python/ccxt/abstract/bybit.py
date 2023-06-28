@@ -201,6 +201,7 @@ class ImplicitAPI:
     private_get_user_v3_private_frozen_sub_member = privateGetUserV3PrivateFrozenSubMember = Entry('user/v3/private/frozen-sub-member', 'private', 'GET', {'cost': 10})
     private_get_user_v3_private_query_sub_members = privateGetUserV3PrivateQuerySubMembers = Entry('user/v3/private/query-sub-members', 'private', 'GET', {'cost': 5})
     private_get_user_v3_private_query_api = privateGetUserV3PrivateQueryApi = Entry('user/v3/private/query-api', 'private', 'GET', {'cost': 5})
+    private_get_user_v3_private_get_member_type = privateGetUserV3PrivateGetMemberType = Entry('user/v3/private/get-member-type', 'private', 'GET', {'cost': 1})
     private_get_asset_v3_private_transfer_transfer_coin_list_query = privateGetAssetV3PrivateTransferTransferCoinListQuery = Entry('asset/v3/private/transfer/transfer-coin/list/query', 'private', 'GET', {'cost': 0.84})
     private_get_asset_v3_private_transfer_account_coin_balance_query = privateGetAssetV3PrivateTransferAccountCoinBalanceQuery = Entry('asset/v3/private/transfer/account-coin/balance/query', 'private', 'GET', {'cost': 0.84})
     private_get_asset_v3_private_transfer_account_coins_balance_query = privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery = Entry('asset/v3/private/transfer/account-coins/balance/query', 'private', 'GET', {'cost': 50})

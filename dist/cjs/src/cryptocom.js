@@ -58,6 +58,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchOrders': true,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchSettlementHistory': true,
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -2621,6 +2622,93 @@ class cryptocom extends cryptocom$1 {
             'code': undefined,
             'info': account,
         };
+    }
+    async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int|undefined} since timestamp in ms
+         * @param {int|undefined} limit number of records
+         * @param {object} params exchange specific params
+         * @param {int|undefined} params.type 'future', 'option'
+         * @returns {[object]} a list of [settlement history objects]
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
+        this.checkRequiredArgument('fetchSettlementHistory', type, 'type', ['future', 'option', 'WARRANT', 'FUTURE']);
+        if (type === 'option') {
+            type = 'WARRANT';
+        }
+        const request = {
+            'instrument_type': type.toUpperCase(),
+        };
+        const response = await this.v1PublicGetPublicGetExpiredSettlementPrice(this.extend(request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-expired-settlement-price",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "i": "BTCUSD-230526",
+        //                     "x": 1685088000000,
+        //                     "v": "26464.1",
+        //                     "t": 1685087999500
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'data', []);
+        const settlements = this.parseSettlements(data, market);
+        const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseSettlement(settlement, market) {
+        //
+        //     {
+        //         "i": "BTCUSD-230526",
+        //         "x": 1685088000000,
+        //         "v": "26464.1",
+        //         "t": 1685087999500
+        //     }
+        //
+        const timestamp = this.safeInteger(settlement, 'x');
+        const marketId = this.safeString(settlement, 'i');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol(marketId, market),
+            'price': this.safeNumber(settlement, 'v'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    parseSettlements(settlements, market) {
+        //
+        //     [
+        //         {
+        //             "i": "BTCUSD-230526",
+        //             "x": 1685088000000,
+        //             "v": "26464.1",
+        //             "t": 1685087999500
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push(this.parseSettlement(settlements[i], market));
+        }
+        return result;
     }
     nonce() {
         return this.milliseconds();

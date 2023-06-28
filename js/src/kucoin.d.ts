@@ -19,8 +19,30 @@ export default class kucoin extends Exchange {
         withdraw: {};
         deposit: {};
     }>;
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
-    parseDepositWithdrawFee(fee: any, currency?: any): any;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<{
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    }>;
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
     isFuturesMethod(methodName: any, params: any): boolean;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
@@ -215,6 +237,7 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

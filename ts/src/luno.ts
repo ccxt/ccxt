@@ -786,7 +786,7 @@ export default class luno extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'pair': market['id'],
         };
         const response = await this.privateGetFeeInfo (this.extend (request, params));
         //

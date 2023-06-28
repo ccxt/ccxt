@@ -29,7 +29,7 @@ class woo(Exchange, ImplicitAPI):
             'countries': ['KY'],  # Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
-            'certified': False,
+            'certified': True,
             'pro': True,
             'hostname': 'woo.org',
             'has': {

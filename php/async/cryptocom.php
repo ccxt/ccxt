@@ -66,6 +66,7 @@ class cryptocom extends Exchange {
                 'fetchOrders' => true,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchSettlementHistory' => true,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -2652,6 +2653,96 @@ class cryptocom extends Exchange {
             'code' => null,
             'info' => $account,
         );
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical settlement records
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+             * @param {string} $symbol unified $market $symbol of the settlement history
+             * @param {int|null} $since timestamp in ms
+             * @param {int|null} $limit number of records
+             * @param {array} $params exchange specific $params
+             * @param {int|null} $params->type 'future', 'option'
+             * @return {[array]} a list of [settlement history objects]
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+            $this->check_required_argument('fetchSettlementHistory', $type, 'type', array( 'future', 'option', 'WARRANT', 'FUTURE' ));
+            if ($type === 'option') {
+                $type = 'WARRANT';
+            }
+            $request = array(
+                'instrument_type' => strtoupper($type),
+            );
+            $response = Async\await($this->v1PublicGetPublicGetExpiredSettlementPrice (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => -1,
+            //         "method" => "public/get-expired-settlement-price",
+            //         "code" => 0,
+            //         "result" => {
+            //             "data" => array(
+            //                 {
+            //                     "i" => "BTCUSD-230526",
+            //                     "x" => 1685088000000,
+            //                     "v" => "26464.1",
+            //                     "t" => 1685087999500
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'data', array());
+            $settlements = $this->parse_settlements($data, $market);
+            $sorted = $this->sort_by($settlements, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        //     {
+        //         "i" => "BTCUSD-230526",
+        //         "x" => 1685088000000,
+        //         "v" => "26464.1",
+        //         "t" => 1685087999500
+        //     }
+        //
+        $timestamp = $this->safe_integer($settlement, 'x');
+        $marketId = $this->safe_string($settlement, 'i');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'v'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_settlements($settlements, $market) {
+        //
+        //     array(
+        //         {
+        //             "i" => "BTCUSD-230526",
+        //             "x" => 1685088000000,
+        //             "v" => "26464.1",
+        //             "t" => 1685087999500
+        //         }
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
     }
 
     public function nonce() {

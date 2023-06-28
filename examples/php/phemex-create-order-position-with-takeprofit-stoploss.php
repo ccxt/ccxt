@@ -54,8 +54,8 @@ function example() {
             $created_order = Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
             var_dump('Created an order', $created_order);
             // Fetch all your open orders for this symbol
-            $all_open_rders = Async\await($exchange->fetch_open_orders($symbol));
-            var_dump('Fetched all your orders for this symbol', $all_open_rders);
+            $all_open_orders = Async\await($exchange->fetch_open_orders($symbol));
+            var_dump('Fetched all your orders for this symbol', $all_open_orders);
         } catch(Exception $e) {
             var_dump(((string) $e));
         }
