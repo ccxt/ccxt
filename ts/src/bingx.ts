@@ -27,16 +27,33 @@ export default class bingx extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchDeposits': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchLeverage': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTransfers': true,
+                'fetchWithdrawals': true,
+                'setLeverage': true,
+                'setMagin': true,
+                'setMarginMode': true,
+                'transfer': true,
             },
             'hostname': 'bingx.com',
             'urls': {
@@ -339,7 +356,7 @@ export default class bingx extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': this.safeString (market, 'status') === '1' ? true : false,
+            'active': this.safeValue (market, 'status') ? true : false,
             'contract': swap,
             'linear': swap,
             'inverse': false,
@@ -487,21 +504,20 @@ export default class bingx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
-        if (marketType === 'spot') {
-            method = 'spotV1PublicGetMarketTrades';
-        } else {
-            method = 'swapV2PublicGetQuoteTrades';
-        }
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+        if (marketType === 'spot') {
+            response = await this.spotV1PublicGetMarketTrades (this.extend (request, params));
+        } else {
+            response = await this.swapV2PublicGetQuoteTrades (this.extend (request, params));
+        }
         //
         // spot
         //
@@ -589,6 +605,8 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bingx api endpoint
@@ -596,21 +614,20 @@ export default class bingx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-        if (marketType === 'spot') {
-            method = 'spotV1PublicGetMarketDepth';
-        } else {
-            method = 'swapV2PublicGetQuoteDepth';
-        }
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        if (marketType === 'spot') {
+            response = await this.spotV1PublicGetMarketDepth (this.extend (request, params));
+        } else {
+            response = await this.swapV2PublicGetQuoteDepth (this.extend (request, params));
+        }
         //
         // spot
         //
@@ -999,12 +1016,13 @@ export default class bingx extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
+        let response = undefined;
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotV1PrivateGetAccountBalance',
-            'swap': 'swapV2PrivateGetUserBalance',
-        });
-        const response = await this[method] (marketTypeQuery);
+        if (marketType === 'spot') {
+            response = await this.spotV1PrivateGetAccountBalance (marketTypeQuery);
+        } else {
+            response = await this.swapV2PrivateGetUserBalance (marketTypeQuery);
+        }
         //
         // spot
         //
@@ -1173,6 +1191,7 @@ export default class bingx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let response = undefined;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const request = {
             'symbol': market['id'],
@@ -1197,11 +1216,11 @@ export default class bingx extends Exchange {
         } else if (exchangeSpecificTifParam === 'POC') {
             request['timeInForce'] = 'POC';
         }
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotV1PrivatePostTradeOrder',
-            'swap': 'swapV2PrivatePostTradeOrder',
-        });
-        const response = await this[method] (this.extend (request, query));
+        if (marketType === 'spot') {
+            response = await this.spotV1PrivatePostTradeOrder (this.extend (request, query));
+        } else {
+            response = await this.swapV2PrivatePostTradeOrder (this.extend (request, query));
+        }
         //
         // spot
         //    {
@@ -1400,16 +1419,17 @@ export default class bingx extends Exchange {
         this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotV1PrivatePostTradeCancel',
-            'swap': 'swapV2PrivateDeleteTradeOrder',
-        });
         const request = {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        if (marketType === 'spot') {
+            response = await this.spotV1PrivatePostTradeCancel (this.extend (request, query));
+        } else {
+            response = await this.swapV2PrivateDeleteTradeOrder (this.extend (request, query));
+        }
         //
         // spot
         //
@@ -1466,6 +1486,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#cancelAllOrders
          * @description cancel all open orders
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the bingx api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1517,6 +1538,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#cancelOrders
          * @description cancel multiple orders
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
          * @param {[string]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the bingx api endpoint
@@ -1579,16 +1601,17 @@ export default class bingx extends Exchange {
         this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotV1PrivateGetTradeQuery',
-            'swap': 'swapV2PrivateGetTradeOrder',
-        });
         const request = {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if (marketType === 'spot') {
+            response = await this.spotV1PrivateGetTradeQuery (this.extend (request, query));
+        } else {
+            response = await this.swapV2PrivateGetTradeOrder (this.extend (request, query));
+        }
         //
         // spot
         //
@@ -1661,15 +1684,16 @@ export default class bingx extends Exchange {
         this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotV1PrivateGetTradeOpenOrders',
-            'swap': 'swapV2PrivateGetTradeOpenOrders',
-        });
         const request = {
             'symbol': market['id'],
         };
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if (marketType === 'spot') {
+            response = await this.spotV1PrivateGetTradeOpenOrders (this.extend (request, query));
+        } else {
+            response = await this.swapV2PrivateGetTradeOpenOrders (this.extend (request, query));
+        }
         //
         //  spot
         //
@@ -1747,15 +1771,16 @@ export default class bingx extends Exchange {
         this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotV1PrivateGetTradeHistoryOrders',
-            'swap': 'swapV2PrivateGetTradeAllOrders',
-        });
         const request = {
             'symbol': market['id'],
         };
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if (marketType === 'spot') {
+            response = await this.spotV1PrivateGetTradeHistoryOrders (this.extend (request, query));
+        } else {
+            response = await this.swapV2PrivateGetTradeAllOrders (this.extend (request, query));
+        }
         //
         //  spot
         //
