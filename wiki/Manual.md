@@ -1442,7 +1442,6 @@ var_dump (new \ccxt\kraken ()); // PHP
 
 - methods in this documentation that are documented as **contract only** or **margin only** are only intended to be used for contract trading and margin trading respectively. They may work when trading in other types of markets but will most likely return irrelevant information.
 
-
 ## Synchronous vs Asynchronous Calls
 
 ### JavaScript
@@ -1920,7 +1919,6 @@ Parameters
 Returns
 
 - An [order book structure](#order-book-structure)
-
 
 ```javascript
 async fetchOrderBooks (symbols = undefined, limit = undefined, params = {})
@@ -2626,7 +2624,6 @@ Returns
 
 - A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
 
-
 ### Borrow Rate Structure
 
 ```javascript
@@ -2660,7 +2657,6 @@ Parameters
 Returns
 
 - An array of [borrow rate structures](#borrow-rate-structure)
-
 
 ## Leverage Tiers
 
@@ -2783,7 +2779,6 @@ Parameters
 Returns
 
 - a dictionary of [funding rate structures](#funding-rate-structure) indexed by market symbols
-
 
 ### Funding Rate Structure
 
@@ -3806,7 +3801,6 @@ Stop orders, are placed onto the order book when the price of the underlying ass
 * Or they can be attached to a primary order ([Conditional Stop Orders](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
 * Stop Orders can be limit or market orders
 
-
 ##### Trigger Orders
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open and close a position.
@@ -3941,7 +3935,6 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ##### Take Profit Orders
 
 The same as Stop Loss Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter (for the take profit triggerPrice).
-
 
 Suppose you entered a long position (you bought) at 1000 and want to get your profits from a possible price pump above 1300. You would place a take profit order with triggerPrice at 1300. For that take profit order either you would specify a limit price or it will be executed at market price.
 
@@ -4151,8 +4144,6 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 ))
 ```
 
-
-
 ### Editing Orders
 
 To edit an order, you can use the `editOrder` method
@@ -4204,7 +4195,6 @@ Returns
 
 - An [order structure](#order-structure)
 
-
 ```javascript
 cancelOrders (ids, symbol = undefined, params = {})
 ```
@@ -4218,7 +4208,6 @@ Parameters
 Returns
 
 - An array of [order structures](#order-structure)
-
 
 ```javascript
 async cancelAllOrders (symbol = undefined, params = {})
@@ -4436,8 +4425,6 @@ if ($exchange->has['fetchOrderTrades']) {
 }
 ```
 
-
-
 ## Ledger
 
 The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user which includes
@@ -4568,7 +4555,6 @@ Returns
 
 - An array of [transaction structures](#transaction-structure)
 
-
 ## Withdrawal
 
 The `withdraw` method can be used to withdraw funds from an account
@@ -4576,7 +4562,6 @@ The `withdraw` method can be used to withdraw funds from an account
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
-
 
 ```javascript
 // JavaScript
@@ -5133,7 +5118,6 @@ Parameters
 Returns
 
 - An array of [trading fee structures](#trading-fee-structure)
-
 
 #### Trading Fee Structure
 
