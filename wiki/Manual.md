@@ -1660,7 +1660,7 @@ In most cases users are **required to use at least some type of pagination** in 
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
 
-#### Working With Datetimes And Timestamps
+### Working With Datetimes And Timestamps
 
 The set of methods for working with UTC dates and timestamps and for converting between them:
 
@@ -2859,7 +2859,7 @@ Returns
 
 - A dictionary of [open interest structures](#open-interest-structure)
 
-## Open Interest History
+### Open Interest History
 
 *contract only*
 
@@ -2967,7 +2967,7 @@ In order to create API keys find the API tab or button in your user settings on 
 
 **Remember to keep your apiKey and secret key safe from unauthorized use, do not send or tell it to anybody. A leak of the secret key or a breach in security can cost you a fund loss.**
 
-### Credential Validation
+#### Credential Validation
 
 For checking if the user has supplied all the required credentials the `Exchange` base class has a method called `exchange.checkRequiredCredentials()` or `exchange.check_required_credentials()`. Calling that method will throw an `AuthenticationError`, if some of the credentials are missing or empty. The `Exchange` base class also has  property `exchange.requiredCredentials` that allows a user to see which credentials are required for this or that exchange, as shown below:
 
@@ -2995,7 +2995,7 @@ var_dump($exchange->requiredCredentials); // prints required credentials
 $exchange->check_required_credentials(); // throws AuthenticationError
 ```
 
-### Configuring API Keys
+#### Configuring API Keys
 
 To set up an exchange for trading just assign the API credentials to an existing exchange instance or pass them to exchange constructor upon instantiation, like so:
 
@@ -3076,7 +3076,7 @@ $exchange = new $exchange_class (array (
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
 
-### Sign In
+#### Sign In
 
 Some exchanges required you to sign in prior to calling private methods, which can be done using the `signIn` method
 
@@ -3092,7 +3092,7 @@ Returns
 
 - response from the exchange
 
-### Overriding The Nonce
+## Overriding The Nonce
 
 **The default nonce is defined by the underlying exchange. You can override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read [API docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) carefully!**
 
@@ -4153,7 +4153,7 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 
 
 
-## Editing Orders
+### Editing Orders
 
 To edit an order, you can use the `editOrder` method
 
@@ -4184,7 +4184,7 @@ Returns
 
 ### Canceling Orders
 
-To cancel an existing use
+To cancel an existing order use
 
 - `cancelOrder ()` for a single order
 - `cancelOrders ()` for multiple orders
@@ -4862,7 +4862,7 @@ Returns
 
 - an array of [address structures](#address-structure)
 
-#### Address Structure
+### Address Structure
 
 The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses`, `fetchDepositAddressesByNetwork` and `createDepositAddress` look like this:
 
@@ -5135,7 +5135,7 @@ Returns
 - An array of [trading fee structures](#trading-fee-structure)
 
 
-##### Trading Fee Structure
+#### Trading Fee Structure
 
 ```javascript
 {
@@ -5198,7 +5198,7 @@ Returns
 
 - An array of [transaction fee structures](#transaction-fee-structure)
 
-##### Transaction Fee Structure
+#### Transaction Fee Structure
 
 ```javascript
 {
@@ -5823,7 +5823,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
 - Make sure that your system time in sync with the rest of the world's clocks since otherwise you may get invalid nonce errors.
 
-### Notes
+## Notes
 
 - Use the `verbose = true` option or instantiate your troublesome exchange with `new ccxt.exchange ({ 'verbose': true })` to see the HTTP requests and responses in details. The verbose output will also be of use for us to debug it if you submit an issue on GitHub.
 - Use DEBUG logging in Python!
