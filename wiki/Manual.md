@@ -818,7 +818,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `optionType`. The type of the option, `call` option represents an option with the right to buy and `put` an option with the right to sell.
 - `strike`. Price at which an option can be bought or sold when it is exercised.
 
-## Active status
+## Active Status
 
 The `active` flag is typically used in [`currencies`](#currency-structure) and [`markets`](#market-structure). The exchanges might put a slightly different meaning into it. If a currency is inactive, most of the time all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated information. The user should check if the currency is `active` and [reload markets periodically](#market-cache-force-reload).
 
@@ -1660,7 +1660,7 @@ In most cases users are **required to use at least some type of pagination** in 
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
 
-#### Working With Datetimes and Timestamps
+#### Working With Datetimes And Timestamps
 
 The set of methods for working with UTC dates and timestamps and for converting between them:
 
@@ -2111,7 +2111,7 @@ Check the `exchange.has['fetchTicker']` and `exchange.has['fetchTickers']` prope
 
 **Please, note, that calling `fetchTickers ()` without a symbol is usually strictly rate-limited, an exchange may ban you if you poll that endpoint too frequently.**
 
-### Ticker structure
+### Ticker Structure
 
 A ticker is a statistical calculation with the information calculated over the past 24 hours for a specific market.
 
@@ -4508,7 +4508,7 @@ Returns
 }
 ```
 
-#### Notes on Ledger Entry Structure
+#### Notes On Ledger Entry Structure
 
 The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
 
@@ -5251,7 +5251,7 @@ Returns
 }
 ```
 
-## Borrow and Repay Margin
+## Borrow And Repay Margin
 
 *margin only*
 
@@ -5394,7 +5394,7 @@ Returns
 
 - response from the exchange
 
-## Contract trading
+## Contract Trading
 
 This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
 Information about the positions can be served from different endpoints depending on the exchange.
