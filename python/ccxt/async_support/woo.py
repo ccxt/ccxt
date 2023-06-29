@@ -225,7 +225,7 @@ class woo(Exchange, ImplicitAPI):
                             'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
-                            'algo/order/{oid}': 1,
+                            'algo/order/{order_id}': 1,
                             'algo/orders/pending': 1,
                             'algo/orders/pending/{symbol}': 1,
                             'orders/pending': 1,
@@ -712,6 +712,8 @@ class woo(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+        see https://docs.woo.org/#send-order
+        see https://docs.woo.org/#send-algo-order
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -719,35 +721,49 @@ class woo(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the woo api endpoint
+        :param float params['triggerPrice']: The price a trigger order is triggered at
+        :param dict|None params['takeProfit']: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
+        :param float|None params.takeProfit.triggerPrice: take profit trigger price
+        :param dict|None params['stopLoss']: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float|None params.stopLoss.triggerPrice: stop loss trigger price
+        :param float|None params['algoType']: 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        reduceOnly = self.safe_value(params, 'reduceOnly')
+        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
         orderType = type.upper()
-        if reduceOnly is not None:
-            if orderType != 'LIMIT':
-                raise InvalidOrder(self.id + ' createOrder() only support reduceOnly for limit orders')
         await self.load_markets()
         market = self.market(symbol)
         orderSide = side.upper()
         request = {
             'symbol': market['id'],
-            'order_type': orderType,  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side': orderSide,
         }
+        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
+        algoType = self.safe_string(params, 'algoType')
+        isStop = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
-        if postOnly:
-            request['order_type'] = 'POST_ONLY'
-        elif timeInForce == 'fok':
-            request['order_type'] = 'FOK'
-        elif timeInForce == 'ioc':
-            request['order_type'] = 'IOC'
+        reduceOnlyKey = 'reduceOnly' if isStop else 'reduce_only'
+        clientOrderIdKey = 'clientOrderId' if isStop else 'client_order_id'
+        orderQtyKey = 'quantity' if isStop else 'order_quantity'
+        priceKey = 'price' if isStop else 'order_price'
+        typeKey = 'type' if isStop else 'order_type'
+        request[typeKey] = orderType  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        if not isStop:
+            if postOnly:
+                request['order_type'] = 'POST_ONLY'
+            elif timeInForce == 'fok':
+                request['order_type'] = 'FOK'
+            elif timeInForce == 'ioc':
+                request['order_type'] = 'IOC'
         if reduceOnly:
-            request['reduce_only'] = reduceOnly
+            request[reduceOnlyKey] = reduceOnly
         if price is not None:
-            request['order_price'] = self.price_to_precision(symbol, price)
-        if isMarket:
+            request[priceKey] = self.price_to_precision(symbol, price)
+        if isMarket and not isStop:
             # for market buy it requires the amount of quote currency to spend
             if market['spot'] and orderSide == 'BUY':
                 cost = self.safe_number(params, 'cost')
@@ -766,17 +782,51 @@ class woo(Exchange, ImplicitAPI):
                     request['order_amount'] = self.cost_to_precision(symbol, amount)
             else:
                 request['order_quantity'] = self.amount_to_precision(symbol, amount)
-        else:
-            request['order_quantity'] = self.amount_to_precision(symbol, amount)
-        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        elif algoType != 'POSITIONAL_TP_SL':
+            request[orderQtyKey] = self.amount_to_precision(symbol, amount)
+        clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
-            request['client_order_id'] = clientOrderId
-        applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
-        brokerId = self.safe_string(self.options, 'brokerId', applicationId)
-        if brokerId is not None:
-            request['broker_id'] = brokerId
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce'])
-        response = await self.v1PrivatePostOrder(self.extend(request, params))
+            request[clientOrderIdKey] = clientOrderId
+        if stopPrice is not None:
+            if algoType != 'TRAILING_STOP':
+                request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['algoType'] = 'STOP'
+        elif (stopLoss is not None) or (takeProfit is not None):
+            request['algoType'] = 'BRACKET'
+            outterOrder = {
+                'symbol': market['id'],
+                'reduceOnly': False,
+                'algoType': 'POSITIONAL_TP_SL',
+                'childOrders': [],
+            }
+            closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
+            if stopLoss is not None:
+                stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
+                stopLossOrder = {
+                    'side': closeSide,
+                    'algoType': 'STOP_LOSS',
+                    'triggerPrice': self.price_to_precision(symbol, stopLossPrice),
+                    'type': 'CLOSE_POSITION',
+                    'reduceOnly': True,
+                }
+                outterOrder['childOrders'].append(stopLossOrder)
+            if takeProfit is not None:
+                takeProfitPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'price', takeProfit)
+                takeProfitOrder = {
+                    'side': closeSide,
+                    'algoType': 'TAKE_PROFIT',
+                    'triggerPrice': self.price_to_precision(symbol, takeProfitPrice),
+                    'type': 'CLOSE_POSITION',
+                    'reduceOnly': True,
+                }
+                outterOrder['childOrders'].append(takeProfitOrder)
+            request['childOrders'] = [outterOrder]
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
+        response = None
+        if isStop:
+            response = await self.v3PrivatePostAlgoOrder(self.extend(request, params))
+        else:
+            response = await self.v1PrivatePostOrder(self.extend(request, params))
         # {
         #     success: True,
         #     timestamp: '1641383206.489',
@@ -787,6 +837,25 @@ class woo(Exchange, ImplicitAPI):
         #     order_amount: null,  # NOT-null for 'MARKET' order
         #     client_order_id: '0'
         # }
+        # stop orders
+        # {
+        #     success: True,
+        #     data: {
+        #       rows: [
+        #         {
+        #           orderId: '1578938',
+        #           clientOrderId: '0',
+        #           algoType: 'STOP_LOSS',
+        #           quantity: '0.1'
+        #         }
+        #       ]
+        #     },
+        #     timestamp: '1686149372216'
+        # }
+        data = self.safe_value(response, 'data')
+        if data is not None:
+            rows = self.safe_value(data, 'rows', [])
+            return self.parse_order(rows[0], market)
         return self.extend(
             self.parse_order(response, market),
             {'type': type}
@@ -794,6 +863,10 @@ class woo(Exchange, ImplicitAPI):
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
+        see https://docs.woo.org/#edit-order
+        see https://docs.woo.org/#edit-order-by-client_order_id
+        see https://docs.woo.org/#edit-algo-order
+        see https://docs.woo.org/#edit-algo-order-by-client_order_id
         edit a trade order
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -802,6 +875,9 @@ class woo(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the woo api endpoint
+        :param float params['triggerPrice']: The price a trigger order is triggered at
+        :param float|None params['stopLossPrice']: price to trigger stop-loss orders
+        :param float|None params['takeProfitPrice']: price to trigger take-profit orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -817,14 +893,25 @@ class woo(Exchange, ImplicitAPI):
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
+        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
+        if stopPrice is not None:
+            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
         method = None
         if isByClientOrder:
-            method = 'v3PrivatePutOrderClientClientOrderId'
-            request['client_order_id'] = clientOrderIdExchangeSpecific
-            params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+            if isStop:
+                method = 'v3PrivatePutAlgoOrderClientClientOrderId'
+                request['oid'] = id
+            else:
+                method = 'v3PrivatePutOrderClientClientOrderId'
+                request['client_order_id'] = clientOrderIdExchangeSpecific
         else:
-            method = 'v3PrivatePutOrderOid'
+            if isStop:
+                method = 'v3PrivatePutAlgoOrderOid'
+            else:
+                method = 'v3PrivatePutOrderOid'
             request['oid'] = id
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -843,21 +930,30 @@ class woo(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://docs.woo.org/#cancel-algo-order
+        see https://docs.woo.org/#cancel-order
+        see https://docs.woo.org/#cancel-order-by-client_order_id
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the woo api endpoint
+        :param boolean|None params['stop']: whether the order is a stop/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        stop = self.safe_value(params, 'stop', False)
+        params = self.omit(params, 'stop')
+        if not stop:
+            self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
         request = {}
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         method = None
-        if isByClientOrder:
+        if stop:
+            method = 'v3PrivateDeleteAlgoOrderOrderId'
+            request['order_id'] = id
+        elif isByClientOrder:
             method = 'v1PrivateDeleteClientOrder'
             request['client_order_id'] = clientOrderIdExchangeSpecific
             params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
@@ -867,7 +963,8 @@ class woo(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request['symbol'] = market['id']
+        if not stop:
+            request['symbol'] = market['id']
         response = await getattr(self, method)(self.extend(request, params))
         #
         # {success: True, status: 'CANCEL_SENT'}
@@ -881,14 +978,21 @@ class woo(Exchange, ImplicitAPI):
 
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
+        see https://docs.woo.org/#cancel-all-pending-orders
+        see https://docs.woo.org/#cancel-orders
+        see https://docs.woo.org/#cancel-all-pending-algo-orders
         cancel all open orders in a market
         :param str|None symbol: unified market symbol
         :param dict params: extra parameters specific to the woo api endpoint
+        :param boolean|None params['stop']: whether the order is a stop/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
         await self.load_markets()
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, 'stop')
+        if stop:
+            return await self.v3PrivateDeleteAlgoOrdersPending(params)
+        self.check_required_symbol('cancelOrders', symbol)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -904,23 +1008,31 @@ class woo(Exchange, ImplicitAPI):
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://docs.woo.org/#get-algo-order
+        see https://docs.woo.org/#get-order
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the woo api endpoint
+        :param boolean|None params['stop']: whether the order is a stop/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, 'stop')
         request = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        chosenSpotMethod = None
-        if clientOrderId:
-            chosenSpotMethod = 'v1PrivateGetClientOrderClientOrderId'
+        method = None
+        if stop:
+            method = 'v3PrivateGetAlgoOrderOid'
+            request['oid'] = id
+        elif clientOrderId:
+            method = 'v1PrivateGetClientOrderClientOrderId'
             request['client_order_id'] = clientOrderId
         else:
-            chosenSpotMethod = 'v1PrivateGetOrderOid'
+            method = 'v1PrivateGetOrderOid'
             request['oid'] = id
-        response = await getattr(self, chosenSpotMethod)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # {
         #     success: True,
@@ -956,26 +1068,43 @@ class woo(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        return self.parse_order(response, market)
+        orders = self.safe_value(response, 'data', response)
+        return self.parse_order(orders, market)
 
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.woo.org/#get-orders
+        see https://docs.woo.org/#get-algo-orders
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the woo api endpoint
+        :param boolean|None params['stop']: whether the order is a stop/algo order
+        :param boolean|None params['isTriggered']: whether the order has been triggered(False by default)
+        :param str|None params['side']: 'buy' or 'sell'
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
         market = None
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, 'stop')
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            request['start_t'] = since
-        response = await self.v1PrivateGetOrders(self.extend(request, params))
+            if stop:
+                request['createdTimeStart'] = since
+            else:
+                request['start_t'] = since
+        if stop:
+            request['algoType'] = 'stop'
+        response = None
+        if stop:
+            response = await self.v3PrivateGetAlgoOrders(self.extend(request, params))
+        else:
+            response = await self.v1PrivateGetOrders(self.extend(request, params))
         #
         #     {
         #         "success":true,
@@ -1007,8 +1136,9 @@ class woo(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'rows')
-        return self.parse_orders(data, market, since, limit, params)
+        data = self.safe_value(response, 'data', response)
+        orders = self.safe_value(data, 'rows')
+        return self.parse_orders(orders, market, since, limit, params)
 
     def parse_time_in_force(self, timeInForce):
         timeInForces = {
@@ -1026,9 +1156,46 @@ class woo(Exchange, ImplicitAPI):
         # * fetchOrder
         # * fetchOrders
         # isFromFetchOrder = ('order_tag' in order); TO_DO
-        timestamp = self.safe_timestamp_2(order, 'timestamp', 'created_time')
-        orderId = self.safe_string(order, 'order_id')
-        clientOrderId = self.safe_string(order, 'client_order_id')  # Somehow, self always returns 0 for limit order
+        #
+        # stop order after creating it:
+        #   {
+        #     orderId: '1578938',
+        #     clientOrderId: '0',
+        #     algoType: 'STOP_LOSS',
+        #     quantity: '0.1'
+        #   }
+        # stop order after fetching it:
+        #   {
+        #       algoOrderId: '1578958',
+        #       clientOrderId: '0',
+        #       rootAlgoOrderId: '1578958',
+        #       parentAlgoOrderId: '0',
+        #       symbol: 'SPOT_LTC_USDT',
+        #       orderTag: 'default',
+        #       algoType: 'STOP_LOSS',
+        #       side: 'BUY',
+        #       quantity: '0.1',
+        #       isTriggered: False,
+        #       triggerPrice: '100',
+        #       triggerStatus: 'USELESS',
+        #       type: 'LIMIT',
+        #       rootAlgoStatus: 'CANCELLED',
+        #       algoStatus: 'CANCELLED',
+        #       triggerPriceType: 'MARKET_PRICE',
+        #       price: '75',
+        #       triggerTime: '0',
+        #       totalExecutedQuantity: '0',
+        #       averageExecutedPrice: '0',
+        #       totalFee: '0',
+        #       feeAsset: '',
+        #       reduceOnly: False,
+        #       createdTime: '1686149609.744',
+        #       updatedTime: '1686149903.362'
+        #   }
+        #
+        timestamp = self.safe_timestamp_n(order, ['timestamp', 'created_time', 'createdTime'])
+        orderId = self.safe_string_n(order, ['order_id', 'orderId', 'algoOrderId'])
+        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, self always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1036,20 +1203,35 @@ class woo(Exchange, ImplicitAPI):
         amount = self.safe_string_2(order, 'order_quantity', 'quantity')  # This is base amount
         cost = self.safe_string_2(order, 'order_amount', 'amount')  # This is quote amount
         orderType = self.safe_string_lower_2(order, 'order_type', 'type')
-        status = self.safe_value(order, 'status')
+        status = self.safe_value_2(order, 'status', 'algoStatus')
         side = self.safe_string_lower(order, 'side')
-        filled = self.safe_value(order, 'executed')
-        average = self.safe_string(order, 'average_executed_price')
+        filled = self.omit_zero(self.safe_value_2(order, 'executed', 'totalExecutedQuantity'))
+        average = self.omit_zero(self.safe_string_2(order, 'average_executed_price', 'averageExecutedPrice'))
         remaining = Precise.string_sub(cost, filled)
-        fee = self.safe_value(order, 'total_fee')
-        feeCurrency = self.safe_string(order, 'fee_asset')
+        fee = self.safe_value_2(order, 'total_fee', 'totalFee')
+        feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_value(order, 'Transactions')
+        stopPrice = self.safe_number(order, 'triggerPrice')
+        takeProfitPrice = None
+        stopLossPrice = None
+        childOrders = self.safe_value(order, 'childOrders')
+        if childOrders is not None:
+            first = self.safe_value(childOrders, 0)
+            innerChildOrders = self.safe_value(first, 'childOrders', [])
+            innerChildOrdersLength = len(innerChildOrders)
+            if innerChildOrdersLength > 0:
+                takeProfitOrder = self.safe_value(innerChildOrders, 0)
+                stopLossOrder = self.safe_value(innerChildOrders, 1)
+                takeProfitPrice = self.safe_number(takeProfitOrder, 'triggerPrice')
+                stopLossPrice = self.safe_number(stopLossOrder, 'triggerPrice')
+        lastUpdateTimestamp = self.safe_timestamp_2(order, 'updatedTime', 'updated_time')
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': self.parse_order_status(status),
             'symbol': symbol,
             'type': orderType,
@@ -1058,8 +1240,10 @@ class woo(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_value(order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'average': average,
             'amount': amount,
             'filled': filled,
@@ -1826,6 +2010,15 @@ class woo(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
+            if method == 'POST' and (path == 'algo/order' or path == 'order'):
+                applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+                brokerId = self.safe_string(self.options, 'brokerId', applicationId)
+                isStop = path.find('algo') > -1
+                if isStop:
+                    params['brokerId'] = brokerId
+                else:
+                    params['broker_id'] = brokerId
+                params = self.keysort(params)
             auth = ''
             ts = str(self.nonce())
             url += pathWithParams

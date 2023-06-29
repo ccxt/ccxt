@@ -1877,11 +1877,12 @@ class okx extends Exchange {
         if ($since !== null) {
             $now = $this->milliseconds();
             $difference = $now - $since;
-            // if the $since timestamp is more than $limit candles back in the past
-            if ($difference > 1440 * $duration * 1000) {
+            $durationInMilliseconds = $duration * 1000;
+            // if the $since timestamp is more than $limit candles back in the past (additional one $bar because of maximal offset to round the current day to UTC)
+            $calc = (1440 - $limit - 1) * $durationInMilliseconds;
+            if ($difference > $calc) {
                 $defaultType = 'HistoryCandles';
             }
-            $durationInMilliseconds = $duration * 1000;
             $startTime = max ($since - 1, 0);
             $request['before'] = $startTime;
             $request['after'] = $this->sum($startTime, $durationInMilliseconds * $limit);

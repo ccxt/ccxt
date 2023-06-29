@@ -466,6 +466,7 @@ export default class gate extends Exchange {
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
                 'VAI': 'VAIOT',
+                'TRAC': 'TRACO', // conflict with OriginTrail (TRAC)
             },
             'requiredCredentials': {
                 'apiKey': true,
