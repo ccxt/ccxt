@@ -2140,7 +2140,7 @@ The structure of a ticker is as follows:
 }
 ```
 
-### Notes On Ticker Structure
+#### Notes On Ticker Structure
 
 - All fields in the ticker represent the past 24 hours prior to `timestamp`.
 - The `bidVolume` is the volume (amount) of current best bid in the orderbook.
@@ -5384,7 +5384,7 @@ This can include futures with a set expiry date, perpetual swaps with funding pa
 Information about the positions can be served from different endpoints depending on the exchange.
 In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as opposed to the "future") contracts.
 
-## Positions
+### Positions
 
 *contract only*
 
@@ -5421,7 +5421,7 @@ Returns
 
 - An array of [position structures](#position-structure)
 
-### Position Structure
+#### Position Structure
 
 ```javascript
 {
@@ -5460,7 +5460,7 @@ It is recommended to use the `maintenanceMargin` and `initialMargin` instead of 
 
 An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
 
-### Liquidation Price
+#### Liquidation Price
 
 It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
 
@@ -5477,7 +5477,7 @@ It is the price at which the `initialMargin + unrealized = collateral = maintena
 (1/price - 1/liquidationPrice) * contracts = maintenanceMargin
 ```
 
-## Funding History
+### Funding History
 
 *contract only*
 
@@ -5506,7 +5506,7 @@ Returns
 
 - An array of [funding history structures](#funding-history-structure)
 
-### Funding History Structure
+#### Funding History Structure
 
 ```javascript
 {
