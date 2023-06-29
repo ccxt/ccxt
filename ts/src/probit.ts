@@ -732,7 +732,7 @@ export default class probit extends Exchange {
         }
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
-            request['end_time'] =  this.iso8601 (Math.min (now, since + 31536000000));
+            request['end_time'] = this.iso8601 (Math.min (now, since + 31536000000));
         }
         if (limit !== undefined) {
             request['limit'] = limit;
