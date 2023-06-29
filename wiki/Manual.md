@@ -5588,6 +5588,14 @@ If you need for special cases, you can override `userAgent` property like:
 ```
 ex.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)...'
 ```
+
+#### custom proxy agents
+
+Depending your programming language, you can set custom proxy agents.
+ - For JS, see [this example](
+https://github.com/ccxt/ccxt/blob/master/examples/js/custom-proxy-agent-for-js.js)
+ - For Python, see the following examples: [agent for request package version](
+https://github.com/ccxt/ccxt/blob/master/examples/py/custom-proxy-agent-for-py-sync.js)
 #### CORS (Access-Control-Allow-Origin)
 
 CORS (known as [Cross-Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)) affects mostly browsers and is the cause of the well-know warning `No 'Access-Control-Allow-Origin' header is present on the requested resource`. It happens because a script (running in a browser) might be trying to make a request data from another domain but that domain does not allow such connection (by default that feature are disabled by domains, unless they specially enable it).
