@@ -1627,8 +1627,8 @@ export default class phemex extends Exchange {
                 priceString = this.fromEp (this.safeString (trade, 'execPriceEp'), market);
                 amountString = this.fromEv (this.safeString (trade, 'execBaseQtyEv'), market);
                 amountString = this.safeString (trade, 'execQty', amountString);
-                costString = this.fromEv (this.safeString2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
-                feeCostString = this.fromEv (this.safeString (trade, 'execFeeEv'), market);
+                costString = this.fromEr (this.safeString2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
+                feeCostString = this.fromEr (this.safeString (trade, 'execFeeEv'), market);
                 if (feeCostString !== undefined) {
                     feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
                     if (market['spot']) {
