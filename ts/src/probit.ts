@@ -720,10 +720,11 @@ export default class probit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
+        const now = this.milliseconds ();
         const request = {
             'limit': 100,
-            'start_time': this.iso8601 (0),
-            'end_time': this.iso8601 (this.milliseconds ()),
+            'start_time': this.iso8601 (now - 31536000000), // +365 days
+            'end_time': this.iso8601 (now),
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -731,6 +732,7 @@ export default class probit extends Exchange {
         }
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
+            request['end_time'] =  this.iso8601 (Math.min (now, since + 31536000000));
         }
         if (limit !== undefined) {
             request['limit'] = limit;
