@@ -7,8 +7,8 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ripemd160 } from './static_dependencies/noble-hashes/ripemd160.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import { CurveFn, SignatureType } from './static_dependencies/noble-curves/abstract/weierstrass.js';
-import { PrivKey, bitMask, numberToBytesBE, concatBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils.js';
+import { CurveFn } from './static_dependencies/noble-curves/abstract/weierstrass.js';
+import { numberToBytesBE, concatBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils.js';
 import { Int, Trade, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
@@ -1031,24 +1031,7 @@ export default class protondex extends Exchange {
         return transResults;
     }
 
-    int2octets (num: bigint, ec: CurveFn) {
-        // if (typeof num !== 'bigint') throw new Error ('bigint expected');
-        const _0n = BigInt (0);
-        const ORDER_MASK = bitMask (ec.CURVE.nBitLength);
-        if (!(_0n <= num && num < ORDER_MASK)) {
-            throw new Error ('bigint expected < 2 XOR ec.CURVE.nBitLength');
-        }
-        // works with order, can have different size than numToField!
-        return numberToBytesBE (num, ec.CURVE.nByteLength);
-    }
-
-    privkeyToUint8Array (privkey: PrivKey) {
-        const ec = secp256k1 as CurveFn;
-        const scalar = ec.utils.normPrivateKeyToScalar (privkey);
-        return this.int2octets (scalar, ec);
-    }
-
-    digestSuffixRipemd160 (data: Uint8Array, suffix: string) {
+    digestSuffixRipemd160 (data, suffix: string) {
         const d = new Uint8Array (data.length + suffix.length);
         for (let i = 0; i < data.length; ++i) {
             d[i] = data[i];
@@ -1060,7 +1043,7 @@ export default class protondex extends Exchange {
         return ripemd160 (d);
     }
 
-    keyToString (keyData: Uint8Array, suffix: string, prefix: string) {
+    keyToString (keyData, suffix: string, prefix: string) {
         const digest = new Uint8Array (this.digestSuffixRipemd160 (keyData, suffix));
         const whole = new Uint8Array (keyData.length + 4);
         for (let i = 0; i < keyData.length; ++i) {
@@ -1084,7 +1067,7 @@ export default class protondex extends Exchange {
         return data;
     }
 
-    fromElliptic (ellipticSig: SignatureType) {
+    fromElliptic (ellipticSig) {
         (ellipticSig as any).recovery = ellipticSig.recovery || 0;
         const r = numberToBytesBE (ellipticSig.r, 32);
         const s = numberToBytesBE (ellipticSig.s, 32);
@@ -1098,7 +1081,7 @@ export default class protondex extends Exchange {
         return this.keyToString (sigData, 'K1', 'SIG_K1_');
     }
 
-    getSignatures (transHex: Uint8Array) {
+    getSignatures (transHex) {
         let chainID = '384da888112027f0321850a169f737c33e53b388aad48b5adace4bab97f437e0';
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         if (sandboxMode) {
@@ -1118,7 +1101,7 @@ export default class protondex extends Exchange {
             for (let i = 0; i < 32; ++i) {
                 keyData[i] = whole[i + 1];
             }
-            arrayData = this.privkeyToUint8Array (keyData);
+            arrayData = keyData;
         }
         const rawSignature = e.sign (digest, arrayData);
         const signature = this.fromElliptic (rawSignature);
