@@ -1745,6 +1745,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @param {string} params.network network for fetch deposit address
