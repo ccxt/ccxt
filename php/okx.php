@@ -4987,6 +4987,27 @@ class okx extends Exchange {
             }
         } elseif ($api === 'private') {
             $this->check_required_credentials();
+            // inject id in implicit $api call
+            if ($method === 'POST' && ($path === 'trade/batch-orders' || $path === 'trade/order-algo' || $path === 'trade/order')) {
+                $brokerId = $this->safe_string($this->options, 'brokerId', 'e847386590ce4dBC');
+                if (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
+                    for ($i = 0; $i < count($params); $i++) {
+                        $entry = $params[$i];
+                        $clientOrderId = $this->safe_string($entry, 'clOrdId');
+                        if ($clientOrderId === null) {
+                            $entry['clOrdId'] = $brokerId . $this->uuid16();
+                            $entry['tag'] = $brokerId;
+                            $params[$i] = $entry;
+                        }
+                    }
+                } else {
+                    $clientOrderId = $this->safe_string($params, 'clOrdId');
+                    if ($clientOrderId === null) {
+                        $request['clOrdId'] = $brokerId . $this->uuid16();
+                        $request['tag'] = $brokerId;
+                    }
+                }
+            }
             $timestamp = $this->iso8601($this->milliseconds());
             $headers = array(
                 'OK-ACCESS-KEY' => $this->apiKey,

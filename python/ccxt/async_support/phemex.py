@@ -1412,6 +1412,9 @@ class phemex(Exchange, ImplicitAPI):
         #         "leavesQuoteQtyEv": 0,
         #         "execFeeEv": 0,
         #         "feeRateEr": 0
+        #         "baseCurrency": 'BTC',
+        #         "quoteCurrency": 'USDT',
+        #         "feeCurrency": 'BTC'
         #     }
         #
         # swap
@@ -1576,12 +1579,12 @@ class phemex(Exchange, ImplicitAPI):
                 priceString = self.from_ep(self.safe_string(trade, 'execPriceEp'), market)
                 amountString = self.from_ev(self.safe_string(trade, 'execBaseQtyEv'), market)
                 amountString = self.safe_string(trade, 'execQty', amountString)
-                costString = self.from_ev(self.safe_string_2(trade, 'execQuoteQtyEv', 'execValueEv'), market)
-                feeCostString = self.from_ev(self.safe_string(trade, 'execFeeEv'), market)
+                costString = self.from_er(self.safe_string_2(trade, 'execQuoteQtyEv', 'execValueEv'), market)
+                feeCostString = self.from_er(self.safe_string(trade, 'execFeeEv'), market)
                 if feeCostString is not None:
                     feeRateString = self.from_er(self.safe_string(trade, 'feeRateEr'), market)
                     if market['spot']:
-                        feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
+                        feeCurrencyCode = self.safe_currency_code(self.safe_string(trade, 'feeCurrency'))
                     else:
                         info = self.safe_value(market, 'info')
                         if info is not None:

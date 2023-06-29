@@ -78,8 +78,9 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': True,
                 'fetchPositionMode': False,
-                'fetchPositions': False,
+                'fetchPositions': True,
                 'fetchSettlementHistory': True,
                 'fetchStatus': False,
                 'fetchTicker': True,
@@ -2621,6 +2622,146 @@ class cryptocom(Exchange, ImplicitAPI):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+
+    async def fetch_position(self, symbol: str, params={}):
+        """
+        fetch data on a single open contract trade position
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = await self.v1PrivatePostPrivateGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1688015952050,
+        #         "method": "private/get-positions",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
+        #                     "quantity": "0.0001",
+        #                     "cost": "3.02392",
+        #                     "open_pos_cost": "3.02392",
+        #                     "open_position_pnl": "-0.0010281328",
+        #                     "session_pnl": "-0.0010281328",
+        #                     "update_timestamp_ms": 1688015919091,
+        #                     "instrument_name": "BTCUSD-PERP",
+        #                     "type": "PERPETUAL_SWAP"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'data', [])
+        return self.parse_position(data[0], market)
+
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetch all open positions
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request = {}
+        market = None
+        if symbols is not None:
+            symbol = None
+            if isinstance(symbols, list):
+                symbolsLength = len(symbols)
+                if symbolsLength > 1:
+                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
+                symbol = symbols[0]
+            else:
+                symbol = symbols
+            market = self.market(symbol)
+            request['instrument_name'] = market['id']
+        response = await self.v1PrivatePostPrivateGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1688015952050,
+        #         "method": "private/get-positions",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
+        #                     "quantity": "0.0001",
+        #                     "cost": "3.02392",
+        #                     "open_pos_cost": "3.02392",
+        #                     "open_position_pnl": "-0.0010281328",
+        #                     "session_pnl": "-0.0010281328",
+        #                     "update_timestamp_ms": 1688015919091,
+        #                     "instrument_name": "BTCUSD-PERP",
+        #                     "type": "PERPETUAL_SWAP"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        responseResult = self.safe_value(response, 'result', {})
+        positions = self.safe_value(responseResult, 'data', [])
+        result = []
+        for i in range(0, len(positions)):
+            entry = positions[i]
+            marketId = self.safe_string(entry, 'instrument_name')
+            marketInner = self.safe_market(marketId, None, None, 'contract')
+            result.append(self.parse_position(entry, marketInner))
+        return self.filter_by_array(result, 'symbol', None, False)
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
+        #         "quantity": "0.0001",
+        #         "cost": "3.02392",
+        #         "open_pos_cost": "3.02392",
+        #         "open_position_pnl": "-0.0010281328",
+        #         "session_pnl": "-0.0010281328",
+        #         "update_timestamp_ms": 1688015919091,
+        #         "instrument_name": "BTCUSD-PERP",
+        #         "type": "PERPETUAL_SWAP"
+        #     }
+        #
+        marketId = self.safe_string(position, 'instrument_name')
+        market = self.safe_market(marketId, market, None, 'contract')
+        symbol = self.safe_symbol(marketId, market, None, 'contract')
+        timestamp = self.safe_integer(position, 'update_timestamp_ms')
+        return self.safe_position({
+            'info': position,
+            'id': None,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'hedged': None,
+            'side': None,
+            'contracts': None,
+            'contractSize': market['contractSize'],
+            'entryPrice': None,
+            'markPrice': None,
+            'notional': None,
+            'leverage': None,
+            'collateral': self.safe_number(position, 'open_pos_cost'),
+            'initialMargin': self.safe_number(position, 'cost'),
+            'maintenanceMargin': None,
+            'initialMarginPercentage': None,
+            'maintenanceMarginPercentage': None,
+            'unrealizedPnl': self.safe_number(position, 'open_position_pnl'),
+            'liquidationPrice': None,
+            'marginMode': None,
+            'percentage': None,
+            'marginRatio': None,
+        })
 
     def nonce(self):
         return self.milliseconds()

@@ -4763,6 +4763,22 @@ class okx(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
+            # inject id in implicit api call
+            if method == 'POST' and (path == 'trade/batch-orders' or path == 'trade/order-algo' or path == 'trade/order'):
+                brokerId = self.safe_string(self.options, 'brokerId', 'e847386590ce4dBC')
+                if isinstance(params, list):
+                    for i in range(0, len(params)):
+                        entry = params[i]
+                        clientOrderId = self.safe_string(entry, 'clOrdId')
+                        if clientOrderId is None:
+                            entry['clOrdId'] = brokerId + self.uuid16()
+                            entry['tag'] = brokerId
+                            params[i] = entry
+                else:
+                    clientOrderId = self.safe_string(params, 'clOrdId')
+                    if clientOrderId is None:
+                        request['clOrdId'] = brokerId + self.uuid16()
+                        request['tag'] = brokerId
             timestamp = self.iso8601(self.milliseconds())
             headers = {
                 'OK-ACCESS-KEY': self.apiKey,

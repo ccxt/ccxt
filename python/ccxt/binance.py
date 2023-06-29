@@ -1065,6 +1065,8 @@ class binance(Exchange, ImplicitAPI):
                     'margin': 'x-R4BD3S82',
                     'future': 'x-xcKtGhcu',
                     'delivery': 'x-xcKtGhcu',
+                    'swap': 'x-xcKtGhcu',
+                    'option': 'x-xcKtGhcu',
                 },
                 'accountsByType': {
                     'main': 'MAIN',
@@ -7336,6 +7338,15 @@ class binance(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
+            if method == 'POST' and path == 'order':
+                # inject in implicit API calls
+                newClientOrderId = self.safe_string(params, 'newClientOrderId')
+                if newClientOrderId is None:
+                    isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
+                    marketType = 'spot' if isSpotOrMargin else 'future'
+                    broker = self.safe_value(self.options, 'broker')
+                    brokerId = self.safe_string(broker, marketType)
+                    params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
