@@ -1635,7 +1635,7 @@ export default class phemex extends Exchange {
                 if (feeCostString !== undefined) {
                     feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
                     if (market['spot']) {
-                        feeCurrencyCode = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency');
+                        feeCurrencyCode = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
                     } else {
                         const info = this.safeValue (market, 'info');
                         if (info !== undefined) {
