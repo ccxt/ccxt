@@ -1458,6 +1458,9 @@ export default class phemex extends Exchange {
         //         "leavesQuoteQtyEv": 0,
         //         "execFeeEv": 0,
         //         "feeRateEr": 0
+        //         "baseCurrency": 'BTC',
+        //         "quoteCurrency": 'USDT',
+        //         "feeCurrency": 'BTC'
         //     }
         //
         // swap
@@ -1632,7 +1635,7 @@ export default class phemex extends Exchange {
                 if (feeCostString !== undefined) {
                     feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
                     if (market['spot']) {
-                        feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+                        feeCurrencyCode = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency');
                     } else {
                         const info = this.safeValue (market, 'info');
                         if (info !== undefined) {
