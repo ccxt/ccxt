@@ -50,7 +50,7 @@ export default class coinsph extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDeposit': undefined,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
@@ -1738,6 +1738,56 @@ export default class coinsph extends Exchange {
             '6': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string} params.network network for fetch deposit address
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const networkCode = this.safeString (params, 'network');
+        const networkId = this.networkCodeToId (networkCode, code);
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        if (networkId !== undefined) {
+            request['network'] = networkId;
+        }
+        const response = await this.privateGetOpenapiWalletV1DepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "coin": "ETH",
+        //         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        //         "addressTag": ""
+        //     }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "coin": "ETH",
+        //         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        //         "addressTag": ""
+        //     }
+        //
+        const currencyId = this.safeString (depositAddress, 'coin');
+        const parsedCurrency = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'currency': parsedCurrency,
+            'address': this.safeString (depositAddress, 'address'),
+            'tag': this.safeString (depositAddress, 'addressTag'),
+            'network': null,
+            'info': depositAddress,
+        };
     }
 
     urlEncodeQuery (query = {}) {
