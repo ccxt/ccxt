@@ -1621,7 +1621,7 @@ class bkex(Exchange, ImplicitAPI):
         #
         return self.safe_number(transaction, 'withdrawFee')
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2

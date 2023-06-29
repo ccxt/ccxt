@@ -2,6 +2,8 @@ import Exchange from './abstract/gemini.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
 export default class gemini extends Exchange {
     describe(): any;
+    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrenciesFromWeb(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any>;
     fetchMarketsFromWeb(params?: {}): Promise<any[]>;
     parseMarketActive(status: any): any;
@@ -123,6 +125,7 @@ export default class gemini extends Exchange {
         tag: any;
         info: any;
     };
+    fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

@@ -787,6 +787,7 @@
         }
     },
     "huobijp": {
+        "skip": "29/06 fetchMarkets returns empty array",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {

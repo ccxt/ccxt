@@ -3003,7 +3003,7 @@ class ascendex extends Exchange {
              * fetch deposit and withdraw fees
              * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
              * @param {[string]|null} $codes list of unified currency $codes
-             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @param {array} $params extra parameters specific to the ascendex api endpoint
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
              */
             Async\await($this->load_markets());

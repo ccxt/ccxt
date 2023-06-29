@@ -208,6 +208,7 @@ interface Exchange {
     privateGetUserV3PrivateFrozenSubMember (params?: {}): Promise<implicitReturnType>;
     privateGetUserV3PrivateQuerySubMembers (params?: {}): Promise<implicitReturnType>;
     privateGetUserV3PrivateQueryApi (params?: {}): Promise<implicitReturnType>;
+    privateGetUserV3PrivateGetMemberType (params?: {}): Promise<implicitReturnType>;
     privateGetAssetV3PrivateTransferTransferCoinListQuery (params?: {}): Promise<implicitReturnType>;
     privateGetAssetV3PrivateTransferAccountCoinBalanceQuery (params?: {}): Promise<implicitReturnType>;
     privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery (params?: {}): Promise<implicitReturnType>;

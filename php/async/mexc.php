@@ -4396,7 +4396,7 @@ class mexc extends Exchange {
             'unrealizedProfit' => null,
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
-            'marginType' => $marginType,
+            'marginMode' => $marginType,
             'notional' => null,
             'markPrice' => null,
             'lastPrice' => null,
@@ -4920,7 +4920,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdrawal fees
