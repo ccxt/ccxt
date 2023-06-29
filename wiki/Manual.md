@@ -5528,9 +5528,12 @@ In some specific cases you may want a proxy, when:
 - Your IP is forbidden by exchange
 - You experience random restriction by exchange, like [DDoS protection by Cloudflare](https://docs.ccxt.com/#/?id=ddos-protection-by-cloudflare-incapsula)
 
-However, beware that each added intermediary might add some latency to requests. CCXT supports the following proxy types:
+However, beware that each added intermediary might add some latency to requests.
 
-### proxyUrl
+### Supported proxy types
+CCXT supports the following proxy types:
+
+#### proxyUrl
 
 With this property you can prepend any url to requests, like:
 ```
@@ -5540,22 +5543,33 @@ ex.proxyUrl = 'https://cors-anywhere.herokuapp.com/';
 // or
 ex.proxyUrl = 'http://your-website.com/sample-script.php?url=';
 ```
-So requests will be made sent like `http://127.0.0.1:8080/https://exchange.xyz/api/endpoint`. You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl`. See a sample script named "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/examples).
+So requests will be made sent like `http://127.0.0.1:8080/https://exchange.xyz/api/endpoint`. You can test if that works by:
+```
+// Python
+print(await ex.fetch('https://api.ipify.org/')) // for sync version remove 'await'
 
-### httpProxy and httpsProxy
+// JS
+console.log(await ex.fetch('https://api.ipify.org/'));
+
+// PHP
+print(\React\Async\await($my_ex->fetch('https://api.ipify.org/'))); // for sync version remove '\React\Async\await'
+```
+` You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl`. See a sample script named "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/examples).
+
+#### httpProxy and httpsProxy
 If you have an access to a remote [http or https proxy](https://stackoverflow.com/q/10440690/2377343), you can set:
 ```
 ex.httpProxy = 'http://1.2.3.4:8080/';
 // or
 ex.httpsProxy = 'http://1.2.3.4:8080/';
 ```
-### socksProxy
+#### socksProxy
 You can also use [socks proxy](https://www.google.com/search?q=what+is+socks+proxy) with the following format:
 ```
 ex.socksProxy = 'socks5://1.2.3.4:8080/';
 ```
 
-### proxy callbacks usage
+#### using proxy callbacks
 **Note, in addition to above properties, you can also set callbacks instead of strings to any from `proxyUrlCallback, http(s)ProxyCallback, socksProxyCallback`. The callback signature should be like:
 ```
 function my_callback(url, method, headers, body) {
@@ -5566,8 +5580,15 @@ function my_callback(url, method, headers, body) {
     }
 }
 ```
+### extra proxy related details
 
-### CORS (Access-Control-Allow-Origin)
+#### userAgent
+
+If you need for special cases, you can override `userAgent` property like:
+```
+ex.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)...'
+```
+#### CORS (Access-Control-Allow-Origin)
 
 CORS (known as [Cross-Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)) affects mostly browsers and is the cause of the well-know warning `No 'Access-Control-Allow-Origin' header is present on the requested resource`. It happens because a script (running in a browser) might be trying to make a request data from another domain but that domain does not allow such connection (by default that feature are disabled by domains, unless they specially enable it).
 So, in such cases you will need to communicate a "CORS" proxy, which would redirect requests (as opposed to direct browser-side request) to the target exchange. To set a CORS proxy, use `proxyUrl` property:
