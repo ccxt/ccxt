@@ -723,7 +723,7 @@ export default class probit extends Exchange {
         const now = this.milliseconds ();
         const request = {
             'limit': 100,
-            'start_time': this.iso8601 (now - 31536000000), // +365 days
+            'start_time': this.iso8601 (now - 31536000000), // -365 days
             'end_time': this.iso8601 (now),
         };
         if (symbol !== undefined) {
