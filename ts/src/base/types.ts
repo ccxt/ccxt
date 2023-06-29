@@ -16,6 +16,12 @@ export interface Fee {
     cost: number;
 }
 
+export enum CustomThrottlePriority {
+    HIGH = 1,
+    MEDIUM = 2,
+    LOW = 3,
+}
+
 export interface Market {
     id: string;
     symbol: string;
