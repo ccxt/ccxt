@@ -1329,7 +1329,7 @@ export default class protondex extends Exchange {
         try {
             const cancelList = [];
             let i = 0;
-            while (true) {
+            while (true || i > 5) {
                 const ordersList = await this.fetchOpenOrders (symbol, 1, 100, { 'account': name, 'offset': 100 * i, 'ordinal_order_ids': '' });
                 if (!ordersList.length) {
                     break;
