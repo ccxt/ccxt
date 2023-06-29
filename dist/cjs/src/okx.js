@@ -1882,7 +1882,8 @@ class okx extends okx$1 {
             const now = this.milliseconds();
             const difference = now - since;
             const durationInMilliseconds = duration * 1000;
-            // if the since timestamp is more than limit candles back in the past (additional one bar because of maximal offset to round the current day to UTC)
+            // if the since timestamp is more than limit candles back in the past
+            // additional one bar for max offset to round the current day to UTC
             const calc = (1440 - limit - 1) * durationInMilliseconds;
             if (difference > calc) {
                 defaultType = 'HistoryCandles';
