@@ -48,6 +48,7 @@ class cryptocom extends Exchange {
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
@@ -60,6 +61,7 @@ class cryptocom extends Exchange {
                 'fetchOrders' => true,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchSettlementHistory' => true,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -2590,6 +2592,162 @@ class cryptocom extends Exchange {
             'code' => null,
             'info' => $account,
         );
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical settlement records
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+         * @param {string} $symbol unified $market $symbol of the settlement history
+         * @param {int|null} $since timestamp in ms
+         * @param {int|null} $limit number of records
+         * @param {array} $params exchange specific $params
+         * @param {int|null} $params->type 'future', 'option'
+         * @return {[array]} a list of [settlement history objects]
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+        $this->check_required_argument('fetchSettlementHistory', $type, 'type', array( 'future', 'option', 'WARRANT', 'FUTURE' ));
+        if ($type === 'option') {
+            $type = 'WARRANT';
+        }
+        $request = array(
+            'instrument_type' => strtoupper($type),
+        );
+        $response = $this->v1PublicGetPublicGetExpiredSettlementPrice (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => -1,
+        //         "method" => "public/get-expired-settlement-price",
+        //         "code" => 0,
+        //         "result" => {
+        //             "data" => array(
+        //                 {
+        //                     "i" => "BTCUSD-230526",
+        //                     "x" => 1685088000000,
+        //                     "v" => "26464.1",
+        //                     "t" => 1685087999500
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($result, 'data', array());
+        $settlements = $this->parse_settlements($data, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        //     {
+        //         "i" => "BTCUSD-230526",
+        //         "x" => 1685088000000,
+        //         "v" => "26464.1",
+        //         "t" => 1685087999500
+        //     }
+        //
+        $timestamp = $this->safe_integer($settlement, 'x');
+        $marketId = $this->safe_string($settlement, 'i');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'v'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_settlements($settlements, $market) {
+        //
+        //     array(
+        //         {
+        //             "i" => "BTCUSD-230526",
+        //             "x" => 1685088000000,
+        //             "v" => "26464.1",
+        //             "t" => 1685087999500
+        //         }
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding $rates
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of [funding rate structures] to fetch
+         * @param {array} $params extra parameters specific to the cryptocom api endpoint
+         * @param {int|null} $params->until $timestamp in ms for the ending date filter, default is the current time
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
+        $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+            'valuation_type' => 'funding_hist',
+        );
+        if ($since !== null) {
+            $request['start_ts'] = $since;
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $request['end_ts'] = $until;
+        }
+        $response = $this->v1PublicGetPublicGetValuations (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => -1,
+        //         "method" => "public/get-valuations",
+        //         "code" => 0,
+        //         "result" => {
+        //             "data" => array(
+        //                 array(
+        //                     "v" => "-0.000001884",
+        //                     "t" => 1687892400000
+        //                 ),
+        //             ),
+        //             "instrument_name" => "BTCUSD-PERP"
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($result, 'data', array());
+        $marketId = $this->safe_string($result, 'instrument_name');
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $timestamp = $this->safe_integer($entry, 't');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'fundingRate' => $this->safe_number($entry, 'v'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function nonce() {

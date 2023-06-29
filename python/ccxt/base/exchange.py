@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.52'
+__version__ = '3.1.56'
 
 # -----------------------------------------------------------------------------
 
@@ -1728,8 +1728,6 @@ class Exchange(object):
             val = val + 1
         if val > 1:
             raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent')
-        if (val == 1) and (self.proxy is not None):
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy')
         return [proxyUrl, httpProxy, httpsProxy, socksProxy]
 
     def find_message_hashes(self, client, element: str):
@@ -2498,8 +2496,8 @@ class Exchange(object):
         percentage = self.safe_value(ticker, 'percentage')
         average = self.safe_value(ticker, 'average')
         vwap = self.safe_value(ticker, 'vwap')
-        baseVolume = self.safe_value(ticker, 'baseVolume')
-        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        baseVolume = self.safe_string(ticker, 'baseVolume')
+        quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
             vwap = Precise.string_div(quoteVolume, baseVolume)
         if (last is not None) and (close is None):

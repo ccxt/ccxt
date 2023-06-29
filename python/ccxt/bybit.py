@@ -368,6 +368,7 @@ class bybit(Exchange, ImplicitAPI):
                         'user/v3/private/frozen-sub-member': 10,  # 5/s
                         'user/v3/private/query-sub-members': 5,  # 10/s
                         'user/v3/private/query-api': 5,  # 10/s
+                        'user/v3/private/get-member-type': 1,
                         'asset/v3/private/transfer/transfer-coin/list/query': 0.84,  # 60/s
                         'asset/v3/private/transfer/account-coin/balance/query': 0.84,  # 60/s
                         'asset/v3/private/transfer/account-coins/balance/query': 50,

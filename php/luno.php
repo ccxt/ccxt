@@ -760,7 +760,7 @@ class luno extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['id'],
+            'pair' => $market['id'],
         );
         $response = $this->privateGetFeeInfo (array_merge($request, $params));
         //

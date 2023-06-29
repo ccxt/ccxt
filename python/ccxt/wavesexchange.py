@@ -57,6 +57,8 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -330,7 +332,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                 },
-                'reverseNetworks': {
+                'networksById': {
                     'ETH': 'ERC20',
                     'BSC': 'BEP20',
                 },
@@ -1109,8 +1111,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         # }
         currency = self.safe_value(response, 'currency')
         networkId = self.safe_string(currency, 'platform_id')
-        reverseNetworks = self.safe_value(self.options, 'reverseNetworks', {})
-        unifiedNetwork = self.safe_string(reverseNetworks, networkId, networkId)
+        networkByIds = self.safe_value(self.options, 'networkByIds', {})
+        unifiedNetwork = self.safe_string(networkByIds, networkId, networkId)
         addresses = self.safe_value(response, 'deposit_addresses')
         address = self.safe_string(addresses, 0)
         return {
@@ -2072,6 +2074,144 @@ class wavesexchange(Exchange, ImplicitAPI):
             'cost': None,
             'fee': fee,
         }, market)
+
+    def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
+        depositWithdrawFees = {}
+        codes = self.market_codes(codes)
+        for i in range(0, len(response)):
+            entry = response[i]
+            dictionary = entry
+            currencyId = self.safe_string(dictionary, currencyIdKey)
+            currency = self.safe_value(self.currencies_by_id, currencyId)
+            code = self.safe_string(currency, 'code', currencyId)
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                if depositWithdrawFee is None:
+                    depositWithdrawFee = {
+                        'info': [dictionary],
+                        'withdraw': {
+                            'fee': None,
+                            'percentage': None,
+                        },
+                        'deposit': {
+                            'fee': None,
+                            'percentage': None,
+                        },
+                        'networks': {},
+                    }
+                else:
+                    depositWithdrawFee = depositWithdrawFees[code]
+                    depositWithdrawFee['info'] = self.array_concat(depositWithdrawFee['info'], [dictionary])
+                networkId = self.safe_string(dictionary, 'platform_id')
+                currencyCode = self.safe_string(currency, 'code')
+                networkCode = self.network_id_to_code(networkId, currencyCode)
+                network = self.safe_value(depositWithdrawFee['networks'], networkCode)
+                if network is None:
+                    network = {
+                        'withdraw': {
+                            'fee': None,
+                            'percentage': None,
+                        },
+                        'deposit': {
+                            'fee': None,
+                            'percentage': None,
+                        },
+                    }
+                feeType = self.safe_string(dictionary, 'type')
+                fees = self.safe_value(dictionary, 'fees')
+                networkKey = 'deposit'
+                if feeType == 'withdrawal_currency':
+                    networkKey = 'withdraw'
+                network[networkKey] = {'fee': self.safe_number(fees, 'flat'), 'percentage': False}
+                depositWithdrawFee['networks'][networkCode] = network
+                depositWithdrawFees[code] = depositWithdrawFee
+        depositWithdrawFeesKeys = list(depositWithdrawFees.keys())
+        for i in range(0, len(depositWithdrawFeesKeys)):
+            code = depositWithdrawFeesKeys[i]
+            entry = depositWithdrawFees[code]
+            networks = self.safe_value(entry, 'networks')
+            networkKeys = list(networks.keys())
+            if len(networkKeys) == 1:
+                network = self.safe_value(networks, networkKeys[0])
+                depositWithdrawFees[code]['withdraw'] = self.safe_value(network, 'withdraw')
+                depositWithdrawFees[code]['deposit'] = self.safe_value(network, 'deposit')
+        return depositWithdrawFees
+
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://docs.waves.exchange/en/api/gateways/deposit/currencies
+        see https://docs.waves.exchange/en/api/gateways/withdraw/currencies
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        data = []
+        promises = []
+        promises.append(self.privateGetDepositCurrencies(params))
+        promises.append(self.privateGetWithdrawCurrencies(params))
+        promises = promises
+        #
+        #    {
+        #        "type": "list",
+        #        "page_info": {
+        #          "has_next_page": False,
+        #          "last_cursor": null
+        #        },
+        #        "items": [
+        #          {
+        #            "type": "deposit_currency",
+        #            "id": "WEST",
+        #            "platform_id": "WEST",
+        #            "waves_asset_id": "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8",
+        #            "platform_asset_id": "WEST",
+        #            "decimals": 8,
+        #            "status": "active",
+        #            "allowed_amount": {
+        #              "min": 0.1,
+        #              "max": 2000000
+        #            },
+        #            "fees": {
+        #              "flat": 0,
+        #              "rate": 0
+        #            }
+        #          },
+        #        ]
+        #    }
+        #
+        #
+        #    {
+        #        "type": "list",
+        #        "page_info": {
+        #          "has_next_page": False,
+        #          "last_cursor": null
+        #        },
+        #        "items": [
+        #          {
+        #            "type": "withdrawal_currency",
+        #            "id": "BTC",
+        #            "platform_id": "BTC",
+        #            "waves_asset_id": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        #            "platform_asset_id": "BTC",
+        #            "decimals": 8,
+        #            "status": "inactive",
+        #            "allowed_amount": {
+        #              "min": 0.001,
+        #              "max": 10
+        #            },
+        #            "fees": {
+        #              "flat": 0.001,
+        #              "rate": 0
+        #            }
+        #          },
+        #        ]
+        #    }
+        #
+        for i in range(0, len(promises)):
+            items = self.safe_value(promises[i], 'items')
+            data = self.array_concat(data, items)
+        return self.parse_deposit_withdraw_fees(data, codes, 'id')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'error')

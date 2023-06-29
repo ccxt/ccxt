@@ -1167,9 +1167,6 @@ class Exchange {
         if (val > 1) {
             throw new errors.ExchangeError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent');
         }
-        if ((val === 1) && (this.proxy !== undefined)) {
-            throw new errors.ExchangeError(this.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy');
-        }
         return [proxyUrl, httpProxy, httpsProxy, socksProxy];
     }
     findMessageHashes(client, element) {
@@ -2070,8 +2067,8 @@ class Exchange {
         let percentage = this.safeValue(ticker, 'percentage');
         let average = this.safeValue(ticker, 'average');
         let vwap = this.safeValue(ticker, 'vwap');
-        const baseVolume = this.safeValue(ticker, 'baseVolume');
-        const quoteVolume = this.safeValue(ticker, 'quoteVolume');
+        const baseVolume = this.safeString(ticker, 'baseVolume');
+        const quoteVolume = this.safeString(ticker, 'quoteVolume');
         if (vwap === undefined) {
             vwap = Precise["default"].stringDiv(quoteVolume, baseVolume);
         }

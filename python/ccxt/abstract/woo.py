@@ -59,7 +59,7 @@ class ImplicitAPI:
     v3_private_put_order_client_client_order_id = v3PrivatePutOrderClientClientOrderId = Entry('order/client/{client_order_id}', ['v3', 'private'], 'PUT', {'cost': 2})
     v3_private_put_algo_order_oid = v3PrivatePutAlgoOrderOid = Entry('algo/order/{oid}', ['v3', 'private'], 'PUT', {'cost': 2})
     v3_private_put_algo_order_client_client_order_id = v3PrivatePutAlgoOrderClientClientOrderId = Entry('algo/order/client/{client_order_id}', ['v3', 'private'], 'PUT', {'cost': 2})
-    v3_private_delete_algo_order_oid = v3PrivateDeleteAlgoOrderOid = Entry('algo/order/{oid}', ['v3', 'private'], 'DELETE', {'cost': 1})
+    v3_private_delete_algo_order_order_id = v3PrivateDeleteAlgoOrderOrderId = Entry('algo/order/{order_id}', ['v3', 'private'], 'DELETE', {'cost': 1})
     v3_private_delete_algo_orders_pending = v3PrivateDeleteAlgoOrdersPending = Entry('algo/orders/pending', ['v3', 'private'], 'DELETE', {'cost': 1})
     v3_private_delete_algo_orders_pending_symbol = v3PrivateDeleteAlgoOrdersPendingSymbol = Entry('algo/orders/pending/{symbol}', ['v3', 'private'], 'DELETE', {'cost': 1})
     v3_private_delete_orders_pending = v3PrivateDeleteOrdersPending = Entry('orders/pending', ['v3', 'private'], 'DELETE', {'cost': 1})

@@ -188,6 +188,7 @@ class okx(Exchange, ImplicitAPI):
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
+                        'market/history-trades': 2,
                         'market/platform-24-volume': 10,
                         'market/open-oracle': 40,
                         'market/index-components': 1,
@@ -1846,10 +1847,12 @@ class okx(Exchange, ImplicitAPI):
         if since is not None:
             now = self.milliseconds()
             difference = now - since
-            # if the since timestamp is more than limit candles back in the past
-            if difference > 1440 * duration * 1000:
-                defaultType = 'HistoryCandles'
             durationInMilliseconds = duration * 1000
+            # if the since timestamp is more than limit candles back in the past
+            # additional one bar for max offset to round the current day to UTC
+            calc = (1440 - limit - 1) * durationInMilliseconds
+            if difference > calc:
+                defaultType = 'HistoryCandles'
             startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(startTime, durationInMilliseconds * limit)

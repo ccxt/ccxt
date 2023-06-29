@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.1.52';
+$version = '3.1.56';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '3.1.52';
+    const VERSION = '3.1.56';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2174,9 +2174,6 @@ class Exchange {
         if ($val > 1) {
             throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, $httpProxy, $httpsProxy, $socksProxy, userAgent');
         }
-        if (($val === 1) && ($this->proxy !== null)) {
-            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from => $proxyUrl, $httpProxy, $httpsProxy, socksProxy');
-        }
         return array( $proxyUrl, $httpProxy, $httpsProxy, $socksProxy );
     }
 
@@ -3106,8 +3103,8 @@ class Exchange {
         $percentage = $this->safe_value($ticker, 'percentage');
         $average = $this->safe_value($ticker, 'average');
         $vwap = $this->safe_value($ticker, 'vwap');
-        $baseVolume = $this->safe_value($ticker, 'baseVolume');
-        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        $baseVolume = $this->safe_string($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         if ($vwap === null) {
             $vwap = Precise::string_div($quoteVolume, $baseVolume);
         }
