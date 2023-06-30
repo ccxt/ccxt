@@ -2098,7 +2098,7 @@ export default class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bittrex api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */

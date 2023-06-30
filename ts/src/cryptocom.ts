@@ -2665,7 +2665,7 @@ export default class cryptocom extends Exchange {
          * @param {int|undefined} limit number of records
          * @param {object} params exchange specific params
          * @param {int|undefined} params.type 'future', 'option'
-         * @returns {[object]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2755,7 +2755,7 @@ export default class cryptocom extends Exchange {
          * @param {int|undefined} limit the maximum amount of [funding rate structures] to fetch
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
-         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
@@ -2863,9 +2863,9 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchPositions
          * @description fetch all open positions
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

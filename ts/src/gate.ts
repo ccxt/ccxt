@@ -4863,22 +4863,14 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchPositions
          * @description fetch all open positions
-<<<<<<< HEAD
-         * @param {string[]|undefined} symbols Not used by gate, but parsed internally by CCXT
-         * @param {object} params extra parameters specific to the gate api endpoint
-         * @param {string} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-         * @param {string} params.type swap or future, if not provided this.options['defaultType'] is used
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-=======
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
-         * @param {[string]|undefined} symbols Not used by gate, but parsed internally by CCXT
+         * @param {string[]|undefined} symbols Not used by gate, but parsed internally by CCXT
          * @param {object} params extra parameters specific to the gate api endpoint
          * @param {string} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {string} params.type swap, future or option, if not provided this.options['defaultType'] is used
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
->>>>>>> master
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -5663,7 +5655,7 @@ export default class gate extends Exchange {
          * @param {int|undefined} since timestamp in ms
          * @param {int|undefined} limit number of records
          * @param {object} params exchange specific params
-         * @returns {[object]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]
          */
         this.checkRequiredSymbol ('fetchSettlementHistory', symbol);
         await this.loadMarkets ();

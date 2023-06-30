@@ -1466,7 +1466,7 @@ export default class probit extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of transaction structures to retrieve
          * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const request = {
             'type': 'deposit',
@@ -1484,7 +1484,7 @@ export default class probit extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of transaction structures to retrieve
          * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const request = {
             'type': 'withdrawal',
@@ -1502,7 +1502,7 @@ export default class probit extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch transactions for
          * @param {int|undefined} limit the maximum number of transaction structures to retrieve
          * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;

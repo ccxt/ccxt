@@ -1796,7 +1796,7 @@ export default class bitvavo extends Exchange {
          * @name bitvavo#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
-         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitvavo api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
