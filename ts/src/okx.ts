@@ -5078,8 +5078,8 @@ export default class okx extends Exchange {
                 } else {
                     const clientOrderId = this.safeString (params, 'clOrdId');
                     if (clientOrderId === undefined) {
-                        request['clOrdId'] = brokerId + this.uuid16 ();
-                        request['tag'] = brokerId;
+                        params['clOrdId'] = brokerId + this.uuid16 ();
+                        params['tag'] = brokerId;
                     }
                 }
             }
