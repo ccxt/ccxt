@@ -10,8 +10,7 @@
             alert ('ccxt version ' + ccxt.version);
 
             const exchange = new ccxt.bitmex ({
-                'enableRateLimit': true,
-                'proxy': 'http://127.0.0.1:8080/',
+                'proxyUrl': 'http://127.0.0.1:8080/',
             })
 
             const symbol = 'BTC/USD'
