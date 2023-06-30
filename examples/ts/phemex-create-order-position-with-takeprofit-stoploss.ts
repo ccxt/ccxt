@@ -30,11 +30,13 @@ async function example () {
         'posSide': 'Long', // "Long" / "Short" for hedge mode
         'stopLoss': {
             'triggerPrice': stop_loss_trigger_price,
+            'type': 'limit',
             'triggerPriceType': 'ByLastPrice',
             'price': stop_loss_limit_price,
         },
         'takeProfit': {
             'triggerPrice': take_profit_trigger_price,
+            'type': 'limit',
             'triggerPriceType': 'ByLastPrice',
             'price': take_profit_limit_price,
         },
