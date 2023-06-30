@@ -981,7 +981,7 @@ export default class bitpanda extends bitpandaRest {
             const previousOrder = this.safeValue (previousOrderArray, 0, {});
             symbol = previousOrder['symbol'];
             const filled = this.safeNumber (update, 'filled_amount');
-            let status = this.parseWSOrderStatus (updateType);
+            let status = this.parseWsOrderStatus (updateType);
             if (updateType === 'ORDER_CLOSED' && filled === 0) {
                 status = 'canceled';
             }
@@ -1018,7 +1018,7 @@ export default class bitpanda extends bitpandaRest {
         }
     }
 
-    parseWSOrderStatus (status) {
+    parseWsOrderStatus (status) {
         const statuses = {
             'ORDER_REJECTED': 'rejected',
             'ORDER_CLOSED': 'closed',
@@ -1117,7 +1117,7 @@ export default class bitpanda extends bitpandaRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {

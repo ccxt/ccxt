@@ -17,7 +17,7 @@ class poloniex extends poloniex$1 {
             // 200 requests per second for some unauthenticated market endpoints => 1000ms / 200 = 5ms between requests
             'rateLimit': 5,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -35,6 +35,7 @@ class poloniex extends poloniex$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
@@ -177,6 +178,7 @@ class poloniex extends poloniex$1 {
                 'BDG': 'Badgercoin',
                 'BTM': 'Bitmark',
                 'CON': 'Coino',
+                'ETHTRON': 'ETH',
                 'GOLD': 'GoldEagles',
                 'GPUC': 'GPU',
                 'HOT': 'Hotcoin',
@@ -189,6 +191,7 @@ class poloniex extends poloniex$1 {
                 'STR': 'XLM',
                 'SOC': 'SOCC',
                 'TRADE': 'Unitrade',
+                'TRXETH': 'TRX',
                 'XAP': 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
@@ -199,6 +202,7 @@ class poloniex extends poloniex$1 {
                 // with a USDTTRON or a USDTETH currency id, respectfully
                 // therefore we have map them back to the original code USDT
                 // otherwise the returned withdrawals are filtered out
+                'USDTBSC': 'USDT',
                 'USDTTRON': 'USDT',
                 'USDTETH': 'USDT',
                 'UST': 'USTC',
@@ -213,6 +217,7 @@ class poloniex extends poloniex$1 {
                     'BSC': 'BEP20',
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
+                    'TRX': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -286,6 +291,7 @@ class poloniex extends poloniex$1 {
                     '21352': errors.BadSymbol,
                     '21353': errors.PermissionDenied,
                     '21354': errors.PermissionDenied,
+                    '21360': errors.InvalidOrder,
                     '24106': errors.BadRequest,
                     '24201': errors.ExchangeNotAvailable,
                     // Orders
@@ -635,7 +641,7 @@ class poloniex extends poloniex$1 {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies(params);
+        const response = await this.publicGetCurrencies(this.extend(params, { 'includeMultiChainCurrencies': true }));
         //
         //     [
         //         {
@@ -651,6 +657,8 @@ class poloniex extends poloniex$1 {
         //                 "delisted": false,
         //                 "tradingState": "NORMAL",
         //                 "walletState": "DISABLED",
+        //                 "walletDepositState": 'DISABLED',
+        //                 "walletWithdrawalState": 'DISABLED',
         //                 "parentChain": null,
         //                 "isMultiChain": false,
         //                 "isChildChain": false,
@@ -666,36 +674,94 @@ class poloniex extends poloniex$1 {
             const id = this.safeValue(ids, 0);
             const currency = this.safeValue(item, id);
             const code = this.safeCurrencyCode(id);
+            const name = this.safeString(currency, 'name');
+            const networkId = this.safeString(currency, 'blockchain');
+            const networkCode = this.networkIdToCode(networkId, code);
             const delisted = this.safeValue(currency, 'delisted');
-            const walletState = this.safeString(currency, 'walletState');
-            const enabled = walletState === 'ENABLED';
-            const listed = !delisted;
-            const active = listed && enabled;
+            const walletEnabled = this.safeString(currency, 'walletState') === 'ENABLED';
+            const depositEnabled = this.safeString(currency, 'walletDepositState') === 'ENABLED';
+            const withdrawEnabled = this.safeString(currency, 'walletWithdrawalState') === 'ENABLED';
+            const active = !delisted && walletEnabled && depositEnabled && withdrawEnabled;
             const numericId = this.safeInteger(currency, 'id');
-            const fee = this.safeNumber(currency, 'withdrawalFee');
-            result[code] = {
-                'id': id,
-                'numericId': numericId,
-                'code': code,
+            const feeString = this.safeString(currency, 'withdrawalFee');
+            const parentChain = this.safeValue(currency, 'parentChain');
+            const noParentChain = parentChain === undefined;
+            if (this.safeValue(result, code) === undefined) {
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': undefined,
+                    'name': name,
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': this.parseNumber(feeString),
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            let minFeeString = this.safeString(result[code], 'fee');
+            if (feeString !== undefined) {
+                minFeeString = (minFeeString === undefined) ? feeString : Precise["default"].stringMin(feeString, minFeeString);
+            }
+            let depositAvailable = this.safeValue(result[code], 'deposit');
+            depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
+            let withdrawAvailable = this.safeValue(result[code], 'withdraw');
+            withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
+            const networks = this.safeValue(result[code], 'networks', {});
+            networks[networkCode] = {
                 'info': currency,
-                'name': currency['name'],
+                'id': networkId,
+                'network': networkCode,
+                'currencyId': id,
+                'numericId': numericId,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'active': active,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': fee,
+                'fee': this.parseNumber(feeString),
                 'precision': undefined,
-                'networks': {},
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': fee,
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
             };
+            result[code]['networks'] = networks;
+            const info = this.safeValue(result[code], 'info', []);
+            const rawInfo = {};
+            rawInfo[id] = currency;
+            info.push(rawInfo);
+            result[code]['info'] = info;
+            if (noParentChain) {
+                result[code]['id'] = id;
+                result[code]['name'] = name;
+            }
+            result[code]['active'] = depositAvailable && withdrawAvailable;
+            result[code]['deposit'] = depositAvailable;
+            result[code]['withdraw'] = withdrawAvailable;
+            result[code]['fee'] = this.parseNumber(minFeeString);
         }
         return result;
     }
@@ -1183,7 +1249,7 @@ class poloniex extends poloniex$1 {
         // remember the timestamp before issuing the request
         return [request, params];
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#editOrder
@@ -1795,7 +1861,7 @@ class poloniex extends poloniex$1 {
         /**
          * @method
          * @name poloniex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined

@@ -57,6 +57,7 @@ class binance extends binance$1 {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
@@ -261,7 +262,7 @@ class binance extends binance$1 {
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
                         'capital/contract/convertible-coins': 4.0002,
-                        'convert/tradeFlow': 0.6667,
+                        'convert/tradeFlow': 20.0001,
                         'convert/exchangeInfo': 50,
                         'convert/assetInfo': 10,
                         'convert/orderStatus': 0.6667,
@@ -292,6 +293,7 @@ class binance extends binance$1 {
                         'managed-subaccount/marginAsset': 0.1,
                         'managed-subaccount/info': 0.4,
                         'managed-subaccount/deposit/address': 0.1,
+                        'managed-subaccount/query-trans-log': 0.40002,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -382,6 +384,31 @@ class binance extends binance$1 {
                         'staking/position': 0.1,
                         'staking/stakingRecord': 0.1,
                         'staking/personalLeftQuota': 0.1,
+                        'lending/auto-invest/target-asset/list': 0.1,
+                        'lending/auto-invest/target-asset/roi/list': 0.1,
+                        'lending/auto-invest/all/asset': 0.1,
+                        'lending/auto-invest/source-asset/list': 0.1,
+                        'lending/auto-invest/plan/list': 0.1,
+                        'lending/auto-invest/plan/id': 0.1,
+                        'lending/auto-invest/history/list': 0.1,
+                        // simple earn
+                        'simple-earn/flexible/list': 15,
+                        'simple-earn/locked/list': 15,
+                        'simple-earn/flexible/personalLeftQuota': 15,
+                        'simple-earn/locked/personalLeftQuota': 15,
+                        'simple-earn/flexible/subscriptionPreview': 15,
+                        'simple-earn/locked/subscriptionPreview': 15,
+                        'simple-earn/flexible/history/rateHistory': 15,
+                        'simple-earn/flexible/position': 15,
+                        'simple-earn/locked/position': 15,
+                        'simple-earn/account': 15,
+                        'simple-earn/flexible/history/subscriptionRecord': 15,
+                        'simple-earn/locked/history/subscriptionRecord': 15,
+                        'simple-earn/flexible/history/redemptionRecord': 15,
+                        'simple-earn/locked/history/redemptionRecord': 15,
+                        'simple-earn/flexible/history/rewardsRecord': 15,
+                        'simple-earn/locked/history/rewardsRecord': 15,
+                        'simple-earn/flexible/history/collateralRecord': 0.1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -415,6 +442,7 @@ class binance extends binance$1 {
                         'sub-account/transfer/subToSub': 0.1,
                         'sub-account/transfer/subToMaster': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        'sub-account/options/enable': 0.1,
                         // v2 not supported yet
                         // 'sub-account/subAccountApi/ipRestriction': 20,
                         'managed-subaccount/deposit': 0.1,
@@ -476,6 +504,18 @@ class binance extends binance$1 {
                         'loan/vip/repay': 40,
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
+                        'portfolio/auto-collection': 0.6667,
+                        'portfolio/bnb-transfer': 0.6667,
+                        'lending/auto-invest/plan/add': 0.1,
+                        'lending/auto-invest/plan/edit': 0.1,
+                        'lending/auto-invest/plan/edit-status': 0.1,
+                        // simple earn
+                        'simple-earn/flexible/subscribe': 0.1,
+                        'simple-earn/locked/subscribe': 0.1,
+                        'simple-earn/flexible/redeem': 0.1,
+                        'simple-earn/locked/redeem': 0.1,
+                        'simple-earn/flexible/setAutoSubscribe': 15,
+                        'simple-earn/locked/setAutoSubscribe': 15,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -554,7 +594,6 @@ class binance extends binance$1 {
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
                         'openInterest': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -635,7 +674,6 @@ class binance extends binance$1 {
                         'indexInfo': 1,
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
@@ -838,6 +876,10 @@ class binance extends binance$1 {
                         'um/apiTradingStatus': 1,
                         'um/commissionRate': 20,
                         'cm/commissionRate': 20,
+                        'um/income': 30,
+                        'cm/income ': 30,
+                        'um/account': 5,
+                        'cm/account': 5,
                         'margin/marginLoan': 0.0667,
                         'margin/repayLoan': 0.0667,
                         'margin/marginInterestHistory': 0.1,
@@ -994,6 +1036,8 @@ class binance extends binance$1 {
                     'margin': 'x-R4BD3S82',
                     'future': 'x-xcKtGhcu',
                     'delivery': 'x-xcKtGhcu',
+                    'swap': 'x-xcKtGhcu',
+                    'option': 'x-xcKtGhcu',
                 },
                 'accountsByType': {
                     'main': 'MAIN',
@@ -1704,7 +1748,7 @@ class binance extends binance$1 {
             return undefined;
         }
         // sandbox/testnet does not support sapi endpoints
-        const apiBackup = this.safeString(this.urls, 'apiBackup');
+        const apiBackup = this.safeValue(this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
             return undefined;
         }
@@ -3016,10 +3060,14 @@ class binance extends binance$1 {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
         const market = this.getMarketFromSymbols(symbols);
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
+        let type = undefined;
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchLastPrices', market, params);
+        [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
         let method = undefined;
-        if (marketType === 'future') {
+        if (this.isLinear(type, subType)) {
             method = 'fapiPublicGetTickerPrice';
             //
             //     [
@@ -3032,7 +3080,7 @@ class binance extends binance$1 {
             //     ]
             //
         }
-        else if (marketType === 'delivery') {
+        else if (this.isInverse(type, subType)) {
             method = 'dapiPublicGetTickerPrice';
             //
             //     [
@@ -3045,7 +3093,7 @@ class binance extends binance$1 {
             //     ]
             //
         }
-        else if (marketType === 'spot') {
+        else if (type === 'spot') {
             method = 'publicGetTickerPrice';
             //
             //     [
@@ -3058,9 +3106,9 @@ class binance extends binance$1 {
             //
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet');
+            throw new errors.NotSupported(this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const response = await this[method](query);
+        const response = await this[method](params);
         return this.parseLastPrices(response, symbols);
     }
     parseLastPrice(info, market = undefined) {
@@ -3090,10 +3138,10 @@ class binance extends binance$1 {
         //         "time": 1591257246176
         //     }
         //
-        const marketId = this.safeString(info, 'symbol');
-        const defaultType = this.safeString(this.options, 'defaultType', 'spot');
-        market = this.safeMarket(marketId, market, undefined, defaultType);
         const timestamp = this.safeInteger(info, 'time');
+        const type = (timestamp === undefined) ? 'spot' : 'swap';
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, type);
         const price = this.safeNumber(info, 'price');
         return {
             'symbol': market['symbol'],
@@ -3101,8 +3149,6 @@ class binance extends binance$1 {
             'datetime': this.iso8601(timestamp),
             'price': price,
             'side': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
             'info': info,
         };
     }
@@ -3919,7 +3965,7 @@ class binance extends binance$1 {
         //
         return this.parseOrder(response, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name binance#editOrder
@@ -4136,33 +4182,20 @@ class binance extends binance$1 {
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const filled = this.safeString(order, 'executedQty', '0');
-        let timestamp = undefined;
+        const timestamp = this.safeIntegerN(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime']); // order of the keys matters here
         let lastTradeTimestamp = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger(order, 'time');
-        }
-        else if ('workingTime' in order) {
-            lastTradeTimestamp = this.safeInteger(order, 'transactTime');
-            timestamp = this.safeInteger(order, 'workingTime');
-        }
-        else if ('transactTime' in order) {
-            lastTradeTimestamp = this.safeInteger(order, 'transactTime');
-            timestamp = this.safeInteger(order, 'transactTime');
-        }
-        else if ('createTime' in order) {
-            lastTradeTimestamp = this.safeInteger(order, 'updateTime');
-            timestamp = this.safeInteger(order, 'createTime');
-        }
-        else if ('updateTime' in order) {
+        if (('transactTime' in order) || ('updateTime' in order)) {
+            const timestampValue = this.safeInteger2(order, 'updateTime', 'transactTime');
             if (status === 'open') {
                 if (Precise["default"].stringGt(filled, '0')) {
-                    lastTradeTimestamp = this.safeInteger(order, 'updateTime');
-                }
-                else {
-                    timestamp = this.safeInteger(order, 'updateTime');
+                    lastTradeTimestamp = timestampValue;
                 }
             }
+            else if (status === 'closed') {
+                lastTradeTimestamp = timestampValue;
+            }
         }
+        const lastUpdateTimestamp = this.safeInteger2(order, 'transactTime', 'updateTime');
         const average = this.safeString(order, 'avgPrice');
         const price = this.safeString(order, 'price');
         const amount = this.safeString2(order, 'origQty', 'quantity');
@@ -4194,6 +4227,7 @@ class binance extends binance$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -4809,6 +4843,11 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#cancelAllOrders
+         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the binance api endpoint
@@ -7903,6 +7942,17 @@ class binance extends binance$1 {
         }
         else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials();
+            if (method === 'POST' && path === 'order') {
+                // inject in implicit API calls
+                const newClientOrderId = this.safeString(params, 'newClientOrderId');
+                if (newClientOrderId === undefined) {
+                    const isSpotOrMargin = (api.indexOf('sapi') > -1 || api === 'private');
+                    const marketType = isSpotOrMargin ? 'spot' : 'future';
+                    const broker = this.safeValue(this.options, 'broker');
+                    const brokerId = this.safeString(broker, marketType);
+                    params['newClientOrderId'] = brokerId + this.uuid22();
+                }
+            }
             let query = undefined;
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
             const extendedParams = this.extend({
@@ -8068,7 +8118,7 @@ class binance extends binance$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        amount = this.amountToPrecision(symbol, amount);
+        amount = this.costToPrecision(symbol, amount);
         const request = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -8116,6 +8166,8 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#reduceMargin
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
          * @description remove margin from a position
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
@@ -8128,6 +8180,8 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#addMargin
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
          * @description add margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add

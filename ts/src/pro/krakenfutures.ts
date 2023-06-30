@@ -191,7 +191,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -233,7 +233,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -259,7 +259,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchBalance (params = {}) {
@@ -1273,7 +1273,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);
         } else if (event === 'pong') {
-            return client.onPong (message);
+            client.lastPong = this.milliseconds ();
         } else if (event === undefined) {
             const feed = this.safeString (message, 'feed');
             const methods = {

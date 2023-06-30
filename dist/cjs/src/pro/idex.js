@@ -156,7 +156,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrade(client, message) {
         const type = this.safeString(message, 'type');
@@ -174,7 +174,7 @@ class idex extends idex$1 {
         trades.append(trade);
         client.resolve(trades, messageHash);
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         // public trades
         // { m: 'DIL-ETH',
         //   i: '897ecae6-4b75-368a-ac00-be555e6ad65f',
@@ -253,7 +253,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         // { type: 'candles',
@@ -526,7 +526,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
     handleOrder(client, message) {
         // {

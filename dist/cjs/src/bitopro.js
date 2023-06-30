@@ -38,6 +38,9 @@ class bitopro extends bitopro$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1577,6 +1580,61 @@ class bitopro extends bitopro$1 {
         //
         return this.parseTransaction(result, currency);
     }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //    {
+        //        "currency":"eth",
+        //        "withdrawFee":"0.007",
+        //        "minWithdraw":"0.001",
+        //        "maxWithdraw":"1000",
+        //        "maxDailyWithdraw":"2000",
+        //        "withdraw":true,
+        //        "deposit":true,
+        //        "depositConfirmation":"12"
+        //    }
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber(fee, 'withdrawFee'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitopro api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicGetProvisioningCurrencies(params);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "currency":"eth",
+        //                 "withdrawFee":"0.007",
+        //                 "minWithdraw":"0.001",
+        //                 "maxWithdraw":"1000",
+        //                 "maxDailyWithdraw":"2000",
+        //                 "withdraw":true,
+        //                 "deposit":true,
+        //                 "depositConfirmation":"12"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
+        return this.parseDepositWithdrawFees(data, codes, 'currency');
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -1589,7 +1647,7 @@ class bitopro extends bitopro$1 {
             if (method === 'POST' || method === 'PUT') {
                 body = this.json(params);
                 const payload = this.stringToBase64(body);
-                const signature = this.hmac(payload, this.encode(this.secret), sha512.sha384);
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

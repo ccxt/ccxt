@@ -269,7 +269,7 @@ class bitmart extends Exchange {
                     '60009' => '\\ccxt\\ExchangeError', // 400, Beyond the limit
                     '60010' => '\\ccxt\\ExchangeError', // 400, Withdraw id or deposit id not found
                     '60011' => '\\ccxt\\InvalidAddress', // 400, Address is not valid
-                    '60012' => '\\ccxt\\ExchangeError', // 400, This action is not supported in this currency(If IOTA, HLX recharge and withdraw calls are prohibited)
+                    '60012' => '\\ccxt\\ExchangeError', // 400, This action is not property_exists($this, supported) currency(If IOTA, HLX recharge and withdraw calls are prohibited)
                     '60020' => '\\ccxt\\PermissionDenied', // 403, Your account is not allowed to recharge
                     '60021' => '\\ccxt\\PermissionDenied', // 403, Your account is not allowed to withdraw
                     '60022' => '\\ccxt\\PermissionDenied', // 403, No withdrawals for 24 hours
@@ -1459,7 +1459,7 @@ class bitmart extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_balance($response, $marketType) {
+    public function custom_parse_balance($response, $marketType) {
         $data = $this->safe_value($response, 'data', array());
         $wallet = null;
         if ($marketType === 'swap') {
@@ -1632,7 +1632,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        return $this->parse_balance($response, $marketType);
+        return $this->custom_parse_balance($response, $marketType);
     }
 
     public function parse_trading_fee($fee, $market = null) {
@@ -1792,7 +1792,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-$order

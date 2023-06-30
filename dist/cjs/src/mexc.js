@@ -119,6 +119,9 @@ class mexc extends mexc$1 {
                         'public': 'https://contract.mexc.com/api/v1/contract',
                         'private': 'https://contract.mexc.com/api/v1/private',
                     },
+                    'broker': {
+                        'private': 'https://api.mexc.com/api/v3/broker',
+                    },
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
@@ -327,6 +330,29 @@ class mexc extends mexc$1 {
                             'order/cancel': 1,
                             'order/cancel_by_symbol': 1,
                             'asset/withdraw': 2,
+                        },
+                    },
+                },
+                'broker': {
+                    'private': {
+                        'get': {
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/list': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/deposit/subHisrec': 1,
+                            'capital/deposit/subHisrec/getall': 1,
+                        },
+                        'post': {
+                            'sub-account/virtualSubAccount': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/withdraw/apply': 1,
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/futures': 1,
+                        },
+                        'delete': {
+                            'sub-account/apiKey': 1,
                         },
                     },
                 },
@@ -2419,18 +2445,19 @@ class mexc extends mexc$1 {
     }
     async fetchOrdersByState(state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            market['id'];
+            request['symbol'] = market['id'];
         }
         const [marketType] = this.handleMarketTypeAndParams('fetchOrdersByState', market, params);
         if (marketType === 'spot') {
             throw new errors.BadRequest(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         }
         else {
-            params['states'] = state;
-            return await this.fetchOrders(symbol, since, limit, params);
+            request['states'] = state;
+            return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
         }
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -3007,7 +3034,7 @@ class mexc extends mexc$1 {
         }
         return result;
     }
-    parseBalance(response, marketType) {
+    customParseBalance(response, marketType) {
         //
         // spot
         //
@@ -3257,7 +3284,7 @@ class mexc extends mexc$1 {
         //         ]
         //     }
         //
-        return this.parseBalance(response, marketType);
+        return this.customParseBalance(response, marketType);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -4321,7 +4348,7 @@ class mexc extends mexc$1 {
             'unrealizedProfit': undefined,
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
-            'marginType': marginType,
+            'marginMode': marginType,
             'notional': undefined,
             'markPrice': undefined,
             'lastPrice': undefined,
@@ -4955,8 +4982,13 @@ class mexc extends mexc$1 {
         const access = this.safeString(api, 1);
         [path, params] = this.resolvePath(path, params);
         let url = undefined;
-        if (section === 'spot') {
-            url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+        if (section === 'spot' || section === 'broker') {
+            if (section === 'broker') {
+                url = this.urls['api'][section][access] + '/' + path;
+            }
+            else {
+                url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+            }
             let paramsEncoded = '';
             if (access === 'private') {
                 params['timestamp'] = this.milliseconds();

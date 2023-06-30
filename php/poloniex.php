@@ -18,7 +18,7 @@ class poloniex extends Exchange {
             // 200 requests per second for some unauthenticated market endpoints => 1000ms / 200 = 5ms between requests
             'rateLimit' => 5,
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -36,6 +36,7 @@ class poloniex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchMarginMode' => false,
@@ -178,6 +179,7 @@ class poloniex extends Exchange {
                 'BDG' => 'Badgercoin',
                 'BTM' => 'Bitmark',
                 'CON' => 'Coino',
+                'ETHTRON' => 'ETH',
                 'GOLD' => 'GoldEagles',
                 'GPUC' => 'GPU',
                 'HOT' => 'Hotcoin',
@@ -190,6 +192,7 @@ class poloniex extends Exchange {
                 'STR' => 'XLM',
                 'SOC' => 'SOCC',
                 'TRADE' => 'Unitrade',
+                'TRXETH' => 'TRX',
                 'XAP' => 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
@@ -200,6 +203,7 @@ class poloniex extends Exchange {
                 // with a USDTTRON or a USDTETH currency id, respectfully
                 // therefore we have map them back to the original code USDT
                 // otherwise the returned withdrawals are filtered out
+                'USDTBSC' => 'USDT',
                 'USDTTRON' => 'USDT',
                 'USDTETH' => 'USDT',
                 'UST' => 'USTC',
@@ -214,6 +218,7 @@ class poloniex extends Exchange {
                     'BSC' => 'BEP20',
                     'ETH' => 'ERC20',
                     'TRON' => 'TRC20',
+                    'TRX' => 'TRC20',
                 ),
                 'limits' => array(
                     'cost' => array(
@@ -287,6 +292,7 @@ class poloniex extends Exchange {
                     '21352' => '\\ccxt\\BadSymbol', // Trading for this currency is frozen
                     '21353' => '\\ccxt\\PermissionDenied', // Trading for US customers is not supported
                     '21354' => '\\ccxt\\PermissionDenied', // Account needs to be verified via email before trading is enabled. Contact support
+                    '21360' => '\\ccxt\\InvalidOrder', // array( "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." )
                     '24106' => '\\ccxt\\BadRequest', // Invalid market depth
                     '24201' => '\\ccxt\\ExchangeNotAvailable', // Service busy. Try again later
                     // Orders
@@ -635,7 +641,7 @@ class poloniex extends Exchange {
          * @param {array} $params extra parameters specific to the poloniex api endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicGetCurrencies ($params);
+        $response = $this->publicGetCurrencies (array_merge($params, array( 'includeMultiChainCurrencies' => true )));
         //
         //     array(
         //         {
@@ -651,6 +657,8 @@ class poloniex extends Exchange {
         //                 "delisted" => false,
         //                 "tradingState" => "NORMAL",
         //                 "walletState" => "DISABLED",
+        //                 "walletDepositState" => 'DISABLED',
+        //                 "walletWithdrawalState" => 'DISABLED',
         //                 "parentChain" => null,
         //                 "isMultiChain" => false,
         //                 "isChildChain" => false,
@@ -666,36 +674,94 @@ class poloniex extends Exchange {
             $id = $this->safe_value($ids, 0);
             $currency = $this->safe_value($item, $id);
             $code = $this->safe_currency_code($id);
+            $name = $this->safe_string($currency, 'name');
+            $networkId = $this->safe_string($currency, 'blockchain');
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $delisted = $this->safe_value($currency, 'delisted');
-            $walletState = $this->safe_string($currency, 'walletState');
-            $enabled = $walletState === 'ENABLED';
-            $listed = !$delisted;
-            $active = $listed && $enabled;
+            $walletEnabled = $this->safe_string($currency, 'walletState') === 'ENABLED';
+            $depositEnabled = $this->safe_string($currency, 'walletDepositState') === 'ENABLED';
+            $withdrawEnabled = $this->safe_string($currency, 'walletWithdrawalState') === 'ENABLED';
+            $active = !$delisted && $walletEnabled && $depositEnabled && $withdrawEnabled;
             $numericId = $this->safe_integer($currency, 'id');
-            $fee = $this->safe_number($currency, 'withdrawalFee');
-            $result[$code] = array(
-                'id' => $id,
-                'numericId' => $numericId,
-                'code' => $code,
+            $feeString = $this->safe_string($currency, 'withdrawalFee');
+            $parentChain = $this->safe_value($currency, 'parentChain');
+            $noParentChain = $parentChain === null;
+            if ($this->safe_value($result, $code) === null) {
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'info' => null,
+                    'name' => $name,
+                    'active' => $active,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
+                    'fee' => $this->parse_number($feeString),
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+            $minFeeString = $this->safe_string($result[$code], 'fee');
+            if ($feeString !== null) {
+                $minFeeString = ($minFeeString === null) ? $feeString : Precise::string_min($feeString, $minFeeString);
+            }
+            $depositAvailable = $this->safe_value($result[$code], 'deposit');
+            $depositAvailable = ($depositEnabled) ? $depositEnabled : $depositAvailable;
+            $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
+            $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
+            $networks = $this->safe_value($result[$code], 'networks', array());
+            $networks[$networkCode] = array(
                 'info' => $currency,
-                'name' => $currency['name'],
+                'id' => $networkId,
+                'network' => $networkCode,
+                'currencyId' => $id,
+                'numericId' => $numericId,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'active' => $active,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => $fee,
+                'fee' => $this->parse_number($feeString),
                 'precision' => null,
-                'networks' => array(),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $fee,
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
                         'max' => null,
                     ),
                 ),
             );
+            $result[$code]['networks'] = $networks;
+            $info = $this->safe_value($result[$code], 'info', array());
+            $rawInfo = array();
+            $rawInfo[$id] = $currency;
+            $info[] = $rawInfo;
+            $result[$code]['info'] = $info;
+            if ($noParentChain) {
+                $result[$code]['id'] = $id;
+                $result[$code]['name'] = $name;
+            }
+            $result[$code]['active'] = $depositAvailable && $withdrawAvailable;
+            $result[$code]['deposit'] = $depositAvailable;
+            $result[$code]['withdraw'] = $withdrawAvailable;
+            $result[$code]['fee'] = $this->parse_number($minFeeString);
         }
         return $result;
     }
@@ -1112,7 +1178,7 @@ class poloniex extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit, $extension);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
@@ -1182,7 +1248,7 @@ class poloniex extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
@@ -1782,7 +1848,7 @@ class poloniex extends Exchange {
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch history of $deposits and $withdrawals
+         * *DEPRECATED* use fetchDepositsWithdrawals instead
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
          * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
@@ -1824,7 +1890,7 @@ class poloniex extends Exchange {
         return $this->filter_by_currency_since_limit($transactions, $code, $since, $limit);
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://docs.poloniex.com/#public-endpoints-reference-$data-currency-information

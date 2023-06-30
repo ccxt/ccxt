@@ -242,7 +242,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         trades = await self.subscribe(name, False, symbol, None, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """

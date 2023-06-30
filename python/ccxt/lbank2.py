@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.lbank2 import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -290,6 +291,7 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for lbank2
+        see https://www.lbank.com/en-US/docs/index.html#trading-pairs
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
@@ -314,21 +316,7 @@ class lbank2(Exchange, ImplicitAPI):
             base = baseId.upper()
             quote = quoteId.upper()
             symbol = base + '/' + quote
-            productTypes = {
-                '3l': True,
-                '5l': True,
-                '3s': True,
-                '5s': True,
-            }
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy')))
-            contractSize = amountPrecision
-            ending = baseId[-2:]
-            isLeveragedProduct = self.safe_value(productTypes, ending, False)
-            if isLeveragedProduct:
-                symbol += ':' + quote
-            linear = None
-            if isLeveragedProduct is True:
-                linear = True
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -341,14 +329,14 @@ class lbank2(Exchange, ImplicitAPI):
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'swap': isLeveragedProduct,
+                'swap': False,
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': isLeveragedProduct,
-                'linear': linear,  # all leveraged ETF products are in USDT
+                'contract': None,
+                'linear': None,
                 'inverse': None,
-                'contractSize': contractSize if isLeveragedProduct else None,
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -914,7 +902,7 @@ class lbank2(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1571,7 +1559,7 @@ class lbank2(Exchange, ImplicitAPI):
             # 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
             # 'memo': memo: memo word of bts and dct
             # 'mark': Withdrawal Notes
-            # 'name': Remarks of the address. After filling in self parameter, it will be added to the withdrawal address book of the currency.
+            # 'name': Remarks of the address. After hasattr(self, filling) parameter, it will be added to the withdrawal address book of the currency.
             # 'withdrawOrderId': withdrawOrderId
             # 'type': type=1 is for intra-site transfer
         }
@@ -1933,7 +1921,7 @@ class lbank2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying self.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
         :param [str]|None codes: array of unified currency codes

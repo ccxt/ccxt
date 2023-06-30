@@ -904,6 +904,7 @@ class huobi extends Exchange {
                     'dw-insufficient-balance' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null)
                     'base-withdraw-fee-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null)
                     'dw-withdraw-min-limit' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null)
+                    'request limit' => '\\ccxt\\RateLimitExceeded', // array("ts":1687004814731,"status":"error","err-code":"invalid-parameter","err-msg":"request limit")
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -4507,7 +4508,7 @@ class huobi extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -5497,10 +5498,14 @@ class huobi extends Exchange {
             $feeCost = Precise::string_abs($feeCost);
         }
         $networkId = $this->safe_string($transaction, 'chain');
+        $txHash = $this->safe_string($transaction, 'tx-hash');
+        if ($networkId === 'ETH' && mb_strpos($txHash, '0x') === false) {
+            $txHash = '0x' . $txHash;
+        }
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'data'),
-            'txid' => $this->safe_string($transaction, 'tx-hash'),
+            'txid' => $txHash,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => $this->network_id_to_code($networkId, $code),
@@ -7054,7 +7059,7 @@ class huobi extends Exchange {
                 // 'endTime' => 1546272000000,
                 // 'sort' => asc, // asc, desc
                 // 'limit' => 100, // range 1-500
-                // 'fromId' => 323 // first record ID in this query for pagination
+                // 'fromId' => 323 // first record property_exists($this, ID) query for pagination
             );
             $currency = null;
             if ($code !== null) {
@@ -7769,7 +7774,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees

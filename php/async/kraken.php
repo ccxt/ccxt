@@ -444,6 +444,7 @@ class kraken extends Exchange {
                 $precisionPrice = $this->parse_number($this->parse_precision($this->safe_string($market, 'pair_decimals')));
                 $result[] = array(
                     'id' => $id,
+                    'wsId' => $this->safe_string($market, 'wsname'),
                     'symbol' => $darkpool ? $altname : ($base . '/' . $quote),
                     'base' => $base,
                     'quote' => $quote,
@@ -1255,9 +1256,10 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
+             * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -1265,6 +1267,8 @@ class kraken extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the kraken api endpoint
+             * @param {bool} $params->postOnly
+             * @param {bool} $params->reduceOnly
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1388,9 +1392,26 @@ class kraken extends Exchange {
         //             "order" => "buy 0.00075000 XBTUSDT @ limit 13500.0"
         //         }
         //     }
+        //  ws - createOrder
+        //    {
+        //        descr => 'sell 0.00010000 XBTUSDT @ market',
+        //        event => 'addOrderStatus',
+        //        reqid => 1,
+        //        $status => 'ok',
+        //        $txid => 'OAVXZH-XIE54-JCYYDG'
+        //    }
+        //  ws - editOrder
+        //    {
+        //        "descr" => "order edited $price = 9000.00000000",
+        //        "event" => "editOrderStatus",
+        //        "originaltxid" => "O65KZW-J4AW3-VFS74A",
+        //        "reqid" => 3,
+        //        "status" => "ok",
+        //        "txid" => "OTI672-HJFAO-XOIPPK"
+        //    }
         //
         $description = $this->safe_value($order, 'descr', array());
-        $orderDescription = $this->safe_string($description, 'order');
+        $orderDescription = $this->safe_string($description, 'order', $description);
         $side = null;
         $type = null;
         $marketId = null;
@@ -1434,11 +1455,12 @@ class kraken extends Exchange {
         if (($price === null) || Precise::string_equals($price, '0')) {
             $price = $this->safe_string($order, 'price', $price);
         }
+        $flags = $this->safe_string($order, 'oflags', '');
+        $isPostOnly = mb_strpos($flags, 'post') > -1;
         $average = $this->safe_number($order, 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array($order) && array_key_exists('fee', $order)) {
-                $flags = $order['oflags'];
                 $feeCost = $this->safe_string($order, 'fee');
                 $fee = array(
                     'cost' => $feeCost,
@@ -1471,7 +1493,7 @@ class kraken extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
-            'postOnly' => null,
+            'postOnly' => $isPostOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
@@ -1543,11 +1565,25 @@ class kraken extends Exchange {
             }
             $request['close'] = $close;
         }
-        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2', 'close' ));
+        $timeInForce = $this->safe_string_2($params, 'timeInForce', 'timeinforce');
+        if ($timeInForce !== null) {
+            $request['timeinforce'] = $timeInForce;
+        }
+        $isMarket = ($type === 'market');
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
+        if ($postOnly) {
+            $request['oflags'] = 'post';
+        }
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly) {
+            $request['reduce_only'] = true;
+        }
+        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly' ));
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order

@@ -211,6 +211,9 @@ abstract class gate extends \ccxt\Exchange {
     public function private_spot_get_accounts($params = array()) {
         return $this->request('accounts', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_spot_get_account_book($params = array()) {
+        return $this->request('account_book', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_spot_get_open_orders($params = array()) {
         return $this->request('open_orders', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -753,6 +756,9 @@ abstract class gate extends \ccxt\Exchange {
     }
     public function privateSpotGetAccounts($params = array()) {
         return $this->request('accounts', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotGetAccountBook($params = array()) {
+        return $this->request('account_book', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateSpotGetOpenOrders($params = array()) {
         return $this->request('open_orders', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));

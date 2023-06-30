@@ -96,7 +96,7 @@ class wazirx extends wazirx$1 {
         const messageHash = 'balance';
         client.resolve(this.balance, messageHash);
     }
-    parseWSTrade(trade, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         // trade
         //     {
@@ -304,7 +304,7 @@ class wazirx extends wazirx$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -339,7 +339,7 @@ class wazirx extends wazirx$1 {
             this.trades[symbol] = trades;
         }
         for (let i = 0; i < rawTrades.length; i++) {
-            const parsedTrade = this.parseWSTrade(rawTrades[i], market);
+            const parsedTrade = this.parseWsTrade(rawTrades[i], market);
             trades.append(parsedTrade);
         }
         client.resolve(trades, messageHash);
@@ -374,7 +374,7 @@ class wazirx extends wazirx$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -403,7 +403,7 @@ class wazirx extends wazirx$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -580,7 +580,7 @@ class wazirx extends wazirx$1 {
         //     }
         //
         const order = this.safeValue(message, 'data', {});
-        const parsedOrder = this.parseWSOrder(order);
+        const parsedOrder = this.parseWsOrder(order);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -591,7 +591,7 @@ class wazirx extends wazirx$1 {
         messageHash += ':' + parsedOrder['symbol'];
         client.resolve(this.orders, messageHash);
     }
-    parseWSOrder(order) {
+    parseWsOrder(order, market = undefined) {
         //
         //     {
         //         "E": 1631683058904,
@@ -611,7 +611,7 @@ class wazirx extends wazirx$1 {
         const timestamp = this.safeInteger(order, 'O');
         const marketId = this.safeString(order, 's');
         const status = this.safeString(order, 'X');
-        const market = this.safeMarket(marketId);
+        market = this.safeMarket(marketId);
         return this.safeOrder({
             'info': order,
             'id': this.safeString(order, 'i'),
@@ -671,7 +671,7 @@ class wazirx extends wazirx$1 {
         else {
             myTrades = this.myTrades;
         }
-        const parsedTrade = this.parseWSTrade(trade);
+        const parsedTrade = this.parseWsTrade(trade);
         myTrades.append(parsedTrade);
         client.resolve(myTrades, messageHash);
     }

@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -560,6 +560,7 @@ export default class deribit extends Exchange {
         //         testnet: false
         //     }
         //
+        const parsedMarkets = {};
         const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
         const result = [];
         for (let i = 0; i < currenciesResult.length; i++) {
@@ -684,6 +685,11 @@ export default class deribit extends Exchange {
                         }
                     }
                 }
+                const parsedMarketValue = this.safeValue (parsedMarkets, symbol);
+                if (parsedMarketValue) {
+                    continue;
+                }
+                parsedMarkets[symbol] = true;
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
                 const tickSize = this.safeNumber (market, 'tick_size');
                 result.push ({
@@ -1641,7 +1647,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (result);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name deribit#createOrder

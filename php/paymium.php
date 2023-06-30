@@ -374,7 +374,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders/post

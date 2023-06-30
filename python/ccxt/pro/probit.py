@@ -174,7 +174,7 @@ class probit(ccxt.async_support.probit):
         trades = await self.subscribe_order_book(symbol, 'trades', filter, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -241,7 +241,7 @@ class probit(ccxt.async_support.probit):
         trades = await self.watch(url, messageHash, request, channel)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #

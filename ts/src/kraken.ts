@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -438,6 +438,7 @@ export default class kraken extends Exchange {
             const precisionPrice = this.parseNumber (this.parsePrecision (this.safeString (market, 'pair_decimals')));
             result.push ({
                 'id': id,
+                'wsId': this.safeString (market, 'wsname'),
                 'symbol': darkpool ? altname : (base + '/' + quote),
                 'base': base,
                 'quote': quote,
@@ -1244,10 +1245,11 @@ export default class kraken extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#createOrder
+         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1255,6 +1257,8 @@ export default class kraken extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the kraken api endpoint
+         * @param {bool} params.postOnly
+         * @param {bool} params.reduceOnly
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1377,9 +1381,26 @@ export default class kraken extends Exchange {
         //             "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
         //         }
         //     }
+        //  ws - createOrder
+        //    {
+        //        descr: 'sell 0.00010000 XBTUSDT @ market',
+        //        event: 'addOrderStatus',
+        //        reqid: 1,
+        //        status: 'ok',
+        //        txid: 'OAVXZH-XIE54-JCYYDG'
+        //    }
+        //  ws - editOrder
+        //    {
+        //        "descr": "order edited price = 9000.00000000",
+        //        "event": "editOrderStatus",
+        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
+        //        "reqid": 3,
+        //        "status": "ok",
+        //        "txid": "OTI672-HJFAO-XOIPPK"
+        //    }
         //
         const description = this.safeValue (order, 'descr', {});
-        const orderDescription = this.safeString (description, 'order');
+        const orderDescription = this.safeString (description, 'order', description);
         let side = undefined;
         let type = undefined;
         let marketId = undefined;
@@ -1423,11 +1444,12 @@ export default class kraken extends Exchange {
         if ((price === undefined) || Precise.stringEquals (price, '0')) {
             price = this.safeString (order, 'price', price);
         }
+        const flags = this.safeString (order, 'oflags', '');
+        const isPostOnly = flags.indexOf ('post') > -1;
         const average = this.safeNumber (order, 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
-                const flags = order['oflags'];
                 const feeCost = this.safeString (order, 'fee');
                 fee = {
                     'cost': feeCost,
@@ -1460,7 +1482,7 @@ export default class kraken extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
-            'postOnly': undefined,
+            'postOnly': isPostOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1532,11 +1554,25 @@ export default class kraken extends Exchange {
             }
             request['close'] = close;
         }
-        params = this.omit (params, [ 'price', 'stopPrice', 'price2', 'close' ]);
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'timeinforce');
+        if (timeInForce !== undefined) {
+            request['timeinforce'] = timeInForce;
+        }
+        const isMarket = (type === 'market');
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
+        if (postOnly) {
+            request['oflags'] = 'post';
+        }
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly) {
+            request['reduce_only'] = true;
+        }
+        params = this.omit (params, [ 'price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly' ]);
         return [ request, params ];
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrder

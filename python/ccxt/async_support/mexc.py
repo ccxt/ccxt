@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from ccxt.base.types import IndexType
 from typing import Optional
 from typing import List
@@ -137,6 +138,9 @@ class mexc(Exchange, ImplicitAPI):
                     'contract': {
                         'public': 'https://contract.mexc.com/api/v1/contract',
                         'private': 'https://contract.mexc.com/api/v1/private',
+                    },
+                    'broker': {
+                        'private': 'https://api.mexc.com/api/v3/broker',
                     },
                 },
                 'www': 'https://www.mexc.com/',
@@ -346,6 +350,29 @@ class mexc(Exchange, ImplicitAPI):
                             'order/cancel': 1,
                             'order/cancel_by_symbol': 1,
                             'asset/withdraw': 2,
+                        },
+                    },
+                },
+                'broker': {
+                    'private': {
+                        'get': {
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/list': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/deposit/subHisrec': 1,
+                            'capital/deposit/subHisrec/getall': 1,
+                        },
+                        'post': {
+                            'sub-account/virtualSubAccount': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/withdraw/apply': 1,
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/futures': 1,
+                        },
+                        'delete': {
+                            'sub-account/apiKey': 1,
                         },
                     },
                 },
@@ -1684,7 +1711,7 @@ class mexc(Exchange, ImplicitAPI):
             tickers = [tickers]
         return self.parse_tickers(tickers, symbols)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1815,7 +1842,7 @@ class mexc(Exchange, ImplicitAPI):
             #
             'type': type,
             'openType': openType,  # 1 isolated, 2 cross
-            # 'positionId': 1394650,  # long, filling in self parameter when closing a position is recommended
+            # 'positionId': 1394650,  # long, hasattr(self, filling) parameter when closing a position is recommended
             # 'externalOid': clientOrderId,
             # 'triggerPrice': 10.0,  # Required for trigger order
             # 'triggerType': 1,  # Required for trigger order 1: more than or equal, 2: less than or equal
@@ -2297,8 +2324,8 @@ class mexc(Exchange, ImplicitAPI):
         if marketType == 'spot':
             raise BadRequest(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
-            params['states'] = state
-            return await self.fetch_orders(symbol, since, limit, params)
+            request['states'] = state
+            return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -2841,7 +2868,7 @@ class mexc(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_balance(self, response, marketType):
+    def custom_parse_balance(self, response, marketType):
         #
         # spot
         #
@@ -3076,7 +3103,7 @@ class mexc(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.parse_balance(response, marketType)
+        return self.custom_parse_balance(response, marketType)
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -4062,7 +4089,7 @@ class mexc(Exchange, ImplicitAPI):
             'unrealizedProfit': None,
             'leverage': self.parse_number(leverage),
             'percentage': None,
-            'marginType': marginType,
+            'marginMode': marginType,
             'notional': None,
             'markPrice': None,
             'lastPrice': None,
@@ -4533,7 +4560,7 @@ class mexc(Exchange, ImplicitAPI):
             result[networkCode] = fee
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdrawal fees
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
@@ -4656,8 +4683,11 @@ class mexc(Exchange, ImplicitAPI):
         access = self.safe_string(api, 1)
         path, params = self.resolve_path(path, params)
         url = None
-        if section == 'spot':
-            url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
+        if section == 'spot' or section == 'broker':
+            if section == 'broker':
+                url = self.urls['api'][section][access] + '/' + path
+            else:
+                url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
             paramsEncoded = ''
             if access == 'private':
                 params['timestamp'] = self.milliseconds()

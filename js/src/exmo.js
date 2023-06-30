@@ -41,6 +41,7 @@ export default class exmo extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -646,9 +647,9 @@ export default class exmo extends Exchange {
                 for (let j = 0; j < providers.length; j++) {
                     const provider = providers[j];
                     const typeInner = this.safeString(provider, 'type');
-                    const minValue = this.safeNumber(provider, 'min');
-                    let maxValue = this.safeNumber(provider, 'max');
-                    if (maxValue === 0.0) {
+                    const minValue = this.safeString(provider, 'min');
+                    let maxValue = this.safeString(provider, 'max');
+                    if (Precise.stringEq(maxValue, '0.0')) {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue(provider, 'enabled');
@@ -670,7 +671,8 @@ export default class exmo extends Exchange {
                     }
                     if (activeProvider) {
                         active = true;
-                        if ((limits[typeInner]['min'] === undefined) || (minValue < limits[typeInner]['min'])) {
+                        const limitMin = this.numberToString(limits[typeInner]['min']);
+                        if ((limits[typeInner]['min'] === undefined) || (Precise.stringLt(minValue, limitMin))) {
                             limits[typeInner]['min'] = minValue;
                             limits[typeInner]['max'] = maxValue;
                             if (typeInner === 'withdraw') {
@@ -1796,7 +1798,7 @@ export default class exmo extends Exchange {
         /**
          * @method
          * @name exmo#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

@@ -122,6 +122,9 @@ export default class mexc extends Exchange {
                         'public': 'https://contract.mexc.com/api/v1/contract',
                         'private': 'https://contract.mexc.com/api/v1/private',
                     },
+                    'broker': {
+                        'private': 'https://api.mexc.com/api/v3/broker',
+                    },
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
@@ -330,6 +333,29 @@ export default class mexc extends Exchange {
                             'order/cancel': 1,
                             'order/cancel_by_symbol': 1,
                             'asset/withdraw': 2,
+                        },
+                    },
+                },
+                'broker': {
+                    'private': {
+                        'get': {
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/list': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/deposit/subHisrec': 1,
+                            'capital/deposit/subHisrec/getall': 1,
+                        },
+                        'post': {
+                            'sub-account/virtualSubAccount': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/withdraw/apply': 1,
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/futures': 1,
+                        },
+                        'delete': {
+                            'sub-account/apiKey': 1,
                         },
                     },
                 },
@@ -2433,8 +2459,8 @@ export default class mexc extends Exchange {
             throw new BadRequest(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         }
         else {
-            params['states'] = state;
-            return await this.fetchOrders(symbol, since, limit, params);
+            request['states'] = state;
+            return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
         }
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -3012,7 +3038,7 @@ export default class mexc extends Exchange {
         }
         return result;
     }
-    parseBalance(response, marketType) {
+    customParseBalance(response, marketType) {
         //
         // spot
         //
@@ -3262,7 +3288,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance(response, marketType);
+        return this.customParseBalance(response, marketType);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -4326,7 +4352,7 @@ export default class mexc extends Exchange {
             'unrealizedProfit': undefined,
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
-            'marginType': marginType,
+            'marginMode': marginType,
             'notional': undefined,
             'markPrice': undefined,
             'lastPrice': undefined,
@@ -4960,8 +4986,13 @@ export default class mexc extends Exchange {
         const access = this.safeString(api, 1);
         [path, params] = this.resolvePath(path, params);
         let url = undefined;
-        if (section === 'spot') {
-            url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+        if (section === 'spot' || section === 'broker') {
+            if (section === 'broker') {
+                url = this.urls['api'][section][access] + '/' + path;
+            }
+            else {
+                url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+            }
             let paramsEncoded = '';
             if (access === 'private') {
                 params['timestamp'] = this.milliseconds();

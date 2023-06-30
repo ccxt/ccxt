@@ -21,6 +21,7 @@ interface Exchange {
     publicGetMarketIndexCandles (params?: {}): Promise<implicitReturnType>;
     publicGetMarketMarkPriceCandles (params?: {}): Promise<implicitReturnType>;
     publicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketHistoryTrades (params?: {}): Promise<implicitReturnType>;
     publicGetMarketPlatform24Volume (params?: {}): Promise<implicitReturnType>;
     publicGetMarketOpenOracle (params?: {}): Promise<implicitReturnType>;
     publicGetMarketIndexComponents (params?: {}): Promise<implicitReturnType>;
@@ -83,6 +84,7 @@ interface Exchange {
     privateGetAssetDepositAddress (params?: {}): Promise<implicitReturnType>;
     privateGetAssetBalances (params?: {}): Promise<implicitReturnType>;
     privateGetAssetTransferState (params?: {}): Promise<implicitReturnType>;
+    privateGetAssetTransferRecord (params?: {}): Promise<implicitReturnType>;
     privateGetAssetDepositHistory (params?: {}): Promise<implicitReturnType>;
     privateGetAssetWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
     privateGetAssetDepositWithdrawStatus (params?: {}): Promise<implicitReturnType>;
@@ -103,6 +105,7 @@ interface Exchange {
     privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountInterestLimits (params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBills (params?: {}): Promise<implicitReturnType>;
+    privateGetAssetSubaccountManagedSubaccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountApikey (params?: {}): Promise<implicitReturnType>;
     privateGetUsersEntrustSubaccountList (params?: {}): Promise<implicitReturnType>;

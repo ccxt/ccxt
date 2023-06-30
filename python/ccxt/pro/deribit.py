@@ -241,7 +241,7 @@ class deribit(ccxt.async_support.deribit):
         trades = await self.watch(url, channel, request, channel, request)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -313,7 +313,7 @@ class deribit(ccxt.async_support.deribit):
         }
         request = self.deep_extend(message, params)
         trades = await self.watch(url, channel, request, channel, request)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -445,7 +445,7 @@ class deribit(ccxt.async_support.deribit):
         channel = self.safe_string(params, 'channel')
         marketId = self.safe_string(data, 'instrument_name')
         symbol = self.safe_symbol(marketId)
-        timestamp = self.safe_number(data, 'timestamp')
+        timestamp = self.safe_integer(data, 'timestamp')
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         if storedOrderBook is None:
             storedOrderBook = self.counted_order_book()
@@ -601,7 +601,7 @@ class deribit(ccxt.async_support.deribit):
         ohlcv = await self.watch(url, channel, request, channel, request)
         if self.newUpdates:
             limit = ohlcv.getLimit(market['symbol'], limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
