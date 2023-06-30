@@ -545,6 +545,8 @@ class Exchange(object):
         if (proxies is not None) and (self.proxies is not None):
             # avoid old proxies mixing
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
+        if (self.proxies is not None):
+            proxies = self.proxies
         # ######## end of proxies ########
 
         if self.verbose:
