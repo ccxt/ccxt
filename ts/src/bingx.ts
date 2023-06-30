@@ -276,7 +276,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
+         * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins
          * @param {object} params extra parameters specific to the bingx api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -944,7 +944,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchOpenInterest
          * @description Retrieves the open interest of a currency
-         * @see https://bingx-api.github.io/docs/swapV2/market-api.html#_8-get-swap-open-positions
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} params exchange specific parameters
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
@@ -997,7 +997,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://bingx-api.github.io/docs/swapV2/market-api.html#_9-get-ticker
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bingx api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1040,7 +1040,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://bingx-api.github.io/docs/swapV2/market-api.html#_9-get-ticker
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bingx api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1306,8 +1306,8 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#createOrder
          * @description create a trade order
-         * @see https://bingx-api.github.io/docs/spot/trade-interface.html#create-an-order
-         * @see https://bingx-api.github.io/docs/swapV2/trade-api.html#_1-trade-order
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Create%20an%20Order
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1554,7 +1554,7 @@ export default class bingx extends Exchange {
          * @name bingx#cancelOrder
          * @description cancels an open order
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20an%20Order
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20an%20Order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bingx api endpoint
@@ -1736,8 +1736,8 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchOrder
          * @description fetches information on an order made by the user
-         * @see https://bingx-api.github.io/docs/spot/trade-interface.html#query-orders
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20all%20current%20pending%20orders
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Orders
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Order
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bingx api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1816,7 +1816,7 @@ export default class bingx extends Exchange {
         /**
          * @method
          * @name bingx#fetchOpenOrders
-         * @see https://bingx-api.github.io/docs/spot/trade-interface.html#query-open-orders
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Open%20Orders
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20all%20current%20pending%20orders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
@@ -1903,7 +1903,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @see https://bingx-api.github.io/docs/spot/trade-interface.html#query-order-history
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Order%20History
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -2032,7 +2032,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://bingx-api.github.io/docs/spot/user-interface.html#user-universal-transfer
+         * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
          * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of transfers structures to retrieve
@@ -2500,6 +2500,23 @@ export default class bingx extends Exchange {
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
         const coins = this.safeValue (response, 'data');
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
+    }
+
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#withdraw
+         * @description make a withdrawal
+         * @see https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bingx api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const network = this.safeStringUpper (params, 'network');
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
