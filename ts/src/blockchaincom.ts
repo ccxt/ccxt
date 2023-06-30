@@ -360,6 +360,7 @@ export default class blockchaincom extends Exchange {
                     type = 'crypto';
                     const isMainnetCoin = (typeName === 'COIN');
                     const networkId = isMainnetCoin ? displaySymbol : this.safeString (typeObject, 'parentChain');
+                    // todo: after networks-unification PR is merged, link chains to specific currency-id junctions
                     const networkCode = this.networkIdToCode (networkId);
                     networks[networkCode] = {
                         'info': chain,
