@@ -558,7 +558,7 @@ class lbank2 extends lbank2$1 {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': undefined,
+                'currency': (side === 'buy') ? market['base'] : market['quote'],
                 'rate': this.safeString(trade, 'tradeFeeRate'),
             };
         }
@@ -1290,6 +1290,7 @@ class lbank2 extends lbank2$1 {
         }
         if (since !== undefined) {
             request['start_date'] = this.ymd(since, '-'); // max query 2 days ago
+            request['end_date'] = this.ymd(since + 86400000, '-'); // will cover 2 days
         }
         const response = await this.privatePostTransactionHistory(this.extend(request, params));
         //

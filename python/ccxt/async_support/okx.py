@@ -4777,8 +4777,8 @@ class okx(Exchange, ImplicitAPI):
                 else:
                     clientOrderId = self.safe_string(params, 'clOrdId')
                     if clientOrderId is None:
-                        request['clOrdId'] = brokerId + self.uuid16()
-                        request['tag'] = brokerId
+                        params['clOrdId'] = brokerId + self.uuid16()
+                        params['tag'] = brokerId
             timestamp = self.iso8601(self.milliseconds())
             headers = {
                 'OK-ACCESS-KEY': self.apiKey,

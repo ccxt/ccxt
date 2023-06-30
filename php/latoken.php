@@ -1331,13 +1331,15 @@ class latoken extends Exchange {
         $addressTo = $this->safe_string($transaction, 'recipientAddress');
         $txid = $this->safe_string($transaction, 'transactionHash');
         $tagTo = $this->safe_string($transaction, 'memo');
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         $feeCost = $this->safe_number($transaction, 'transactionFee');
         if ($feeCost !== null) {
-            $fee = array(
-                'cost' => $feeCost,
-                'currency' => $code,
-            );
+            $fee['cost'] = $feeCost;
+            $fee['currency'] = $code;
         }
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         return array(
@@ -1358,6 +1360,7 @@ class latoken extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => null,
+            'comment' => null,
             'fee' => $fee,
         );
     }

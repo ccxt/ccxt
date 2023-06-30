@@ -71,7 +71,7 @@ class coinbase extends coinbase$1 {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -2693,6 +2693,51 @@ class coinbase extends coinbase$1 {
         //
         const trades = this.safeValue(response, 'fills', []);
         return this.parseTrades(trades, market, since, limit);
+    }
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'product_id': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v3PrivateGetBrokerageProductBook(this.extend(request, params));
+        //
+        //     {
+        //         "pricebook": {
+        //             "product_id": "BTC-USDT",
+        //             "bids": [
+        //                 {
+        //                     "price": "30757.85",
+        //                     "size": "0.115"
+        //                 },
+        //             ],
+        //             "asks": [
+        //                 {
+        //                     "price": "30759.07",
+        //                     "size": "0.04877659"
+        //                 },
+        //             ],
+        //             "time": "2023-06-30T04:02:40.533606Z"
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'pricebook', {});
+        const time = this.safeString(data, 'time');
+        const timestamp = this.parse8601(time);
+        return this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];

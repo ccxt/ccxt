@@ -5072,8 +5072,8 @@ class okx extends okx$1 {
                 else {
                     const clientOrderId = this.safeString(params, 'clOrdId');
                     if (clientOrderId === undefined) {
-                        request['clOrdId'] = brokerId + this.uuid16();
-                        request['tag'] = brokerId;
+                        params['clOrdId'] = brokerId + this.uuid16();
+                        params['tag'] = brokerId;
                     }
                 }
             }

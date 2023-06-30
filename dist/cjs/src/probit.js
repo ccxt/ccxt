@@ -709,10 +709,11 @@ class probit extends probit$1 {
          */
         await this.loadMarkets();
         let market = undefined;
+        const now = this.milliseconds();
         const request = {
             'limit': 100,
-            'start_time': this.iso8601(0),
-            'end_time': this.iso8601(this.milliseconds()),
+            'start_time': this.iso8601(now - 31536000000),
+            'end_time': this.iso8601(now),
         };
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -720,6 +721,7 @@ class probit extends probit$1 {
         }
         if (since !== undefined) {
             request['start_time'] = this.iso8601(since);
+            request['end_time'] = this.iso8601(Math.min(now, since + 31536000000));
         }
         if (limit !== undefined) {
             request['limit'] = limit;

@@ -57,7 +57,12 @@ export default class latoken extends Exchange {
         currency: any;
         status: string;
         updated: any;
-        fee: any;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: any;
+            rate: any;
+        };
     };
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;

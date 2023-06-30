@@ -5091,8 +5091,8 @@ class okx extends Exchange {
                 } else {
                     $clientOrderId = $this->safe_string($params, 'clOrdId');
                     if ($clientOrderId === null) {
-                        $request['clOrdId'] = $brokerId . $this->uuid16();
-                        $request['tag'] = $brokerId;
+                        $params['clOrdId'] = $brokerId . $this->uuid16();
+                        $params['tag'] = $brokerId;
                     }
                 }
             }

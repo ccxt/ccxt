@@ -1292,13 +1292,15 @@ class latoken(Exchange, ImplicitAPI):
         addressTo = self.safe_string(transaction, 'recipientAddress')
         txid = self.safe_string(transaction, 'transactionHash')
         tagTo = self.safe_string(transaction, 'memo')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         feeCost = self.safe_number(transaction, 'transactionFee')
         if feeCost is not None:
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            }
+            fee['cost'] = feeCost
+            fee['currency'] = code
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         return {
             'info': transaction,
@@ -1318,6 +1320,7 @@ class latoken(Exchange, ImplicitAPI):
             'currency': code,
             'status': status,
             'updated': None,
+            'comment': None,
             'fee': fee,
         }
 

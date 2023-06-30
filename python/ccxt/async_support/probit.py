@@ -706,16 +706,18 @@ class probit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
+        now = self.milliseconds()
         request = {
             'limit': 100,
-            'start_time': self.iso8601(0),
-            'end_time': self.iso8601(self.milliseconds()),
+            'start_time': self.iso8601(now - 31536000000),  # -365 days
+            'end_time': self.iso8601(now),
         }
         if symbol is not None:
             market = self.market(symbol)
             request['market_id'] = market['id']
         if since is not None:
             request['start_time'] = self.iso8601(since)
+            request['end_time'] = self.iso8601(min(now, since + 31536000000))
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetTradeHistory(self.extend(request, params))

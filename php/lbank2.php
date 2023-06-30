@@ -554,7 +554,7 @@ class lbank2 extends Exchange {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => null,
+                'currency' => ($side === 'buy') ? $market['base'] : $market['quote'],
                 'rate' => $this->safe_string($trade, 'tradeFeeRate'),
             );
         }
@@ -1277,6 +1277,7 @@ class lbank2 extends Exchange {
         }
         if ($since !== null) {
             $request['start_date'] = $this->ymd($since, '-'); // max query 2 days ago
+            $request['end_date'] = $this->ymd($since + 86400000, '-'); // will cover 2 days
         }
         $response = $this->privatePostTransactionHistory (array_merge($request, $params));
         //

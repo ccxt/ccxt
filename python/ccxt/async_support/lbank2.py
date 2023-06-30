@@ -556,7 +556,7 @@ class lbank2(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': None,
+                'currency': market['base'] if (side == 'buy') else market['quote'],
                 'rate': self.safe_string(trade, 'tradeFeeRate'),
             }
         return self.safe_trade({
@@ -1230,6 +1230,7 @@ class lbank2(Exchange, ImplicitAPI):
             request['size'] = limit
         if since is not None:
             request['start_date'] = self.ymd(since, '-')  # max query 2 days ago
+            request['end_date'] = self.ymd(since + 86400000, '-')  # will cover 2 days
         response = await self.privatePostTransactionHistory(self.extend(request, params))
         #
         #      {

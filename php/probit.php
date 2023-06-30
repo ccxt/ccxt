@@ -706,10 +706,11 @@ class probit extends Exchange {
          */
         $this->load_markets();
         $market = null;
+        $now = $this->milliseconds();
         $request = array(
             'limit' => 100,
-            'start_time' => $this->iso8601(0),
-            'end_time' => $this->iso8601($this->milliseconds()),
+            'start_time' => $this->iso8601($now - 31536000000), // -365 days
+            'end_time' => $this->iso8601($now),
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -717,6 +718,7 @@ class probit extends Exchange {
         }
         if ($since !== null) {
             $request['start_time'] = $this->iso8601($since);
+            $request['end_time'] = $this->iso8601(min ($now, $since + 31536000000));
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
