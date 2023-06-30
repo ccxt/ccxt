@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import fs from 'fs';
 import log from 'ololog'
 
+const JS_PATH = './js/src/abstract/';
 const TS_PATH = './ts/src/abstract/';
 const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
@@ -137,7 +138,11 @@ async function editFiles (path, methods, extension) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
     await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
-    // unlink all delisted
+    await unlinkFiles (path, extension)
+}
+
+async function unlinkFiles (path, extension) {
+    const exchanges = Object.keys (storedCamelCaseMethods);
     const abstract = fs.readdirSync (path)
     const ext = new RegExp (extension + '$')
     await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => promisedUnlinkFile (path + basename)))
@@ -197,6 +202,8 @@ namespace ccxt\\abstract;
     log.bright.cyan ('PHP async implicit api methods completed!')
     await editFiles (PY_PATH, storedPyMethods, '.py');
     log.bright.cyan ('Python implicit api methods completed!')
+    await unlinkFiles (JS_PATH, '.js')
+    await unlinkFiles (JS_PATH, '.d.ts')
 }
 
 let storedCamelCaseMethods = {};
