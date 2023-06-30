@@ -102,50 +102,53 @@ function testMarket (exchange, skippedProperties, method, market) {
     const contractSize = exchange.safeString (market, 'contractSize');
     // contract fields
     if (market['contract']) {
-        // linear & inverse should have different values (true/false)
-        // todo: expand logic on other market types
-        if (isSwapOrFuture) {
-            // todo:
-            if (!('quanto' in market)) {
-                assert (market['linear'] !== market['inverse'], 'linear and inverse must not be the same' + logText);
-            } else {
-                const linear = exchange.safeValue (market, 'linear');
-                const inverse = exchange.safeValue (market, 'inverse');
-                const quanto = exchange.safeValue (market, 'quanto');
-                let allTrues = 0;
-                let allFalses = 0;
-                if (linear) {
-                    allTrues = allTrues + 1;
-                } else if (linear === false) {
-                    allFalses = allFalses + 1;
-                }
-                if (inverse) {
-                    allTrues = allTrues + 1;
-                } else if (inverse === false) {
-                    allFalses = allFalses + 1;
-                }
-                if (quanto) {
-                    allTrues = allTrues + 1;
-                } else if (quanto === false) {
-                    allFalses = allFalses + 1;
-                }
-                assert ((linear !== undefined) && (inverse !== undefined) && (quanto !== undefined), '"linear", "inverse" and "quanto" must be defined when "contract" is true' + logText);
-                assert (allTrues === 1, 'only one be true: "linear", "inverse" or "quanto"' + logText);
-                assert (allFalses === 2, '"false" should be assigned to two inapplicable fields from : "linear" | "inverse" | "quanto"' + logText);
-            }
-            if (!('contractSize' in skippedProperties)) {
-                // contract size should be defined
-                assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
-                // contract size should be above zero
-                assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
-            }
-            if (!('settle' in skippedProperties)) {
-                // settle should be defined
-                assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
-            }
-        }
         // spot should be false
         assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
+        // todo: expand logic on other market types, like "options", "index" etc.
+        // assert (isSwapOrFuture, 'either swap or future needs to be true when "contract" is true' + logText);
+        // linear & inverse should have different values (true/false)
+        if (isSwapOrFuture) {
+            if (!('subType' in skippedProperties)) {
+                // todo:
+                if (!('quanto' in market)) {
+                    assert (market['linear'] !== market['inverse'], 'linear and inverse must not be the same' + logText);
+                } else {
+                    const linear = exchange.safeValue (market, 'linear');
+                    const inverse = exchange.safeValue (market, 'inverse');
+                    const quanto = exchange.safeValue (market, 'quanto');
+                    assert ((linear !== undefined) && (inverse !== undefined) && (quanto !== undefined), '"linear", "inverse" and "quanto" must be defined when "contract" is true' + logText);
+                    let allTrues = 0;
+                    let allFalses = 0;
+                    if (linear) {
+                        allTrues = allTrues + 1;
+                    } else if (linear === false) {
+                        allFalses = allFalses + 1;
+                    }
+                    if (inverse) {
+                        allTrues = allTrues + 1;
+                    } else if (inverse === false) {
+                        allFalses = allFalses + 1;
+                    }
+                    if (quanto) {
+                        allTrues = allTrues + 1;
+                    } else if (quanto === false) {
+                        allFalses = allFalses + 1;
+                    }
+                    assert (allTrues === 1, 'only one be true: "linear", "inverse" or "quanto"' + logText);
+                    assert (allFalses === 2, '"false" should be assigned to two inapplicable fields from : "linear" | "inverse" | "quanto"' + logText);
+                }
+                if (!('contractSize' in skippedProperties)) {
+                    // contract size should be defined
+                    assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
+                    // contract size should be above zero
+                    assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
+                }
+                if (!('settle' in skippedProperties)) {
+                    // settle should be defined
+                    assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
+                }
+            }
+        }
     } else {
         // linear & inverse needs to be undefined
         assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
