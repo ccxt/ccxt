@@ -72,6 +72,7 @@ class krakenfutures extends Exchange {
                 'test' => array(
                     'public' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'private' => 'https://demo-futures.kraken.com/derivatives/api/',
+                    'charts' => 'https://demo-futures.kraken.com/api/charts/',
                     'www' => 'https://demo-futures.kraken.com',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -1260,6 +1261,7 @@ class krakenfutures extends Exchange {
         $marketId = $this->safe_string($details, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string_2($details, 'timestamp', 'receivedTime'));
+        $lastUpdateTimestamp = $this->parse8601($this->safe_string($details, 'lastUpdateTime'));
         if ($price === null) {
             $price = $this->safe_string($details, 'limitPrice');
         }
@@ -1329,6 +1331,7 @@ class krakenfutures extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'symbol' => $this->safe_string($market, 'symbol'),
             'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,

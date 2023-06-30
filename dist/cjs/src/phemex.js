@@ -1442,6 +1442,9 @@ class phemex extends phemex$1 {
         //         "leavesQuoteQtyEv": 0,
         //         "execFeeEv": 0,
         //         "feeRateEr": 0
+        //         "baseCurrency": 'BTC',
+        //         "quoteCurrency": 'USDT',
+        //         "feeCurrency": 'BTC'
         //     }
         //
         // swap
@@ -1614,12 +1617,12 @@ class phemex extends phemex$1 {
                 priceString = this.fromEp(this.safeString(trade, 'execPriceEp'), market);
                 amountString = this.fromEv(this.safeString(trade, 'execBaseQtyEv'), market);
                 amountString = this.safeString(trade, 'execQty', amountString);
-                costString = this.fromEv(this.safeString2(trade, 'execQuoteQtyEv', 'execValueEv'), market);
-                feeCostString = this.fromEv(this.safeString(trade, 'execFeeEv'), market);
+                costString = this.fromEr(this.safeString2(trade, 'execQuoteQtyEv', 'execValueEv'), market);
+                feeCostString = this.fromEr(this.safeString(trade, 'execFeeEv'), market);
                 if (feeCostString !== undefined) {
                     feeRateString = this.fromEr(this.safeString(trade, 'feeRateEr'), market);
                     if (market['spot']) {
-                        feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+                        feeCurrencyCode = this.safeCurrencyCode(this.safeString(trade, 'feeCurrency'));
                     }
                     else {
                         const info = this.safeValue(market, 'info');

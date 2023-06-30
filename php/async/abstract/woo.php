@@ -178,8 +178,8 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v3_private_put_algo_order_client_client_order_id($params = array()) {
         return $this->request('algo/order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 2));
     }
-    public function v3_private_delete_algo_order_oid($params = array()) {
-        return $this->request('algo/order/{oid}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    public function v3_private_delete_algo_order_order_id($params = array()) {
+        return $this->request('algo/order/{order_id}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function v3_private_delete_algo_orders_pending($params = array()) {
         return $this->request('algo/orders/pending', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
@@ -361,8 +361,8 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v3PrivatePutAlgoOrderClientClientOrderId($params = array()) {
         return $this->request('algo/order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 2));
     }
-    public function v3PrivateDeleteAlgoOrderOid($params = array()) {
-        return $this->request('algo/order/{oid}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    public function v3PrivateDeleteAlgoOrderOrderId($params = array()) {
+        return $this->request('algo/order/{order_id}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function v3PrivateDeleteAlgoOrdersPending($params = array()) {
         return $this->request('algo/orders/pending', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));

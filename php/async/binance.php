@@ -1048,6 +1048,8 @@ class binance extends Exchange {
                     'margin' => 'x-R4BD3S82',
                     'future' => 'x-xcKtGhcu',
                     'delivery' => 'x-xcKtGhcu',
+                    'swap' => 'x-xcKtGhcu',
+                    'option' => 'x-xcKtGhcu',
                 ),
                 'accountsByType' => array(
                     'main' => 'MAIN',
@@ -5949,7 +5951,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -7867,6 +7869,17 @@ class binance extends Exchange {
             }
         } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
+            if ($method === 'POST' && $path === 'order') {
+                // inject in implicit API calls
+                $newClientOrderId = $this->safe_string($params, 'newClientOrderId');
+                if ($newClientOrderId === null) {
+                    $isSpotOrMargin = (mb_strpos($api, 'sapi') > -1 || $api === 'private');
+                    $marketType = $isSpotOrMargin ? 'spot' : 'future';
+                    $broker = $this->safe_value($this->options, 'broker');
+                    $brokerId = $this->safe_string($broker, $marketType);
+                    $params['newClientOrderId'] = $brokerId . $this->uuid22();
+                }
+            }
             $query = null;
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
             $extendedParams = array_merge(array(

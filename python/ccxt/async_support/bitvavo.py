@@ -1687,7 +1687,7 @@ class bitvavo(Exchange, ImplicitAPI):
         fetch deposit and withdraw fees
         see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
         :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict params: extra parameters specific to the bitvavo api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         await self.load_markets()

@@ -350,6 +350,7 @@ class bybit extends Exchange {
                         'user/v3/private/frozen-sub-member' => 10, // 5/s
                         'user/v3/private/query-sub-members' => 5, // 10/s
                         'user/v3/private/query-api' => 5, // 10/s
+                        'user/v3/private/get-member-type' => 1,
                         'asset/v3/private/transfer/transfer-coin/list/query' => 0.84, // 60/s
                         'asset/v3/private/transfer/account-coin/balance/query' => 0.84, // 60/s
                         'asset/v3/private/transfer/account-coins/balance/query' => 50,
@@ -8429,7 +8430,7 @@ class bybit extends Exchange {
          * fetch deposit and withdraw fees
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
          * @param {[string]|null} $codes list of unified currency $codes
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {array} $params extra parameters specific to the bybit api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */
         $this->check_required_credentials();

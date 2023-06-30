@@ -1825,7 +1825,7 @@ class poloniex(Exchange, ImplicitAPI):
         transactions = self.parse_transactions(withdrawals, currency, since, limit)
         return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information

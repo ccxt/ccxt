@@ -43,10 +43,10 @@ export default class luno extends Exchange {
         type: string;
         currency: any;
         amount: number;
-        timestamp: any;
+        timestamp: number;
         datetime: string;
-        before: string;
-        after: string;
+        before: number;
+        after: number;
         status: any;
         fee: any;
         info: any;

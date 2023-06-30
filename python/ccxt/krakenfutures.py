@@ -86,6 +86,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'test': {
                     'public': 'https://demo-futures.kraken.com/derivatives/api/',
                     'private': 'https://demo-futures.kraken.com/derivatives/api/',
+                    'charts': 'https://demo-futures.kraken.com/api/charts/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -1199,6 +1200,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         marketId = self.safe_string(details, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.parse8601(self.safe_string_2(details, 'timestamp', 'receivedTime'))
+        lastUpdateTimestamp = self.parse8601(self.safe_string(details, 'lastUpdateTime'))
         if price is None:
             price = self.safe_string(details, 'limitPrice')
         amount = self.safe_string(details, 'quantity')
@@ -1254,6 +1256,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': self.safe_string(market, 'symbol'),
             'type': self.parse_order_type(type),
             'timeInForce': timeInForce,

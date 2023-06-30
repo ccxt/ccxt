@@ -559,6 +559,7 @@ class deribit(Exchange, ImplicitAPI):
         #         testnet: False
         #     }
         #
+        parsedMarkets = {}
         currenciesResult = self.safe_value(currenciesResponse, 'result', [])
         result = []
         for i in range(0, len(currenciesResult)):
@@ -679,6 +680,10 @@ class deribit(Exchange, ImplicitAPI):
                             optionType = self.safe_string(market, 'option_type')
                             letter = 'C' if (optionType == 'call') else 'P'
                             symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
+                parsedMarketValue = self.safe_value(parsedMarkets, symbol)
+                if parsedMarketValue:
+                    continue
+                parsedMarkets[symbol] = True
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
                 result.append({

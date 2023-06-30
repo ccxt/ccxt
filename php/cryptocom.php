@@ -48,6 +48,7 @@ class cryptocom extends Exchange {
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
@@ -58,8 +59,10 @@ class cryptocom extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => true,
                 'fetchPositionMode' => false,
-                'fetchPositions' => false,
+                'fetchPositions' => true,
+                'fetchSettlementHistory' => true,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -1338,6 +1341,7 @@ class cryptocom extends Exchange {
     public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * fetch a dictionary of $addresses for a $currency, indexed by $network
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-$address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~ indexed by the $network
@@ -1347,32 +1351,26 @@ class cryptocom extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->v2PrivatePostPrivateGetDepositAddress (array_merge($request, $params));
-        // {
-        //     "id" => 11,
-        //     "method" => "private/get-deposit-$address",
-        //     "code" => 0,
-        //     "result" => {
-        //          "deposit_address_list" => array(
-        //              array(
-        //                  "currency" => "CRO",
-        //                  "create_time" => 1615886328000,
-        //                  "id" => "12345",
-        //                  "address" => "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-        //                  "status" => "1",
-        //                  "network" => "CRO"
-        //              ),
-        //              {
-        //                  "currency" => "CRO",
-        //                  "create_time" => 1615886332000,
-        //                  "id" => "12346",
-        //                  "address" => "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
-        //                  "status" => "1",
-        //                  "network" => "ETH"
-        //              }
-        //          )
-        //    }
-        // }
+        $response = $this->v1PrivatePostPrivateGetDepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 1234555011221,
+        //         "method" => "private/get-deposit-$address",
+        //         "code" => 0,
+        //         "result" => {
+        //             "deposit_address_list" => array(
+        //                 array(
+        //                     "currency" => "BTC",
+        //                     "create_time" => 1686730755000,
+        //                     "id" => "3737377",
+        //                     "address" => "3N9afggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //                     "status":"1",
+        //                     "network" => "BTC"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'result', array());
         $addresses = $this->safe_value($data, 'deposit_address_list', array());
         $addressesLength = count($addresses);
@@ -1388,7 +1386,7 @@ class cryptocom extends Exchange {
             list($address, $tag) = $this->parse_address($addressString);
             $this->check_address($address);
             $networkId = $this->safe_string($value, 'network');
-            $network = $this->safe_network($networkId);
+            $network = $this->network_id_to_code($networkId, $responseCode);
             $result[$network] = array(
                 'info' => $value,
                 'currency' => $responseCode,
@@ -2358,7 +2356,7 @@ class cryptocom extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
@@ -2595,6 +2593,309 @@ class cryptocom extends Exchange {
             'code' => null,
             'info' => $account,
         );
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical settlement records
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+         * @param {string} $symbol unified $market $symbol of the settlement history
+         * @param {int|null} $since timestamp in ms
+         * @param {int|null} $limit number of records
+         * @param {array} $params exchange specific $params
+         * @param {int|null} $params->type 'future', 'option'
+         * @return {[array]} a list of [settlement history objects]
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+        $this->check_required_argument('fetchSettlementHistory', $type, 'type', array( 'future', 'option', 'WARRANT', 'FUTURE' ));
+        if ($type === 'option') {
+            $type = 'WARRANT';
+        }
+        $request = array(
+            'instrument_type' => strtoupper($type),
+        );
+        $response = $this->v1PublicGetPublicGetExpiredSettlementPrice (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => -1,
+        //         "method" => "public/get-expired-settlement-price",
+        //         "code" => 0,
+        //         "result" => {
+        //             "data" => array(
+        //                 {
+        //                     "i" => "BTCUSD-230526",
+        //                     "x" => 1685088000000,
+        //                     "v" => "26464.1",
+        //                     "t" => 1685087999500
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($result, 'data', array());
+        $settlements = $this->parse_settlements($data, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        //     {
+        //         "i" => "BTCUSD-230526",
+        //         "x" => 1685088000000,
+        //         "v" => "26464.1",
+        //         "t" => 1685087999500
+        //     }
+        //
+        $timestamp = $this->safe_integer($settlement, 'x');
+        $marketId = $this->safe_string($settlement, 'i');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'v'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_settlements($settlements, $market) {
+        //
+        //     array(
+        //         {
+        //             "i" => "BTCUSD-230526",
+        //             "x" => 1685088000000,
+        //             "v" => "26464.1",
+        //             "t" => 1685087999500
+        //         }
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding $rates
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of [funding rate structures] to fetch
+         * @param {array} $params extra parameters specific to the cryptocom api endpoint
+         * @param {int|null} $params->until $timestamp in ms for the ending date filter, default is the current time
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
+        $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+            'valuation_type' => 'funding_hist',
+        );
+        if ($since !== null) {
+            $request['start_ts'] = $since;
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $request['end_ts'] = $until;
+        }
+        $response = $this->v1PublicGetPublicGetValuations (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => -1,
+        //         "method" => "public/get-valuations",
+        //         "code" => 0,
+        //         "result" => {
+        //             "data" => array(
+        //                 array(
+        //                     "v" => "-0.000001884",
+        //                     "t" => 1687892400000
+        //                 ),
+        //             ),
+        //             "instrument_name" => "BTCUSD-PERP"
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($result, 'data', array());
+        $marketId = $this->safe_string($result, 'instrument_name');
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $timestamp = $this->safe_integer($entry, 't');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'fundingRate' => $this->safe_number($entry, 'v'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+    }
+
+    public function fetch_position(string $symbol, $params = array ()) {
+        /**
+         * fetch $data on a single open contract trade position
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+         * @param {string} $symbol unified $market $symbol of the $market the position is held in
+         * @param {array} $params extra parameters specific to the cryptocom api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = $this->v1PrivatePostPrivateGetPositions (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 1688015952050,
+        //         "method" => "private/get-positions",
+        //         "code" => 0,
+        //         "result" => {
+        //             "data" => array(
+        //                 {
+        //                     "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //                     "quantity" => "0.0001",
+        //                     "cost" => "3.02392",
+        //                     "open_pos_cost" => "3.02392",
+        //                     "open_position_pnl" => "-0.0010281328",
+        //                     "session_pnl" => "-0.0010281328",
+        //                     "update_timestamp_ms" => 1688015919091,
+        //                     "instrument_name" => "BTCUSD-PERP",
+        //                     "type" => "PERPETUAL_SWAP"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($result, 'data', array());
+        return $this->parse_position($data[0], $market);
+    }
+
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
+        /**
+         * fetch all open $positions
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$positions
+         * @param {[string]|null} $symbols list of unified $market $symbols
+         * @param {array} $params extra parameters specific to the cryptocom api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        $market = null;
+        if ($symbols !== null) {
+            $symbol = null;
+            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 1) {
+                    throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
+                }
+                $symbol = $symbols[0];
+            } else {
+                $symbol = $symbols;
+            }
+            $market = $this->market($symbol);
+            $request['instrument_name'] = $market['id'];
+        }
+        $response = $this->v1PrivatePostPrivateGetPositions (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 1688015952050,
+        //         "method" => "private/get-$positions",
+        //         "code" => 0,
+        //         "result" => {
+        //             "data" => array(
+        //                 {
+        //                     "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //                     "quantity" => "0.0001",
+        //                     "cost" => "3.02392",
+        //                     "open_pos_cost" => "3.02392",
+        //                     "open_position_pnl" => "-0.0010281328",
+        //                     "session_pnl" => "-0.0010281328",
+        //                     "update_timestamp_ms" => 1688015919091,
+        //                     "instrument_name" => "BTCUSD-PERP",
+        //                     "type" => "PERPETUAL_SWAP"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $responseResult = $this->safe_value($response, 'result', array());
+        $positions = $this->safe_value($responseResult, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $entry = $positions[$i];
+            $marketId = $this->safe_string($entry, 'instrument_name');
+            $marketInner = $this->safe_market($marketId, null, null, 'contract');
+            $result[] = $this->parse_position($entry, $marketInner);
+        }
+        return $this->filter_by_array($result, 'symbol', null, false);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //         "quantity" => "0.0001",
+        //         "cost" => "3.02392",
+        //         "open_pos_cost" => "3.02392",
+        //         "open_position_pnl" => "-0.0010281328",
+        //         "session_pnl" => "-0.0010281328",
+        //         "update_timestamp_ms" => 1688015919091,
+        //         "instrument_name" => "BTCUSD-PERP",
+        //         "type" => "PERPETUAL_SWAP"
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'instrument_name');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
+        $timestamp = $this->safe_integer($position, 'update_timestamp_ms');
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'hedged' => null,
+            'side' => null,
+            'contracts' => null,
+            'contractSize' => $market['contractSize'],
+            'entryPrice' => null,
+            'markPrice' => null,
+            'notional' => null,
+            'leverage' => null,
+            'collateral' => $this->safe_number($position, 'open_pos_cost'),
+            'initialMargin' => $this->safe_number($position, 'cost'),
+            'maintenanceMargin' => null,
+            'initialMarginPercentage' => null,
+            'maintenanceMarginPercentage' => null,
+            'unrealizedPnl' => $this->safe_number($position, 'open_position_pnl'),
+            'liquidationPrice' => null,
+            'marginMode' => null,
+            'percentage' => null,
+            'marginRatio' => null,
+        ));
     }
 
     public function nonce() {

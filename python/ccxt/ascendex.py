@@ -2825,7 +2825,7 @@ class ascendex(Exchange, ImplicitAPI):
         fetch deposit and withdraw fees
         see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
         :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict params: extra parameters specific to the ascendex api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()

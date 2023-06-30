@@ -188,6 +188,7 @@ class okx(Exchange, ImplicitAPI):
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
+                        'market/history-trades': 2,
                         'market/platform-24-volume': 10,
                         'market/open-oracle': 40,
                         'market/index-components': 1,
@@ -1846,10 +1847,12 @@ class okx(Exchange, ImplicitAPI):
         if since is not None:
             now = self.milliseconds()
             difference = now - since
-            # if the since timestamp is more than limit candles back in the past
-            if difference > 1440 * duration * 1000:
-                defaultType = 'HistoryCandles'
             durationInMilliseconds = duration * 1000
+            # if the since timestamp is more than limit candles back in the past
+            # additional one bar for max offset to round the current day to UTC
+            calc = (1440 - limit - 1) * durationInMilliseconds
+            if difference > calc:
+                defaultType = 'HistoryCandles'
             startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(startTime, durationInMilliseconds * limit)
@@ -4760,6 +4763,22 @@ class okx(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
+            # inject id in implicit api call
+            if method == 'POST' and (path == 'trade/batch-orders' or path == 'trade/order-algo' or path == 'trade/order'):
+                brokerId = self.safe_string(self.options, 'brokerId', 'e847386590ce4dBC')
+                if isinstance(params, list):
+                    for i in range(0, len(params)):
+                        entry = params[i]
+                        clientOrderId = self.safe_string(entry, 'clOrdId')
+                        if clientOrderId is None:
+                            entry['clOrdId'] = brokerId + self.uuid16()
+                            entry['tag'] = brokerId
+                            params[i] = entry
+                else:
+                    clientOrderId = self.safe_string(params, 'clOrdId')
+                    if clientOrderId is None:
+                        request['clOrdId'] = brokerId + self.uuid16()
+                        request['tag'] = brokerId
             timestamp = self.iso8601(self.milliseconds())
             headers = {
                 'OK-ACCESS-KEY': self.apiKey,
@@ -5830,7 +5849,7 @@ class okx(Exchange, ImplicitAPI):
         elif 'x-simulated-trading' in self.headers:
             self.headers = self.omit(self.headers, 'x-simulated-trading')
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies

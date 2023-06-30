@@ -1890,7 +1890,7 @@ class poloniex extends Exchange {
         return $this->filter_by_currency_since_limit($transactions, $code, $since, $limit);
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://docs.poloniex.com/#public-endpoints-reference-$data-currency-information

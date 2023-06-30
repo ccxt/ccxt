@@ -1186,7 +1186,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 result[code]['withdraw'] = self.safe_number(response, id)
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://www.bitstamp.net/api/#balance

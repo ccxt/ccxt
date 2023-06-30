@@ -4348,7 +4348,7 @@ class mexc extends mexc$1 {
             'unrealizedProfit': undefined,
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
-            'marginType': marginType,
+            'marginMode': marginType,
             'notional': undefined,
             'markPrice': undefined,
             'lastPrice': undefined,

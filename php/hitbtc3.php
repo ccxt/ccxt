@@ -2628,7 +2628,7 @@ class hitbtc3 extends Exchange {
         return $this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params));
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://api.hitbtc.com/#currencies

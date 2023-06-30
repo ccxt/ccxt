@@ -36,15 +36,16 @@ async def example_3():
     print(await my_ex.fetch('https://api.ipify.org/'))
 
 
-# Note, you can use your callback (instead of string value).
+# Note, you can use your callback (instead of string value) for each of them, i.e.:
 #
-#     myEx.proxyUrl = mycallback;
 #
-#  or (JS/PHP)
+#     myEx.proxyUrlCallback = function (url, method, headers, body) { return 'xyz'; }
 #
-#     myEx.proxyUrl = function (url, method, headers, body) { return 'xyz'; }
+# or
 #
-# Note, in php you can also pass a callback's string with a qualified namespace/class name, i.e. '\yourNamesPace\yourFunction'
+#     myEx.proxyUrlCallback = mycallback;
+#
+# Note, in PHP you can also pass a callback's string with a qualified namespace/class name, i.e. '\yourFunction' or '\yourNamesPace\yourFunction'
     await my_ex.close()
 
 asyncio.run(example_1())
