@@ -2467,7 +2467,6 @@ export default class Exchange {
 
     async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
         let errorMessage = '';
-        let rawContent = '';
         try {
             const options = this.safeValue (this.options, method, {});
             // if it was not explicitly disabled, then don't fetch
@@ -2488,8 +2487,7 @@ export default class Exchange {
                     }
                 }
             }
-            rawContent = response;
-            let content = rawContent;
+            let content = response;
             if (startRegex !== undefined) {
                 const splitted_by_start = content.split (startRegex);
                 content = splitted_by_start[1]; // we need second part after start
@@ -2509,7 +2507,7 @@ export default class Exchange {
         } catch (e) {
             errorMessage = e.toString ();
         }
-        throw new NotSupported (this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser. ' + errorMessage + ' | ' + rawContent);
+        throw new NotSupported (this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser. ' + errorMessage);
     }
 
     marketIds (symbols) {
