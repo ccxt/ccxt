@@ -13,7 +13,7 @@
 				'proxyUrl': 'https://cors-anywhere.herokuapp.com/' 
 			})
 
-            const symbol = 'ETH/BTC'
+            const symbol = 'BTC/USDT'
 
             exchange.fetchTicker (symbol).then (ticker => {
 
@@ -24,6 +24,7 @@
                 ]
 
                 document.getElementById ('content').innerHTML = text.join (' ')
+
             }).catch (e => {
 
                 const text = [
