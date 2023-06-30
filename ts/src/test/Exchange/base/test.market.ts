@@ -129,6 +129,7 @@ function testMarket (exchange, skippedProperties, method, market) {
                 } else if (quanto === false) {
                     allFalses = allFalses + 1;
                 }
+                assert ((linear !== undefined) && (inverse !== undefined) && (quanto !== undefined), '"linear", "inverse" and "quanto" must be defined when "contract" is true' + logText);
                 assert (allTrues === 1, 'only one be true: "linear", "inverse" or "quanto"' + logText);
                 assert (allFalses === 2, '"false" should be assigned to two inapplicable fields from : "linear" | "inverse" | "quanto"' + logText);
             }
