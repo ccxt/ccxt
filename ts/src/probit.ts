@@ -1607,7 +1607,6 @@ export default class probit extends Exchange {
          * @name probit#fetchDepositWithdrawFees
          * @see https://docs-en.probit.com/reference/currency
          * @description fetch deposit and withdraw fees
-         * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
