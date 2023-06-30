@@ -1207,7 +1207,7 @@ class phemex extends phemex$1 {
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.000001);
         const last = this.fromEp(this.safeString2(ticker, 'lastEp', 'closeRp'), market);
-        const quoteVolume = this.fromEv(this.safeString2(ticker, 'turnoverEv', 'turnoverRv'), market);
+        const quoteVolume = this.fromEr(this.safeString2(ticker, 'turnoverEv', 'turnoverRv'), market);
         let baseVolume = this.safeString(ticker, 'volume');
         if (baseVolume === undefined) {
             baseVolume = this.fromEv(this.safeString2(ticker, 'volumeEv', 'volumeRq'), market);
