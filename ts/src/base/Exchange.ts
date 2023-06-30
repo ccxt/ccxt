@@ -1773,6 +1773,15 @@ export default class Exchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
+            if (market['linear']) {
+                market['subType'] = 'linear';
+            } else if (market['inverse']) {
+                market['subType'] = 'inverse';
+            } else if (market['quanto']) {
+                market['subType'] = 'quanto';
+            } else {
+                market['subType'] = undefined;
+            }
             values.push (market);
         }
         this.markets = this.indexBy (values, 'symbol') as any;
@@ -3112,6 +3121,7 @@ export default class Exchange {
             'type': undefined,
             'linear': undefined,
             'inverse': undefined,
+            'subType': undefined,
             'spot': false,
             'swap': false,
             'future': false,
@@ -3372,6 +3382,8 @@ export default class Exchange {
                     subType = 'linear';
                 } else if (market['inverse']) {
                     subType = 'inverse';
+                } else if (market['quanto']) {
+                    subType = 'quanto';
                 }
             }
             // if it was not defined in market object
