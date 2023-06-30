@@ -10,7 +10,6 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class mercado extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -874,7 +873,7 @@ export default class mercado extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // todo add a unified standard handleErrors with this.exceptions in describe()
@@ -885,5 +884,6 @@ export default class mercado extends Exchange {
         if (errorMessage !== undefined) {
             throw new ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }

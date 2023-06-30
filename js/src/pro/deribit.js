@@ -10,7 +10,6 @@ import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class deribit extends deribitRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -152,6 +151,7 @@ export default class deribit extends deribitRest {
          * @param {str|undefined} params.interval specify aggregation and frequency of notifications. Possible values: 100ms, raw
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        await this.loadMarkets();
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', '100ms');
@@ -243,6 +243,9 @@ export default class deribit extends deribitRest {
         };
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, channel, request, channel, request);
+        if (this.newUpdates) {
+            limit = trades.getLimit(symbol, limit);
+        }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
@@ -457,7 +460,7 @@ export default class deribit extends deribitRest {
         const channel = this.safeString(params, 'channel');
         const marketId = this.safeString(data, 'instrument_name');
         const symbol = this.safeSymbol(marketId);
-        const timestamp = this.safeNumber(data, 'timestamp');
+        const timestamp = this.safeInteger(data, 'timestamp');
         let storedOrderBook = this.safeValue(this.orderbooks, symbol);
         if (storedOrderBook === undefined) {
             storedOrderBook = this.countedOrderBook();
@@ -539,7 +542,7 @@ export default class deribit extends deribitRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrders(client, message) {
         // Does not return a snapshot of current orders
@@ -787,22 +790,19 @@ export default class deribit extends deribitRest {
         //         testnet: false
         //     }
         //
-        const future = this.safeValue(client.futures, 'authenticated');
-        if (future !== undefined) {
-            future.resolve(true);
-        }
+        const messageHash = 'authenticated';
+        client.resolve(message, messageHash);
         return message;
     }
-    async authenticate(params = {}) {
+    authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const time = this.milliseconds();
         const timeString = this.numberToString(time);
         const nonce = timeString;
         const messageHash = 'authenticated';
-        const future = client.future('authenticated');
-        const authenticated = this.safeValue(client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        let future = this.safeValue(client.subscriptions, messageHash);
+        if (future === undefined) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
             const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), sha256);
@@ -819,8 +819,9 @@ export default class deribit extends deribitRest {
                     'data': '',
                 },
             };
-            this.spawn(this.watch, url, messageHash, this.extend(request, params), messageHash);
+            future = this.watch(url, messageHash, this.extend(request, params));
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }

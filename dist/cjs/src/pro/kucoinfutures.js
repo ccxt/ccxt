@@ -6,7 +6,6 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class kucoinfutures extends kucoinfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -422,7 +421,7 @@ class kucoinfutures extends kucoinfutures$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     parseWsOrderStatus(status) {
         const statuses = {
@@ -436,8 +435,8 @@ class kucoinfutures extends kucoinfutures$1 {
     }
     parseWsOrder(order, market = undefined) {
         //
-        //     {
         //         'symbol': 'XCAD-USDT',
+        //     {
         //         'orderType': 'limit',
         //         'side': 'buy',
         //         'orderId': '6249167327218b000135e749',

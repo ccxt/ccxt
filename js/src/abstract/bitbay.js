@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _zonda from '../zonda.js';
-export default class zonda extends _zonda {
+class zonda extends _zonda {
 }
+export default zonda;

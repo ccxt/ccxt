@@ -12,15 +12,15 @@
 //
 //          decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)
 
-const ROUND = 0;                // rounding mode
-const TRUNCATE = 1;
+const TRUNCATE = 0;                // rounding mode
+const ROUND = 1;
 const ROUND_UP = 2;
 const ROUND_DOWN = 3;
-const DECIMAL_PLACES = 0;        // digits counting mode
-const SIGNIFICANT_DIGITS = 1;
-const TICK_SIZE = 2;
-const NO_PADDING = 0;             // zero-padding mode
-const PAD_WITH_ZERO = 1;
+const DECIMAL_PLACES = 2;        // digits counting mode
+const SIGNIFICANT_DIGITS = 3;
+const TICK_SIZE = 4;
+const NO_PADDING = 5;             // zero-padding mode
+const PAD_WITH_ZERO = 6;
 const precisionConstants = {
     ROUND,
     TRUNCATE,

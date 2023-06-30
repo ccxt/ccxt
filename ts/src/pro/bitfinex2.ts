@@ -6,10 +6,11 @@ import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bitfinex2 extends bitfinex2Rest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -74,7 +75,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return await this.watch (url, messageHash, undefined, 1);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name biftfinex2#watchOHLCV
@@ -107,7 +108,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message, subscription) {
+    handleOHLCV (client: Client, message, subscription) {
         //
         // initial snapshot
         //   [
@@ -190,7 +191,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchTrades
@@ -208,7 +209,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchMyTrades
@@ -232,7 +233,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchTicker
@@ -244,7 +245,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return await this.subscribe ('ticker', symbol, params);
     }
 
-    handleMyTrade (client, message, subscription = {}) {
+    handleMyTrade (client: Client, message, subscription = {}) {
         //
         // trade execution
         // [
@@ -268,7 +269,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //
         const name = 'myTrade';
         const data = this.safeValue (message, 2);
-        const trade = this.parseWsTrade (data, false);
+        const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
         const market = this.market (symbol);
         const messageHash = name + ':' + market['id'];
@@ -285,7 +286,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         client.resolve (array, messageHash);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         //
         // initial snapshot
         //
@@ -327,13 +328,12 @@ export default class bitfinex2 extends bitfinex2Rest {
             stored = new ArrayCache (tradesLimit);
             this.trades[symbol] = stored;
         }
-        const isPublicTrade = true;
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
             const trades = this.safeValue (message, 1, []);
             for (let i = 0; i < trades.length; i++) {
-                const parsed = this.parseWsTrade (trades[i], isPublicTrade, market);
+                const parsed = this.parseWsTrade (trades[i], market);
                 stored.append (parsed);
             }
         } else {
@@ -345,14 +345,14 @@ export default class bitfinex2 extends bitfinex2Rest {
                 return;
             }
             const trade = this.safeValue (message, 2, []);
-            const parsed = this.parseWsTrade (trade, isPublicTrade, market);
+            const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
         return message;
     }
 
-    parseWsTrade (trade, isPublic = false, market = undefined) {
+    parseWsTrade (trade, market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -395,6 +395,8 @@ export default class bitfinex2 extends bitfinex2Rest {
         //       1655110144596
         //    ]
         //
+        const numFields = trade.length;
+        const isPublic = numFields <= 8;
         let marketId = (!isPublic) ? this.safeString (trade, 1) : undefined;
         market = this.safeMarket (marketId, market);
         const createdKey = isPublic ? 1 : 2;
@@ -452,7 +454,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         }, market);
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client: Client, message, subscription) {
         //
         // [
         //    340432, // channel ID
@@ -524,7 +526,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         }, market);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchOrderBook
@@ -553,7 +555,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         //
         // first message (snapshot)
         //
@@ -648,7 +650,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         }
     }
 
-    handleChecksum (client, message, subscription) {
+    handleChecksum (client: Client, message, subscription) {
         //
         // [ 173904, 'cs', -890884919 ]
         //
@@ -660,16 +662,22 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (book === undefined) {
             return;
         }
-        const depth = this.safeInteger (subscription, 'len');
+        const depth = 25; // covers the first 25 bids and asks
         const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            stringArray.push (bids[i][0]);
-            stringArray.push (bids[i][1]);
-            stringArray.push (asks[i][0]);
-            stringArray.push (-asks[i][1]);
+            const bid = this.safeValue (bids, i);
+            const ask = this.safeValue (asks, i);
+            if (bid !== undefined) {
+                stringArray.push (this.numberToString (bids[i][0]));
+                stringArray.push (this.numberToString (bids[i][1]));
+            }
+            if (ask !== undefined) {
+                stringArray.push (this.numberToString (asks[i][0]));
+                stringArray.push (this.numberToString (-asks[i][1]));
+            }
         }
         const payload = stringArray.join (':');
         const localChecksum = this.crc32 (payload, true);
@@ -696,7 +704,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return await this.subscribePrivate (messageHash);
     }
 
-    handleBalance (client, message, subscription) {
+    handleBalance (client: Client, message, subscription) {
         //
         // snapshot (exchange + margin together)
         //   [
@@ -809,7 +817,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return account;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         //     {
         //         event: 'info',
@@ -821,7 +829,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return message;
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         event: 'subscribed',
@@ -863,7 +871,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return future;
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client: Client, message) {
         const messageHash = 'authenticated';
         const status = this.safeString (message, 'status');
         if (status === 'OK') {
@@ -879,7 +887,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchOrders
@@ -900,10 +908,10 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleOrders (client, message, subscription) {
+    handleOrders (client: Client, message, subscription) {
         //
         // limit order
         //    [
@@ -986,7 +994,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1051,7 +1059,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const trimmedStatus = this.safeString (stateParts, 0);
         const status = this.parseWsOrderStatus (trimmedStatus);
         const price = this.safeString (order, 16);
-        const timestamp = this.safeInteger (order, 4);
+        const timestamp = this.safeInteger2 (order, 5, 4);
         const average = this.safeString (order, 17);
         const stopPrice = this.omitZero (this.safeString (order, 18));
         return this.safeOrder ({
@@ -1078,7 +1086,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         }, market);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const channelId = this.safeString (message, 0);
         //
         //     [

@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitso extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -45,6 +44,7 @@ export default class bitso extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -217,7 +217,8 @@ export default class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue(response, 'payload', []);
-        return this.parseLedger(payload, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseLedger(payload, currency, since, limit);
     }
     parseLedgerEntryType(type) {
         const types = {
@@ -680,7 +681,7 @@ export default class bitso extends Exchange {
         const payload = this.safeValue(response, 'payload', []);
         return this.parseOHLCVs(payload, market, timeframe, since, limit);
     }
-    parseOHLCV(ohlcv, market = undefined, timeframe = '1m') {
+    parseOHLCV(ohlcv, market = undefined) {
         //
         //     {
         //         "bucket_start_time":1648219140000,
@@ -1042,6 +1043,8 @@ export default class bitso extends Exchange {
     parseOrderStatus(status) {
         const statuses = {
             'partial-fill': 'open',
+            'partially filled': 'open',
+            'queued': 'open',
             'completed': 'closed',
         };
         return this.safeString(statuses, status, status);
@@ -1667,6 +1670,9 @@ export default class bitso extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
+    nonce() {
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -1697,7 +1703,7 @@ export default class bitso extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1723,5 +1729,6 @@ export default class bitso extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }

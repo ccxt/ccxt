@@ -12,7 +12,6 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class ndax extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -301,7 +300,7 @@ export default class ndax extends Exchange {
             request = {
                 'Code': totp(this.twofa),
             };
-            const response = await this.publicGetAuthenticate2FA(this.extend(request, params));
+            const responseInner = await this.publicGetAuthenticate2FA(this.extend(request, params));
             //
             //     {
             //         "Authenticated": true,
@@ -309,9 +308,9 @@ export default class ndax extends Exchange {
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            sessionToken = this.safeString(response, 'SessionToken');
+            sessionToken = this.safeString(responseInner, 'SessionToken');
             this.options['sessionToken'] = sessionToken;
-            return response;
+            return responseInner;
         }
         return response;
     }
@@ -374,6 +373,7 @@ export default class ndax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1357,7 +1357,7 @@ export default class ndax extends Exchange {
         //
         return this.parseOrder(response, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         await this.loadMarkets();
         await this.loadAccounts();
@@ -2395,7 +2395,7 @@ export default class ndax extends Exchange {
             throw new AuthenticationError(this.id + ' ' + body);
         }
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
@@ -2408,5 +2408,6 @@ export default class ndax extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

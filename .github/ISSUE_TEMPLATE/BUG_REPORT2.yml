@@ -1,7 +1,7 @@
 name: Blank Issue
 description: "Create an Issue"
 labels: []
-assignees: [ "carlosmiei", "frosty00" ]
+assignees: []
 body:
   - type: markdown
     attributes:

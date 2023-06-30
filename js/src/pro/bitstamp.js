@@ -9,7 +9,6 @@ import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitstamp extends bitstampRest {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -1,17 +1,20 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetRateAll(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRatePair(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderbookPair(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradehistoryPair(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPair(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrency(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderbookPairDepth(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBalancesExchangeBalances(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrderPairOrderId(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrderPair(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradePair(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderPair(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderPairOrderIdCancel(params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetRateAll(params?: {}): Promise<implicitReturnType>;
+    publicGetRatePair(params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbookPair(params?: {}): Promise<implicitReturnType>;
+    publicGetTradehistoryPair(params?: {}): Promise<implicitReturnType>;
+    publicGetPair(params?: {}): Promise<implicitReturnType>;
+    publicGetCurrency(params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbookPairDepth(params?: {}): Promise<implicitReturnType>;
+    privateGetBalancesExchangeBalances(params?: {}): Promise<implicitReturnType>;
+    privateGetOrderPairOrderId(params?: {}): Promise<implicitReturnType>;
+    privateGetOrderPair(params?: {}): Promise<implicitReturnType>;
+    privateGetTradePair(params?: {}): Promise<implicitReturnType>;
+    privatePostOrderPair(params?: {}): Promise<implicitReturnType>;
+    privatePostOrderPairOrderIdCancel(params?: {}): Promise<implicitReturnType>;
 }
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

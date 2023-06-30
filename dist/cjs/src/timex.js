@@ -5,7 +5,6 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// @ts-expect-error
 class timex extends timex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -367,7 +366,8 @@ class timex extends timex$1 {
         //         }
         //     ]
         //
-        return this.parseTransactions(response, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseTransactions(response, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -401,7 +401,8 @@ class timex extends timex$1 {
         //         }
         //     ]
         //
-        return this.parseTransactions(response, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseTransactions(response, currency, since, limit);
     }
     getCurrencyByAddress(address) {
         const currencies = this.currencies;
@@ -818,10 +819,10 @@ class timex extends timex$1 {
         if ('unchangedOrders' in response) {
             const orderIds = this.safeValue(response, 'unchangedOrders', []);
             const orderId = this.safeString(orderIds, 0);
-            return {
+            return this.safeOrder({
                 'id': orderId,
                 'info': response,
-            };
+            });
         }
         const orders = this.safeValue(response, 'changedOrders', []);
         const firstOrder = this.safeValue(orders, 0, {});
@@ -1312,6 +1313,7 @@ class timex extends timex$1 {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
+            'networks': {},
         };
     }
     parseTicker(ticker, market = undefined) {
@@ -1530,7 +1532,7 @@ class timex extends timex$1 {
     }
     handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (statusCode >= 400) {
             //
@@ -1549,6 +1551,7 @@ class timex extends timex$1 {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

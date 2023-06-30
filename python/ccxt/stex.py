@@ -4,6 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.stex import ImplicitAPI
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -19,7 +23,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class stex(Exchange):
+class stex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(stex, self).describe(), {
@@ -313,6 +317,7 @@ class stex(Exchange):
 
     def fetch_currencies(self, params={}):
         """
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
         fetches all available currencies on an exchange
         :param dict params: extra parameters specific to the stex api endpoint
         :returns dict: an associative dictionary of currencies
@@ -385,11 +390,13 @@ class stex(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
     def fetch_markets(self, params={}):
         """
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1currency_pairs~1list~1{code}/get
         retrieves data on all markets for stex
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
@@ -444,7 +451,7 @@ class stex(Exchange):
             minPrice = Precise.string_max(minBuyPrice, minSellPrice)
             buyFee = Precise.string_div(self.safe_string(market, 'buy_fee_percent'), '100')
             sellFee = Precise.string_div(self.safe_string(market, 'sell_fee_percent'), '100')
-            fee = Precise.string_max(buyFee, sellFee)
+            fee = self.parse_number(Precise.string_max(buyFee, sellFee))
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -500,8 +507,9 @@ class stex(Exchange):
             })
         return result
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1ticker~1{currencyPairId}/get
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the stex api endpoint
@@ -560,6 +568,7 @@ class stex(Exchange):
 
     def fetch_time(self, params={}):
         """
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1ping/get
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict params: extra parameters specific to the stex api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -582,8 +591,9 @@ class stex(Exchange):
         serverDatetime = self.safe_value(data, 'server_datetime', {})
         return self.parse8601(self.safe_string(serverDatetime, 'date'))
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1orderbook~1{currencyPairId}/get
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
@@ -689,8 +699,9 @@ class stex(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1ticker/get
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the stex api endpoint
@@ -766,8 +777,9 @@ class stex(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1chart~1{currencyPairId}~1{candlesType}/get
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -865,8 +877,9 @@ class stex(Exchange):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1trades~1{currencyPairId}/get
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
@@ -907,8 +920,9 @@ class stex(Exchange):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_trading_fee(self, symbol, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}):
         """
+        see https://apidocs.stex.com/#tag/Trading/paths/~1trading~1fees~1{currencyPairId}/get
         fetch the trading fees for a market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the stex api endpoint
@@ -955,6 +969,7 @@ class stex(Exchange):
 
     def fetch_balance(self, params={}):
         """
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1wallets/get
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict params: extra parameters specific to the stex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
@@ -1125,8 +1140,9 @@ class stex(Exchange):
                 result['fee'] = None
         return self.safe_order(result, market)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Trading/paths/~1trading~1orders~1{currencyPairId}/post
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1172,8 +1188,9 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Trading/paths/~1trading~1order~1{orderId}/get
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the stex api endpoint
@@ -1209,8 +1226,9 @@ class stex(Exchange):
             market = self.market(symbol)
         return self.parse_order(data, market)
 
-    def fetch_closed_order(self, id, symbol=None, params={}):
+    def fetch_closed_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Trading-History-and-Reports/paths/~1reports~1orders~1{orderId}/get
         fetch an open order by it's id
         :param str id: order id
         :param str|None symbol: unified market symbol, default is None
@@ -1263,7 +1281,7 @@ class stex(Exchange):
             market = self.market(symbol)
         return self.parse_order(data, market)
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1276,8 +1294,10 @@ class stex(Exchange):
         order = self.fetch_closed_order(id, symbol, params)
         return order['trades']
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Trading/paths/~1trading~1orders/get
+        see https://apidocs.stex.com/#tag/Trading/paths/~1trading~1orders~1{currencyPairId}/get
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
@@ -1323,8 +1343,9 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Trading/paths/~1trading~1order~1{orderId}/delete
         cancels an open order
         :param str id: order id
         :param str|None symbol: not used by stex cancelOrder()
@@ -1392,8 +1413,10 @@ class stex(Exchange):
             else:
                 raise OrderNotFound(self.id + ' cancelOrder() received an empty response: ' + self.json(response))
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Trading/paths/~1trading~1orders/delete
+        see https://apidocs.stex.com/#tag/Trading/paths/~1trading~1orders~1{currencyPairId}/delete
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the stex api endpoint
@@ -1419,8 +1442,9 @@ class stex(Exchange):
         #
         return response
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Trading-History-and-Reports/paths/~1reports~1trades~1{currencyPairId}/get
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
@@ -1463,8 +1487,9 @@ class stex(Exchange):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1wallets~1{currencyId}/post
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the stex api endpoint
@@ -1543,8 +1568,9 @@ class stex(Exchange):
             'info': response,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1wallets~1{walletId}/get
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the stex api endpoint
@@ -1768,8 +1794,9 @@ class stex(Exchange):
             'fee': fee,
         }
 
-    def fetch_deposit(self, id, code=None, params={}):
+    def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1deposits~1{id}/get
         fetch information on a deposit
         :param str id: deposit id
         :param str|None code: not used by stex fetchDeposit()
@@ -1816,8 +1843,9 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1deposits/get
         fetch all deposits made to an account
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch deposits for
@@ -1868,8 +1896,9 @@ class stex(Exchange):
         deposits = self.safe_value(response, 'data', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1withdrawals~1{id}/get
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
         :param str|None code: not used by stex.fetchWithdrawal
@@ -1923,8 +1952,9 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1withdrawals/get
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch withdrawals for
@@ -1986,8 +2016,10 @@ class stex(Exchange):
         withdrawals = self.safe_value(response, 'data', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1referral~1bonus_transfer~1{currencyId}/post
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1wallets~1{walletId}~1hold_amount/post
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -2212,8 +2244,9 @@ class stex(Exchange):
             'status': None,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
+        see https://apidocs.stex.com/#tag/Profile/paths/~1profile~1withdraw/post
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2459,7 +2492,7 @@ class stex(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
         #     {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
@@ -2472,3 +2505,4 @@ class stex(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

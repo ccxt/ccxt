@@ -8,18 +8,21 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetServerExchangeinfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUsersBalances (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUsersTransactionsTrade (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    abstract graphGetOhlcs (params?: {}): Promise<implicitReturnType>;
-    abstract graphGetKlinesHistory (params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
+    publicGetTicker (params?: {}): Promise<implicitReturnType>;
+    publicGetTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetServerExchangeinfo (params?: {}): Promise<implicitReturnType>;
+    privateGetUsersBalances (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetUsersTransactionsTrade (params?: {}): Promise<implicitReturnType>;
+    privatePostOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
+    graphGetOhlcs (params?: {}): Promise<implicitReturnType>;
+    graphGetKlinesHistory (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

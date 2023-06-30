@@ -80,6 +80,7 @@ export interface Order {
     datetime: string;
     timestamp: number;
     lastTradeTimestamp: number;
+    lastUpdateTimestamp?: number;
     status: 'open' | 'closed' | 'canceled' | string;
     symbol: string;
     type: string;
@@ -90,6 +91,9 @@ export interface Order {
     amount: number;
     filled: number;
     remaining: number;
+    stopPrice?: number;
+    takeProfitPrice?: number;
+    stopLossPrice?: number;
     cost: number;
     trades: Trade[];
     fee: Fee;
@@ -188,4 +192,16 @@ export interface DepositAddressResponse {
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 
+/** [ timestamp, open, high, low, close, volume, count ] */
+export type OHLCVC = [number, number, number, number, number, number, number];
+
 export type implicitReturnType = any;
+
+// must be an integer in other langs
+export type IndexType = number | string;
+
+export type Int = number;
+
+export type OrderSide = 'buy' | 'sell' | string;
+
+export type OrderType = 'limit' | 'market' | string;

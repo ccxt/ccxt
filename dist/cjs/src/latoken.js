@@ -7,7 +7,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class latoken extends latoken$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -33,6 +32,7 @@ class latoken extends latoken$1 {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFees': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -190,7 +190,7 @@ class latoken extends latoken$1 {
                     'Unable to resolve currency by tag': errors.BadSymbol,
                     "Can't find currency with tag": errors.BadSymbol,
                     'Unable to place order because pair is in inactive state': errors.BadSymbol,
-                    'API keys are not available for FROZEN user': errors.AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
+                    'API keys are not available for': errors.AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
             'options': {
@@ -454,6 +454,7 @@ class latoken extends latoken$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1263,7 +1264,7 @@ class latoken extends latoken$1 {
         /**
          * @method
          * @name latoken#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -1562,7 +1563,7 @@ class latoken extends latoken$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return;
+            return undefined;
         }
         //
         // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
@@ -1583,6 +1584,7 @@ class latoken extends latoken$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

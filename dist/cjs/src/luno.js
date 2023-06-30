@@ -7,7 +7,6 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class luno extends luno$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -774,7 +773,7 @@ class luno extends luno$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'],
+            'pair': market['id'],
         };
         const response = await this.privateGetFeeInfo(this.extend(request, params));
         //
@@ -849,8 +848,14 @@ class luno extends luno$1 {
         };
         return await this.privatePostStoporder(this.extend(request, params));
     }
-    async fetchLedgerByEntries(code = undefined, entry = -1, limit = 1, params = {}) {
+    async fetchLedgerByEntries(code = undefined, entry = undefined, limit = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry
+        if (entry === undefined) {
+            entry = -1;
+        }
+        if (limit === undefined) {
+            limit = 1;
+        }
         const since = undefined;
         const request = {
             'min_row': entry,
@@ -1017,12 +1022,13 @@ class luno extends luno$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const error = this.safeValue(response, 'error');
         if (error !== undefined) {
             throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }
 

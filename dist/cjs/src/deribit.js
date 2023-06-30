@@ -9,7 +9,6 @@ var totp = require('./base/functions/totp.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class deribit extends deribit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -549,6 +548,7 @@ class deribit extends deribit$1 {
         //         testnet: false
         //     }
         //
+        const parsedMarkets = {};
         const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
         const result = [];
         for (let i = 0; i < currenciesResult.length; i++) {
@@ -633,6 +633,8 @@ class deribit extends deribit$1 {
             const instrumentsResult = this.safeValue(instrumentsResponse, 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
+                const kind = this.safeString(market, 'kind');
+                const isSpot = (kind === 'spot');
                 const id = this.safeString(market, 'instrument_name');
                 const baseId = this.safeString(market, 'base_currency');
                 const quoteId = this.safeString(market, 'counter_currency');
@@ -640,7 +642,6 @@ class deribit extends deribit$1 {
                 const base = this.safeCurrencyCode(baseId);
                 const quote = this.safeCurrencyCode(quoteId);
                 const settle = this.safeCurrencyCode(settleId);
-                const kind = this.safeString(market, 'kind');
                 const settlementPeriod = this.safeValue(market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
                 const future = !swap && (kind.indexOf('future') >= 0);
@@ -657,7 +658,13 @@ class deribit extends deribit$1 {
                 else if (option) {
                     type = 'option';
                 }
-                if (!isComboMarket) {
+                else if (isSpot) {
+                    type = 'spot';
+                }
+                if (isSpot) {
+                    symbol = base + '/' + quote;
+                }
+                else if (!isComboMarket) {
                     symbol = base + '/' + quote + ':' + settle;
                     if (option || future) {
                         symbol = symbol + '-' + this.yymmdd(expiry, '');
@@ -669,6 +676,11 @@ class deribit extends deribit$1 {
                         }
                     }
                 }
+                const parsedMarketValue = this.safeValue(parsedMarkets, symbol);
+                if (parsedMarketValue) {
+                    continue;
+                }
+                parsedMarkets[symbol] = true;
                 const minTradeAmount = this.safeNumber(market, 'min_trade_amount');
                 const tickSize = this.safeNumber(market, 'tick_size');
                 result.push({
@@ -681,13 +693,13 @@ class deribit extends deribit$1 {
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': type,
-                    'spot': false,
+                    'spot': isSpot,
                     'margin': false,
                     'swap': swap,
                     'future': future,
                     'option': option,
                     'active': this.safeValue(market, 'is_active'),
-                    'contract': true,
+                    'contract': !isSpot,
                     'linear': (settle === quote),
                     'inverse': (settle !== quote),
                     'taker': this.safeNumber(market, 'taker_commission'),
@@ -2255,14 +2267,14 @@ class deribit extends deribit$1 {
         const initialMarginString = this.safeString(position, 'initial_margin');
         const notionalString = this.safeString(position, 'size_currency');
         const maintenanceMarginString = this.safeString(position, 'maintenance_margin');
-        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealizedPnl, initialMarginString), '100');
         const currentTime = this.milliseconds();
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': currentTime,
             'datetime': this.iso8601(currentTime),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringMul(Precise["default"].stringDiv(initialMarginString, notionalString), '100')),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -2276,11 +2288,12 @@ class deribit extends deribit$1 {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'estimated_liquidation_price'),
             'markPrice': this.safeNumber(position, 'mark_price'),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': undefined,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -2632,7 +2645,7 @@ class deribit extends deribit$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -2655,6 +2668,7 @@ class deribit extends deribit$1 {
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

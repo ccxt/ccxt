@@ -1,4 +1,7 @@
 import { SecureRandom } from "./rng.js";
+/**
+ * @type Class
+ */
 export declare class BigInteger {
     constructor(a: number | number[] | string, b?: number | SecureRandom, c?: number | SecureRandom);
     toString(b: number): string;
@@ -12,7 +15,7 @@ export declare class BigInteger {
     protected intValue(): number;
     protected byteValue(): number;
     protected shortValue(): number;
-    protected signum(): 0 | 1 | -1;
+    protected signum(): 1 | 0 | -1;
     toByteArray(): number[];
     protected equals(a: BigInteger): boolean;
     protected min(a: BigInteger): BigInteger;

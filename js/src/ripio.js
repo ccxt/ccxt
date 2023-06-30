@@ -9,7 +9,6 @@ import Exchange from './abstract/ripio.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds, DDoSProtection } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class ripio extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1114,7 +1113,7 @@ export default class ripio extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //      {"detail":"Authentication credentials were not provided."}
@@ -1142,5 +1141,6 @@ export default class ripio extends Exchange {
             }
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

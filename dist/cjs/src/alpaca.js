@@ -6,7 +6,6 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------xs
-// @ts-expect-error
 class alpaca extends alpaca$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -51,6 +50,7 @@ class alpaca extends alpaca$1 {
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
@@ -324,7 +324,7 @@ class alpaca extends alpaca$1 {
             request['start'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt(limit);
+            request['limit'] = limit;
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
         const response = await this[method](this.extend(request, params));
@@ -805,7 +805,7 @@ class alpaca extends alpaca$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // default error handler
+            return undefined; // default error handler
         }
         // {
         //     "code": 40110000,
@@ -822,6 +822,7 @@ class alpaca extends alpaca$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

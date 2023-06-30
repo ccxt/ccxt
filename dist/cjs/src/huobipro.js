@@ -4,7 +4,6 @@ var huobi = require('./huobi.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class huobipro extends huobi {
     describe() {
         // this is an alias for backward-compatibility

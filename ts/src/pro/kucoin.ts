@@ -4,10 +4,11 @@
 import kucoinRest from '../kucoin.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class kucoin extends kucoinRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -102,7 +103,7 @@ export default class kucoin extends kucoinRest {
         return requestId;
     }
 
-    async subscribe (url, messageHash, subscriptionHash, subscription, params = {}) {
+    async subscribe (url, messageHash, subscriptionHash, params = {}, subscription = undefined) {
         const requestId = this.requestId ().toString ();
         const request = {
             'id': requestId,
@@ -111,18 +112,14 @@ export default class kucoin extends kucoinRest {
             'response': true,
         };
         const message = this.extend (request, params);
-        const subscriptionRequest = {
-            'id': requestId,
-        };
-        if (subscription === undefined) {
-            subscription = subscriptionRequest;
-        } else {
-            subscription = this.extend (subscriptionRequest, subscription);
+        const client = this.client (url);
+        if (!(subscriptionHash in client.subscriptions)) {
+            client.subscriptions[requestId] = subscriptionHash;
         }
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name kucoin#watchTicker
@@ -138,10 +135,10 @@ export default class kucoin extends kucoinRest {
         const [ method, query ] = this.handleOptionAndParams (params, 'watchTicker', 'method', '/market/snapshot');
         const topic = method + ':' + market['id'];
         const messageHash = 'ticker:' + symbol;
-        return await this.subscribe (url, messageHash, topic, undefined, query);
+        return await this.subscribe (url, messageHash, topic, query);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         // market/snapshot
         //
@@ -212,7 +209,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchOHLCV
@@ -231,14 +228,14 @@ export default class kucoin extends kucoinRest {
         const period = this.safeString (this.timeframes, timeframe, timeframe);
         const topic = '/market/candles:' + market['id'] + '_' + period;
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        const ohlcv = await this.subscribe (url, messageHash, topic, undefined, params);
+        const ohlcv = await this.subscribe (url, messageHash, topic, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         data: {
@@ -282,7 +279,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchTrades
@@ -299,14 +296,14 @@ export default class kucoin extends kucoinRest {
         symbol = market['symbol'];
         const topic = '/market/match:' + market['id'];
         const messageHash = 'trades:' + symbol;
-        const trades = await this.subscribe (url, messageHash, topic, undefined, params);
+        const trades = await this.subscribe (url, messageHash, topic, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         data: {
@@ -340,7 +337,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchOrderBook
@@ -381,11 +378,11 @@ export default class kucoin extends kucoinRest {
             'symbol': symbol,
             'limit': limit,
         };
-        const orderbook = await this.subscribe (url, messageHash, topic, subscription, params);
+        const orderbook = await this.subscribe (url, messageHash, topic, params, subscription);
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -469,7 +466,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -479,7 +476,7 @@ export default class kucoin extends kucoinRest {
         // but not before, because otherwise we cannot synchronize the feed
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         id: '1578090438322',
@@ -487,16 +484,16 @@ export default class kucoin extends kucoinRest {
         //     }
         //
         const id = this.safeString (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
+        const subscriptionHash = this.safeString (client.subscriptions, id);
+        const subscription = this.safeValue (client.subscriptions, subscriptionHash);
+        delete client.subscriptions[id];
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             method.call (this, client, message, subscription);
         }
-        return message;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -510,7 +507,7 @@ export default class kucoin extends kucoinRest {
         return message;
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchOrders
@@ -533,11 +530,11 @@ export default class kucoin extends kucoinRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        const orders = await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
+        const orders = await this.subscribe (url, messageHash, topic, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     parseWsOrderStatus (status) {
@@ -577,7 +574,7 @@ export default class kucoin extends kucoinRest {
         const amount = this.safeString (order, 'size');
         const rawType = this.safeString (order, 'type');
         const status = this.parseWsOrderStatus (rawType);
-        const timestamp = this.safeIntegerProduct (order, 'orderTime', 0.000001);
+        const timestamp = this.safeInteger (order, 'orderTime');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -608,7 +605,7 @@ export default class kucoin extends kucoinRest {
         }, market);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsOrder (data);
@@ -637,7 +634,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.orders, symbolSpecificMessageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchMyTrades
@@ -660,14 +657,14 @@ export default class kucoin extends kucoinRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + market['symbol'];
         }
-        const trades = await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
+        const trades = await this.subscribe (url, messageHash, topic, this.extend (request, params));
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client: Client, message) {
         let trades = this.myTrades;
         if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -748,10 +745,10 @@ export default class kucoin extends kucoinRest {
             'privateChannel': true,
         };
         const messageHash = 'balance';
-        return await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
+        return await this.subscribe (url, messageHash, topic, this.extend (request, params));
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         // {
         //     "id":"6217a451294b030001e3a26a",
@@ -806,7 +803,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         //
         //     {
         //         "type":"message",
@@ -853,16 +850,16 @@ export default class kucoin extends kucoinRest {
         };
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         client.lastPong = this.milliseconds ();
         // https://docs.kucoin.com/#ping
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
         const methods = {
             // 'heartbeat': this.handleHeartbeat,

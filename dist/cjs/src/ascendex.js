@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class ascendex extends ascendex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -45,6 +44,9 @@ class ascendex extends ascendex$1 {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': false,
@@ -196,9 +198,15 @@ class ascendex extends ascendex$1 {
                             'futures/collateral': 1,
                             'futures/pricing-data': 1,
                             'futures/ticker': 1,
+                            'risk-limit-info': 1,
                         },
                     },
                     'private': {
+                        'data': {
+                            'get': {
+                                'order/hist': 1,
+                            },
+                        },
                         'get': {
                             'account/info': 1,
                         },
@@ -246,7 +254,7 @@ class ascendex extends ascendex$1 {
                 'account-category': 'cash',
                 'account-group': undefined,
                 'fetchClosedOrders': {
-                    'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                    'method': 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
                 'defaultType': 'spot',
                 'accountsByType': {
@@ -257,6 +265,20 @@ class ascendex extends ascendex$1 {
                 },
                 'transfer': {
                     'fillResponseFromRequest': true,
+                },
+                'networks': {
+                    'BSC': 'BEP20 (BSC)',
+                    'ARB': 'arbitrum',
+                    'SOL': 'Solana',
+                    'AVAX': 'avalanche C chain',
+                    'OMNI': 'Omni',
+                },
+                'networksById': {
+                    'BEP20 (BSC)': 'BSC',
+                    'arbitrum': 'ARB',
+                    'Solana': 'SOL',
+                    'avalanche C chain': 'AVAX',
+                    'Omni': 'OMNI',
                 },
             },
             'exceptions': {
@@ -421,13 +443,13 @@ class ascendex extends ascendex$1 {
             const fee = this.safeNumber2(currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString2(currency, 'status', 'statusCode');
             const active = (status === 'Normal');
-            const margin = ('borrowAssetCode' in currency);
+            const marginInside = ('borrowAssetCode' in currency);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': margin,
+                'margin': marginInside,
                 'name': this.safeString(currency, 'assetName'),
                 'active': active,
                 'deposit': undefined,
@@ -444,6 +466,7 @@ class ascendex extends ascendex$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1267,6 +1290,25 @@ class ascendex extends ascendex$1 {
         //     }
         //
         //     {
+        //         "orderId": "a173ad938fc3U22666567717788c3b66",   // orderId
+        //         "seqNum": 18777366360,                           // sequence number
+        //         "accountId": "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt", // accountId
+        //         "symbol": "BTC/USDT",                            // symbol
+        //         "orderType": "Limit",                            // order type (Limit/Market/StopMarket/StopLimit)
+        //         "side": "Sell",                                  // order side (Buy/Sell)
+        //         "price": "11346.77",                             // order price
+        //         "stopPrice": "0",                                // stop price (0 by default)
+        //         "orderQty": "0.01",                              // order quantity (in base asset)
+        //         "status": "Canceled",                            // order status (Filled/Canceled/Rejected)
+        //         "createTime": 1596344995793,                     // order creation time
+        //         "lastExecTime": 1596344996053,                   // last execution time
+        //         "avgFillPrice": "11346.77",                      // average filled price
+        //         "fillQty": "0.01",                               // filled quantity (in base asset)
+        //         "fee": "-0.004992579",                           // cummulative fee. if negative, this value is the commission charged; if possitive, this value is the rebate received.
+        //         "feeAsset": "USDT"                               // fee asset
+        //     }
+        //
+        //     {
         //         "ac": "FUTURES",
         //         "accountId": "testabcdefg",
         //         "avgPx": "0",
@@ -1299,7 +1341,7 @@ class ascendex extends ascendex$1 {
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'orderQty');
         const average = this.safeString(order, 'avgPx');
-        const filled = this.safeString2(order, 'cumFilledQty', 'cumQty');
+        const filled = this.safeStringN(order, ['cumFilledQty', 'cumQty', 'fillQty']);
         const id = this.safeString(order, 'orderId');
         let clientOrderId = this.safeString(order, 'id');
         if (clientOrderId !== undefined) {
@@ -1318,7 +1360,7 @@ class ascendex extends ascendex$1 {
             }
         }
         const side = this.safeStringLower(order, 'side');
-        const feeCost = this.safeNumber(order, 'cumFee');
+        const feeCost = this.safeNumber2(order, 'cumFee', 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString(order, 'feeAsset');
@@ -1809,10 +1851,12 @@ class ascendex extends ascendex$1 {
          * @method
          * @name ascendex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch orders for
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1838,27 +1882,32 @@ class ascendex extends ascendex$1 {
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
         const options = this.safeValue(this.options, 'fetchClosedOrders', {});
-        const defaultMethod = this.safeString(options, 'method', 'v1PrivateAccountGroupGetOrderHist');
+        const defaultMethod = this.safeString(options, 'method', 'v2PrivateDataGetOrderHist');
         const method = this.getSupportedMapping(type, {
             'spot': defaultMethod,
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         });
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
-        const accountCategory = this.safeString(accountsByType, type, 'cash');
-        if (method === 'v1PrivateAccountGroupGetOrderHist') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
+        const accountCategory = this.safeString(accountsByType, type, 'cash'); // margin, futures
+        if (method === 'v2PrivateDataGetOrderHist') {
+            request['account'] = accountCategory;
+            if (limit !== undefined) {
+                request['limit'] = limit;
             }
         }
         else {
             request['account-category'] = accountCategory;
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
         }
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
+        const until = this.safeString(params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         const response = await this[method](this.extend(request, query));
         //
@@ -1890,40 +1939,29 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        // accountGroupGetOrderHist
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "data": [
-        //                 {
-        //                     "ac": "FUTURES",
-        //                     "accountId": "testabcdefg",
-        //                     "avgPx": "0",
-        //                     "cumFee": "0",
-        //                     "cumQty": "0",
-        //                     "errorCode": "NULL_VAL",
-        //                     "execInst": "NULL_VAL",
-        //                     "feeAsset": "USDT",
-        //                     "lastExecTime": 1584072844085,
-        //                     "orderId": "r170d21956dd5450276356bbtcpKa74",
-        //                     "orderQty": "1.1499",
-        //                     "orderType": "Limit",
-        //                     "price": "4000",
-        //                     "sendingTime": 1584072841033,
-        //                     "seqNum": 24105338,
-        //                     "side": "Buy",
-        //                     "status": "Canceled",
-        //                     "stopPrice": "",
-        //                     "symbol": "BTC-PERP"
-        //                 },
-        //             ],
-        //             "hasNext": False,
-        //             "limit": 500,
-        //             "page": 1,
-        //             "pageSize": 20
-        //         }
-        //     }
+        //    {
+        //        "code": 0,
+        //        "data": [
+        //            {
+        //                "orderId"     :  "a173ad938fc3U22666567717788c3b66", // orderId
+        //                "seqNum"      :  18777366360,                        // sequence number
+        //                "accountId"   :  "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt", // accountId
+        //                "symbol"      :  "BTC/USDT",                         // symbol
+        //                "orderType"   :  "Limit",                            // order type (Limit/Market/StopMarket/StopLimit)
+        //                "side"        :  "Sell",                             // order side (Buy/Sell)
+        //                "price"       :  "11346.77",                         // order price
+        //                "stopPrice"   :  "0",                                // stop price (0 by default)
+        //                "orderQty"    :  "0.01",                             // order quantity (in base asset)
+        //                "status"      :  "Canceled",                         // order status (Filled/Canceled/Rejected)
+        //                "createTime"  :  1596344995793,                      // order creation time
+        //                "lastExecTime":  1596344996053,                      // last execution time
+        //                "avgFillPrice":  "11346.77",                         // average filled price
+        //                "fillQty"     :  "0.01",                             // filled quantity (in base asset)
+        //                "fee"         :  "-0.004992579",                     // cummulative fee. if negative, this value is the commission charged; if possitive, this value is the rebate received.
+        //                "feeAsset"    :  "USDT"                              // fee asset
+        //            }
+        //        ]
+        //    }
         //
         // accountGroupGetFuturesOrderHistCurrent
         //
@@ -2323,7 +2361,7 @@ class ascendex extends ascendex$1 {
         /**
          * @method
          * @name ascendex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED*, use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -2413,6 +2451,9 @@ class ascendex extends ascendex$1 {
         const tag = this.safeString(destAddress, 'destTag');
         const timestamp = this.safeInteger(transaction, 'time');
         const currencyId = this.safeString(transaction, 'asset');
+        let amountString = this.safeString(transaction, 'amount');
+        const feeCostString = this.safeString(transaction, 'commission');
+        amountString = Precise["default"].stringSub(amountString, feeCostString);
         const code = this.safeCurrencyCode(currencyId, currency);
         return {
             'info': transaction,
@@ -2421,7 +2462,7 @@ class ascendex extends ascendex$1 {
             'type': this.safeString(transaction, 'transactionType'),
             'currency': code,
             'network': undefined,
-            'amount': this.safeNumber(transaction, 'amount'),
+            'amount': this.parseNumber(amountString),
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -2435,7 +2476,7 @@ class ascendex extends ascendex$1 {
             'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': this.safeNumber(transaction, 'commission'),
+                'cost': this.parseNumber(feeCostString),
                 'rate': undefined,
             },
         };
@@ -2539,7 +2580,7 @@ class ascendex extends ascendex$1 {
         if (marginMode === 'isolated') {
             collateral = this.safeString(position, 'isolatedMargin');
         }
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
@@ -2552,10 +2593,12 @@ class ascendex extends ascendex$1 {
             'contracts': this.safeNumber(position, 'position'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': undefined,
             'side': this.safeStringLower(position, 'side'),
             'hedged': undefined,
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': collateral,
@@ -2563,7 +2606,7 @@ class ascendex extends ascendex$1 {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger(position, 'leverage'),
             'marginRatio': undefined,
-        };
+        });
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -2860,6 +2903,71 @@ class ascendex extends ascendex$1 {
         }
         return tiers;
     }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        // {
+        //     "assetCode":      "USDT",
+        //     "assetName":      "Tether",
+        //     "precisionScale":  9,
+        //     "nativeScale":     4,
+        //     "blockChain": [
+        //         {
+        //             "chainName":        "Omni",
+        //             "withdrawFee":      "30.0",
+        //             "allowDeposit":      true,
+        //             "allowWithdraw":     true,
+        //             "minDepositAmt":    "0.0",
+        //             "minWithdrawal":    "50.0",
+        //             "numConfirmations":  3
+        //         },
+        //     ]
+        // }
+        //
+        const blockChains = this.safeValue(fee, 'blockChain', []);
+        const blockChainsLength = blockChains.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        for (let i = 0; i < blockChainsLength; i++) {
+            const blockChain = blockChains[i];
+            const networkId = this.safeString(blockChain, 'chainName');
+            const currencyCode = this.safeString(currency, 'code');
+            const networkCode = this.networkIdToCode(networkId, currencyCode);
+            result['networks'][networkCode] = {
+                'deposit': { 'fee': undefined, 'percentage': undefined },
+                'withdraw': { 'fee': this.safeNumber(blockChain, 'withdrawFee'), 'percentage': false },
+            };
+            if (blockChainsLength === 1) {
+                result['withdraw']['fee'] = this.safeNumber(blockChain, 'withdrawFee');
+                result['withdraw']['percentage'] = false;
+            }
+        }
+        return result;
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.v2PublicGetAssets(params);
+        const data = this.safeValue(response, 'data');
+        return this.parseDepositWithdrawFees(data, codes, 'assetCode');
+    }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
@@ -2944,7 +3052,12 @@ class ascendex extends ascendex$1 {
         let request = this.implodeParams(path, params);
         url += '/api/pro/';
         if (version === 'v2') {
-            request = version + '/' + request;
+            if (type === 'data') {
+                request = 'data/' + version + '/' + request;
+            }
+            else {
+                request = version + '/' + request;
+            }
         }
         else {
             url += version + '/';
@@ -2995,7 +3108,7 @@ class ascendex extends ascendex$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {'code': 6010, 'message': 'Not enough balance.'}
@@ -3013,6 +3126,7 @@ class ascendex extends ascendex$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

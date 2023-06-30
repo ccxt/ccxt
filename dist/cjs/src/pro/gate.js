@@ -7,7 +7,6 @@ var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class gate extends gate$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -34,7 +33,10 @@ class gate extends gate$1 {
                         'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
                         'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
                     },
-                    'option': 'wss://op-ws.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws.gateio.live/v4/ws/btc',
+                    },
                 },
                 'test': {
                     'swap': {
@@ -45,7 +47,10 @@ class gate extends gate$1 {
                         'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                         'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
                     },
-                    'option': 'wss://op-ws-testnet.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws-testnet.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws-testnet.gateio.live/v4/ws/btc',
+                    },
                 },
             },
             'options': {
@@ -110,7 +115,7 @@ class gate extends gate$1 {
             'symbol': symbol,
             'limit': limit,
         };
-        const orderbook = await this.subscribePublic(url, messageHash, payload, channel, subscription, query);
+        const orderbook = await this.subscribePublic(url, messageHash, payload, channel, query, subscription);
         return orderbook.limit();
     }
     handleOrderBookSubscription(client, message, subscription) {
@@ -276,7 +281,7 @@ class gate extends gate$1 {
         const channel = messageType + '.' + topic;
         const messageHash = 'ticker:' + symbol;
         const payload = [marketId];
-        return await this.subscribePublic(url, messageHash, payload, channel, undefined, query);
+        return await this.subscribePublic(url, messageHash, payload, channel, query);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -299,7 +304,7 @@ class gate extends gate$1 {
         const channel = messageType + '.' + topic;
         const messageHash = 'tickers';
         const url = this.getUrlByMarket(market);
-        const ticker = await this.subscribePublic(url, messageHash, marketIds, channel, undefined, query);
+        const ticker = await this.subscribePublic(url, messageHash, marketIds, channel, query);
         let result = {};
         if (this.newUpdates) {
             result[ticker['symbol']] = ticker;
@@ -383,7 +388,7 @@ class gate extends gate$1 {
         const messageHash = 'trades:' + symbol;
         const url = this.getUrlByMarket(market);
         const payload = [marketId];
-        const trades = await this.subscribePublic(url, messageHash, payload, channel, undefined, params);
+        const trades = await this.subscribePublic(url, messageHash, payload, channel, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -447,7 +452,7 @@ class gate extends gate$1 {
         const messageHash = 'candles:' + interval + ':' + market['symbol'];
         const url = this.getUrlByMarket(market);
         const payload = [interval, marketId];
-        const ohlcv = await this.subscribePublic(url, messageHash, payload, channel, undefined, params);
+        const ohlcv = await this.subscribePublic(url, messageHash, payload, channel, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
@@ -521,7 +526,7 @@ class gate extends gate$1 {
         await this.loadMarkets();
         let subType = undefined;
         let type = undefined;
-        let marketId = '!all';
+        let marketId = '!' + 'all';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -811,11 +816,12 @@ class gate extends gate$1 {
             // inject order status
             const info = this.safeValue(parsed, 'info');
             const event = this.safeString(info, 'event');
-            if (event === 'put') {
+            if (event === 'put' || event === 'update') {
                 parsed['status'] = 'open';
             }
             else if (event === 'finish') {
-                parsed['status'] = 'closed';
+                const left = this.safeNumber(info, 'left');
+                parsed['status'] = (left === 0) ? 'closed' : 'canceled';
             }
             stored.append(parsed);
             const symbol = parsed['symbol'];
@@ -846,47 +852,49 @@ class gate extends gate$1 {
         //     },
         //     result: null
         //   }
-        const error = this.safeValue(message, 'error', {});
+        const error = this.safeValue(message, 'error');
         const code = this.safeInteger(error, 'code');
+        const id = this.safeString(message, 'id');
+        if (id === undefined) {
+            return false;
+        }
         if (code !== undefined) {
-            const id = this.safeString(message, 'id');
-            const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-            const subscription = this.safeValue(subscriptionsById, id);
-            if (subscription !== undefined) {
+            const messageHash = this.safeString(client.subscriptions, id);
+            if (messageHash !== undefined) {
                 try {
                     this.throwExactlyMatchedException(this.exceptions['ws']['exact'], code, this.json(message));
                 }
                 catch (e) {
-                    const messageHash = this.safeString(subscription, 'messageHash');
                     client.reject(e, messageHash);
-                    if (id in client.subscriptions) {
-                        delete client.subscriptions[id];
+                    if (messageHash in client.subscriptions) {
+                        delete client.subscriptions[messageHash];
                     }
                 }
             }
+            delete client.subscriptions[id];
+            return true;
         }
+        return false;
     }
     handleBalanceSubscription(client, message, subscription = undefined) {
         this.balance = {};
     }
     handleSubscriptionStatus(client, message) {
-        const channel = this.safeString(message, 'channel', '');
+        const channel = this.safeString(message, 'channel');
         const methods = {
             'balance': this.handleBalanceSubscription,
-            'order_book': this.handleOrderBookSubscription,
+            'spot.order_book_update': this.handleOrderBookSubscription,
+            'futures.order_book_update': this.handleOrderBookSubscription,
         };
-        const id = this.safeInteger(message, 'id');
-        const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeValue(subscriptionsById, id);
-        if (subscription !== undefined) {
-            const keys = Object.keys(methods);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                if (channel.indexOf(key) >= 0) {
-                    const method = methods[key];
-                    method.call(this, client, message, subscription);
-                }
-            }
+        const id = this.safeString(message, 'id');
+        if (channel in methods) {
+            const subscriptionHash = this.safeString(client.subscriptions, id);
+            const subscription = this.safeValue(client.subscriptions, subscriptionHash);
+            const method = methods[channel];
+            method.call(this, client, message, subscription);
+        }
+        if (id in client.subscriptions) {
+            delete client.subscriptions[id];
         }
     }
     handleMessage(client, message) {
@@ -979,7 +987,9 @@ class gate extends gate$1 {
         //        ]
         //    }
         //
-        this.handleErrorMessage(client, message);
+        if (this.handleErrorMessage(client, message)) {
+            return;
+        }
         const event = this.safeString(message, 'event');
         if (event === 'subscribe') {
             this.handleSubscriptionStatus(client, message);
@@ -1024,23 +1034,13 @@ class gate extends gate$1 {
         }
     }
     getUrlByMarketType(type, isInverse = false) {
-        if (type === 'spot') {
-            const spotUrl = this.urls['api']['spot'];
-            if (spotUrl === undefined) {
-                throw new errors.NotSupported(this.id + ' does not have a testnet for the ' + type + ' market type.');
-            }
-            return spotUrl;
+        const api = this.urls['api'];
+        const url = api[type];
+        if ((type === 'swap') || (type === 'future')) {
+            return isInverse ? url['btc'] : url['usdt'];
         }
-        else if (type === 'swap') {
-            const baseUrl = this.urls['api']['swap'];
-            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
-        }
-        else if (type === 'future') {
-            const baseUrl = this.urls['api']['future'];
-            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
-        }
-        else if (type === 'option') {
-            return this.urls['api']['option'];
+        else {
+            return url;
         }
     }
     requestId() {
@@ -1049,27 +1049,27 @@ class gate extends gate$1 {
         this.options['reqid'] = reqid;
         return reqid;
     }
-    async subscribePublic(url, messageHash, payload, subscriptionHash, subscription, params = {}) {
+    async subscribePublic(url, messageHash, payload, channel, params = {}, subscription = undefined) {
         const requestId = this.requestId();
         const time = this.seconds();
         const request = {
             'id': requestId,
             'time': time,
-            'channel': subscriptionHash,
+            'channel': channel,
             'event': 'subscribe',
             'payload': payload,
         };
-        if (subscription === undefined) {
-            subscription = {};
+        if (subscription !== undefined) {
+            const client = this.client(url);
+            if (!(messageHash in client.subscriptions)) {
+                const tempSubscriptionHash = requestId.toString();
+                client.subscriptions[tempSubscriptionHash] = messageHash;
+            }
         }
-        subscription = this.extend(subscription, {
-            'id': requestId,
-            'messageHash': messageHash,
-        });
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash, subscription);
     }
-    async subscribePrivate(url, messageHash, payload, subscriptionHash, params, requiresUid = false) {
+    async subscribePrivate(url, messageHash, payload, channel, params, requiresUid = false) {
         this.checkRequiredCredentials();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {
@@ -1086,7 +1086,7 @@ class gate extends gate$1 {
         }
         const time = this.seconds();
         const event = 'subscribe';
-        const signaturePayload = 'channel=' + subscriptionHash + '&' + 'event=' + event + '&' + 'time=' + time.toString();
+        const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString();
         const signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512.sha512, 'hex');
         const auth = {
             'method': 'api_key',
@@ -1097,19 +1097,21 @@ class gate extends gate$1 {
         const request = {
             'id': requestId,
             'time': time,
-            'channel': subscriptionHash,
+            'channel': channel,
             'event': 'subscribe',
             'auth': auth,
         };
         if (payload !== undefined) {
             request['payload'] = payload;
         }
+        const client = this.client(url);
+        if (!(messageHash in client.subscriptions)) {
+            const tempSubscriptionHash = requestId.toString();
+            // in case of authenticationError we will throw
+            client.subscriptions[tempSubscriptionHash] = messageHash;
+        }
         const message = this.extend(request, params);
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-        };
-        return await this.watch(url, messageHash, message, messageHash, subscription);
+        return await this.watch(url, messageHash, message, messageHash);
     }
 }
 

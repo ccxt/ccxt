@@ -5,7 +5,6 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class ndax extends ndax$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -262,7 +261,7 @@ class ndax extends ndax$1 {
                 const duration = parseInt(interval) * 1000;
                 const timestamp = this.safeInteger(ohlcv, 0);
                 const parsed = [
-                    parseInt(((timestamp / duration) * duration).toString()),
+                    this.parseToInt((timestamp / duration) * duration),
                     this.safeFloat(ohlcv, 3),
                     this.safeFloat(ohlcv, 1),
                     this.safeFloat(ohlcv, 2),

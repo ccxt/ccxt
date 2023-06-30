@@ -8,7 +8,6 @@ var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitfinex extends bitfinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -477,7 +476,7 @@ class bitfinex extends bitfinex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrders(client, message, subscription) {
         //

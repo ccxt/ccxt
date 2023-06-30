@@ -9,7 +9,6 @@ import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ArgumentsRequired } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitrue extends bitrueRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -21,7 +20,7 @@ export default class bitrue extends bitrueRest {
                 'watchTrades': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': false,
             },
             'urls': {
@@ -198,7 +197,7 @@ export default class bitrue extends bitrueRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrder(client, message) {
         //
@@ -224,7 +223,7 @@ export default class bitrue extends bitrueRest {
         //        Y: '0'
         //    }
         //
-        const parsed = this.parseWSOrder(message);
+        const parsed = this.parseWsOrder(message);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -234,7 +233,7 @@ export default class bitrue extends bitrueRest {
         const messageHash = 'orders';
         client.resolve(this.orders, messageHash);
     }
-    parseWSOrder(order, market = undefined) {
+    parseWsOrder(order, market = undefined) {
         //
         //    {
         //        e: 'ORDER',
@@ -275,7 +274,7 @@ export default class bitrue extends bitrueRest {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': this.safeInteger(order, 'T'),
             'symbol': this.safeSymbol(marketId, market),
-            'type': this.parseWSOrderType(typeId),
+            'type': this.parseWsOrderType(typeId),
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
@@ -286,7 +285,7 @@ export default class bitrue extends bitrueRest {
             'average': undefined,
             'filled': this.safeString(order, 'z'),
             'remaining': undefined,
-            'status': this.parseWSOrderStatus(statusId),
+            'status': this.parseWsOrderStatus(statusId),
             'fee': {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
                 'cost': this.safeNumber(order, 'n'),
@@ -359,7 +358,7 @@ export default class bitrue extends bitrueRest {
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
-    parseWSOrderType(typeId) {
+    parseWsOrderType(typeId) {
         const types = {
             '1': 'limit',
             '2': 'market',
@@ -367,7 +366,7 @@ export default class bitrue extends bitrueRest {
         };
         return this.safeString(types, typeId, typeId);
     }
-    parseWSOrderStatus(status) {
+    parseWsOrderStatus(status) {
         const statuses = {
             '0': 'open',
             '1': 'open',

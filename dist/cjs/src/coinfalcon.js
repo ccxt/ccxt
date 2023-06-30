@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class coinfalcon extends coinfalcon$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -997,7 +996,7 @@ class coinfalcon extends coinfalcon$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code < 400) {
-            return;
+            return undefined;
         }
         const ErrorClass = this.safeValue({
             '401': errors.AuthenticationError,

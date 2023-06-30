@@ -4,12 +4,12 @@ var lbank2$1 = require('./abstract/lbank2.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var md5 = require('./static_dependencies/noble-hashes/md5.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class lbank2 extends lbank2$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -276,6 +276,7 @@ class lbank2 extends lbank2$1 {
          * @method
          * @name lbank2#fetchMarkets
          * @description retrieves data on all markets for lbank2
+         * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -299,22 +300,8 @@ class lbank2 extends lbank2$1 {
             const quoteId = parts[1];
             const base = baseId.toUpperCase();
             const quote = quoteId.toUpperCase();
-            let symbol = base + '/' + quote;
-            const productTypes = {
-                '3l': true,
-                '5l': true,
-                '3s': true,
-                '5s': true,
-            };
-            const ending = baseId.slice(-2);
-            const isLeveragedProduct = this.safeValue(productTypes, ending, false);
-            if (isLeveragedProduct) {
-                symbol += ':' + quote;
-            }
-            let linear = undefined;
-            if (isLeveragedProduct === true) {
-                linear = true;
-            }
+            const symbol = base + '/' + quote;
+            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy')));
             result.push({
                 'id': marketId,
                 'symbol': symbol,
@@ -327,12 +314,12 @@ class lbank2 extends lbank2$1 {
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'swap': isLeveragedProduct,
+                'swap': false,
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': isLeveragedProduct,
-                'linear': linear,
+                'contract': undefined,
+                'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
@@ -340,7 +327,7 @@ class lbank2 extends lbank2$1 {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'priceAccuracy'))),
                 },
                 'limits': {
@@ -821,11 +808,11 @@ class lbank2 extends lbank2$1 {
             for (let i = 0; i < balances.length; i++) {
                 const item = balances[i];
                 const currencyId = this.safeString(item, 'asset');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString(item, 'free');
                 account['used'] = this.safeString(item, 'locked');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance(result);
         }
@@ -835,14 +822,15 @@ class lbank2 extends lbank2$1 {
             for (let i = 0; i < data.length; i++) {
                 const item = data[i];
                 const currencyId = this.safeString(item, 'coin');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString(item, 'usableAmt');
                 account['used'] = this.safeString(item, 'freezeAmt');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance(result);
         }
+        return undefined;
     }
     async fetchBalance(params = {}) {
         /**
@@ -1290,12 +1278,12 @@ class lbank2 extends lbank2$1 {
         params = this.omit(params, 'start_date');
         const request = {
             'symbol': market['id'],
-            // 'start_date': String Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-            // 'end_date': String Finish time yyyy-mm-dd, the maximum is today, the default is today
+            // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+            // 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
             // 'The start': and end date of the query window is up to 2 days
-            // 'from': String Initial transaction number inquiring
-            // 'direct': String inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-            // 'size': String Query the number of defaults to 100
+            // 'from' Initial transaction number inquiring
+            // 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+            // 'size' Query the number of defaults to 100
         };
         if (limit !== undefined) {
             request['size'] = limit;
@@ -2026,17 +2014,17 @@ class lbank2 extends lbank2$1 {
             const canWithdraw = this.safeValue(item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString(item, 'assetCode');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const chain = this.safeString(item, 'chain');
                 let network = this.safeString(this.options['inverse-networks'], chain, chain);
                 if (network === undefined) {
-                    network = code;
+                    network = codeInner;
                 }
                 const fee = this.safeString(item, 'fee');
-                if (withdrawFees[code] === undefined) {
-                    withdrawFees[code] = {};
+                if (withdrawFees[codeInner] === undefined) {
+                    withdrawFees[codeInner] = {};
                 }
-                withdrawFees[code][network] = this.parseNumber(fee);
+                withdrawFees[codeInner][network] = this.parseNumber(fee);
             }
         }
         return {
@@ -2284,7 +2272,7 @@ class lbank2 extends lbank2$1 {
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode(auth);
-            const hash = this.hash(encoded, sha256.sha256);
+            const hash = this.hash(encoded, md5.md5);
             const uppercaseHash = hash.toUpperCase();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
@@ -2331,7 +2319,7 @@ class lbank2 extends lbank2$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString(response, 'result');
         if (success === 'false') {
@@ -2443,6 +2431,7 @@ class lbank2 extends lbank2$1 {
             }, errorCode, errors.ExchangeError);
             throw new ErrorClass(message);
         }
+        return undefined;
     }
 }
 

@@ -8,7 +8,6 @@ var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class oceanex extends oceanex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -642,15 +641,12 @@ class oceanex extends oceanex$1 {
          * @param {object} params extra parameters specific to the oceanex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        let ids = id;
-        if (!Array.isArray(id)) {
-            ids = [id];
-        }
         await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
+        const ids = [id];
         const request = { 'ids': ids };
         const response = await this.privateGetOrders(this.extend(request, params));
         const data = this.safeValue(response, 'data');
@@ -659,7 +655,8 @@ class oceanex extends oceanex$1 {
             throw new errors.OrderNotFound(this.id + ' could not found matching order');
         }
         if (Array.isArray(id)) {
-            return this.parseOrders(data, market);
+            const orders = this.parseOrders(data, market);
+            return orders[0];
         }
         if (dataLength === 0) {
             throw new errors.OrderNotFound(this.id + ' could not found matching order');
@@ -940,7 +937,7 @@ class oceanex extends oceanex$1 {
         //     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         //
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
@@ -950,6 +947,7 @@ class oceanex extends oceanex$1 {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

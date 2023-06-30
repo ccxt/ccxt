@@ -6,7 +6,6 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class alpaca extends alpaca$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -369,7 +368,7 @@ class alpaca extends alpaca$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleTradeUpdate(client, message) {
         this.handleOrder(client, message);

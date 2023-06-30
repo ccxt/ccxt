@@ -2,13 +2,13 @@
 //  ---------------------------------------------------------------------------
 
 import krakenRest from '../kraken.js';
-import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from '../base/errors.js';
+import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-
+import { Int, OrderSide, OrderType } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class kraken extends krakenRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -22,6 +22,11 @@ export default class kraken extends krakenRest {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'createOrderWs': true,
+                'editOrderWs': true,
+                'cancelOrderWs': true,
+                'cancelOrdersWs': true,
+                'cancelAllOrdersWs': true,
                 // 'watchHeartbeat': true,
                 // 'watchStatus': true,
             },
@@ -31,6 +36,7 @@ export default class kraken extends krakenRest {
                         'public': 'wss://ws.kraken.com',
                         'private': 'wss://ws-auth.kraken.com',
                         'beta': 'wss://beta-ws.kraken.com',
+                        'beta-private': 'wss://beta-ws-auth.kraken.com',
                     },
                 },
             },
@@ -50,11 +56,249 @@ export default class kraken extends krakenRest {
                         'Event(s) not found': BadRequest,
                     },
                     'broad': {
+                        'Already subscribed': BadRequest,
                         'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                        'Malformed request': BadRequest,
+                        'Pair field must be an array': BadRequest,
+                        'Pair field unsupported for this subscription type': BadRequest,
+                        'Pair(s) not found': BadSymbol,
+                        'Subscription book depth must be an integer': BadRequest,
+                        'Subscription depth not supported': BadRequest,
+                        'Subscription field must be an object': BadRequest,
+                        'Subscription name invalid': BadRequest,
+                        'Subscription object unsupported field': BadRequest,
+                        'Subscription ohlc interval must be an integer': BadRequest,
+                        'Subscription ohlc interval not supported': BadRequest,
+                        'Subscription ohlc requires interval': BadRequest,
+                        'EAccount:Invalid permissions': PermissionDenied,
+                        'EAuth:Account temporary disabled': AccountSuspended,
+                        'EAuth:Account unconfirmed': AuthenticationError,
+                        'EAuth:Rate limit exceeded': RateLimitExceeded,
+                        'EAuth:Too many requests': RateLimitExceeded,
+                        'EDatabase: Internal error (to be deprecated)': ExchangeError,
+                        'EGeneral:Internal error[:<code>]': ExchangeError,
+                        'EGeneral:Invalid arguments': BadRequest,
+                        'EOrder:Cannot open opposing position': InvalidOrder,
+                        'EOrder:Cannot open position': InvalidOrder,
+                        'EOrder:Insufficient funds (insufficient user funds)': InsufficientFunds,
+                        'EOrder:Insufficient margin (exchange does not have sufficient funds to allow margin trading)': InsufficientFunds,
+                        'EOrder:Invalid price': InvalidOrder,
+                        'EOrder:Margin allowance exceeded': InvalidOrder,
+                        'EOrder:Margin level too low': InvalidOrder,
+                        'EOrder:Margin position size exceeded (client would exceed the maximum position size for this pair)': InvalidOrder,
+                        'EOrder:Order minimum not met (volume too low)': InvalidOrder,
+                        'EOrder:Orders limit exceeded': InvalidOrder,
+                        'EOrder:Positions limit exceeded': InvalidOrder,
+                        'EOrder:Rate limit exceeded': RateLimitExceeded,
+                        'EOrder:Scheduled orders limit exceeded': InvalidOrder,
+                        'EOrder:Unknown position': OrderNotFound,
+                        'EOrder:Unknown order': OrderNotFound,
+                        'EOrder:Invalid order': InvalidOrder,
+                        'EService:Deadline elapsed': ExchangeNotAvailable,
+                        'EService:Market in cancel_only mode': NotSupported,
+                        'EService:Market in limit_only mode': NotSupported,
+                        'EService:Market in post_only mode': NotSupported,
+                        'EService:Unavailable': ExchangeNotAvailable,
+                        'ETrade:Invalid request': BadRequest,
                     },
                 },
             },
         });
+    }
+
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#createOrderWs
+         * @see https://docs.kraken.com/websockets/#message-addOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        let request = {
+            'event': 'addOrder',
+            'token': token,
+            'reqid': requestId,
+            'ordertype': type,
+            'type': side,
+            'pair': market['wsId'],
+            'volume': this.amountToPrecision (symbol, amount),
+        };
+        [ request, params ] = this.orderRequest ('createOrderWs()', symbol, type, request, price, params);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    handleCreateEditOrder (client, message) {
+        //
+        //  createOrder
+        //    {
+        //        descr: 'sell 0.00010000 XBTUSDT @ market',
+        //        event: 'addOrderStatus',
+        //        reqid: 1,
+        //        status: 'ok',
+        //        txid: 'OAVXZH-XIE54-JCYYDG'
+        //    }
+        //  editOrder
+        //    {
+        //        "descr": "order edited price = 9000.00000000",
+        //        "event": "editOrderStatus",
+        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
+        //        "reqid": 3,
+        //        "status": "ok",
+        //        "txid": "OTI672-HJFAO-XOIPPK"
+        //    }
+        //
+        const order = this.parseOrder (message);
+        const messageHash = this.safeValue (message, 'reqid');
+        client.resolve (order, messageHash);
+    }
+
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#editOrderWs
+         * @description edit a trade order
+         * @see https://docs.kraken.com/websockets/#message-editOrder
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        let request = {
+            'event': 'editOrder',
+            'token': token,
+            'reqid': requestId,
+            'orderid': id,
+            'pair': market['wsId'],
+            'volume': this.amountToPrecision (symbol, amount),
+        };
+        [ request, params ] = this.orderRequest ('editOrderWs()', symbol, type, request, price, params);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelOrdersWs
+         * @see https://docs.kraken.com/websockets/#message-cancelOrder
+         * @description cancel multiple orders
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol unified market symbol, default is undefined
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        const request = {
+            'event': 'cancelOrder',
+            'token': token,
+            'reqid': requestId,
+            'txid': ids,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelOrderWs
+         * @see https://docs.kraken.com/websockets/#message-cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId', id);
+        params = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        const request = {
+            'event': 'cancelOrder',
+            'token': token,
+            'reqid': requestId,
+            'txid': [ clientOrderId ],
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    handleCancelOrder (client, message) {
+        //
+        //  success
+        //    {
+        //        "event": "cancelOrderStatus",
+        //        "status": "ok"
+        //        "reqid": 1,
+        //    }
+        //
+        const reqId = this.safeValue (message, 'reqid');
+        client.resolve (message, reqId);
+    }
+
+    async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelAllOrdersWs
+         * @see https://docs.kraken.com/websockets/#message-cancelAll
+         * @description cancel all open orders
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol !== undefined) {
+            throw new NotSupported (this.id + ' cancelAllOrdersWs () does not support cancelling orders in a specific market.');
+        }
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        const request = {
+            'event': 'cancelAll',
+            'token': token,
+            'reqid': requestId,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    handleCancelAllOrders (client, message) {
+        //
+        //    {
+        //        "count": 2,
+        //        "event": "cancelAllStatus",
+        //        "status": "ok",
+        //        "reqId": 1
+        //    }
+        //
+        const reqId = this.safeValue (message, 'reqid');
+        client.resolve (message, reqId);
     }
 
     handleTicker (client, message, subscription) {
@@ -119,7 +363,7 @@ export default class kraken extends krakenRest {
         client.resolve (result, messageHash);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         //
         //     [
         //         0, // channelID
@@ -150,7 +394,7 @@ export default class kraken extends krakenRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client, message, subscription) {
+    handleOHLCV (client: Client, message, subscription) {
         //
         //     [
         //         216, // channelID
@@ -231,7 +475,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name kraken#watchTicker
@@ -243,7 +487,7 @@ export default class kraken extends krakenRest {
         return await this.watchPublic ('ticker', symbol, params);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchTrades
@@ -264,7 +508,7 @@ export default class kraken extends krakenRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOrderBook
@@ -289,7 +533,7 @@ export default class kraken extends krakenRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOHLCV
@@ -359,7 +603,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, event);
     }
 
-    handleHeartbeat (client, message) {
+    handleHeartbeat (client: Client, message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -369,7 +613,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, event);
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         //
         // first message (snapshot)
         //
@@ -535,7 +779,7 @@ export default class kraken extends krakenRest {
         return timestamp;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -573,7 +817,7 @@ export default class kraken extends krakenRest {
         return this.safeString (subscription, 'token');
     }
 
-    async watchPrivate (name, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchPrivate (name, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const subscriptionHash = name;
@@ -597,10 +841,10 @@ export default class kraken extends krakenRest {
         if (this.newUpdates) {
             limit = result.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchMyTrades
@@ -614,7 +858,7 @@ export default class kraken extends krakenRest {
         return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
     }
 
-    handleMyTrades (client, message, subscription = undefined) {
+    handleMyTrades (client: Client, message, subscription = undefined) {
         //
         //     [
         //         [
@@ -764,7 +1008,7 @@ export default class kraken extends krakenRest {
         };
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOrders
@@ -779,7 +1023,7 @@ export default class kraken extends krakenRest {
         return await this.watchPrivate ('openOrders', symbol, since, limit, params);
     }
 
-    handleOrders (client, message, subscription = undefined) {
+    handleOrders (client: Client, message, subscription = undefined) {
         //
         //     [
         //         [
@@ -1032,7 +1276,7 @@ export default class kraken extends krakenRest {
         });
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         // public
         //
@@ -1066,7 +1310,7 @@ export default class kraken extends krakenRest {
         // }
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
@@ -1096,7 +1340,7 @@ export default class kraken extends krakenRest {
         return true;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             const subscription = this.safeValue (client.subscriptions, channelId, {});
@@ -1127,6 +1371,10 @@ export default class kraken extends krakenRest {
                     'heartbeat': this.handleHeartbeat,
                     'systemStatus': this.handleSystemStatus,
                     'subscriptionStatus': this.handleSubscriptionStatus,
+                    'addOrderStatus': this.handleCreateEditOrder,
+                    'editOrderStatus': this.handleCreateEditOrder,
+                    'cancelOrderStatus': this.handleCancelOrder,
+                    'cancelAllStatus': this.handleCancelAllOrders,
                 };
                 const method = this.safeValue (methods, event);
                 if (method === undefined) {

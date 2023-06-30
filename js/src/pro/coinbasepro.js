@@ -6,11 +6,10 @@
 
 //  ---------------------------------------------------------------------------
 import coinbaseproRest from '../coinbasepro.js';
-import { BadSymbol } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class coinbasepro extends coinbaseproRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -241,7 +240,7 @@ export default class coinbasepro extends coinbaseproRest {
         }
         return message;
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         //
         // private trades
         // {
@@ -302,7 +301,7 @@ export default class coinbasepro extends coinbaseproRest {
             parsed['takerOrMaker'] = 'taker';
             feeRate = this.safeNumber(trade, 'taker_fee_rate');
         }
-        const market = this.market(parsed['symbol']);
+        market = this.market(parsed['symbol']);
         const feeCurrency = market['quote'];
         let feeCost = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
@@ -490,7 +489,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
         }
     }
-    parseWsOrder(order) {
+    parseWsOrder(order, market = undefined) {
         const id = this.safeString(order, 'order_id');
         const clientOrderId = this.safeString(order, 'client_oid');
         const marketId = this.safeString(order, 'product_id');
@@ -679,6 +678,7 @@ export default class coinbasepro extends coinbaseproRest {
             this.handleDeltas(orderbook['bids'], this.safeValue(message, 'bids', []));
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
+            orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else if (type === 'l2update') {
@@ -717,6 +717,37 @@ export default class coinbasepro extends coinbaseproRest {
         //
         return message;
     }
+    handleErrorMessage(client, message) {
+        //
+        //     {
+        //         "type": "error",
+        //         "message": "error message",
+        //         /* ... */
+        //     }
+        //
+        // auth error
+        //
+        //     {
+        //         type: 'error',
+        //         message: 'Authentication Failed',
+        //         reason: '{"message":"Invalid API Key"}'
+        //     }
+        //
+        const errMsg = this.safeString(message, 'message');
+        const reason = this.safeString(message, 'reason');
+        try {
+            if (errMsg === 'Authentication Failed') {
+                throw new AuthenticationError('Authentication failed: ' + reason);
+            }
+            else {
+                throw new ExchangeError(this.id + ' ' + reason);
+            }
+        }
+        catch (error) {
+            client.reject(error);
+            return true;
+        }
+    }
     handleMessage(client, message) {
         const type = this.safeString(message, 'type');
         const methods = {
@@ -728,6 +759,7 @@ export default class coinbasepro extends coinbaseproRest {
             'open': this.handleOrder,
             'change': this.handleOrder,
             'done': this.handleOrder,
+            'error': this.handleErrorMessage,
         };
         const length = client.url.length - 0;
         const authenticated = client.url[length - 1] === '?';

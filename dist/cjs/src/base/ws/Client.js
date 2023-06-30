@@ -44,11 +44,11 @@ class Client {
         };
         Object.assign(this, generic.deepExtend(defaults, config));
         // connection-related Future
-        this.connected = Future();
+        this.connected = Future.createFuture();
     }
     future(messageHash) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = Future();
+            this.futures[messageHash] = Future.createFuture();
         }
         const future = this.futures[messageHash];
         if (messageHash in this.rejections) {
@@ -217,12 +217,28 @@ class Client {
             this.log(new Date(), 'onUpgrade');
         }
     }
-    send(message) {
+    async send(message) {
         if (this.verbose) {
             this.log(new Date(), 'sending', message);
         }
         message = (typeof message === 'string') ? message : JSON.stringify(message);
-        this.connection.send(message);
+        const future = Future.createFuture();
+        if (platform.isNode) {
+            function onSendComplete(error) {
+                if (error) {
+                    future.reject(error);
+                }
+                else {
+                    future.resolve(null);
+                }
+            }
+            this.connection.send(message, {}, onSendComplete);
+        }
+        else {
+            this.connection.send(message);
+            future.resolve(null);
+        }
+        return future;
     }
     close() {
         throw new errors.NotSupported('close() not implemented yet');
@@ -237,7 +253,7 @@ class Client {
                 arrayBuffer = index.utf8.decode(message);
             }
             else {
-                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset));
+                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
             }
             if (this.gunzip) {
                 arrayBuffer = browser.gunzipSync(arrayBuffer);
@@ -265,7 +281,12 @@ class Client {
             this.log(new Date(), 'onMessage JSON.parse', e);
             // reset with a json encoding error ?
         }
-        this.onMessageCallback(this, message);
+        try {
+            this.onMessageCallback(this, message);
+        }
+        catch (error) {
+            this.reject(error);
+        }
     }
 }
 

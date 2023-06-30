@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class poloniex extends poloniex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -18,7 +17,7 @@ class poloniex extends poloniex$1 {
             // 200 requests per second for some unauthenticated market endpoints => 1000ms / 200 = 5ms between requests
             'rateLimit': 5,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -36,6 +35,7 @@ class poloniex extends poloniex$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
@@ -178,6 +178,7 @@ class poloniex extends poloniex$1 {
                 'BDG': 'Badgercoin',
                 'BTM': 'Bitmark',
                 'CON': 'Coino',
+                'ETHTRON': 'ETH',
                 'GOLD': 'GoldEagles',
                 'GPUC': 'GPU',
                 'HOT': 'Hotcoin',
@@ -190,6 +191,7 @@ class poloniex extends poloniex$1 {
                 'STR': 'XLM',
                 'SOC': 'SOCC',
                 'TRADE': 'Unitrade',
+                'TRXETH': 'TRX',
                 'XAP': 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
@@ -200,6 +202,7 @@ class poloniex extends poloniex$1 {
                 // with a USDTTRON or a USDTETH currency id, respectfully
                 // therefore we have map them back to the original code USDT
                 // otherwise the returned withdrawals are filtered out
+                'USDTBSC': 'USDT',
                 'USDTTRON': 'USDT',
                 'USDTETH': 'USDT',
                 'UST': 'USTC',
@@ -214,6 +217,7 @@ class poloniex extends poloniex$1 {
                     'BSC': 'BEP20',
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
+                    'TRX': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -244,36 +248,114 @@ class poloniex extends poloniex$1 {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'You may only place orders that reduce your position.': errors.InvalidOrder,
-                    'Invalid order number, or you are not the person who placed the order.': errors.OrderNotFound,
-                    'Permission denied': errors.PermissionDenied,
-                    'Permission denied.': errors.PermissionDenied,
-                    'Connection timed out. Please try again.': errors.RequestTimeout,
-                    'Internal error. Please try again.': errors.ExchangeNotAvailable,
-                    'Currently in maintenance mode.': errors.OnMaintenance,
-                    'Order not found, or you are not the person who placed it.': errors.OrderNotFound,
-                    'Invalid API key/secret pair.': errors.AuthenticationError,
-                    'Please do not make more than 8 API calls per second.': errors.RateLimitExceeded,
-                    'This IP has been temporarily throttled. Please ensure your requests are valid and try again in one minute.': errors.RateLimitExceeded,
-                    'Rate must be greater than zero.': errors.InvalidOrder,
-                    'Invalid currency pair.': errors.BadSymbol,
-                    'Invalid currencyPair parameter.': errors.BadSymbol,
-                    'Trading is disabled in this market.': errors.BadSymbol,
-                    'Invalid orderNumber parameter.': errors.OrderNotFound,
-                    'Order is beyond acceptable bounds.': errors.InvalidOrder,
-                    'This account is closed.': errors.AccountSuspended, // {"error":"This account is closed."}
+                    // General
+                    '200': errors.CancelPending,
+                    '500': errors.ExchangeNotAvailable,
+                    '603': errors.RequestTimeout,
+                    '601': errors.BadRequest,
+                    '415': errors.ExchangeError,
+                    '602': errors.ArgumentsRequired,
+                    // Accounts
+                    '21604': errors.BadRequest,
+                    '21600': errors.AuthenticationError,
+                    '21605': errors.AuthenticationError,
+                    '21102': errors.ExchangeError,
+                    '21100': errors.AuthenticationError,
+                    '21704': errors.AuthenticationError,
+                    '21700': errors.BadRequest,
+                    '21705': errors.BadRequest,
+                    '21707': errors.ExchangeError,
+                    '21708': errors.BadRequest,
+                    '21601': errors.AccountSuspended,
+                    '21711': errors.ExchangeError,
+                    '21709': errors.InsufficientFunds,
+                    '250000': errors.ExchangeError,
+                    '250001': errors.BadRequest,
+                    '250002': errors.BadRequest,
+                    '250003': errors.BadRequest,
+                    '250004': errors.BadRequest,
+                    '250005': errors.InsufficientFunds,
+                    '250008': errors.BadRequest,
+                    '250012': errors.ExchangeError,
+                    // Trading
+                    '21110': errors.BadRequest,
+                    '10040': errors.BadSymbol,
+                    '10060': errors.ExchangeError,
+                    '10020': errors.BadSymbol,
+                    '10041': errors.BadSymbol,
+                    '21340': errors.OnMaintenance,
+                    '21341': errors.InvalidOrder,
+                    '21342': errors.InvalidOrder,
+                    '21343': errors.InvalidOrder,
+                    '21351': errors.AccountSuspended,
+                    '21352': errors.BadSymbol,
+                    '21353': errors.PermissionDenied,
+                    '21354': errors.PermissionDenied,
+                    '21360': errors.InvalidOrder,
+                    '24106': errors.BadRequest,
+                    '24201': errors.ExchangeNotAvailable,
+                    // Orders
+                    '21301': errors.OrderNotFound,
+                    '21302': errors.ExchangeError,
+                    '21304': errors.ExchangeError,
+                    '21305': errors.OrderNotFound,
+                    '21307': errors.ExchangeError,
+                    '21309': errors.InvalidOrder,
+                    '21310': errors.InvalidOrder,
+                    '21311': errors.InvalidOrder,
+                    '21312': errors.InvalidOrder,
+                    '21314': errors.InvalidOrder,
+                    '21315': errors.InvalidOrder,
+                    '21317': errors.InvalidOrder,
+                    '21319': errors.InvalidOrder,
+                    '21320': errors.InvalidOrder,
+                    '21321': errors.InvalidOrder,
+                    '21322': errors.InvalidOrder,
+                    '21324': errors.BadRequest,
+                    '21327': errors.InvalidOrder,
+                    '21328': errors.InvalidOrder,
+                    '21330': errors.InvalidOrder,
+                    '21335': errors.InvalidOrder,
+                    '21336': errors.InvalidOrder,
+                    '21337': errors.InvalidOrder,
+                    '21344': errors.InvalidOrder,
+                    '21345': errors.InvalidOrder,
+                    '21346': errors.InvalidOrder,
+                    '21348': errors.InvalidOrder,
+                    '21347': errors.InvalidOrder,
+                    '21349': errors.InvalidOrder,
+                    '21350': errors.InvalidOrder,
+                    '21355': errors.ExchangeError,
+                    '21356': errors.BadRequest,
+                    '24101': errors.BadSymbol,
+                    '24102': errors.InvalidOrder,
+                    '24103': errors.InvalidOrder,
+                    '24104': errors.InvalidOrder,
+                    '24105': errors.InvalidOrder,
+                    '25020': errors.InvalidOrder,
+                    // Smartorders
+                    '25000': errors.InvalidOrder,
+                    '25001': errors.InvalidOrder,
+                    '25002': errors.InvalidOrder,
+                    '25003': errors.ExchangeError,
+                    '25004': errors.InvalidOrder,
+                    '25005': errors.ExchangeError,
+                    '25006': errors.InvalidOrder,
+                    '25007': errors.InvalidOrder,
+                    '25008': errors.InvalidOrder,
+                    '25009': errors.ExchangeError,
+                    '25010': errors.PermissionDenied,
+                    '25011': errors.InvalidOrder,
+                    '25012': errors.ExchangeError,
+                    '25013': errors.OrderNotFound,
+                    '25014': errors.OrderNotFound,
+                    '25015': errors.OrderNotFound,
+                    '25016': errors.ExchangeError,
+                    '25017': errors.ExchangeError,
+                    '25018': errors.BadRequest,
+                    '25019': errors.BadSymbol, // Invalid symbol
                 },
-                'broad': {
-                    'Total must be at least': errors.InvalidOrder,
-                    'This account is frozen': errors.AccountSuspended,
-                    'This account is locked.': errors.AccountSuspended,
-                    'Not enough': errors.InsufficientFunds,
-                    'Nonce must be greater': errors.InvalidNonce,
-                    'You have already called cancelOrder': errors.CancelPending,
-                    'Amount must be at least': errors.InvalidOrder,
-                    'is either completed or does not exist': errors.OrderNotFound,
-                    'Error pulling ': errors.ExchangeError, // {"error":"Error pulling order book"}
-                },
+                'broad': {},
             },
         });
     }
@@ -312,6 +394,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -368,6 +451,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchMarkets
          * @description retrieves data on all markets for poloniex
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -459,6 +543,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-system-timestamp
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -518,6 +603,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -551,10 +637,11 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies(params);
+        const response = await this.publicGetCurrencies(this.extend(params, { 'includeMultiChainCurrencies': true }));
         //
         //     [
         //         {
@@ -570,6 +657,8 @@ class poloniex extends poloniex$1 {
         //                 "delisted": false,
         //                 "tradingState": "NORMAL",
         //                 "walletState": "DISABLED",
+        //                 "walletDepositState": 'DISABLED',
+        //                 "walletWithdrawalState": 'DISABLED',
         //                 "parentChain": null,
         //                 "isMultiChain": false,
         //                 "isChildChain": false,
@@ -585,23 +674,64 @@ class poloniex extends poloniex$1 {
             const id = this.safeValue(ids, 0);
             const currency = this.safeValue(item, id);
             const code = this.safeCurrencyCode(id);
+            const name = this.safeString(currency, 'name');
+            const networkId = this.safeString(currency, 'blockchain');
+            const networkCode = this.networkIdToCode(networkId, code);
             const delisted = this.safeValue(currency, 'delisted');
-            const walletState = this.safeString(currency, 'walletState');
-            const enabled = walletState === 'ENABLED';
-            const listed = !delisted;
-            const active = listed && enabled;
+            const walletEnabled = this.safeString(currency, 'walletState') === 'ENABLED';
+            const depositEnabled = this.safeString(currency, 'walletDepositState') === 'ENABLED';
+            const withdrawEnabled = this.safeString(currency, 'walletWithdrawalState') === 'ENABLED';
+            const active = !delisted && walletEnabled && depositEnabled && withdrawEnabled;
             const numericId = this.safeInteger(currency, 'id');
-            const fee = this.safeNumber(currency, 'withdrawalFee');
-            result[code] = {
-                'id': id,
-                'numericId': numericId,
-                'code': code,
+            const feeString = this.safeString(currency, 'withdrawalFee');
+            const parentChain = this.safeValue(currency, 'parentChain');
+            const noParentChain = parentChain === undefined;
+            if (this.safeValue(result, code) === undefined) {
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': undefined,
+                    'name': name,
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': this.parseNumber(feeString),
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            let minFeeString = this.safeString(result[code], 'fee');
+            if (feeString !== undefined) {
+                minFeeString = (minFeeString === undefined) ? feeString : Precise["default"].stringMin(feeString, minFeeString);
+            }
+            let depositAvailable = this.safeValue(result[code], 'deposit');
+            depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
+            let withdrawAvailable = this.safeValue(result[code], 'withdraw');
+            withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
+            const networks = this.safeValue(result[code], 'networks', {});
+            networks[networkCode] = {
                 'info': currency,
-                'name': currency['name'],
+                'id': networkId,
+                'network': networkCode,
+                'currencyId': id,
+                'numericId': numericId,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'active': active,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': fee,
+                'fee': this.parseNumber(feeString),
                 'precision': undefined,
                 'limits': {
                     'amount': {
@@ -609,11 +739,29 @@ class poloniex extends poloniex$1 {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': fee,
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
             };
+            result[code]['networks'] = networks;
+            const info = this.safeValue(result[code], 'info', []);
+            const rawInfo = {};
+            rawInfo[id] = currency;
+            info.push(rawInfo);
+            result[code]['info'] = info;
+            if (noParentChain) {
+                result[code]['id'] = id;
+                result[code]['name'] = name;
+            }
+            result[code]['active'] = depositAvailable && withdrawAvailable;
+            result[code]['deposit'] = depositAvailable;
+            result[code]['withdraw'] = withdrawAvailable;
+            result[code]['fee'] = this.parseNumber(minFeeString);
         }
         return result;
     }
@@ -622,6 +770,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -712,7 +861,7 @@ class poloniex extends poloniex$1 {
         const marketId = this.safeString(trade, 'symbol');
         market = this.safeMarket(marketId, market, '_');
         const symbol = market['symbol'];
-        const side = this.safeStringLower(trade, 'side');
+        const side = this.safeStringLower2(trade, 'side', 'takerSide');
         let fee = undefined;
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
@@ -747,6 +896,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -782,6 +932,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.poloniex.com/#authenticated-endpoints-trades-trade-history
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
@@ -801,7 +952,7 @@ class poloniex extends poloniex$1 {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt(limit);
+            request['limit'] = limit;
         }
         const response = await this.privateGetTrades(this.extend(request, params));
         //
@@ -983,6 +1134,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
@@ -1097,7 +1249,7 @@ class poloniex extends poloniex$1 {
         // remember the timestamp before issuing the request
         return [request, params];
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#editOrder
@@ -1139,6 +1291,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#cancelOrder
          * @description cancels an open order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-id
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the poloniex api endpoint
@@ -1159,6 +1312,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#cancelAllOrders
          * @description cancel all open orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1199,6 +1353,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOrder
          * @description fetch an order by it's id
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the poloniex api endpoint
@@ -1245,6 +1400,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-trades-trades-by-order-id
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
@@ -1306,6 +1462,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -1337,6 +1494,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1369,6 +1527,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the poloniex api endpoint
@@ -1425,6 +1584,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#createDepositAddress
          * @description create a currency deposit address
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1475,6 +1635,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1525,6 +1686,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -1547,42 +1709,27 @@ class poloniex extends poloniex$1 {
         const response = await this.privatePostAccountsTransfer(this.extend(request, params));
         //
         //    {
-        //        success: '1',
-        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
         return this.parseTransfer(response, currency);
     }
-    parseTransferStatus(status) {
-        const statuses = {
-            '1': 'ok',
-        };
-        return this.safeString(statuses, status, status);
-    }
     parseTransfer(transfer, currency = undefined) {
         //
         //    {
-        //        success: '1',
-        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
-        const message = this.safeString(transfer, 'message');
-        const words = message.split(' ');
-        const amount = this.safeNumber(words, 1);
-        const currencyId = this.safeString(words, 2);
-        const fromAccountId = this.safeString(words, 4);
-        const toAccountId = this.safeString(words, 6);
-        const accountsById = this.safeValue(this.options, 'accountsById', {});
         return {
             'info': transfer,
-            'id': undefined,
+            'id': this.safeString(transfer, 'transferId'),
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': this.safeCurrencyCode(currencyId, currency),
-            'amount': amount,
-            'fromAccount': this.safeString(accountsById, fromAccountId),
-            'toAccount': this.safeString(accountsById, toAccountId),
-            'status': this.parseOrderStatus(this.safeString(transfer, 'success', 'failed')),
+            'currency': this.safeString(currency, 'id'),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -1590,6 +1737,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#withdraw
          * @description make a withdrawal
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-currency
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1630,7 +1778,7 @@ class poloniex extends poloniex$1 {
         await this.loadMarkets();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds();
-        const start = (since !== undefined) ? parseInt((since / 1000).toString()) : now - 10 * year;
+        const start = (since !== undefined) ? this.parseToInt(since / 1000) : now - 10 * year;
         const request = {
             'start': start,
             'end': now, // UNIX timestamp, required
@@ -1713,7 +1861,8 @@ class poloniex extends poloniex$1 {
         /**
          * @method
          * @name poloniex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -1738,6 +1887,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
@@ -1882,6 +2032,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -1979,9 +2130,11 @@ class poloniex extends poloniex$1 {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCostString),
+                'rate': undefined,
             },
         };
     }
@@ -2032,16 +2185,23 @@ class poloniex extends poloniex$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
-        // {"error":"Permission denied."}
-        if ('error' in response) {
-            const message = response['error'];
+        //
+        //     {
+        //         "code" : 21709,
+        //         "message" : "Low available balance"
+        //     }
+        //
+        if ('code' in response) {
+            const codeInner = response['code'];
+            const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

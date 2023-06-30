@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\wazirx as Exchange;
 
 class wazirx extends Exchange {
 
@@ -37,6 +38,7 @@ class wazirx extends Exchange {
                 'fetchDepositAddress' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -99,15 +101,15 @@ class wazirx extends Exchange {
                         'funds' => 1,
                         'historicalTrades' => 1,
                         'openOrders' => 1,
-                        'order' => 1,
-                        'myTrades' => 1,
+                        'order' => 0.5,
+                        'myTrades' => 0.5,
                     ),
                     'post' => array(
-                        'order' => 1,
-                        'order/test' => 1,
+                        'order' => 0.1,
+                        'order/test' => 0.5,
                     ),
                     'delete' => array(
-                        'order' => 1,
+                        'order' => 0.1,
                         'openOrders' => 1,
                     ),
                 ),
@@ -152,6 +154,7 @@ class wazirx extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#exchange-info
          * retrieves data on all $markets for wazirx
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing $market data
@@ -262,8 +265,9 @@ class wazirx extends Exchange {
         return $result;
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#kline-candlestick-data
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
@@ -314,8 +318,9 @@ class wazirx extends Exchange {
         );
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#order-book
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
@@ -348,8 +353,9 @@ class wazirx extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#24hr-$ticker-price-change-statistics
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} $params extra parameters specific to the wazirx api endpoint
@@ -379,8 +385,9 @@ class wazirx extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#24hr-$tickers-price-change-statistics
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the wazirx api endpoint
@@ -415,8 +422,9 @@ class wazirx extends Exchange {
         return $result;
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#recent-trades-list
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
@@ -486,6 +494,7 @@ class wazirx extends Exchange {
 
     public function fetch_status($params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#system-$status
          * the latest known information on the availability of the exchange API
          * @param {array} $params extra parameters specific to the wazirx api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
@@ -509,6 +518,7 @@ class wazirx extends Exchange {
 
     public function fetch_time($params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#check-server-time
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} $params extra parameters specific to the wazirx api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -589,6 +599,7 @@ class wazirx extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#fund-details-user_data
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} $params extra parameters specific to the wazirx api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
@@ -607,8 +618,9 @@ class wazirx extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#all-$orders-user_data
          * fetches information on multiple $orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int|null} $since the earliest time in ms to fetch $orders for
@@ -665,8 +677,9 @@ class wazirx extends Exchange {
         return $orders;
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#current-open-$orders-user_data
          * fetch all unfilled currently open $orders
          * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open $orders for
@@ -713,8 +726,9 @@ class wazirx extends Exchange {
         return $orders;
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#cancel-all-open-orders-on-a-$symbol-trade
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the wazirx api endpoint
@@ -731,8 +745,9 @@ class wazirx extends Exchange {
         return $this->privateDeleteOpenOrders (array_merge($request, $params));
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#cancel-order-trade
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -752,8 +767,9 @@ class wazirx extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
+         * @see https://docs.wazirx.com/#new-order-trade
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -884,7 +900,7 @@ class wazirx extends Exchange {
         // array("code":2098,"message":"Request out of receiving window.")
         //
         if ($response === null) {
-            return;
+            return null;
         }
         $errorCode = $this->safe_string($response, 'code');
         if ($errorCode !== null) {
@@ -892,5 +908,6 @@ class wazirx extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

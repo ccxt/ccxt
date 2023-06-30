@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class woo extends woo$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -17,7 +16,7 @@ class woo extends woo$1 {
             'countries': ['KY'],
             'rateLimit': 100,
             'version': 'v1',
-            'certified': false,
+            'certified': true,
             'pro': true,
             'hostname': 'woo.org',
             'has': {
@@ -47,6 +46,7 @@ class woo extends woo$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -142,6 +142,8 @@ class woo extends woo$1 {
                             'funding_rate_history': 1,
                             'futures': 1,
                             'futures/{symbol}': 1,
+                            'orderbook/{symbol}': 1,
+                            'kline': 1,
                         },
                     },
                     'private': {
@@ -150,8 +152,6 @@ class woo extends woo$1 {
                             'order/{oid}': 1,
                             'client/order/{client_order_id}': 1,
                             'orders': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
@@ -167,6 +167,7 @@ class woo extends woo$1 {
                             'funding_fee/history': 30,
                             'positions': 3.33,
                             'position/{symbol}': 3.33,
+                            'client/transaction_history': 60,
                         },
                         'post': {
                             'order': 5,
@@ -206,12 +207,12 @@ class woo extends woo$1 {
                         },
                         'put': {
                             'order/{oid}': 2,
-                            'order/client/{oid}': 2,
+                            'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
-                            'algo/order/client/{oid}': 2,
+                            'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
-                            'algo/order/{oid}': 1,
+                            'algo/order/{order_id}': 1,
                             'algo/orders/pending': 1,
                             'algo/orders/pending/{symbol}': 1,
                             'orders/pending': 1,
@@ -250,6 +251,7 @@ class woo extends woo$1 {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -330,7 +332,10 @@ class woo extends woo$1 {
             let symbol = base + '/' + quote;
             let contractSize = undefined;
             let linear = undefined;
-            if (isSwap) {
+            let margin = true;
+            const contract = isSwap;
+            if (contract) {
+                margin = false;
                 settleId = this.safeString(parts, 2);
                 settle = this.safeCurrencyCode(settleId);
                 symbol = base + '/' + quote + ':' + settle;
@@ -349,12 +354,12 @@ class woo extends woo$1 {
                 'settleId': settleId,
                 'type': marketType,
                 'spot': isSpot,
-                'margin': true,
+                'margin': margin,
                 'swap': isSwap,
                 'future': false,
                 'option': false,
                 'active': undefined,
-                'contract': isSwap,
+                'contract': contract,
                 'linear': linear,
                 'inverse': undefined,
                 'contractSize': contractSize,
@@ -714,6 +719,8 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#createOrder
+         * @see https://docs.woo.org/#send-order
+         * @see https://docs.woo.org/#send-algo-order
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -721,42 +728,55 @@ class woo extends woo$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {float} params.triggerPrice The price a trigger order is triggered at
+         * @param {object|undefined} params.takeProfit *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.takeProfit.triggerPrice take profit trigger price
+         * @param {object|undefined} params.stopLoss *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.stopLoss.triggerPrice stop loss trigger price
+         * @param {float|undefined} params.algoType 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const reduceOnly = this.safeValue(params, 'reduceOnly');
+        const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase();
-        if (reduceOnly !== undefined) {
-            if (orderType !== 'LIMIT') {
-                throw new errors.InvalidOrder(this.id + ' createOrder() only support reduceOnly for limit orders');
-            }
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const orderSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
-            'order_type': orderType,
             'side': orderSide,
         };
+        const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
+        const algoType = this.safeString(params, 'algoType');
+        const isStop = stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
-        if (postOnly) {
-            request['order_type'] = 'POST_ONLY';
-        }
-        else if (timeInForce === 'fok') {
-            request['order_type'] = 'FOK';
-        }
-        else if (timeInForce === 'ioc') {
-            request['order_type'] = 'IOC';
+        const reduceOnlyKey = isStop ? 'reduceOnly' : 'reduce_only';
+        const clientOrderIdKey = isStop ? 'clientOrderId' : 'client_order_id';
+        const orderQtyKey = isStop ? 'quantity' : 'order_quantity';
+        const priceKey = isStop ? 'price' : 'order_price';
+        const typeKey = isStop ? 'type' : 'order_type';
+        request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        if (!isStop) {
+            if (postOnly) {
+                request['order_type'] = 'POST_ONLY';
+            }
+            else if (timeInForce === 'fok') {
+                request['order_type'] = 'FOK';
+            }
+            else if (timeInForce === 'ioc') {
+                request['order_type'] = 'IOC';
+            }
         }
         if (reduceOnly) {
-            request['reduce_only'] = reduceOnly;
+            request[reduceOnlyKey] = reduceOnly;
         }
         if (price !== undefined) {
-            request['order_price'] = this.priceToPrecision(symbol, price);
+            request[priceKey] = this.priceToPrecision(symbol, price);
         }
-        if (isMarket) {
+        if (isMarket && !isStop) {
             // for market buy it requires the amount of quote currency to spend
             if (market['spot'] && orderSide === 'BUY') {
                 const cost = this.safeNumber(params, 'cost');
@@ -784,15 +804,60 @@ class woo extends woo$1 {
                 request['order_quantity'] = this.amountToPrecision(symbol, amount);
             }
         }
-        else {
-            request['order_quantity'] = this.amountToPrecision(symbol, amount);
+        else if (algoType !== 'POSITIONAL_TP_SL') {
+            request[orderQtyKey] = this.amountToPrecision(symbol, amount);
         }
-        const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
+        const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         if (clientOrderId !== undefined) {
-            request['client_order_id'] = clientOrderId;
+            request[clientOrderIdKey] = clientOrderId;
         }
-        params = this.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce']);
-        const response = await this.v1PrivatePostOrder(this.extend(request, params));
+        if (stopPrice !== undefined) {
+            if (algoType !== 'TRAILING_STOP') {
+                request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['algoType'] = 'STOP';
+            }
+        }
+        else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
+            request['algoType'] = 'BRACKET';
+            const outterOrder = {
+                'symbol': market['id'],
+                'reduceOnly': false,
+                'algoType': 'POSITIONAL_TP_SL',
+                'childOrders': [],
+            };
+            const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
+            if (stopLoss !== undefined) {
+                const stopLossPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'price', stopLoss);
+                const stopLossOrder = {
+                    'side': closeSide,
+                    'algoType': 'STOP_LOSS',
+                    'triggerPrice': this.priceToPrecision(symbol, stopLossPrice),
+                    'type': 'CLOSE_POSITION',
+                    'reduceOnly': true,
+                };
+                outterOrder['childOrders'].push(stopLossOrder);
+            }
+            if (takeProfit !== undefined) {
+                const takeProfitPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'price', takeProfit);
+                const takeProfitOrder = {
+                    'side': closeSide,
+                    'algoType': 'TAKE_PROFIT',
+                    'triggerPrice': this.priceToPrecision(symbol, takeProfitPrice),
+                    'type': 'CLOSE_POSITION',
+                    'reduceOnly': true,
+                };
+                outterOrder['childOrders'].push(takeProfitOrder);
+            }
+            request['childOrders'] = [outterOrder];
+        }
+        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
+        let response = undefined;
+        if (isStop) {
+            response = await this.v3PrivatePostAlgoOrder(this.extend(request, params));
+        }
+        else {
+            response = await this.v1PrivatePostOrder(this.extend(request, params));
+        }
         // {
         //     success: true,
         //     timestamp: '1641383206.489',
@@ -803,12 +868,36 @@ class woo extends woo$1 {
         //     order_amount: null, // NOT-null for 'MARKET' order
         //     client_order_id: '0'
         // }
+        // stop orders
+        // {
+        //     success: true,
+        //     data: {
+        //       rows: [
+        //         {
+        //           orderId: '1578938',
+        //           clientOrderId: '0',
+        //           algoType: 'STOP_LOSS',
+        //           quantity: '0.1'
+        //         }
+        //       ]
+        //     },
+        //     timestamp: '1686149372216'
+        // }
+        const data = this.safeValue(response, 'data');
+        if (data !== undefined) {
+            const rows = this.safeValue(data, 'rows', []);
+            return this.parseOrder(rows[0], market);
+        }
         return this.extend(this.parseOrder(response, market), { 'type': type });
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name woo#editOrder
+         * @see https://docs.woo.org/#edit-order
+         * @see https://docs.woo.org/#edit-order-by-client_order_id
+         * @see https://docs.woo.org/#edit-algo-order
+         * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
          * @description edit a trade order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
@@ -817,14 +906,16 @@ class woo extends woo$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {float} params.triggerPrice The price a trigger order is triggered at
+         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
+         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'oid': id,
-            // 'quantity': this.amountToPrecision (symbol, amount),
-            // 'price': this.priceToPrecision (symbol, price),
+        // 'quantity': this.amountToPrecision (symbol, amount),
+        // 'price': this.priceToPrecision (symbol, price),
         };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -832,7 +923,36 @@ class woo extends woo$1 {
         if (amount !== undefined) {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
-        const response = await this.v3PrivatePutOrderOid(this.extend(request, params));
+        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice']);
+        if (stopPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+        }
+        const isStop = (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        let method = undefined;
+        if (isByClientOrder) {
+            if (isStop) {
+                method = 'v3PrivatePutAlgoOrderClientClientOrderId';
+                request['oid'] = id;
+            }
+            else {
+                method = 'v3PrivatePutOrderClientClientOrderId';
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+            }
+        }
+        else {
+            if (isStop) {
+                method = 'v3PrivatePutAlgoOrderOid';
+            }
+            else {
+                method = 'v3PrivatePutOrderOid';
+            }
+            request['oid'] = id;
+        }
+        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice']);
+        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -852,33 +972,48 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#cancelOrder
+         * @see https://docs.woo.org/#cancel-algo-order
+         * @see https://docs.woo.org/#cancel-order
+         * @see https://docs.woo.org/#cancel-order-by-client_order_id
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {boolean|undefined} params.stop whether the order is a stop/algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+        const stop = this.safeValue(params, 'stop', false);
+        params = this.omit(params, 'stop');
+        if (!stop) {
+            this.checkRequiredSymbol('cancelOrder', symbol);
         }
         await this.loadMarkets();
         const request = {};
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString2(params, 'client_order_id', clientOrderIdUnified);
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        if (isByClientOrder) {
+        let method = undefined;
+        if (stop) {
+            method = 'v3PrivateDeleteAlgoOrderOrderId';
+            request['order_id'] = id;
+        }
+        else if (isByClientOrder) {
+            method = 'v1PrivateDeleteClientOrder';
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         }
         else {
+            method = 'v1PrivateDeleteOrder';
             request['order_id'] = id;
         }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        request['symbol'] = market['id'];
-        const response = await this.v1PrivateDeleteOrder(this.extend(request, params));
+        if (!stop) {
+            request['symbol'] = market['id'];
+        }
+        const response = await this[method](this.extend(request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
@@ -895,15 +1030,22 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#cancelAllOrders
+         * @see https://docs.woo.org/#cancel-all-pending-orders
+         * @see https://docs.woo.org/#cancel-orders
+         * @see https://docs.woo.org/#cancel-all-pending-algo-orders
          * @description cancel all open orders in a market
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {boolean|undefined} params.stop whether the order is a stop/algo order
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' canelOrders() requires a symbol argument');
-        }
         await this.loadMarkets();
+        const stop = this.safeValue(params, 'stop');
+        params = this.omit(params, 'stop');
+        if (stop) {
+            return await this.v3PrivateDeleteAlgoOrdersPending(params);
+        }
+        this.checkRequiredSymbol('cancelOrders', symbol);
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -921,25 +1063,34 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#fetchOrder
+         * @see https://docs.woo.org/#get-algo-order
+         * @see https://docs.woo.org/#get-order
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {boolean|undefined} params.stop whether the order is a stop/algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
+        const stop = this.safeValue(params, 'stop');
+        params = this.omit(params, 'stop');
         const request = {};
         const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        let chosenSpotMethod = undefined;
-        if (clientOrderId) {
-            chosenSpotMethod = 'v1PrivateGetClientOrderClientOrderId';
+        let method = undefined;
+        if (stop) {
+            method = 'v3PrivateGetAlgoOrderOid';
+            request['oid'] = id;
+        }
+        else if (clientOrderId) {
+            method = 'v1PrivateGetClientOrderClientOrderId';
             request['client_order_id'] = clientOrderId;
         }
         else {
-            chosenSpotMethod = 'v1PrivateGetOrderOid';
+            method = 'v1PrivateGetOrderOid';
             request['oid'] = id;
         }
-        const response = await this[chosenSpotMethod](this.extend(request, params));
+        const response = await this[method](this.extend(request, params));
         //
         // {
         //     success: true,
@@ -975,30 +1126,52 @@ class woo extends woo$1 {
         //     ]
         // }
         //
-        return this.parseOrder(response, market);
+        const orders = this.safeValue(response, 'data', response);
+        return this.parseOrder(orders, market);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrders
+         * @see https://docs.woo.org/#get-orders
+         * @see https://docs.woo.org/#get-algo-orders
          * @description fetches information on multiple orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {boolean|undefined} params.stop whether the order is a stop/algo order
+         * @param {boolean|undefined} params.isTriggered whether the order has been triggered (false by default)
+         * @param {string|undefined} params.side 'buy' or 'sell'
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
+        const stop = this.safeValue(params, 'stop');
+        params = this.omit(params, 'stop');
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_t'] = since;
+            if (stop) {
+                request['createdTimeStart'] = since;
+            }
+            else {
+                request['start_t'] = since;
+            }
         }
-        const response = await this.v1PrivateGetOrders(this.extend(request, params));
+        if (stop) {
+            request['algoType'] = 'stop';
+        }
+        let response = undefined;
+        if (stop) {
+            response = await this.v3PrivateGetAlgoOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.v1PrivateGetOrders(this.extend(request, params));
+        }
         //
         //     {
         //         "success":true,
@@ -1030,8 +1203,9 @@ class woo extends woo$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'rows');
-        return this.parseOrders(data, market, since, limit, params);
+        const data = this.safeValue(response, 'data', response);
+        const orders = this.safeValue(data, 'rows');
+        return this.parseOrders(orders, market, since, limit, params);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
@@ -1049,9 +1223,46 @@ class woo extends woo$1 {
         // * fetchOrder
         // * fetchOrders
         // const isFromFetchOrder = ('order_tag' in order); TO_DO
-        const timestamp = this.safeTimestamp2(order, 'timestamp', 'created_time');
-        const orderId = this.safeString(order, 'order_id');
-        const clientOrderId = this.safeString(order, 'client_order_id'); // Somehow, this always returns 0 for limit order
+        //
+        // stop order after creating it:
+        //   {
+        //     orderId: '1578938',
+        //     clientOrderId: '0',
+        //     algoType: 'STOP_LOSS',
+        //     quantity: '0.1'
+        //   }
+        // stop order after fetching it:
+        //   {
+        //       algoOrderId: '1578958',
+        //       clientOrderId: '0',
+        //       rootAlgoOrderId: '1578958',
+        //       parentAlgoOrderId: '0',
+        //       symbol: 'SPOT_LTC_USDT',
+        //       orderTag: 'default',
+        //       algoType: 'STOP_LOSS',
+        //       side: 'BUY',
+        //       quantity: '0.1',
+        //       isTriggered: false,
+        //       triggerPrice: '100',
+        //       triggerStatus: 'USELESS',
+        //       type: 'LIMIT',
+        //       rootAlgoStatus: 'CANCELLED',
+        //       algoStatus: 'CANCELLED',
+        //       triggerPriceType: 'MARKET_PRICE',
+        //       price: '75',
+        //       triggerTime: '0',
+        //       totalExecutedQuantity: '0',
+        //       averageExecutedPrice: '0',
+        //       totalFee: '0',
+        //       feeAsset: '',
+        //       reduceOnly: false,
+        //       createdTime: '1686149609.744',
+        //       updatedTime: '1686149903.362'
+        //   }
+        //
+        const timestamp = this.safeTimestampN(order, ['timestamp', 'created_time', 'createdTime']);
+        const orderId = this.safeStringN(order, ['order_id', 'orderId', 'algoOrderId']);
+        const clientOrderId = this.omitZero(this.safeString2(order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -1059,20 +1270,37 @@ class woo extends woo$1 {
         const amount = this.safeString2(order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2(order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2(order, 'order_type', 'type');
-        const status = this.safeValue(order, 'status');
+        const status = this.safeValue2(order, 'status', 'algoStatus');
         const side = this.safeStringLower(order, 'side');
-        const filled = this.safeValue(order, 'executed');
-        const average = this.safeString(order, 'average_executed_price');
+        const filled = this.omitZero(this.safeValue2(order, 'executed', 'totalExecutedQuantity'));
+        const average = this.omitZero(this.safeString2(order, 'average_executed_price', 'averageExecutedPrice'));
         const remaining = Precise["default"].stringSub(cost, filled);
-        const fee = this.safeValue(order, 'total_fee');
-        const feeCurrency = this.safeString(order, 'fee_asset');
+        const fee = this.safeValue2(order, 'total_fee', 'totalFee');
+        const feeCurrency = this.safeString2(order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue(order, 'Transactions');
+        const stopPrice = this.safeNumber(order, 'triggerPrice');
+        let takeProfitPrice = undefined;
+        let stopLossPrice = undefined;
+        const childOrders = this.safeValue(order, 'childOrders');
+        if (childOrders !== undefined) {
+            const first = this.safeValue(childOrders, 0);
+            const innerChildOrders = this.safeValue(first, 'childOrders', []);
+            const innerChildOrdersLength = innerChildOrders.length;
+            if (innerChildOrdersLength > 0) {
+                const takeProfitOrder = this.safeValue(innerChildOrders, 0);
+                const stopLossOrder = this.safeValue(innerChildOrders, 1);
+                takeProfitPrice = this.safeNumber(takeProfitOrder, 'triggerPrice');
+                stopLossPrice = this.safeNumber(stopLossOrder, 'triggerPrice');
+            }
+        }
+        const lastUpdateTimestamp = this.safeTimestamp2(order, 'updatedTime', 'updated_time');
         return this.safeOrder({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': this.parseOrderStatus(status),
             'symbol': symbol,
             'type': orderType,
@@ -1081,8 +1309,10 @@ class woo extends woo$1 {
             'reduceOnly': this.safeValue(order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'average': average,
             'amount': amount,
             'filled': filled,
@@ -1132,7 +1362,7 @@ class woo extends woo$1 {
             limit = Math.min(limit, 1000);
             request['max_level'] = limit;
         }
-        const response = await this.v1PrivateGetOrderbookSymbol(this.extend(request, params));
+        const response = await this.v1PublicGetOrderbookSymbol(this.extend(request, params));
         //
         // {
         //   success: true,
@@ -1173,7 +1403,7 @@ class woo extends woo$1 {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const response = await this.v1PrivateGetKline(this.extend(request, params));
+        const response = await this.v1PublicGetKline(this.extend(request, params));
         // {
         //     success: true,
         //     rows: [
@@ -1597,7 +1827,7 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -1635,6 +1865,7 @@ class woo extends woo$1 {
         const addressFrom = this.safeString(transaction, 'source_address');
         const timestamp = this.safeTimestamp(transaction, 'created_time');
         return {
+            'info': transaction,
             'id': this.safeString2(transaction, 'id', 'withdraw_id'),
             'txid': this.safeString(transaction, 'tx_id'),
             'timestamp': timestamp,
@@ -1643,13 +1874,15 @@ class woo extends woo$1 {
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': this.safeString(transaction, 'extra'),
+            'tagFrom': undefined,
+            'tagTo': undefined,
             'type': movementDirection,
             'amount': this.safeNumber(transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'updated': this.safeTimestamp(transaction, 'updated_time'),
+            'comment': undefined,
             'fee': fee,
-            'info': transaction,
         };
     }
     parseTransactionStatus(status) {
@@ -1901,6 +2134,18 @@ class woo extends woo$1 {
         }
         else {
             this.checkRequiredCredentials();
+            if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
+                const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                const brokerId = this.safeString(this.options, 'brokerId', applicationId);
+                const isStop = path.indexOf('algo') > -1;
+                if (isStop) {
+                    params['brokerId'] = brokerId;
+                }
+                else {
+                    params['broker_id'] = brokerId;
+                }
+                params = this.keysort(params);
+            }
             let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
@@ -1940,7 +2185,7 @@ class woo extends woo$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -1952,6 +2197,7 @@ class woo extends woo$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         }
+        return undefined;
     }
     parseIncome(income, market = undefined) {
         //
@@ -2289,12 +2535,13 @@ class woo extends woo$1 {
         const unrealisedPnl = Precise["default"].stringMul(priceDifference, size);
         size = Precise["default"].stringAbs(size);
         const notional = Precise["default"].stringMul(size, markPrice);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
@@ -2308,12 +2555,13 @@ class woo extends woo$1 {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'estLiqPrice'),
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
-        };
+        });
     }
     defaultNetworkCodeForCurrency(code) {
         const currencyItem = this.currency(code);

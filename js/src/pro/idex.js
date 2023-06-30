@@ -10,7 +10,6 @@ import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class idex extends idexRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -178,7 +177,7 @@ export default class idex extends idexRest {
         trades.append(trade);
         client.resolve(trades, messageHash);
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         // public trades
         // { m: 'DIL-ETH',
         //   i: '897ecae6-4b75-368a-ac00-be555e6ad65f',
@@ -655,7 +654,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = transactions.getLimit(code, limit);
         }
-        return this.filterBySinceLimit(transactions, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(transactions, since, limit, 'timestamp');
     }
     handleTransaction(client, message) {
         // Update Speed: Real time, updates on any deposit or withdrawal of the wallet

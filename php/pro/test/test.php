@@ -23,8 +23,10 @@ $verbose = count(array_filter($args, function ($option) {
 $keys_global = './keys.json';
 $keys_local = './keys.local.json';
 $keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
+$skip_file = './skip-tests.json';
 
 $config = file_exists($keys_file) ? json_decode(file_get_contents($keys_file), true) : array();
+$skip_settings = json_decode(file_get_contents($skip_file), true);
 
 $loop = \React\EventLoop\Factory::create();
 
@@ -162,7 +164,7 @@ function test_exchange($exchange) {
 
 // ----------------------------------------------------------------------------
 
-$test = function () use ($id, $config, $verbose) {
+$test = function () use ($skip_settings, $id, $config, $verbose) {
 
     $options = array_key_exists($id, $config) ? $config[$id] : array();
     $exchange_class = '\\ccxt\\pro\\' . $id;
@@ -188,8 +190,8 @@ $test = function () use ($id, $config, $verbose) {
     ), $options));
 
     echo 'Testing ', $exchange->id, "\n";
-
-    if (@$exchange->skip || @$exchange->skipWs) {
+    $exchange_skips = $exchange->safe_value($skip_settings, $exchange->id, array());
+    if (@$exchange_skips['skip'] || @$exchange_skips['skipWs']) {
 
         echo $exchange->id, " [Skipped]\n";
         echo "Done.\n";

@@ -5,10 +5,11 @@ import okxRest from '../okx.js';
 import { AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class okx extends okxRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -99,7 +100,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchTrades
@@ -119,7 +120,7 @@ export default class okx extends okxRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         arg: { channel: 'trades', instId: 'BTC-USDT' },
@@ -155,7 +156,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#watchTicker
@@ -167,7 +168,7 @@ export default class okx extends okxRest {
         return await this.subscribe ('public', 'tickers', symbol, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         arg: { channel: 'tickers', instId: 'BTC-USDT' },
@@ -207,7 +208,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOHLCV
@@ -230,7 +231,7 @@ export default class okx extends okxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         arg: { channel: 'candle1m', instId: 'BTC-USDT' },
@@ -271,7 +272,7 @@ export default class okx extends okxRest {
         }
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOrderBook
@@ -333,7 +334,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook, messageHash) {
+    handleOrderBookMessage (client: Client, message, orderbook, messageHash) {
         //
         //     {
         //         asks: [
@@ -385,7 +386,7 @@ export default class okx extends okxRest {
         return orderbook;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // snapshot
         //
@@ -568,7 +569,7 @@ export default class okx extends okxRest {
         return await this.subscribe ('private', 'account', undefined, params);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         arg: { channel: 'account' },
@@ -622,7 +623,7 @@ export default class okx extends okxRest {
         client.resolve (this.balance[type], channel);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOrders
@@ -673,10 +674,10 @@ export default class okx extends okxRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleOrders (client, message, subscription = undefined) {
+    handleOrders (client: Client, message, subscription = undefined) {
         //
         //     {
         //         "arg":{
@@ -758,7 +759,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     { event: 'subscribe', arg: { channel: 'tickers', instId: 'BTC-USDT' } }
         //
@@ -767,7 +768,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //     { event: 'login', success: true }
         //
@@ -780,12 +781,12 @@ export default class okx extends okxRest {
         return 'ping';
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     { event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012' }
         //     { event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018' }
@@ -813,7 +814,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

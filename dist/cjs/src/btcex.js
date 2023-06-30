@@ -6,7 +6,6 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class btcex extends btcex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -321,7 +320,9 @@ class btcex extends btcex$1 {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'ALT': 'ArchLoot',
+            },
         });
     }
     async fetchMarkets(params = {}) {
@@ -924,8 +925,8 @@ class btcex extends btcex$1 {
             if ((assetType === 'WALLET') || (assetType === 'SPOT')) {
                 const details = this.safeValue(currency, 'details');
                 if (details !== undefined) {
-                    for (let i = 0; i < details.length; i++) {
-                        const detail = details[i];
+                    for (let j = 0; j < details.length; j++) {
+                        const detail = details[j];
                         const coinType = this.safeString(detail, 'coin_type');
                         const code = this.safeCurrencyCode(coinType);
                         const account = this.safeValue(result, code, this.account());
@@ -1676,14 +1677,14 @@ class btcex extends btcex$1 {
         const notionalString = Precise["default"].stringMul(markPrice, size);
         const unrealisedPnl = this.safeString(position, 'floating_profit_loss');
         const initialMarginString = this.safeString(position, 'initial_margin');
-        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealisedPnl, initialMarginString), '100');
         const marginType = this.safeString(position, 'margin_type');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString)),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -1697,11 +1698,12 @@ class btcex extends btcex$1 {
             'marginRatio': this.parseNumber(riskLevel),
             'liquidationPrice': this.safeNumber(position, 'liquid_price'),
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'collateral': this.parseNumber(collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchPosition(symbol, params = {}) {
         await this.signIn();
@@ -2581,17 +2583,18 @@ class btcex extends btcex$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to the default error handler
+            return undefined; // fallback to the default error handler
         }
         const error = this.safeValue(response, 'error');
         if (error) {
             const feedback = this.id + ' ' + body;
-            const code = this.safeString(error, 'code');
+            const codeInner = this.safeString(error, 'code');
             const message = this.safeString(error, 'message');
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

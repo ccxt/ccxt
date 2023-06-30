@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class btcturk extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -639,8 +638,7 @@ export default class btcturk extends Exchange {
             results.push(this.parseOHLCV(ohlcv, market));
         }
         const sorted = this.sortBy(results, 0);
-        const tail = (since === undefined);
-        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit(sorted, since, limit, 0);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -916,5 +914,6 @@ export default class btcturk extends Exchange {
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
             throw new ExchangeError(this.id + ' ' + output);
         }
+        return undefined;
     }
 }

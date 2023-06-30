@@ -6,10 +6,11 @@ import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
+import { DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class wavesexchange extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -41,6 +42,8 @@ export default class wavesexchange extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -295,8 +298,9 @@ export default class wavesexchange extends Exchange {
                 },
             },
             'currencies': {
-                'WX': { 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': 8 },
+                'WX': this.safeCurrencyStructure ({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseNumber ('8') }),
             },
+            'precisionMode': DECIMAL_PLACES,
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': undefined,
@@ -313,7 +317,7 @@ export default class wavesexchange extends Exchange {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                 },
-                'reverseNetworks': {
+                'networksById': {
                     'ETH': 'ERC20',
                     'BSC': 'BEP20',
                 },
@@ -354,10 +358,10 @@ export default class wavesexchange extends Exchange {
 
     setSandboxMode (enabled) {
         this.options['messagePrefix'] = enabled ? 'T' : 'W';
-        return super.setSandboxMode (enabled);
+        super.setSandboxMode (enabled);
     }
 
-    async getFeesForAsset (symbol, side, amount, price, params = {}) {
+    async getFeesForAsset (symbol: string, side, amount, price, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         amount = this.customAmountToPrecision (symbol, amount);
@@ -372,7 +376,7 @@ export default class wavesexchange extends Exchange {
         return await this.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
     }
 
-    async customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    async customCalculateFee (symbol: string, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const response = await this.getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
@@ -575,7 +579,7 @@ export default class wavesexchange extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrderBook
@@ -605,7 +609,7 @@ export default class wavesexchange extends Exchange {
         } as any;
     }
 
-    parseOrderBookSide (bookSide, market = undefined, limit = undefined) {
+    parseOrderBookSide (bookSide, market = undefined, limit: Int = undefined) {
         const precision = market['precision'];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
         const amountPrecision = Math.pow (10, precision['amount']);
@@ -653,7 +657,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const isCancelOrder = path === 'matcher/orders/{wavesAddress}/cancel';
         path = this.implodeParams (path, params);
@@ -744,6 +748,7 @@ export default class wavesexchange extends Exchange {
             this.options['accessToken'] = this.safeString (response, 'access_token');
             return this.options['accessToken'];
         }
+        return undefined;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -821,7 +826,7 @@ export default class wavesexchange extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchTicker
@@ -907,7 +912,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOHLCV
@@ -1030,7 +1035,7 @@ export default class wavesexchange extends Exchange {
         ];
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchDepositAddress
@@ -1113,15 +1118,15 @@ export default class wavesexchange extends Exchange {
                 const request = {
                     'publicKey': this.apiKey,
                 };
-                const response = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
-                const address = this.safeString (response, 'address');
+                const responseInner = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
+                const addressInner = this.safeString (response, 'address');
                 return {
-                    'address': address,
+                    'address': addressInner,
                     'code': code, // kept here for backward-compatibility, but will be removed soon
                     'currency': code,
                     'network': network,
                     'tag': undefined,
-                    'info': response,
+                    'info': responseInner,
                 };
             } else {
                 const request = {
@@ -1156,8 +1161,8 @@ export default class wavesexchange extends Exchange {
         // }
         const currency = this.safeValue (response, 'currency');
         const networkId = this.safeString (currency, 'platform_id');
-        const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
-        const unifiedNetwork = this.safeString (reverseNetworks, networkId, networkId);
+        const networkByIds = this.safeValue (this.options, 'networkByIds', {});
+        const unifiedNetwork = this.safeString (networkByIds, networkId, networkId);
         const addresses = this.safeValue (response, 'deposit_addresses');
         const address = this.safeString (addresses, 0);
         return {
@@ -1260,7 +1265,7 @@ export default class wavesexchange extends Exchange {
         return rates;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#createOrder
@@ -1323,7 +1328,7 @@ export default class wavesexchange extends Exchange {
             const matcherFeeAsset = this.safeCurrencyCode (matcherFeeAssetId);
             const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
             const floatMatcherFee = parseFloat (this.currencyFromPrecision (matcherFeeAsset, rawMatcherFee));
-            if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] >= floatMatcherFee)) {
+            if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] as any >= floatMatcherFee)) {
                 matcherFee = parseInt (rawMatcherFee);
             } else {
                 throw new InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
@@ -1332,12 +1337,12 @@ export default class wavesexchange extends Exchange {
         if (matcherFeeAssetId === undefined) {
             // try to the pay the fee using the base first then discount asset
             const floatBaseMatcherFee = parseFloat (this.currencyFromPrecision (baseFeeAsset, baseMatcherFee));
-            if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee)) {
+            if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] as any >= floatBaseMatcherFee)) {
                 matcherFeeAssetId = baseFeeAssetId;
                 matcherFee = parseInt (baseMatcherFee);
             } else {
                 const floatDiscountMatcherFee = parseFloat (this.currencyFromPrecision (discountFeeAsset, discountMatcherFee));
-                if ((discountFeeAsset in balances) && (balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee)) {
+                if ((discountFeeAsset in balances) && (balances[discountFeeAsset]['free'] as any >= floatDiscountMatcherFee)) {
                     matcherFeeAssetId = discountFeeAssetId;
                     matcherFee = parseInt (discountMatcherFee);
                 }
@@ -1421,7 +1426,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#cancelOrder
@@ -1470,7 +1475,7 @@ export default class wavesexchange extends Exchange {
         };
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrder
@@ -1504,7 +1509,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrders
@@ -1557,7 +1562,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOpenOrders
@@ -1583,7 +1588,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchClosedOrders
@@ -1858,10 +1863,10 @@ export default class wavesexchange extends Exchange {
         }
         const nonStandardAssets = assetIds.length;
         if (nonStandardAssets) {
-            const request = {
+            const requestInner = {
                 'ids': assetIds,
             };
-            const response = await this.publicGetAssets (request);
+            const response = await this.publicGetAssets (requestInner);
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
@@ -1926,7 +1931,7 @@ export default class wavesexchange extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchMyTrades
@@ -2019,7 +2024,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchTrades
@@ -2205,13 +2210,163 @@ export default class wavesexchange extends Exchange {
         }, market);
     }
 
+    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const dictionary = entry;
+            const currencyId = this.safeString (dictionary, currencyIdKey);
+            const currency = this.safeValue (this.currencies_by_id, currencyId);
+            const code = this.safeString (currency, 'code', currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                let depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFee = {
+                        'info': [ dictionary ],
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'networks': {},
+                    };
+                } else {
+                    depositWithdrawFee = depositWithdrawFees[code];
+                    depositWithdrawFee['info'] = this.arrayConcat (depositWithdrawFee['info'], [ dictionary ]);
+                }
+                const networkId = this.safeString (dictionary, 'platform_id');
+                const currencyCode = this.safeString (currency, 'code');
+                const networkCode = this.networkIdToCode (networkId, currencyCode);
+                let network = this.safeValue (depositWithdrawFee['networks'], networkCode);
+                if (network === undefined) {
+                    network = {
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
+                const feeType = this.safeString (dictionary, 'type');
+                const fees = this.safeValue (dictionary, 'fees');
+                let networkKey = 'deposit';
+                if (feeType === 'withdrawal_currency') {
+                    networkKey = 'withdraw';
+                }
+                network[networkKey] = { 'fee': this.safeNumber (fees, 'flat'), 'percentage': false };
+                depositWithdrawFee['networks'][networkCode] = network;
+                depositWithdrawFees[code] = depositWithdrawFee;
+            }
+        }
+        const depositWithdrawFeesKeys = Object.keys (depositWithdrawFees);
+        for (let i = 0; i < depositWithdrawFeesKeys.length; i++) {
+            const code = depositWithdrawFeesKeys[i];
+            const entry = depositWithdrawFees[code];
+            const networks = this.safeValue (entry, 'networks');
+            const networkKeys = Object.keys (networks);
+            if (networkKeys.length === 1) {
+                const network = this.safeValue (networks, networkKeys[0]);
+                depositWithdrawFees[code]['withdraw'] = this.safeValue (network, 'withdraw');
+                depositWithdrawFees[code]['deposit'] = this.safeValue (network, 'deposit');
+            }
+        }
+        return depositWithdrawFees;
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.waves.exchange/en/api/gateways/deposit/currencies
+         * @see https://docs.waves.exchange/en/api/gateways/withdraw/currencies
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        let data = [];
+        let promises = [];
+        promises.push (this.privateGetDepositCurrencies (params));
+        promises.push (this.privateGetWithdrawCurrencies (params));
+        promises = await Promise.all (promises);
+        //
+        //    {
+        //        "type": "list",
+        //        "page_info": {
+        //          "has_next_page": false,
+        //          "last_cursor": null
+        //        },
+        //        "items": [
+        //          {
+        //            "type": "deposit_currency",
+        //            "id": "WEST",
+        //            "platform_id": "WEST",
+        //            "waves_asset_id": "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8",
+        //            "platform_asset_id": "WEST",
+        //            "decimals": 8,
+        //            "status": "active",
+        //            "allowed_amount": {
+        //              "min": 0.1,
+        //              "max": 2000000
+        //            },
+        //            "fees": {
+        //              "flat": 0,
+        //              "rate": 0
+        //            }
+        //          },
+        //        ]
+        //    }
+        //
+        //
+        //    {
+        //        "type": "list",
+        //        "page_info": {
+        //          "has_next_page": false,
+        //          "last_cursor": null
+        //        },
+        //        "items": [
+        //          {
+        //            "type": "withdrawal_currency",
+        //            "id": "BTC",
+        //            "platform_id": "BTC",
+        //            "waves_asset_id": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //            "platform_asset_id": "BTC",
+        //            "decimals": 8,
+        //            "status": "inactive",
+        //            "allowed_amount": {
+        //              "min": 0.001,
+        //              "max": 10
+        //            },
+        //            "fees": {
+        //              "flat": 0.001,
+        //              "rate": 0
+        //            }
+        //          },
+        //        ]
+        //    }
+        //
+        for (let i = 0; i < promises.length; i++) {
+            const items = this.safeValue (promises[i], 'items');
+            data = this.arrayConcat (data, items);
+        }
+        return this.parseDepositWithdrawFees (data, codes, 'id');
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'error');
         const success = this.safeValue (response, 'success', true);
         const Exception = this.safeValue (this.exceptions, errorCode);
         if (Exception !== undefined) {
-            const message = this.safeString (response, 'message');
-            throw new Exception (this.id + ' ' + message);
+            const messageInner = this.safeString (response, 'message');
+            throw new Exception (this.id + ' ' + messageInner);
         }
         const message = this.safeString (response, 'message');
         if (message === 'Validation Error') {
@@ -2220,9 +2375,10 @@ export default class wavesexchange extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#withdraw
@@ -2277,8 +2433,8 @@ export default class wavesexchange extends Exchange {
                 'currency': code,
             };
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
-            const currency = this.safeValue (withdrawAddress, 'currency');
-            const allowedAmount = this.safeValue (currency, 'allowed_amount');
+            const currencyInner = this.safeValue (withdrawAddress, 'currency');
+            const allowedAmount = this.safeValue (currencyInner, 'allowed_amount');
             const minimum = this.safeNumber (allowedAmount, 'min');
             if (amount <= minimum) {
                 throw new BadRequest (this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString () + ' must be greater than the minimum allowed amount of ' + minimum.toString ());

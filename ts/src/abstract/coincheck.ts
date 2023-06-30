@@ -8,34 +8,37 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetExchangeOrdersRate (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderBooks (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRatePair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountsBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountsLeverageBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBankAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositMoney (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetExchangeOrdersOpens (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetExchangeOrdersTransactions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetExchangeOrdersTransactionsPagination (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetExchangeLeveragePositions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetLendingBorrowsMatches (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSendMoney (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdraws (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBankAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostDepositMoneyIdFast (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostExchangeOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostExchangeTransfersToLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostExchangeTransfersFromLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostLendingBorrows (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostLendingBorrowsIdRepay (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSendMoney (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdraws (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteBankAccountsId (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteExchangeOrdersId (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteWithdrawsId (params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetExchangeOrdersRate (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderBooks (params?: {}): Promise<implicitReturnType>;
+    publicGetRatePair (params?: {}): Promise<implicitReturnType>;
+    publicGetTicker (params?: {}): Promise<implicitReturnType>;
+    publicGetTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetAccounts (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountsBalance (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountsLeverageBalance (params?: {}): Promise<implicitReturnType>;
+    privateGetBankAccounts (params?: {}): Promise<implicitReturnType>;
+    privateGetDepositMoney (params?: {}): Promise<implicitReturnType>;
+    privateGetExchangeOrdersOpens (params?: {}): Promise<implicitReturnType>;
+    privateGetExchangeOrdersTransactions (params?: {}): Promise<implicitReturnType>;
+    privateGetExchangeOrdersTransactionsPagination (params?: {}): Promise<implicitReturnType>;
+    privateGetExchangeLeveragePositions (params?: {}): Promise<implicitReturnType>;
+    privateGetLendingBorrowsMatches (params?: {}): Promise<implicitReturnType>;
+    privateGetSendMoney (params?: {}): Promise<implicitReturnType>;
+    privateGetWithdraws (params?: {}): Promise<implicitReturnType>;
+    privatePostBankAccounts (params?: {}): Promise<implicitReturnType>;
+    privatePostDepositMoneyIdFast (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeTransfersToLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeTransfersFromLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostLendingBorrows (params?: {}): Promise<implicitReturnType>;
+    privatePostLendingBorrowsIdRepay (params?: {}): Promise<implicitReturnType>;
+    privatePostSendMoney (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdraws (params?: {}): Promise<implicitReturnType>;
+    privateDeleteBankAccountsId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteExchangeOrdersId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteWithdrawsId (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

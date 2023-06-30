@@ -142,7 +142,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_authenticate($client, $message, $subscription) {
+    public function handle_authenticate(Client $client, $message, $subscription) {
         $requestId = $this->safe_string($subscription, 'id');
         if (is_array($client->subscriptions) && array_key_exists($requestId, $client->subscriptions)) {
             unset($client->subscriptions[$requestId]);
@@ -157,7 +157,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_authentication_expiring($client, $message) {
+    public function handle_authentication_expiring(Client $client, $message) {
         //
         //     {
         //         C => 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
@@ -228,7 +228,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -247,7 +247,7 @@ class bittrex extends \ccxt\async\bittrex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 
@@ -258,7 +258,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         //     {
         //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -312,7 +312,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -363,7 +363,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_heartbeat($client, $message) {
+    public function handle_heartbeat(Client $client, $message) {
         //
         // every 20 seconds (approx) if no other updates are sent
         //
@@ -372,7 +372,7 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($message, 'heartbeat');
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -402,7 +402,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         // summary subscription update
         //
@@ -426,7 +426,7 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -465,7 +465,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         sequence => 28286,
@@ -501,7 +501,7 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -537,7 +537,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         $deltas => array(
@@ -572,7 +572,7 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -600,7 +600,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -634,7 +634,7 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -658,14 +658,14 @@ class bittrex extends \ccxt\async\bittrex {
             //     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
             //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
             //     7. Continue to apply messages are received from the socket number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
-            //     8. If a message is received that is not the next in order, return to step 2 in this process
+            //     8. If a message is received that is not the next in order, return to step property_exists($this, 2) process
             //
             $orderbook = Async\await($this->subscribe_to_order_book($negotiation, $symbol, $limit, $params));
             return $orderbook->limit ();
         }) ();
     }
 
-    public function subscribe_to_order_book($negotiation, $symbol, $limit = null, $params = array ()) {
+    public function subscribe_to_order_book($negotiation, $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($negotiation, $symbol, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -737,7 +737,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_subscribe_to_order_book($client, $message, $subscription) {
+    public function handle_subscribe_to_order_book(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -771,7 +771,7 @@ class bittrex extends \ccxt\async\bittrex {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         marketSymbol => 'BTC-USDT',
@@ -798,7 +798,7 @@ class bittrex extends \ccxt\async\bittrex {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
         //         marketSymbol => 'BTC-USDT',
@@ -832,13 +832,13 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_system_status($client, $message) {
+    public function handle_system_status(Client $client, $message) {
         // send signalR protocol start() call
         $this->spawn(array($this, 'handle_system_status_helper'));
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         // success
         //
@@ -870,7 +870,7 @@ class bittrex extends \ccxt\async\bittrex {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // subscription confirmation
         //

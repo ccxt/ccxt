@@ -6,10 +6,10 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class cex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -41,6 +41,7 @@ export default class cex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -480,7 +481,7 @@ export default class cex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrderBook
@@ -524,7 +525,7 @@ export default class cex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOHLCV
@@ -566,6 +567,7 @@ export default class cex extends Exchange {
                 return [];
             }
         }
+        return undefined;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -629,7 +631,7 @@ export default class cex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name cex#fetchTicker
@@ -683,7 +685,7 @@ export default class cex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchTrades
@@ -745,7 +747,7 @@ export default class cex extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name cex#createOrder
@@ -823,7 +825,7 @@ export default class cex extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelOrder
@@ -888,7 +890,7 @@ export default class cex extends Exchange {
                 feeRate = this.safeNumber (order, 'tradingFeeTaker', feeRate);
             }
             if (feeRate) {
-                feeRate /= 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = feeRate / 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
             }
             if ((baseFee in order) || (baseTakerFee in order)) {
                 const baseFeeCost = this.safeNumber2 (order, baseFee, baseTakerFee);
@@ -1098,7 +1100,7 @@ export default class cex extends Exchange {
         };
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOpenOrders
@@ -1125,7 +1127,7 @@ export default class cex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchClosedOrders
@@ -1147,7 +1149,7 @@ export default class cex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrder
@@ -1265,7 +1267,7 @@ export default class cex extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrders
@@ -1425,7 +1427,7 @@ export default class cex extends Exchange {
             const quoteId = this.safeString (order, 'symbol2');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            const symbolInner = base + '/' + quote;
             const side = this.safeString (order, 'type');
             const baseAmount = this.safeNumber (order, 'a:' + baseId + ':cds');
             const quoteAmount = this.safeNumber (order, 'a:' + quoteId + ':cds');
@@ -1466,7 +1468,7 @@ export default class cex extends Exchange {
                 'datetime': this.iso8601 (timestamp),
                 'lastUpdated': this.parse8601 (lastTxTime),
                 'status': status,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'side': side,
                 'price': price,
                 'amount': orderAmount,
@@ -1489,7 +1491,7 @@ export default class cex extends Exchange {
         return this.safeString (this.options['order']['status'], status, status);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a amount argument');
         }
@@ -1510,7 +1512,7 @@ export default class cex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name cex#fetchDepositAddress
@@ -1567,7 +1569,7 @@ export default class cex extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
@@ -1596,7 +1598,7 @@ export default class cex extends Exchange {
             return response; // public endpoints may return []-arrays
         }
         if (body === 'true') {
-            return;
+            return undefined;
         }
         if (response === undefined) {
             throw new NullResponse (this.id + ' returned ' + this.json (response));
@@ -1604,7 +1606,7 @@ export default class cex extends Exchange {
         if ('e' in response) {
             if ('ok' in response) {
                 if (response['ok'] === 'ok') {
-                    return;
+                    return undefined;
                 }
             }
         }
@@ -1615,5 +1617,6 @@ export default class cex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

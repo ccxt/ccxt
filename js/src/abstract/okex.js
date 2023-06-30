@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _okx from '../okx.js';
-export default class okx extends _okx {
+class okx extends _okx {
 }
+export default okx;

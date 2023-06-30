@@ -8,7 +8,6 @@ var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitfinex2 extends bitfinex2$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -260,7 +259,7 @@ class bitfinex2 extends bitfinex2$1 {
         //
         const name = 'myTrade';
         const data = this.safeValue(message, 2);
-        const trade = this.parseWsTrade(data, false);
+        const trade = this.parseWsTrade(data);
         const symbol = trade['symbol'];
         const market = this.market(symbol);
         const messageHash = name + ':' + market['id'];
@@ -318,13 +317,12 @@ class bitfinex2 extends bitfinex2$1 {
             stored = new Cache.ArrayCache(tradesLimit);
             this.trades[symbol] = stored;
         }
-        const isPublicTrade = true;
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
             const trades = this.safeValue(message, 1, []);
             for (let i = 0; i < trades.length; i++) {
-                const parsed = this.parseWsTrade(trades[i], isPublicTrade, market);
+                const parsed = this.parseWsTrade(trades[i], market);
                 stored.append(parsed);
             }
         }
@@ -337,13 +335,13 @@ class bitfinex2 extends bitfinex2$1 {
                 return;
             }
             const trade = this.safeValue(message, 2, []);
-            const parsed = this.parseWsTrade(trade, isPublicTrade, market);
+            const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
         return message;
     }
-    parseWsTrade(trade, isPublic = false, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -386,6 +384,8 @@ class bitfinex2 extends bitfinex2$1 {
         //       1655110144596
         //    ]
         //
+        const numFields = trade.length;
+        const isPublic = numFields <= 8;
         let marketId = (!isPublic) ? this.safeString(trade, 1) : undefined;
         market = this.safeMarket(marketId, market);
         const createdKey = isPublic ? 1 : 2;
@@ -651,16 +651,22 @@ class bitfinex2 extends bitfinex2$1 {
         if (book === undefined) {
             return;
         }
-        const depth = this.safeInteger(subscription, 'len');
+        const depth = 25; // covers the first 25 bids and asks
         const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            stringArray.push(bids[i][0]);
-            stringArray.push(bids[i][1]);
-            stringArray.push(asks[i][0]);
-            stringArray.push(-asks[i][1]);
+            const bid = this.safeValue(bids, i);
+            const ask = this.safeValue(asks, i);
+            if (bid !== undefined) {
+                stringArray.push(this.numberToString(bids[i][0]));
+                stringArray.push(this.numberToString(bids[i][1]));
+            }
+            if (ask !== undefined) {
+                stringArray.push(this.numberToString(asks[i][0]));
+                stringArray.push(this.numberToString(-asks[i][1]));
+            }
         }
         const payload = stringArray.join(':');
         const localChecksum = this.crc32(payload, true);
@@ -885,7 +891,7 @@ class bitfinex2 extends bitfinex2$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrders(client, message, subscription) {
         //
@@ -970,7 +976,7 @@ class bitfinex2 extends bitfinex2$1 {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1035,7 +1041,7 @@ class bitfinex2 extends bitfinex2$1 {
         const trimmedStatus = this.safeString(stateParts, 0);
         const status = this.parseWsOrderStatus(trimmedStatus);
         const price = this.safeString(order, 16);
-        const timestamp = this.safeInteger(order, 4);
+        const timestamp = this.safeInteger2(order, 5, 4);
         const average = this.safeString(order, 17);
         const stopPrice = this.omitZero(this.safeString(order, 18));
         return this.safeOrder({

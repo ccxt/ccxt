@@ -7,7 +7,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bittrex extends bittrex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -48,6 +47,8 @@ class bittrex extends bittrex$1 {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1402,7 +1403,7 @@ class bittrex extends bittrex$1 {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {
@@ -1487,7 +1488,7 @@ class bittrex extends bittrex$1 {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {
@@ -2035,6 +2036,75 @@ class bittrex extends bittrex$1 {
             'info': response,
         };
     }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //     {
+        //         "symbol": "APXP",
+        //         "name": "APEX Protocol",
+        //         "coinType": "ETH_CONTRACT",
+        //         "status": "ONLINE",
+        //         "minConfirmations": 36,
+        //         "notice": "",
+        //         "txFee": "4702.00000000",
+        //         "logoUrl": "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+        //         "prohibitedIn": [
+        //           "US"
+        //         ],
+        //         "baseAddress": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        //         "associatedTermsOfService": [
+        //         ],
+        //         "tags": [
+        //         ]
+        //     }
+        //
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber(fee, 'txFee'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicGetCurrencies(params);
+        //
+        //   [
+        //       {
+        //           "symbol": "APXP",
+        //           "name": "APEX Protocol",
+        //           "coinType": "ETH_CONTRACT",
+        //           "status": "ONLINE",
+        //           "minConfirmations": 36,
+        //           "notice": "",
+        //           "txFee": "4702.00000000",
+        //           "logoUrl": "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+        //           "prohibitedIn": [
+        //             "US"
+        //           ],
+        //           "baseAddress": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        //           "associatedTermsOfService": [
+        //           ],
+        //           "tags": [
+        //           ]
+        //       },
+        //   ]
+        //
+        return this.parseDepositWithdrawFees(response, codes, 'symbol');
+    }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
          * @method
@@ -2126,7 +2196,7 @@ class bittrex extends bittrex$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     { success: false, message: "message" }
@@ -2135,16 +2205,16 @@ class bittrex extends bittrex$1 {
             const feedback = this.id + ' ' + body;
             let success = this.safeValue(response, 'success');
             if (success === undefined) {
-                const code = this.safeString(response, 'code');
-                if ((code === 'NOT_FOUND') && (url.indexOf('addresses') >= 0)) {
+                const codeInner = this.safeString(response, 'code');
+                if ((codeInner === 'NOT_FOUND') && (url.indexOf('addresses') >= 0)) {
                     throw new errors.InvalidAddress(feedback);
                 }
-                if (code !== undefined) {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
-                    this.throwBroadlyMatchedException(this.exceptions['broad'], code, feedback);
+                if (codeInner !== undefined) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], codeInner, feedback);
                 }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
-                return;
+                return undefined;
             }
             if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
@@ -2205,6 +2275,7 @@ class bittrex extends bittrex$1 {
                 throw new errors.ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }
 

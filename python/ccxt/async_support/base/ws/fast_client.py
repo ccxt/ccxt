@@ -23,7 +23,10 @@ class FastClient(AiohttpClient):
                 self.callback_scheduled = False
                 return
             message = self.stack.popleft()
-            self.handle_message(message)
+            try:
+                self.handle_message(message)
+            except Exception as error:
+                self.reject(error)
             self.asyncio_loop.call_soon(handler)
 
         def feed_data(message, size):
@@ -69,7 +72,7 @@ class FastClient(AiohttpClient):
             return
         self.transport = connection.transport
         # increase the RCVBUF so that the tcp window size can be larger
-        sock = self.transport.get_extra_info("socket")
+        sock = self.transport.get_extra_info('socket')
         current_size = sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
         # 2 mebibytes is a performance value
         new_size = max(current_size, 2097152)

@@ -7,7 +7,6 @@ var Precise = require('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class idex extends idex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -175,7 +174,7 @@ class idex extends idex$1 {
         trades.append(trade);
         client.resolve(trades, messageHash);
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         // public trades
         // { m: 'DIL-ETH',
         //   i: '897ecae6-4b75-368a-ac00-be555e6ad65f',
@@ -652,7 +651,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = transactions.getLimit(code, limit);
         }
-        return this.filterBySinceLimit(transactions, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(transactions, since, limit, 'timestamp');
     }
     handleTransaction(client, message) {
         // Update Speed: Real time, updates on any deposit or withdrawal of the wallet

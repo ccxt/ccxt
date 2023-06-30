@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\lbank2 as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
@@ -278,6 +279,7 @@ class lbank2 extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for lbank2
+             * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing $market $data
              */
@@ -302,21 +304,7 @@ class lbank2 extends Exchange {
                 $base = strtoupper($baseId);
                 $quote = strtoupper($quoteId);
                 $symbol = $base . '/' . $quote;
-                $productTypes = array(
-                    '3l' => true,
-                    '5l' => true,
-                    '3s' => true,
-                    '5s' => true,
-                );
-                $ending = mb_substr($baseId, -2);
-                $isLeveragedProduct = $this->safe_value($productTypes, $ending, false);
-                if ($isLeveragedProduct) {
-                    $symbol .= ':' . $quote;
-                }
-                $linear = null;
-                if ($isLeveragedProduct === true) {
-                    $linear = true;
-                }
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy')));
                 $result[] = array(
                     'id' => $marketId,
                     'symbol' => $symbol,
@@ -329,12 +317,12 @@ class lbank2 extends Exchange {
                     'type' => 'spot',
                     'spot' => true,
                     'margin' => false,
-                    'swap' => $isLeveragedProduct,
+                    'swap' => false,
                     'future' => false,
                     'option' => false,
                     'active' => true,
-                    'contract' => $isLeveragedProduct,
-                    'linear' => $linear, // all leveraged ETF products are in USDT
+                    'contract' => null,
+                    'linear' => null,
                     'inverse' => null,
                     'contractSize' => null,
                     'expiry' => null,
@@ -342,7 +330,7 @@ class lbank2 extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy'))),
+                        'amount' => $amountPrecision,
                         'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
                     ),
                     'limits' => array(
@@ -413,7 +401,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -453,7 +441,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -471,7 +459,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -599,7 +587,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -670,7 +658,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -831,11 +819,11 @@ class lbank2 extends Exchange {
             for ($i = 0; $i < count($balances); $i++) {
                 $item = $balances[$i];
                 $currencyId = $this->safe_string($item, 'asset');
-                $code = $this->safe_currency_code($currencyId);
+                $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string($item, 'free');
                 $account['used'] = $this->safe_string($item, 'locked');
-                $result[$code] = $account;
+                $result[$codeInner] = $account;
             }
             return $this->safe_balance($result);
         }
@@ -845,14 +833,15 @@ class lbank2 extends Exchange {
             for ($i = 0; $i < count($data); $i++) {
                 $item = $data[$i];
                 $currencyId = $this->safe_string($item, 'coin');
-                $code = $this->safe_currency_code($currencyId);
+                $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string($item, 'usableAmt');
                 $account['used'] = $this->safe_string($item, 'freezeAmt');
-                $result[$code] = $account;
+                $result[$codeInner] = $account;
             }
             return $this->safe_balance($result);
         }
+        return null;
     }
 
     public function fetch_balance($params = array ()) {
@@ -921,7 +910,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -956,7 +945,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1183,7 +1172,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1202,7 +1191,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_order_supplement($id, $symbol = null, $params = array ()) {
+    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             Async\await($this->load_markets());
             if ($symbol === null) {
@@ -1240,7 +1229,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_order_default($id, $symbol = null, $params = array ()) {
+    public function fetch_order_default(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             // Id can be a list of ids delimited by a comma
             Async\await($this->load_markets());
@@ -1288,7 +1277,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -1307,12 +1296,12 @@ class lbank2 extends Exchange {
             $params = $this->omit($params, 'start_date');
             $request = array(
                 'symbol' => $market['id'],
-                // 'start_date' => 'strval' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-                // 'end_date' => 'strval' Finish time yyyy-mm-dd, the maximum is today, the default is today
+                // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+                // 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
                 // 'The start' => and end date of the query window is up to 2 days
-                // 'from' => 'strval' Initial transaction number inquiring
-                // 'direct' => 'strval' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-                // 'size' => 'strval' Query the number of defaults to 100
+                // 'from' Initial transaction number inquiring
+                // 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+                // 'size' Query the number of defaults to 100
             );
             if ($limit !== null) {
                 $request['size'] = $limit;
@@ -1346,7 +1335,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -1406,7 +1395,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -1463,7 +1452,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1505,7 +1494,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
@@ -1553,7 +1542,7 @@ class lbank2 extends Exchange {
         return $network;
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
@@ -1572,7 +1561,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address_default($code, $params = array ()) {
+    public function fetch_deposit_address_default(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1614,7 +1603,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address_supplement($code, $params = array ()) {
+    public function fetch_deposit_address_supplement(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             // returns the $address for whatever the default $network is...
             Async\await($this->load_markets());
@@ -1657,7 +1646,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1685,7 +1674,7 @@ class lbank2 extends Exchange {
                 // 'networkName' => defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
                 // 'memo' => memo => memo word of bts and dct
                 // 'mark' => Withdrawal Notes
-                // 'name' => Remarks of the $address-> After filling in this parameter, it will be added to the withdrawal $address book of the $currency->
+                // 'name' => Remarks of the $address-> After property_exists($this, filling) parameter, it will be added to the withdrawal $address book of the $currency->
                 // 'withdrawOrderId' => withdrawOrderId
                 // 'type' => type=1 is for intra-site transfer
             );
@@ -1824,7 +1813,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $deposits made to an account
@@ -1877,7 +1866,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2064,17 +2053,17 @@ class lbank2 extends Exchange {
                 $canWithdraw = $this->safe_value($item, 'canWithDraw');
                 if ($canWithdraw === 'true') {
                     $currencyId = $this->safe_string($item, 'assetCode');
-                    $code = $this->safe_currency_code($currencyId);
+                    $codeInner = $this->safe_currency_code($currencyId);
                     $chain = $this->safe_string($item, 'chain');
                     $network = $this->safe_string($this->options['inverse-networks'], $chain, $chain);
                     if ($network === null) {
-                        $network = $code;
+                        $network = $codeInner;
                     }
                     $fee = $this->safe_string($item, 'fee');
-                    if ($withdrawFees[$code] === null) {
-                        $withdrawFees[$code] = array();
+                    if ($withdrawFees[$codeInner] === null) {
+                        $withdrawFees[$codeInner] = array();
                     }
-                    $withdrawFees[$code][$network] = $this->parse_number($fee);
+                    $withdrawFees[$codeInner][$network] = $this->parse_number($fee);
                 }
             }
             return array(
@@ -2085,7 +2074,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * when using private endpoint, only returns information for currencies with non-zero balance, use public $method by specifying $this->options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
@@ -2328,7 +2317,7 @@ class lbank2 extends Exchange {
                 'timestamp' => $timestamp,
             ), $query)));
             $encoded = $this->encode($auth);
-            $hash = $this->hash($encoded, 'sha256');
+            $hash = $this->hash($encoded, 'md5');
             $uppercaseHash = strtoupper($hash);
             $sign = null;
             if ($signatureMethod === 'RSA') {
@@ -2375,7 +2364,7 @@ class lbank2 extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $success = $this->safe_string($response, 'result');
         if ($success === 'false') {
@@ -2487,5 +2476,6 @@ class lbank2 extends Exchange {
             ), $errorCode, '\\ccxt\\ExchangeError');
             throw new $ErrorClass($message);
         }
+        return null;
     }
 }

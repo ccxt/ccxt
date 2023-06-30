@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitstamp1 extends bitstamp1$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -391,12 +390,13 @@ class bitstamp1 extends bitstamp1$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const status = this.safeString(response, 'status');
         if (status === 'error') {
             throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }
 
