@@ -547,7 +547,7 @@ export default class bigone extends Exchange {
                 'deposit': currencyDepositEnabled,
                 'withdraw': currencyWithdrawEnabled,
                 'fee': undefined,
-                'precision': currencyMaxPrecision,
+                'precision': this.parseNumber (currencyMaxPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
