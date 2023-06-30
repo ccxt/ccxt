@@ -33,6 +33,7 @@ export default class blockchaincom extends Exchange {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -78,6 +79,7 @@ export default class blockchaincom extends Exchange {
                 'api': {
                     'public': 'https://api.blockchain.com/v3/exchange',
                     'private': 'https://api.blockchain.com/v3/exchange',
+                    'webExchange': 'https://api.blockchain.com',
                 },
                 'www': 'https://blockchain.com',
                 'doc': [
@@ -122,6 +124,11 @@ export default class blockchaincom extends Exchange {
                         'orders/{orderId}': 1, // cancelOrder
                     },
                 },
+                'webExchange': {
+                    'get': {
+                        'assets/currencies/custodial': 10,
+                    },
+                },
             },
             'fees': {
                 'trading': {
@@ -164,6 +171,91 @@ export default class blockchaincom extends Exchange {
                 'apiKey': false,
                 'secret': true,
             },
+            'options': {
+                'fetchCurrencies': {
+                    'webApiEnable': true,
+                    'webApiRetries': 5,
+                },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'ALGORAND': 'ALGO',
+                    'CARDANO': 'ADA',
+                    'ARWEAVE': 'AR',
+                    'COSMOS': 'ATOM',
+                    'AVALANCHE_C': 'AVAX',
+                    'BCH': 'BCH',
+                    'BSV': 'BSV',
+                    'BTC': 'BTC',
+                    'BEP20': 'BNB',
+                    'DECRED': 'DCR',
+                    'DESO': 'DESO',
+                    'DASH': 'DASH',
+                    'CELO': 'CELO',
+                    'CHILIZ': 'CHZ',
+                    'POLYGON': 'MATIC',
+                    'DIGITALGOLD': 'DGLD',
+                    'DOGECOIN': 'DOGE',
+                    'POLKADOT': 'DOT',
+                    'EOS': 'EOS',
+                    'ETC': 'ETC',
+                    'FILECOIN': 'FIL',
+                    'KAVA': 'KAVA',
+                    'LTC': 'LTC',
+                    'IOTA': 'MIOTA',
+                    'NEAR': 'NEAR',
+                    'SOLANA': 'SOL',
+                    'STACKS': 'STX',
+                    'STELLAR': 'XLM',
+                    'MONERO': 'XMR',
+                    'RIPPLE': 'XRP',
+                    'TEZOS': 'XTZ',
+                    'ZCASH': 'ZEC',
+                    'ZILLIQA': 'ZIL',
+                    // 'THETA': 'THETA', // todo: possible TFUEL THETA FUEL is also same, but API might have a mistake
+                    'MOBILECOIN': 'MOB',
+                    'KIN': 'KIN',
+                },
+                'networksById': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'ALGO': 'ALGORAND',
+                    'ADA': 'CARDANO',
+                    'AR': 'ARWEAVE',
+                    'ATOM': 'COSMOS',
+                    'AVAX': 'AVALANCHE_C',
+                    'BCH': 'BCH',
+                    'BSV': 'BSV',
+                    'BTC': 'BTC',
+                    'BNB': 'BEP20',
+                    'DCR': 'DECRED',
+                    'DESO': 'DESO',
+                    'DASH': 'DASH',
+                    'CELO': 'CELO',
+                    'CHZ': 'CHILIZ',
+                    'MATIC': 'POLYGON',
+                    'DGLD': 'DIGITALGOLD',
+                    'DOGE': 'DOGECOIN',
+                    'DOT': 'POLKADOT',
+                    'EOS': 'EOS',
+                    'ETC': 'ETC',
+                    'FIL': 'FILECOIN',
+                    'KAVA': 'KAVA',
+                    'LTC': 'LTC',
+                    'MIOTA': 'IOTA',
+                    'NEAR': 'NEAR',
+                    'SOL': 'SOLANA',
+                    'STX': 'STACKS',
+                    'XLM': 'STELLAR',
+                    'XMR': 'MONERO',
+                    'XRP': 'RIPPLE',
+                    'XTZ': 'TEZOS',
+                    'ZEC': 'ZCASH',
+                    'ZIL': 'ZILLIQA',
+                    'MOB': 'MOBILECOIN',
+                    'KIN': 'KIN',
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -173,6 +265,151 @@ export default class blockchaincom extends Exchange {
                 'broad': {},
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchCurrencies
+         * @description fetches all available currencies on an exchange. Alternative for https://api.blockchain.com/nabu-gateway/markets/exchange/currencies?purpose=all
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetAssetsCurrenciesCustodial', true);
+        if (data === undefined) {
+            return undefined;
+        }
+        //
+        //    {
+        //        "currencies": [
+        //            {
+        //                "symbol": "USDT",
+        //                "displaySymbol": "USDT",
+        //                "name": "Tether",
+        //                "type": {
+        //                    "name": "ERC20", // might be also "COIN" ...
+        //                    "parentChain": "ETH",
+        //                    "erc20Address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        //                    "logoPngUrl": "https://raw.githubusercontent.com/........png",
+        //                    "websiteUrl": "https://tether.to"
+        //                },
+        //                "precision": 6,
+        //                "products": [ "MercuryDeposits", "MercuryWithdrawals", "CustodialWalletBalance", "InterestBalance", "PrivateKey" ]
+        //            },
+        //            {
+        //                "symbol": "USDT.MATIC",
+        //                "displaySymbol": "USDT",
+        //                "name": "Tether USD - Polygon",
+        //                "type": {
+        //                    "name": "ERC20",
+        //                    "parentChain": "MATIC",
+        //                    "erc20Address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+        //                    "logoPngUrl": "https://raw.githubusercontent.com/........png",
+        //                    "websiteUrl": "https://tether.to"
+        //                },
+        //                "precision": 6,
+        //                "products": [ "PrivateKey" ]
+        //            },
+        //            {
+        //                "symbol": "USD",
+        //                "displaySymbol": "USD",
+        //                "name": "US Dollar",
+        //                "type": {
+        //                    "name": "FIAT"
+        //                },
+        //                "precision": 2,
+        //                "products": [ "MercuryDeposits", "MercuryWithdrawals", "CustodialWalletBalance" ]
+        //            }
+        //        ],
+        //        "groups": [
+        //            {
+        //                "parentSymbol": "USDC",
+        //                "childSymbols": [ "USDC.MATIC" ]
+        //            },
+        //            {
+        //                "parentSymbol": "USDT",
+        //                "childSymbols": [ "USDT.MATIC" ]
+        //            },
+        //            {
+        //                "parentSymbol": "MATIC",
+        //                "childSymbols": [ "MATIC.MATIC" ]
+        //            }
+        //        ]
+        //    }
+        //
+        const currenciesArray = this.safeValue (data, 'currencies', []);
+        const currencies = this.groupBy (currenciesArray, 'displaySymbol');
+        const currencyIds = Object.keys (currencies);
+        const result = {};
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const currencyEntries = currencies[currencyId];
+            const code = this.safeCurrencyCode (currencyId);
+            let minPrecision = undefined;
+            let type = undefined;
+            const networks = {};
+            for (let j = 0; j < currencyEntries.length; j++) {
+                const chain = currencyEntries[j];
+                const precision = this.parsePrecision (this.safeString (chain, 'precision'));
+                const typeObject = this.safeValue (chain, 'type', {});
+                const displaySymbol = this.safeString (chain, 'displaySymbol');
+                const typeName = this.safeString (typeObject, 'name');
+                if (typeName === 'FIAT') {
+                    type = 'fiat';
+                } else {
+                    type = 'crypto';
+                    const isMainnetCoin = (typeName === 'COIN');
+                    const networkId = isMainnetCoin ? displaySymbol : this.safeString (typeObject, 'parentChain');
+                    const networkCode = this.networkIdToCode (networkId);
+                    networks[networkCode] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': undefined,
+                        'deposit': undefined,
+                        'withdraw': undefined,
+                        'fee': undefined,
+                        'precision': this.parseNumber (precision),
+                        'limits': {
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'withdraw': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                        // 'parentCurrencyId': this.safeString (chain, 'symbol'), // before main networks-unification PR is merged, to link chains to specific currency-id junctions
+                    };
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (minPrecision, precision);
+                }
+            }
+            result[code] = {
+                'info': this.indexBy (networks, 'network'),
+                'code': code,
+                'id': currencyId,
+                'name': undefined,
+                'type': type,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': this.parseNumber (minPrecision),
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {

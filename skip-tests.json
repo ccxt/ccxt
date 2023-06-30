@@ -363,6 +363,10 @@
                 "taker":"not provided",
                 "maker":"not provided"
             },
+            "fetchCurrencies": {
+                "deposit":"not provided",
+                "withdraw":"not provided"
+            },
             "fetchOrderBook": "bid should be greater than next bid",
             "fetchL2OrderBook": "same"
         }
