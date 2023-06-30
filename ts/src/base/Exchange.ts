@@ -1777,8 +1777,8 @@ export default class Exchange {
                 market['subType'] = 'linear';
             } else if (market['inverse']) {
                 market['subType'] = 'inverse';
-            } else if (market['quanto']) {
-                market['subType'] = 'quanto';
+            } else if (this.safeValue (market, 'quanto')) {
+                market['subType'] = 'quanto'; // todo: remove safeValue whenever quanto is unified
             } else {
                 market['subType'] = undefined;
             }
