@@ -498,7 +498,7 @@ export default class bigone extends Exchange {
             const type = this.safeValue (currency, 'is_fiat') ? 'fiat' : 'crypto';
             const networks = {};
             const chains = this.safeValue (currency, 'binding_gateways', []);
-            let currencyMaxPrecision = undefined;
+            let currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
             let currencyDepositEnabled = undefined;
             let currencyWithdrawEnabled = undefined;
             for (let j = 0; j < chains.length; j++) {
@@ -510,7 +510,7 @@ export default class bigone extends Exchange {
                 const minDepositAmount = this.safeString (chain, 'min_deposit_amount');
                 const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
                 const withdrawalFee = this.safeString (chain, 'withdrawal_fee');
-                const precision = this.parsePrecision (this.safeString (chain, 'withdrawal_scale'));
+                const precision = this.parsePrecision (this.safeString2 (chain, 'withdrawal_scale', 'scale'));
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
