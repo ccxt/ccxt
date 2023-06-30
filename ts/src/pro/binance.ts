@@ -1403,6 +1403,9 @@ export default class binance extends binanceRest {
          * @param {string} method name of the method to be checked
          * @param {string} symbol symbol or marketId of the market to be checked
          */
+        if (symbol === undefined) {
+            return;
+        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new BadRequest (this.id + ' ' + method + ' only supports spot markets');
@@ -1664,9 +1667,13 @@ export default class binance extends binanceRest {
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.cancelRestrictions Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED.
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new BadRequest (this.id + ' cancelOrderWs requires a symbol');
+        }
         this.checkIsSpot ('cancelOrderWs', symbol);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
@@ -1683,10 +1690,11 @@ export default class binance extends binanceRest {
         } else {
             payload['orderId'] = this.parseToInt (id);
         }
+        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         const message = {
             'id': messageHash,
             'method': 'order.cancel',
-            'params': this.signParams (payload),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrderWs,
@@ -1736,6 +1744,9 @@ export default class binance extends binanceRest {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new BadRequest (this.id + ' cancelOrderWs requires a symbol');
+        }
         this.checkIsSpot ('fetchOrderWs', symbol);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
@@ -1780,6 +1791,9 @@ export default class binance extends binanceRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new BadRequest (this.id + ' fetchOrdersWs requires a symbol');
+        }
         this.checkIsSpot ('fetchOrdersWs', symbol);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
@@ -2132,6 +2146,9 @@ export default class binance extends binanceRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new BadRequest (this.id + ' fetchMyTradesWs requires a symbol');
+        }
         this.checkIsSpot ('fetchMyTradesWs', symbol);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);

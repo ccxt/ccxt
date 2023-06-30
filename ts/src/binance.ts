@@ -4272,11 +4272,6 @@ export default class binance extends Exchange {
             method = 'dapiPrivatePostOrder';
         } else if (marketType === 'margin' || marginMode !== undefined) {
             method = 'sapiPostMarginOrder';
-            const reduceOnly = this.safeValue (params, 'reduceOnly');
-            if (reduceOnly) {
-                request['sideEffectType'] = 'AUTO_REPAY';
-                params = this.omit (params, 'reduceOnly');
-            }
         }
         if (market['option']) {
             method = 'eapiPrivatePostOrder';
@@ -4330,6 +4325,13 @@ export default class binance extends Exchange {
             // only supported for spot/margin api (all margin markets are spot markets)
             if (postOnly) {
                 type = 'LIMIT_MAKER';
+            }
+        }
+        if (marketType === 'margin' || marginMode !== undefined) {
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (reduceOnly) {
+                request['sideEffectType'] = 'AUTO_REPAY';
+                params = this.omit (params, 'reduceOnly');
             }
         }
         let uppercaseType = type.toUpperCase ();
