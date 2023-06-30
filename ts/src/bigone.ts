@@ -2001,6 +2001,8 @@ export default class bigone extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
+        console.log ('TEMP FOR TRAVISSSS:');
+        console.log (response);
         if (code !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
