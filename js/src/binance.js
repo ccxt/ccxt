@@ -1039,6 +1039,8 @@ export default class binance extends Exchange {
                     'margin': 'x-R4BD3S82',
                     'future': 'x-xcKtGhcu',
                     'delivery': 'x-xcKtGhcu',
+                    'swap': 'x-xcKtGhcu',
+                    'option': 'x-xcKtGhcu',
                 },
                 'accountsByType': {
                     'main': 'MAIN',
@@ -7943,6 +7945,17 @@ export default class binance extends Exchange {
         }
         else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials();
+            if (method === 'POST' && path === 'order') {
+                // inject in implicit API calls
+                const newClientOrderId = this.safeString(params, 'newClientOrderId');
+                if (newClientOrderId === undefined) {
+                    const isSpotOrMargin = (api.indexOf('sapi') > -1 || api === 'private');
+                    const marketType = isSpotOrMargin ? 'spot' : 'future';
+                    const broker = this.safeValue(this.options, 'broker');
+                    const brokerId = this.safeString(broker, marketType);
+                    params['newClientOrderId'] = brokerId + this.uuid22();
+                }
+            }
             let query = undefined;
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
             const extendedParams = this.extend({

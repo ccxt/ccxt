@@ -5058,6 +5058,28 @@ export default class okx extends Exchange {
         }
         else if (api === 'private') {
             this.checkRequiredCredentials();
+            // inject id in implicit api call
+            if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
+                const brokerId = this.safeString(this.options, 'brokerId', 'e847386590ce4dBC');
+                if (Array.isArray(params)) {
+                    for (let i = 0; i < params.length; i++) {
+                        const entry = params[i];
+                        const clientOrderId = this.safeString(entry, 'clOrdId');
+                        if (clientOrderId === undefined) {
+                            entry['clOrdId'] = brokerId + this.uuid16();
+                            entry['tag'] = brokerId;
+                            params[i] = entry;
+                        }
+                    }
+                }
+                else {
+                    const clientOrderId = this.safeString(params, 'clOrdId');
+                    if (clientOrderId === undefined) {
+                        request['clOrdId'] = brokerId + this.uuid16();
+                        request['tag'] = brokerId;
+                    }
+                }
+            }
             const timestamp = this.iso8601(this.milliseconds());
             headers = {
                 'OK-ACCESS-KEY': this.apiKey,

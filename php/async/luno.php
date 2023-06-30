@@ -977,7 +977,7 @@ class luno extends Exchange {
         // $details = $this->safe_value($entry, 'details', array());
         $id = $this->safe_string($entry, 'row_index');
         $account_id = $this->safe_string($entry, 'account_id');
-        $timestamp = $this->safe_value($entry, 'timestamp');
+        $timestamp = $this->safe_integer($entry, 'timestamp');
         $currencyId = $this->safe_string($entry, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $available_delta = $this->safe_string($entry, 'available_delta');
@@ -1018,8 +1018,8 @@ class luno extends Exchange {
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'before' => $before,
-            'after' => $after,
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
             'status' => $status,
             'fee' => null,
             'info' => $entry,

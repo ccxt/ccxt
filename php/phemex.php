@@ -1443,6 +1443,9 @@ class phemex extends Exchange {
         //         "leavesQuoteQtyEv" => 0,
         //         "execFeeEv" => 0,
         //         "feeRateEr" => 0
+        //         "baseCurrency" => 'BTC',
+        //         "quoteCurrency" => 'USDT',
+        //         "feeCurrency" => 'BTC'
         //     }
         //
         // swap
@@ -1612,12 +1615,12 @@ class phemex extends Exchange {
                 $priceString = $this->from_ep($this->safe_string($trade, 'execPriceEp'), $market);
                 $amountString = $this->from_ev($this->safe_string($trade, 'execBaseQtyEv'), $market);
                 $amountString = $this->safe_string($trade, 'execQty', $amountString);
-                $costString = $this->from_ev($this->safe_string_2($trade, 'execQuoteQtyEv', 'execValueEv'), $market);
-                $feeCostString = $this->from_ev($this->safe_string($trade, 'execFeeEv'), $market);
+                $costString = $this->from_er($this->safe_string_2($trade, 'execQuoteQtyEv', 'execValueEv'), $market);
+                $feeCostString = $this->from_er($this->safe_string($trade, 'execFeeEv'), $market);
                 if ($feeCostString !== null) {
                     $feeRateString = $this->from_er($this->safe_string($trade, 'feeRateEr'), $market);
                     if ($market['spot']) {
-                        $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
+                        $feeCurrencyCode = $this->safe_currency_code($this->safe_string($trade, 'feeCurrency'));
                     } else {
                         $info = $this->safe_value($market, 'info');
                         if ($info !== null) {

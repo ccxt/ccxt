@@ -66,8 +66,9 @@ class cryptocom extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => true,
                 'fetchPositionMode' => false,
-                'fetchPositions' => false,
+                'fetchPositions' => true,
                 'fetchSettlementHistory' => true,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
@@ -2815,6 +2816,157 @@ class cryptocom extends Exchange {
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
         }) ();
+    }
+
+    public function fetch_position(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch $data on a single open contract trade position
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+             * @param {string} $symbol unified $market $symbol of the $market the position is held in
+             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->v1PrivatePostPrivateGetPositions (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => 1688015952050,
+            //         "method" => "private/get-positions",
+            //         "code" => 0,
+            //         "result" => {
+            //             "data" => array(
+            //                 {
+            //                     "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
+            //                     "quantity" => "0.0001",
+            //                     "cost" => "3.02392",
+            //                     "open_pos_cost" => "3.02392",
+            //                     "open_position_pnl" => "-0.0010281328",
+            //                     "session_pnl" => "-0.0010281328",
+            //                     "update_timestamp_ms" => 1688015919091,
+            //                     "instrument_name" => "BTCUSD-PERP",
+            //                     "type" => "PERPETUAL_SWAP"
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'data', array());
+            return $this->parse_position($data[0], $market);
+        }) ();
+    }
+
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch all open $positions
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$positions
+             * @param {[string]|null} $symbols list of unified $market $symbols
+             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $request = array();
+            $market = null;
+            if ($symbols !== null) {
+                $symbol = null;
+                if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                    $symbolsLength = count($symbols);
+                    if ($symbolsLength > 1) {
+                        throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
+                    }
+                    $symbol = $symbols[0];
+                } else {
+                    $symbol = $symbols;
+                }
+                $market = $this->market($symbol);
+                $request['instrument_name'] = $market['id'];
+            }
+            $response = Async\await($this->v1PrivatePostPrivateGetPositions (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => 1688015952050,
+            //         "method" => "private/get-$positions",
+            //         "code" => 0,
+            //         "result" => {
+            //             "data" => array(
+            //                 {
+            //                     "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
+            //                     "quantity" => "0.0001",
+            //                     "cost" => "3.02392",
+            //                     "open_pos_cost" => "3.02392",
+            //                     "open_position_pnl" => "-0.0010281328",
+            //                     "session_pnl" => "-0.0010281328",
+            //                     "update_timestamp_ms" => 1688015919091,
+            //                     "instrument_name" => "BTCUSD-PERP",
+            //                     "type" => "PERPETUAL_SWAP"
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+            $responseResult = $this->safe_value($response, 'result', array());
+            $positions = $this->safe_value($responseResult, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($positions); $i++) {
+                $entry = $positions[$i];
+                $marketId = $this->safe_string($entry, 'instrument_name');
+                $marketInner = $this->safe_market($marketId, null, null, 'contract');
+                $result[] = $this->parse_position($entry, $marketInner);
+            }
+            return $this->filter_by_array($result, 'symbol', null, false);
+        }) ();
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //         "quantity" => "0.0001",
+        //         "cost" => "3.02392",
+        //         "open_pos_cost" => "3.02392",
+        //         "open_position_pnl" => "-0.0010281328",
+        //         "session_pnl" => "-0.0010281328",
+        //         "update_timestamp_ms" => 1688015919091,
+        //         "instrument_name" => "BTCUSD-PERP",
+        //         "type" => "PERPETUAL_SWAP"
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'instrument_name');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
+        $timestamp = $this->safe_integer($position, 'update_timestamp_ms');
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'hedged' => null,
+            'side' => null,
+            'contracts' => null,
+            'contractSize' => $market['contractSize'],
+            'entryPrice' => null,
+            'markPrice' => null,
+            'notional' => null,
+            'leverage' => null,
+            'collateral' => $this->safe_number($position, 'open_pos_cost'),
+            'initialMargin' => $this->safe_number($position, 'cost'),
+            'maintenanceMargin' => null,
+            'initialMarginPercentage' => null,
+            'maintenanceMarginPercentage' => null,
+            'unrealizedPnl' => $this->safe_number($position, 'open_position_pnl'),
+            'liquidationPrice' => null,
+            'marginMode' => null,
+            'percentage' => null,
+            'marginRatio' => null,
+        ));
     }
 
     public function nonce() {

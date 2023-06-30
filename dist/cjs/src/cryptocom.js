@@ -57,8 +57,9 @@ class cryptocom extends cryptocom$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': true,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchSettlementHistory': true,
                 'fetchStatus': false,
                 'fetchTicker': true,
@@ -2779,6 +2780,155 @@ class cryptocom extends cryptocom$1 {
         }
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+    }
+    async fetchPosition(symbol, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.v1PrivatePostPrivateGetPositions(this.extend(request, params));
+        //
+        //     {
+        //         "id": 1688015952050,
+        //         "method": "private/get-positions",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //                     "quantity": "0.0001",
+        //                     "cost": "3.02392",
+        //                     "open_pos_cost": "3.02392",
+        //                     "open_position_pnl": "-0.0010281328",
+        //                     "session_pnl": "-0.0010281328",
+        //                     "update_timestamp_ms": 1688015919091,
+        //                     "instrument_name": "BTCUSD-PERP",
+        //                     "type": "PERPETUAL_SWAP"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'data', []);
+        return this.parsePosition(data[0], market);
+    }
+    async fetchPositions(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchPositions
+         * @description fetch all open positions
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const request = {};
+        let market = undefined;
+        if (symbols !== undefined) {
+            let symbol = undefined;
+            if (Array.isArray(symbols)) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
+                    throw new errors.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
+                }
+                symbol = symbols[0];
+            }
+            else {
+                symbol = symbols;
+            }
+            market = this.market(symbol);
+            request['instrument_name'] = market['id'];
+        }
+        const response = await this.v1PrivatePostPrivateGetPositions(this.extend(request, params));
+        //
+        //     {
+        //         "id": 1688015952050,
+        //         "method": "private/get-positions",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //                     "quantity": "0.0001",
+        //                     "cost": "3.02392",
+        //                     "open_pos_cost": "3.02392",
+        //                     "open_position_pnl": "-0.0010281328",
+        //                     "session_pnl": "-0.0010281328",
+        //                     "update_timestamp_ms": 1688015919091,
+        //                     "instrument_name": "BTCUSD-PERP",
+        //                     "type": "PERPETUAL_SWAP"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const responseResult = this.safeValue(response, 'result', {});
+        const positions = this.safeValue(responseResult, 'data', []);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            const marketId = this.safeString(entry, 'instrument_name');
+            const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
+            result.push(this.parsePosition(entry, marketInner));
+        }
+        return this.filterByArray(result, 'symbol', undefined, false);
+    }
+    parsePosition(position, market = undefined) {
+        //
+        //     {
+        //         "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //         "quantity": "0.0001",
+        //         "cost": "3.02392",
+        //         "open_pos_cost": "3.02392",
+        //         "open_position_pnl": "-0.0010281328",
+        //         "session_pnl": "-0.0010281328",
+        //         "update_timestamp_ms": 1688015919091,
+        //         "instrument_name": "BTCUSD-PERP",
+        //         "type": "PERPETUAL_SWAP"
+        //     }
+        //
+        const marketId = this.safeString(position, 'instrument_name');
+        market = this.safeMarket(marketId, market, undefined, 'contract');
+        const symbol = this.safeSymbol(marketId, market, undefined, 'contract');
+        const timestamp = this.safeInteger(position, 'update_timestamp_ms');
+        return this.safePosition({
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'hedged': undefined,
+            'side': undefined,
+            'contracts': undefined,
+            'contractSize': market['contractSize'],
+            'entryPrice': undefined,
+            'markPrice': undefined,
+            'notional': undefined,
+            'leverage': undefined,
+            'collateral': this.safeNumber(position, 'open_pos_cost'),
+            'initialMargin': this.safeNumber(position, 'cost'),
+            'maintenanceMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': this.safeNumber(position, 'open_position_pnl'),
+            'liquidationPrice': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+            'marginRatio': undefined,
+        });
     }
     nonce() {
         return this.milliseconds();

@@ -885,7 +885,7 @@ class luno(Exchange, ImplicitAPI):
         # details = self.safe_value(entry, 'details', {})
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
-        timestamp = self.safe_value(entry, 'timestamp')
+        timestamp = self.safe_integer(entry, 'timestamp')
         currencyId = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         available_delta = self.safe_string(entry, 'available_delta')
@@ -924,8 +924,8 @@ class luno(Exchange, ImplicitAPI):
             'amount': self.parse_number(amount),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'before': before,
-            'after': after,
+            'before': self.parse_number(before),
+            'after': self.parse_number(after),
             'status': status,
             'fee': None,
             'info': entry,

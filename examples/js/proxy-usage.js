@@ -16,15 +16,16 @@ async function example_3() {
     myEx.socksProxy = 'socks5://127.0.0.1:1080'; // It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
     console.log(await myEx.fetch('https://api.ipify.org/'));
 }
-// Note, you can use your callback (instead of string value).
+// Note, you can use your callback (instead of string value) for each of them, i.e.:
 //
-//     myEx.proxyUrl = mycallback;
 //
-//  or (JS/PHP)
+//     myEx.proxyUrlCallback = function (url, method, headers, body) { return 'xyz'; }
 //
-//     myEx.proxyUrl = function (url, method, headers, body) { return 'xyz'; }
+// or
 //
-// Note, in php you can also pass a callback's string with a qualified namespace/class name, i.e. '\yourNamesPace\yourFunction'
+//     myEx.proxyUrlCallback = mycallback;
+//
+// Note, in PHP you can also pass a callback's string with a qualified namespace/class name, i.e. '\yourFunction' or '\yourNamesPace\yourFunction'
 await example_1();
 // await example_2 ();
 // await example_3 ();
