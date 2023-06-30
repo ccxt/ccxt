@@ -5535,15 +5535,22 @@ CCXT supports the following proxy types:
 
 #### proxyUrl
 
-With this property you can prepend any url to requests, like:
+This will prepend any url to requests:
 ```
-ex.proxyUrl = 'http://127.0.0.1:8080/';
-// or
-ex.proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-// or
-ex.proxyUrl = 'http://your-website.com/sample-script.php?url=';
+ex = ccxt.binance({'proxyUrl': 'YOUR_PROXY_URL'})
+
+// or set anytime after instantiation
+
+ex.proxyUrl = 'YOUR_PROXY_URL';
 ```
-So requests will be made sent like `http://127.0.0.1:8080/https://exchange.xyz/api/endpoint`. You can test if that works by:
+
+while 'YOUR_PROXY_URL' could be like (note the backslash): 
+- `http://127.0.0.1:8080/`
+- `https://cors-anywhere.herokuapp.com/`
+- `http://your-website.com/sample-script.php?url=`
+- etc
+
+So requests will be made to `http://127.0.0.1:8080/https://exchange.xyz/api/endpoint`. You can test if that works by:
 ```
 // Python
 print(await ex.fetch('https://api.ipify.org/')) // for sync version remove 'await'
