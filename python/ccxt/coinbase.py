@@ -2268,7 +2268,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders
         :param int|None limit: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -2396,7 +2396,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest order, default is None
         :param int|None limit: the maximum number of open order structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('OPEN', symbol, since, limit, params)
 
@@ -2408,7 +2408,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest order, default is None
         :param int|None limit: the maximum number of closed order structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('FILLED', symbol, since, limit, params)
 
@@ -2497,7 +2497,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: not used by coinbase fetchTrades
         :param int|None limit: the maximum number of trade structures to fetch
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2534,7 +2534,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest order, default is None
         :param int|None limit: the maximum number of trade structures to fetch
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None

@@ -645,7 +645,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1348,7 +1348,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {int|undefined} params.till end time in ms
          * @param {string|undefined} params.side buy or sell
          * @param {string|undefined} params.type limit, or market
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('open', symbol, since, limit, params);
     }
@@ -1366,7 +1366,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {int|undefined} params.till end time in ms
          * @param {string|undefined} params.side buy or sell
          * @param {string|undefined} params.type limit, or market
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('closed', symbol, since, limit, params);
     }
@@ -1632,7 +1632,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {string|undefined} side buy or sell
          * @param {string|undefined} type  limit, market, limit_stop or market_stop
          * @param {int|undefined} endAt end time (milisecond)
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {};

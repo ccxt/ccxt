@@ -1821,7 +1821,8 @@ class gate(Exchange, ImplicitAPI):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+        please use fetchDepositWithdrawFees instead
         see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
         :param str[]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the gate api endpoint
@@ -2689,7 +2690,7 @@ class gate(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2823,7 +2824,7 @@ class gate(Exchange, ImplicitAPI):
         :param int|None params['offset']: *contract only* list offset, starting from 0
         :param str|None params['last_id']: *contract only* specify list staring point using the id of last record in previous list-query results
         :param int|None params['count_total']: *contract only* whether to return total number matched, default to 0(no return)
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         type = None
@@ -3905,7 +3906,7 @@ class gate(Exchange, ImplicitAPI):
         :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str params['marginMode']: 'cross' or 'isolated' - marginMode for type='margin', if not provided self.options['defaultMarginMode'] is used
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
@@ -3919,7 +3920,7 @@ class gate(Exchange, ImplicitAPI):
         :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, swap or future, if not provided self.options['defaultType'] is used
         :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 

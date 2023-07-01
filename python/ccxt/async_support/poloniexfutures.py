@@ -635,7 +635,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1286,7 +1286,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int|None params['till']: end time in ms
         :param str|None params['side']: buy or sell
         :param str|None params['type']: limit, or market
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
@@ -1302,7 +1302,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int|None params['till']: end time in ms
         :param str|None params['side']: buy or sell
         :param str|None params['type']: limit, or market
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
@@ -1555,7 +1555,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param str|None side: buy or sell
         :param str|None type:  limit, market, limit_stop or market_stop
         :param int|None endAt: end time(milisecond)
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {

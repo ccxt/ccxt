@@ -1583,7 +1583,7 @@ class krakenfutures extends Exchange {
          * fetch the current funding rates
          * @param {string[]} $symbols unified $market $symbols
          * @param {array} $params extra parameters specific to the krakenfutures api endpoint
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $marketIds = $this->market_ids($symbols);

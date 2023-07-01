@@ -3581,7 +3581,7 @@ class binance extends Exchange {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {int|null} $params->fromId trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4519,7 +4519,7 @@ class binance extends Exchange {
              * @param {int|null} $limit the maximum number of order structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $this->check_required_symbol('fetchOrders', $symbol);
             Async\await($this->load_markets());
@@ -4637,7 +4637,7 @@ class binance extends Exchange {
              * @param {int|null} $limit the maximum number of open orders structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -4699,7 +4699,7 @@ class binance extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of order structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
             return $this->filter_by($orders, 'status', 'closed');
@@ -4862,7 +4862,7 @@ class binance extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -5840,7 +5840,8 @@ class binance extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * *DEPRECATED* please use fetchDepositWithdrawFees instead
+             * @deprecated
+             * please use fetchDepositWithdrawFees instead
              * @param {string[]|null} $codes not used by binance fetchTransactionFees ()
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~

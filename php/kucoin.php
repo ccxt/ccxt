@@ -834,7 +834,8 @@ class kucoin extends Exchange {
 
     public function fetch_transaction_fee(string $code, $params = array ()) {
         /**
-         * *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @deprecated
+         * please use fetchDepositWithdrawFee instead
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the kucoin api endpoint
@@ -1832,7 +1833,7 @@ class kucoin extends Exchange {
          * @param {string|null} $params->tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
          * @param {bool} $params->stop True if fetching a stop order
          * @param {bool} $params->hf false, // true for hf order
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
@@ -1853,7 +1854,7 @@ class kucoin extends Exchange {
          * @param {string} $params->orderIds *stop orders only* comma seperated order ID list
          * @param {bool} $params->stop True if fetching a stop order
          * @param {bool} $params->hf false, // true for hf order
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('active', $symbol, $since, $limit, $params);
     }
@@ -2135,7 +2136,7 @@ class kucoin extends Exchange {
          * @param {int|null} $limit the maximum number of $trades structures to retrieve
          * @param {array} $params extra parameters specific to the kucoin api endpoint
          * @param {bool} $params->hf false, // true for $hf order
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -2234,7 +2235,7 @@ class kucoin extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of $trades to fetch
          * @param {array} $params extra parameters specific to the kucoin api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);

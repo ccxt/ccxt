@@ -858,7 +858,7 @@ class hitbtc3 extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -898,7 +898,7 @@ class hitbtc3 extends Exchange {
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
              * @param {string|null} $params->marginMode 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool|null} $params->margin true for fetching margin trades
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1179,7 +1179,8 @@ class hitbtc3 extends Exchange {
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * *DEPRECATED* use fetchDepositsWithdrawals instead
+             * @deprecated
+             * use fetchDepositsWithdrawals instead
              * @param {string|null} $code unified currency $code for the currency of the transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of transactions to return, default is null
@@ -1459,7 +1460,7 @@ class hitbtc3 extends Exchange {
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
              * @param {string|null} $params->marginMode 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool|null} $params->margin true for fetching margin orders
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1630,7 +1631,7 @@ class hitbtc3 extends Exchange {
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
              * @param {string|null} $params->marginMode 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool|null} $params->margin true for fetching open margin orders
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;

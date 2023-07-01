@@ -23,9 +23,10 @@ class cryptocom extends Exchange {
                 'CORS' => false,
                 'spot' => true,
                 'margin' => true,
-                'swap' => null, // has but not fully implemented
-                'future' => null, // has but not fully implemented
-                'option' => null,
+                'swap' => true,
+                'future' => true,
+                'option' => true,
+                'addMargin' => false,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -50,9 +51,14 @@ class cryptocom extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -62,6 +68,7 @@ class cryptocom extends Exchange {
                 'fetchPosition' => true,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
@@ -74,9 +81,11 @@ class cryptocom extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
                 'repayMargin' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -633,7 +642,7 @@ class cryptocom extends Exchange {
          * @param {int|null} $limit the maximum number of order structures to retrieve, default 100 max 100
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
          * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -707,7 +716,7 @@ class cryptocom extends Exchange {
          * @param {int|null} $limit the maximum number of $trades to fetch
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
          * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1167,7 +1176,7 @@ class cryptocom extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open $orders for
          * @param {int|null} $limit the maximum number of open order structures to retrieve
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1228,7 +1237,7 @@ class cryptocom extends Exchange {
          * @param {int|null} $limit the maximum number of trade structures to retrieve
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
          * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();

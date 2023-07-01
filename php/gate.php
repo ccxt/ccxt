@@ -1856,7 +1856,8 @@ class gate extends Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
-         * *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+         * please use fetchDepositWithdrawFees instead
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the gate api endpoint
@@ -2780,7 +2781,7 @@ class gate extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the gate api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2918,7 +2919,7 @@ class gate extends Exchange {
          * @param {int|null} $params->offset *$contract only* list offset, starting from 0
          * @param {string|null} $params->last_id *$contract only* specify list staring point using the id of last record in previous list-query results
          * @param {int|null} $params->count_total *$contract only* whether to return total number matched, default to 0(no return)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $type = null;
@@ -4083,7 +4084,7 @@ class gate extends Exchange {
          * @param {bool} $params->stop true for fetching stop orders
          * @param {string} $params->type spot, margin, swap or future, if not provided $this->options['defaultType'] is used
          * @param {string} $params->marginMode 'cross' or 'isolated' - marginMode for type='margin', if not provided $this->options['defaultMarginMode'] is used
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
@@ -4098,7 +4099,7 @@ class gate extends Exchange {
          * @param {bool} $params->stop true for fetching stop orders
          * @param {string} $params->type spot, swap or future, if not provided $this->options['defaultType'] is used
          * @param {string} $params->marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }

@@ -1602,7 +1602,7 @@ class krakenfutures extends krakenfutures$1 {
          * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
-         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const marketIds = this.marketIds(symbols);

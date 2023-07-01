@@ -1204,7 +1204,7 @@ class ascendex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the ascendex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1755,7 +1755,7 @@ class ascendex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open $orders for
              * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
              * @param {array} $params extra parameters specific to the ascendex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
@@ -1879,7 +1879,7 @@ class ascendex extends Exchange {
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the ascendex api endpoint
              * @param {int|null} $params->until the latest time in ms to fetch orders for
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
@@ -2386,7 +2386,8 @@ class ascendex extends Exchange {
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * *DEPRECATED*, use fetchDepositsWithdrawals instead
+             * @deprecated
+             * use fetchDepositsWithdrawals instead
              * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of $transactions to return, default is null

@@ -846,7 +846,8 @@ class kucoin(Exchange, ImplicitAPI):
 
     def fetch_transaction_fee(self, code: str, params={}):
         """
-        *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @deprecated
+        please use fetchDepositWithdrawFee instead
         see https://docs.kucoin.com/#get-withdrawal-quotas
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kucoin api endpoint
@@ -1777,7 +1778,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str|None params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :param bool params['stop']: True if fetching a stop order
         :param bool params['hf']: False,  # True for hf order
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 
@@ -1797,7 +1798,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str params['orderIds']: *stop orders only* comma seperated order ID list
         :param bool params['stop']: True if fetching a stop order
         :param bool params['hf']: False,  # True for hf order
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('active', symbol, since, limit, params)
 
@@ -2060,7 +2061,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the kucoin api endpoint
         :param bool params['hf']: False,  # True for hf order
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {}
@@ -2151,7 +2152,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)

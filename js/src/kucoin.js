@@ -845,7 +845,8 @@ export default class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchTransactionFee
-         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFee instead
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoin api endpoint
@@ -1868,7 +1869,7 @@ export default class kucoin extends Exchange {
          * @param {string|undefined} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
          * @param {bool} params.stop True if fetching a stop order
          * @param {bool} params.hf false, // true for hf order
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('done', symbol, since, limit, params);
     }
@@ -1890,7 +1891,7 @@ export default class kucoin extends Exchange {
          * @param {string} params.orderIds *stop orders only* comma seperated order ID list
          * @param {bool} params.stop True if fetching a stop order
          * @param {bool} params.hf false, // true for hf order
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('active', symbol, since, limit, params);
     }
@@ -2180,7 +2181,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @param {bool} params.hf false, // true for hf order
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2285,7 +2286,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);

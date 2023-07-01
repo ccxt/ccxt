@@ -1867,7 +1867,8 @@ class gate extends gate$1 {
         /**
          * @method
          * @name gate#fetchTransactionFees
-         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFees instead
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the gate api endpoint
@@ -2798,7 +2799,7 @@ class gate extends gate$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2938,7 +2939,7 @@ class gate extends gate$1 {
          * @param {int|undefined} params.offset *contract only* list offset, starting from 0
          * @param {string|undefined} params.last_id *contract only* specify list staring point using the id of last record in previous list-query results
          * @param {int|undefined} params.count_total *contract only* whether to return total number matched, default to 0(no return)
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -4118,7 +4119,7 @@ class gate extends gate$1 {
          * @param {bool} params.stop true for fetching stop orders
          * @param {string} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} params.marginMode 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('open', symbol, since, limit, params);
     }
@@ -4134,7 +4135,7 @@ class gate extends gate$1 {
          * @param {bool} params.stop true for fetching stop orders
          * @param {string} params.type spot, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('finished', symbol, since, limit, params);
     }

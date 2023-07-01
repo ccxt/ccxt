@@ -3463,7 +3463,7 @@ class binance(Exchange, ImplicitAPI):
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param int|None params['fromId']: trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4301,7 +4301,7 @@ class binance(Exchange, ImplicitAPI):
         :param int|None limit: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_symbol('fetchOrders', symbol)
         self.load_markets()
@@ -4412,7 +4412,7 @@ class binance(Exchange, ImplicitAPI):
         :param int|None limit: the maximum number of open orders structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -4465,7 +4465,7 @@ class binance(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         orders = self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
@@ -4603,7 +4603,7 @@ class binance(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {}
@@ -5489,7 +5489,8 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+        please use fetchDepositWithdrawFees instead
         :param str[]|None codes: not used by binance fetchTransactionFees()
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`

@@ -636,7 +636,7 @@ class poloniexfutures extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of $trades to fetch
          * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1326,7 +1326,7 @@ class poloniexfutures extends Exchange {
          * @param {int|null} $params->till end time in ms
          * @param {string|null} $params->side buy or sell
          * @param {string|null} $params->type $limit, or market
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
@@ -1343,7 +1343,7 @@ class poloniexfutures extends Exchange {
          * @param {int|null} $params->till end time in ms
          * @param {string|null} $params->side buy or sell
          * @param {string|null} $params->type $limit, or market
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
@@ -1605,7 +1605,7 @@ class poloniexfutures extends Exchange {
          * @param {string|null} side buy or sell
          * @param {string|null} type  $limit, $market, limit_stop or market_stop
          * @param {int|null} endAt end time (milisecond)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array(

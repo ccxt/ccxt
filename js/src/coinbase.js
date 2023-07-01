@@ -2368,7 +2368,7 @@ export default class coinbase extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders
          * @param {int|undefined} limit the maximum number of order structures to retrieve
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2506,7 +2506,7 @@ export default class coinbase extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
          * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('OPEN', symbol, since, limit, params);
     }
@@ -2520,7 +2520,7 @@ export default class coinbase extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
          * @param {int|undefined} limit the maximum number of closed order structures to retrieve
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('FILLED', symbol, since, limit, params);
     }
@@ -2617,7 +2617,7 @@ export default class coinbase extends Exchange {
          * @param {int|undefined} since not used by coinbase fetchTrades
          * @param {int|undefined} limit the maximum number of trade structures to fetch
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2657,7 +2657,7 @@ export default class coinbase extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
          * @param {int|undefined} limit the maximum number of trade structures to fetch
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;

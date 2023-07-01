@@ -42,9 +42,10 @@ class cryptocom(Exchange, ImplicitAPI):
                 'CORS': False,
                 'spot': True,
                 'margin': True,
-                'swap': None,  # has but not fully implemented
-                'future': None,  # has but not fully implemented
-                'option': None,
+                'swap': True,
+                'future': True,
+                'option': True,
+                'addMargin': False,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -69,9 +70,14 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -81,6 +87,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchPosition': True,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': True,
                 'fetchStatus': False,
                 'fetchTicker': True,
@@ -93,9 +100,11 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
                 'repayMargin': True,
                 'setLeverage': False,
                 'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -643,7 +652,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int|None limit: the maximum number of order structures to retrieve, default 100 max 100
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :param int|None params['until']: timestamp in ms for the ending date filter, default is the current time
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -712,7 +721,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int|None limit: the maximum number of trades to fetch
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :param int|None params['until']: timestamp in ms for the ending date filter, default is the current time
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1136,7 +1145,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of open order structures to retrieve
         :param dict params: extra parameters specific to the cryptocom api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1195,7 +1204,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int|None limit: the maximum number of trade structures to retrieve
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :param int|None params['until']: timestamp in ms for the ending date filter, default is the current time
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {}

@@ -1522,7 +1522,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         fetch the current funding rates
         :param str[] symbols: unified market symbols
         :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :returns dict[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         marketIds = self.market_ids(symbols)

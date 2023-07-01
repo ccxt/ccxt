@@ -28,9 +28,10 @@ export default class cryptocom extends Exchange {
                 'CORS': false,
                 'spot': true,
                 'margin': true,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'swap': true,
+                'future': true,
+                'option': true,
+                'addMargin': false,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -55,9 +56,14 @@ export default class cryptocom extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -67,6 +73,7 @@ export default class cryptocom extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
                 'fetchStatus': false,
                 'fetchTicker': true,
@@ -80,8 +87,10 @@ export default class cryptocom extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'repayMargin': true,
+                'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -646,7 +655,7 @@ export default class cryptocom extends Exchange {
          * @param {int|undefined} limit the maximum number of order structures to retrieve, default 100 max 100
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -721,7 +730,7 @@ export default class cryptocom extends Exchange {
          * @param {int|undefined} limit the maximum number of trades to fetch
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1204,7 +1213,7 @@ export default class cryptocom extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1266,7 +1275,7 @@ export default class cryptocom extends Exchange {
          * @param {int|undefined} limit the maximum number of trade structures to retrieve
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {};
