@@ -264,6 +264,14 @@ export default class coinsph extends Exchange {
                 'fetchTickers': {
                     'method': 'publicGetOpenapiQuoteV1Ticker24hr', // publicGetOpenapiQuoteV1TickerPrice, publicGetOpenapiQuoteV1TickerBookTicker
                 },
+                'networks': {
+                    // all networks: 'ETH', 'TRX', 'BSC', 'ARBITRUM', 'RON', 'BTC', 'XRP'
+                    // you can call api privateGetOpenapiWalletV1ConfigGetall to check which network is supported for the currency
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                    'ARB': 'ARBITRUM',
+                },
             },
             // https://coins-docs.github.io/errors/
             'exceptions': {
@@ -1520,6 +1528,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#withdraw
          * @description make a withdrawal to coins_ph account
+         * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address not used by coinsph withdraw ()
@@ -1532,16 +1541,24 @@ export default class coinsph extends Exchange {
         if (warning) {
             throw new InvalidAddress (this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
+        const networkCode = this.safeString (params, 'network');
+        const networkId = this.networkCodeToId (networkCode, code);
+        if (networkId === undefined) {
+            throw new BadRequest (this.id + ' withdraw() require network parameter');
+        }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
             'amount': this.numberToString (amount),
+            'network': networkId,
+            'address': address,
         };
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        const response = await this.privatePostOpenapiV1CapitalWithdrawApply (this.extend (request, params));
+        params = this.omit (params, 'network');
+        const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, params));
         return this.parseTransaction (response, currency);
     }
 
@@ -1751,16 +1768,18 @@ export default class coinsph extends Exchange {
          * @param {string} params.network network for fetch deposit address
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        await this.loadMarkets ();
         const networkCode = this.safeString (params, 'network');
         const networkId = this.networkCodeToId (networkCode, code);
+        if (networkId === undefined) {
+            throw new BadRequest (this.id + ' fetchDepositAddress() require network parameter');
+        }
+        await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
+            'network': networkId,
         };
-        if (networkId !== undefined) {
-            request['network'] = networkId;
-        }
+        params = this.omit (params, 'network');
         const response = await this.privateGetOpenapiWalletV1DepositAddress (this.extend (request, params));
         //
         //     {
