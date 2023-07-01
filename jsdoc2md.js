@@ -58,13 +58,16 @@ index.b = 'binance'
 index.o = 'okx'
 index.h = 'huobi'
 
+// add a glossary 🧐
 const result = []
 for (const char of alphabet) {
     result.push (`[${char}](#${index[char]})`)
 }
-const markdown = result.join (' ')
+const markdown = '## glossary\n' + result.join (' ') + '\n'
+outputs.unshift (markdown)
+outputs.push (markdown)
 
-fs.writeFileSync (outputFile, markdown + '\n' + outputs.join ('\n---\n'))
-console.log ('📰 finished rendering docs! 🙌')
+fs.writeFileSync (outputFile, outputs.join ('\n---\n'))
+console.log ('📰 finished rendering docs! 🙌 😶‍🌫')
 
 })()
