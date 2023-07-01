@@ -1597,6 +1597,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
          * @param {string} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -1617,7 +1618,35 @@ export default class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1CapitalDepositHistory (this.extend (request, params));
+        const response = await this.privateGetOpenapiWalletV1DepositHistory (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "id": "d_769800519366885376",
+        //         "amount": "0.001",
+        //         "coin": "BNB",
+        //         "network": "BNB",
+        //         "status": 0,
+        //         "address": "bnb136ns6lfw4zs5hg4n85vdthaad7hq5m4gtkgf23",
+        //         "addressTag": "101764890",
+        //         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
+        //         "insertTime": 1661493146000,
+        //         "confirmNo": 10,
+        //     },
+        //     {
+        //         "id": "d_769754833590042625",
+        //         "amount":"0.5",
+        //         "coin":"IOTA",
+        //         "network":"IOTA",
+        //         "status":1,
+        //         "address":"SIZ9VLMHWATXKV99LH99CIGFJFUMLEHGWVZVNNZXRJJVWBPHYWPPBOSDORZ9EQSHCZAMPVAPGFYQAUUV9DROOXJLNW",
+        //         "addressTag":"",
+        //         "txId":"ESBFVQUTPIWQNJSPXFNHNYHSQNTGKRVKPRABQWTAXCDWOAKDKYWPTVG9BGXNVNKTLEJGESAVXIKIZ9999",
+        //         "insertTime":1599620082000,
+        //         "confirmNo": 20,
+        //     }
+        // ]
+        //
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1747,12 +1776,9 @@ export default class coinsph extends Exchange {
     parseTransactionStatus (status) {
         const statuses = {
             '0': 'pending',
-            '1': 'canceled',
-            '2': 'pending',
-            '3': 'failed',
-            '4': 'pending',
-            '5': 'failed',
-            '6': 'ok',
+            '1': 'ok',
+            '2': 'failed',
+            '3': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
