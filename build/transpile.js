@@ -447,8 +447,8 @@ class Transpiler {
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
-            [ /(\s+ \* @(param|returns) {[^}]*)string([^}]*}.*)/g, '$1str$3' ], // docstring type conversion
-            [ /(\s+ \* @(param|returns) {[^}]*)object([^}]*}.*)/g, '$1dict$3' ], // doctstrubg type conversion
+            [ /(\s+ \* @(param|returns) {[^}]*)string(\[\])?([^}]*}.*)/g, '$1str$3$4' ], // docstring type conversion
+            [ /(\s+ \* @(param|returns) {[^}]*)object(\[\])?([^}]*}.*)/g, '$1dict$3$4' ], // docstring type conversion
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
@@ -659,7 +659,8 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([\]\[\|@\.\s+\:\/#()\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /(\s+ \* @(param|return) {[^}]*)array\(\)([^}]*}.*)/g, '$1[]$3' ], // docstring type conversion
             [ /(\s+ \* @(param|return) {[^}]*)object([^}]*}.*)/g, '$1array$3' ], // docstring type conversion
         ])
     }
@@ -1378,15 +1379,15 @@ class Transpiler {
 
     //-------------------------------------------------------------------------
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false) {
+    transpileDerivedExchangeFiles (tsFolder, options, pattern = '.ts', force = false, child = false) {
 
         // todo normalize jsFolder and other arguments
 
-        const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
+        const { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder } = options
 
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids = undefined;
-        if (jsFolder.indexOf('pro/') > -1) {
+        if (tsFolder.indexOf('pro/') > -1) {
             ids = exchangesWsIds;
         } else {
             ids = exchangeIds;
@@ -1400,10 +1401,10 @@ class Transpiler {
         } else if (ids !== undefined) {
             exchangesToTranspile = ids.map(id => id + '.ts');
         } else {
-            exchangesToTranspile = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
+            exchangesToTranspile = fs.readdirSync (tsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
         }
 
-        const classNames = exchangesToTranspile.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
+        const classNames = exchangesToTranspile.map (file => this.transpileDerivedExchangeFile (tsFolder, file, options, force))
 
         const classes = {}
 
@@ -1428,6 +1429,7 @@ class Transpiler {
             }
 
             [
+                [ jsFolder, /\.(?:js|d\.ts)$/],
                 [ python2Folder, /\.pyc?$/ ],
                 [ python3Folder, /\.pyc?$/ ],
                 [ phpFolder, /\.php$/ ],
@@ -2577,7 +2579,7 @@ class Transpiler {
             , tsFolder = './ts/src/'
             , jsFolder = './js/src/'
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
-            , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, exchanges }
+            , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
         if (!child) {
             createFolderRecursively (python2Folder)

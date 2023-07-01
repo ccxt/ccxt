@@ -10,6 +10,10 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class paymium
+ * @extends Exchange
+ */
 export default class paymium extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -284,7 +288,7 @@ export default class paymium extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -350,7 +354,7 @@ export default class paymium extends Exchange {
          * @name paymium#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
-         * @param {[string]|undefined} codes list of unified currency codes, default is undefined
+         * @param {string[]|undefined} codes list of unified currency codes, default is undefined
          * @param {object} params extra parameters specific to the paymium api endpoint
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
