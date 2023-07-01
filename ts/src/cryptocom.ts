@@ -1347,6 +1347,12 @@ export default class cryptocom extends Exchange {
         if (tag !== undefined) {
             request['address_tag'] = tag;
         }
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId !== undefined) {
+            request['network_id'] = networkId;
+        }
         const response = await this.v1PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
         //
         //    {
