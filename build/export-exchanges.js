@@ -261,7 +261,6 @@ function createMarkdownExchange (exchange) {
         'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
-        'docs': '[' + exchange.name + '](/exchanges/' + exchange.id + '.md)',
         'ver': getVersionBadge (exchange),
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
@@ -317,14 +316,13 @@ function createMarkdownListOfExchangesByCountries (exchanges) {
 
             if (exchangeInCountry) {
 
-                const { logo, id, name, ver, docs } = createMarkdownExchange (exchange)
+                const { logo, id, name, ver } = createMarkdownExchange (exchange)
 
                 exchangesByCountries.push ({
                     'country / region': countries[code],
                     logo,
                     id,
                     name,
-                    docs,
                     ver,
                 })
             }
