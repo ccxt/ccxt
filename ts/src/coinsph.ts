@@ -1655,6 +1655,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
          * @param {string} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
@@ -1675,7 +1676,41 @@ export default class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1CapitalWithdrawHistory (this.extend (request, params));
+        const response = await this.privateGetOpenapiWalletV1WithdrawHistory (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "id": "459890698271244288",
+        //         "amount": "0.01",
+        //         "transactionFee": "0",
+        //         "coin": "ETH",
+        //         "status": 1,
+        //         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        //         "addressTag": "",
+        //         "txId": "0x4ae2fed36a90aada978fc31c38488e8b60d7435cfe0b4daed842456b4771fcf7",
+        //         "applyTime": 1673601139000,
+        //         "network": "ETH",
+        //         "withdrawOrderId": "thomas123",
+        //         "info": "",
+        //         "confirmNo": 100
+        //     },
+        //     {
+        //         "id": "451899190746456064",
+        //         "amount": "0.00063",
+        //         "transactionFee": "0.00037",
+        //         "coin": "ETH",
+        //         "status": 1,
+        //         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        //         "addressTag": "",
+        //         "txId": "0x62690ca4f9d6a8868c258e2ce613805af614d9354dda7b39779c57b2e4da0260",
+        //         "applyTime": 1671695815000,
+        //         "network": "ETH",
+        //         "withdrawOrderId": "",
+        //         "info": "",
+        //         "confirmNo": 100
+        //     }
+        // ]
+        //
         return this.parseTransactions (response, currency, since, limit);
     }
 
