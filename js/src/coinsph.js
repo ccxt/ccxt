@@ -58,7 +58,7 @@ export default class coinsph extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDeposit': undefined,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
@@ -170,6 +170,10 @@ export default class coinsph extends Exchange {
                 },
                 'private': {
                     'get': {
+                        'openapi/wallet/v1/config/getall': 10,
+                        'openapi/wallet/v1/deposit/address': 10,
+                        'openapi/wallet/v1/deposit/history': 1,
+                        'openapi/wallet/v1/withdraw/history': 1,
                         'openapi/v1/account': 10,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
@@ -180,16 +184,32 @@ export default class coinsph extends Exchange {
                         'openapi/v1/myTrades': 10,
                         'openapi/v1/capital/deposit/history': 1,
                         'openapi/v1/capital/withdraw/history': 1,
+                        'openapi/v3/payment-request/get-payment-request': 1,
+                        'merchant-api/v1/get-invoices': 1,
+                        'openapi/account/v3/crypto-accounts': 1,
+                        'openapi/transfer/v3/transfers/{id}': 1,
                     },
                     'post': {
+                        'openapi/wallet/v1/withdraw/apply': 600,
                         'openapi/v1/order/test': 1,
                         'openapi/v1/order': 1,
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
+                        'openapi/v3/payment-request/payment-requests': 1,
+                        'openapi/v3/payment-request/delete-payment-request': 1,
+                        'openapi/v3/payment-request/payment-request-reminder': 1,
+                        'openapi/v1/userDataStream': 1,
+                        'merchant-api/v1/invoices': 1,
+                        'merchant-api/v1/invoices-cancel': 1,
+                        'openapi/convert/v1/get-supported-trading-pairs': 1,
+                        'openapi/convert/v1/get-quote': 1,
+                        'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/transfer/v3/transfers': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1,
                         'openapi/v1/openOrders': 1,
+                        'openapi/v1/userDataStream': 1,
                     },
                 },
             },
@@ -251,6 +271,14 @@ export default class coinsph extends Exchange {
                 },
                 'fetchTickers': {
                     'method': 'publicGetOpenapiQuoteV1Ticker24hr', // publicGetOpenapiQuoteV1TickerPrice, publicGetOpenapiQuoteV1TickerBookTicker
+                },
+                'networks': {
+                    // all networks: 'ETH', 'TRX', 'BSC', 'ARBITRUM', 'RON', 'BTC', 'XRP'
+                    // you can call api privateGetOpenapiWalletV1ConfigGetall to check which network is supported for the currency
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                    'ARB': 'ARBITRUM',
                 },
             },
             // https://coins-docs.github.io/errors/
@@ -1489,6 +1517,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#withdraw
          * @description make a withdrawal to coins_ph account
+         * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address not used by coinsph withdraw ()
@@ -1501,16 +1530,24 @@ export default class coinsph extends Exchange {
         if (warning) {
             throw new InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
+        const networkCode = this.safeString(params, 'network');
+        const networkId = this.networkCodeToId(networkCode, code);
+        if (networkId === undefined) {
+            throw new BadRequest(this.id + ' withdraw() require network parameter');
+        }
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
             'amount': this.numberToString(amount),
+            'network': networkId,
+            'address': address,
         };
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        const response = await this.privatePostOpenapiV1CapitalWithdrawApply(this.extend(request, params));
+        params = this.omit(params, 'network');
+        const response = await this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, params));
         return this.parseTransaction(response, currency);
     }
     async deposit(code, amount, address, tag = undefined, params = {}) {
@@ -1547,6 +1584,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
          * @param {string} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -1567,7 +1605,35 @@ export default class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1CapitalDepositHistory(this.extend(request, params));
+        const response = await this.privateGetOpenapiWalletV1DepositHistory(this.extend(request, params));
+        //
+        // [
+        //     {
+        //         "id": "d_769800519366885376",
+        //         "amount": "0.001",
+        //         "coin": "BNB",
+        //         "network": "BNB",
+        //         "status": 0,
+        //         "address": "bnb136ns6lfw4zs5hg4n85vdthaad7hq5m4gtkgf23",
+        //         "addressTag": "101764890",
+        //         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
+        //         "insertTime": 1661493146000,
+        //         "confirmNo": 10,
+        //     },
+        //     {
+        //         "id": "d_769754833590042625",
+        //         "amount":"0.5",
+        //         "coin":"IOTA",
+        //         "network":"IOTA",
+        //         "status":1,
+        //         "address":"SIZ9VLMHWATXKV99LH99CIGFJFUMLEHGWVZVNNZXRJJVWBPHYWPPBOSDORZ9EQSHCZAMPVAPGFYQAUUV9DROOXJLNW",
+        //         "addressTag":"",
+        //         "txId":"ESBFVQUTPIWQNJSPXFNHNYHSQNTGKRVKPRABQWTAXCDWOAKDKYWPTVG9BGXNVNKTLEJGESAVXIKIZ9999",
+        //         "insertTime":1599620082000,
+        //         "confirmNo": 20,
+        //     }
+        // ]
+        //
         return this.parseTransactions(response, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1575,6 +1641,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
          * @param {string} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
@@ -1595,7 +1662,41 @@ export default class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1CapitalWithdrawHistory(this.extend(request, params));
+        const response = await this.privateGetOpenapiWalletV1WithdrawHistory(this.extend(request, params));
+        //
+        // [
+        //     {
+        //         "id": "459890698271244288",
+        //         "amount": "0.01",
+        //         "transactionFee": "0",
+        //         "coin": "ETH",
+        //         "status": 1,
+        //         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        //         "addressTag": "",
+        //         "txId": "0x4ae2fed36a90aada978fc31c38488e8b60d7435cfe0b4daed842456b4771fcf7",
+        //         "applyTime": 1673601139000,
+        //         "network": "ETH",
+        //         "withdrawOrderId": "thomas123",
+        //         "info": "",
+        //         "confirmNo": 100
+        //     },
+        //     {
+        //         "id": "451899190746456064",
+        //         "amount": "0.00063",
+        //         "transactionFee": "0.00037",
+        //         "coin": "ETH",
+        //         "status": 1,
+        //         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        //         "addressTag": "",
+        //         "txId": "0x62690ca4f9d6a8868c258e2ce613805af614d9354dda7b39779c57b2e4da0260",
+        //         "applyTime": 1671695815000,
+        //         "network": "ETH",
+        //         "withdrawOrderId": "",
+        //         "info": "",
+        //         "confirmNo": 100
+        //     }
+        // ]
+        //
         return this.parseTransactions(response, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -1695,14 +1796,62 @@ export default class coinsph extends Exchange {
     parseTransactionStatus(status) {
         const statuses = {
             '0': 'pending',
-            '1': 'canceled',
-            '2': 'pending',
-            '3': 'failed',
-            '4': 'pending',
-            '5': 'failed',
-            '6': 'ok',
+            '1': 'ok',
+            '2': 'failed',
+            '3': 'pending',
         };
         return this.safeString(statuses, status, status);
+    }
+    async fetchDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string} params.network network for fetch deposit address
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        const networkCode = this.safeString(params, 'network');
+        const networkId = this.networkCodeToId(networkCode, code);
+        if (networkId === undefined) {
+            throw new BadRequest(this.id + ' fetchDepositAddress() require network parameter');
+        }
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'coin': currency['id'],
+            'network': networkId,
+        };
+        params = this.omit(params, 'network');
+        const response = await this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, params));
+        //
+        //     {
+        //         "coin": "ETH",
+        //         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        //         "addressTag": ""
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "coin": "ETH",
+        //         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        //         "addressTag": ""
+        //     }
+        //
+        const currencyId = this.safeString(depositAddress, 'coin');
+        const parsedCurrency = this.safeCurrencyCode(currencyId, currency);
+        return {
+            'currency': parsedCurrency,
+            'address': this.safeString(depositAddress, 'address'),
+            'tag': this.safeString(depositAddress, 'addressTag'),
+            'network': null,
+            'info': depositAddress,
+        };
     }
     urlEncodeQuery(query = {}) {
         let encodedArrayParams = '';

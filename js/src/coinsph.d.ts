@@ -120,6 +120,20 @@ export default class coinsph extends Exchange {
         fee: any;
     };
     parseTransactionStatus(status: any): string;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: any;
+        address: string;
+        tag: string;
+        network: any;
+        info: any;
+    }>;
+    parseDepositAddress(depositAddress: any, currency?: any): {
+        currency: any;
+        address: string;
+        tag: string;
+        network: any;
+        info: any;
+    };
     urlEncodeQuery(query?: {}): string;
     parseArrayParam(array: any, key: any): string;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

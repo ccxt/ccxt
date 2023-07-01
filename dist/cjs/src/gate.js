@@ -5541,8 +5541,8 @@ class gate extends gate$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['future']) {
-            throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports future markets only');
+        if (!market['swap']) {
+            throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports swap markets only');
         }
         const request = {
             'contract': market['id'],

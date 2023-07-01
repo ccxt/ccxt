@@ -5247,8 +5247,8 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['future']:
-            raise BadRequest(self.id + ' fetchOpenInterest() supports future markets only')
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports swap markets only')
         request = {
             'contract': market['id'],
             'settle': market['settleId'],

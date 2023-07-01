@@ -76,7 +76,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
                 'fetchDeposit': None,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
@@ -188,6 +188,10 @@ class coinsph(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': {
+                        'openapi/wallet/v1/config/getall': 10,
+                        'openapi/wallet/v1/deposit/address': 10,
+                        'openapi/wallet/v1/deposit/history': 1,
+                        'openapi/wallet/v1/withdraw/history': 1,
                         'openapi/v1/account': 10,
                         # cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': {'cost': 3, 'noSymbol': 40},
@@ -198,16 +202,32 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/v1/myTrades': 10,
                         'openapi/v1/capital/deposit/history': 1,
                         'openapi/v1/capital/withdraw/history': 1,
+                        'openapi/v3/payment-request/get-payment-request': 1,
+                        'merchant-api/v1/get-invoices': 1,
+                        'openapi/account/v3/crypto-accounts': 1,
+                        'openapi/transfer/v3/transfers/{id}': 1,
                     },
                     'post': {
+                        'openapi/wallet/v1/withdraw/apply': 600,
                         'openapi/v1/order/test': 1,
                         'openapi/v1/order': 1,
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
+                        'openapi/v3/payment-request/payment-requests': 1,
+                        'openapi/v3/payment-request/delete-payment-request': 1,
+                        'openapi/v3/payment-request/payment-request-reminder': 1,
+                        'openapi/v1/userDataStream': 1,
+                        'merchant-api/v1/invoices': 1,
+                        'merchant-api/v1/invoices-cancel': 1,
+                        'openapi/convert/v1/get-supported-trading-pairs': 1,
+                        'openapi/convert/v1/get-quote': 1,
+                        'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/transfer/v3/transfers': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1,
                         'openapi/v1/openOrders': 1,
+                        'openapi/v1/userDataStream': 1,
                     },
                 },
             },
@@ -269,6 +289,14 @@ class coinsph(Exchange, ImplicitAPI):
                 },
                 'fetchTickers': {
                     'method': 'publicGetOpenapiQuoteV1Ticker24hr',  # publicGetOpenapiQuoteV1TickerPrice, publicGetOpenapiQuoteV1TickerBookTicker
+                },
+                'networks': {
+                    # all networks: 'ETH', 'TRX', 'BSC', 'ARBITRUM', 'RON', 'BTC', 'XRP'
+                    # you can call api privateGetOpenapiWalletV1ConfigGetall to check which network is supported for the currency
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                    'ARB': 'ARBITRUM',
                 },
             },
             # https://coins-docs.github.io/errors/
@@ -1414,6 +1442,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal to coins_ph account
+        see https://coins-docs.github.io/rest-api/#withdrawuser_data
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: not used by coinsph withdraw()
@@ -1425,15 +1454,22 @@ class coinsph(Exchange, ImplicitAPI):
         warning = self.safe_value(options, 'warning', True)
         if warning:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
+        networkCode = self.safe_string(params, 'network')
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is None:
+            raise BadRequest(self.id + ' withdraw() require network parameter')
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
             'amount': self.number_to_string(amount),
+            'network': networkId,
+            'address': address,
         }
         if tag is not None:
             request['withdrawOrderId'] = tag
-        response = await self.privatePostOpenapiV1CapitalWithdrawApply(self.extend(request, params))
+        params = self.omit(params, 'network')
+        response = await self.privatePostOpenapiWalletV1WithdrawApply(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
     async def deposit(self, code: str, amount, address, tag=None, params={}):
@@ -1464,6 +1500,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
+        see https://coins-docs.github.io/rest-api/#deposit-history-user_data
         :param str code: unified currency code
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
@@ -1481,12 +1518,41 @@ class coinsph(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetOpenapiV1CapitalDepositHistory(self.extend(request, params))
+        response = await self.privateGetOpenapiWalletV1DepositHistory(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "id": "d_769800519366885376",
+        #         "amount": "0.001",
+        #         "coin": "BNB",
+        #         "network": "BNB",
+        #         "status": 0,
+        #         "address": "bnb136ns6lfw4zs5hg4n85vdthaad7hq5m4gtkgf23",
+        #         "addressTag": "101764890",
+        #         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
+        #         "insertTime": 1661493146000,
+        #         "confirmNo": 10,
+        #     },
+        #     {
+        #         "id": "d_769754833590042625",
+        #         "amount":"0.5",
+        #         "coin":"IOTA",
+        #         "network":"IOTA",
+        #         "status":1,
+        #         "address":"SIZ9VLMHWATXKV99LH99CIGFJFUMLEHGWVZVNNZXRJJVWBPHYWPPBOSDORZ9EQSHCZAMPVAPGFYQAUUV9DROOXJLNW",
+        #         "addressTag":"",
+        #         "txId":"ESBFVQUTPIWQNJSPXFNHNYHSQNTGKRVKPRABQWTAXCDWOAKDKYWPTVG9BGXNVNKTLEJGESAVXIKIZ9999",
+        #         "insertTime":1599620082000,
+        #         "confirmNo": 20,
+        #     }
+        # ]
+        #
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
+        see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
         :param str code: unified currency code
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
@@ -1504,7 +1570,41 @@ class coinsph(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetOpenapiV1CapitalWithdrawHistory(self.extend(request, params))
+        response = await self.privateGetOpenapiWalletV1WithdrawHistory(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "id": "459890698271244288",
+        #         "amount": "0.01",
+        #         "transactionFee": "0",
+        #         "coin": "ETH",
+        #         "status": 1,
+        #         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        #         "addressTag": "",
+        #         "txId": "0x4ae2fed36a90aada978fc31c38488e8b60d7435cfe0b4daed842456b4771fcf7",
+        #         "applyTime": 1673601139000,
+        #         "network": "ETH",
+        #         "withdrawOrderId": "thomas123",
+        #         "info": "",
+        #         "confirmNo": 100
+        #     },
+        #     {
+        #         "id": "451899190746456064",
+        #         "amount": "0.00063",
+        #         "transactionFee": "0.00037",
+        #         "coin": "ETH",
+        #         "status": 1,
+        #         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        #         "addressTag": "",
+        #         "txId": "0x62690ca4f9d6a8868c258e2ce613805af614d9354dda7b39779c57b2e4da0260",
+        #         "applyTime": 1671695815000,
+        #         "network": "ETH",
+        #         "withdrawOrderId": "",
+        #         "info": "",
+        #         "confirmNo": 100
+        #     }
+        # ]
+        #
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
@@ -1598,14 +1698,59 @@ class coinsph(Exchange, ImplicitAPI):
     def parse_transaction_status(self, status):
         statuses = {
             '0': 'pending',
-            '1': 'canceled',
-            '2': 'pending',
-            '3': 'failed',
-            '4': 'pending',
-            '5': 'failed',
-            '6': 'ok',
+            '1': 'ok',
+            '2': 'failed',
+            '3': 'pending',
         }
         return self.safe_string(statuses, status, status)
+
+    async def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :param str params['network']: network for fetch deposit address
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        networkCode = self.safe_string(params, 'network')
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is None:
+            raise BadRequest(self.id + ' fetchDepositAddress() require network parameter')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'network': networkId,
+        }
+        params = self.omit(params, 'network')
+        response = await self.privateGetOpenapiWalletV1DepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         "coin": "ETH",
+        #         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        #         "addressTag": ""
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         "coin": "ETH",
+        #         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        #         "addressTag": ""
+        #     }
+        #
+        currencyId = self.safe_string(depositAddress, 'coin')
+        parsedCurrency = self.safe_currency_code(currencyId, currency)
+        return {
+            'currency': parsedCurrency,
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': self.safe_string(depositAddress, 'addressTag'),
+            'network': None,
+            'info': depositAddress,
+        }
 
     def url_encode_query(self, query={}):
         encodedArrayParams = ''

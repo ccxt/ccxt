@@ -5488,8 +5488,8 @@ class gate extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['future']) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() supports future markets only');
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports swap markets only');
         }
         $request = array(
             'contract' => $market['id'],
