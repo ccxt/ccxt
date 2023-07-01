@@ -5,4 +5,4 @@
 * [Contributing](CONTRIBUTING.md)
 * [Supported Exchanges](Exchange-Markets.md)
 * [Exchanges By Country](Exchange-Markets-By-Country.md)
-* [Exchanges](./exchanges/index.md)
+* [API Spec](spec.md)
