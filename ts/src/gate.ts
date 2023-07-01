@@ -5577,7 +5577,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['future']) {
+        if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports future markets only');
         }
         const request = {
