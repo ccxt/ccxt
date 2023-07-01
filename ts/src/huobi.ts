@@ -6219,6 +6219,23 @@ export default class huobi extends Exchange {
                 }
             } else if (access === 'private') {
                 this.checkRequiredCredentials ();
+                if (method === 'POST') {
+                    const options = this.safeValue (this.options, 'broker', {});
+                    const id = this.safeString (options, 'id', 'AA03022abc');
+                    if (path.indexOf ('cancel') === -1 && path.endsWith ('order')) {
+                        // swap order placement
+                        const channelCode = this.safeString (params, 'channel_code');
+                        if (channelCode === undefined) {
+                            params['channel_code'] = id;
+                        }
+                    } else if (path.endsWith ('orders/place')) {
+                        // spot order placement
+                        const clientOrderId = this.safeString (params, 'client-order-id');
+                        if (clientOrderId === undefined) {
+                            params['client-order-id'] = id + this.uuid ();
+                        }
+                    }
+                }
                 const timestamp = this.ymdhms (this.milliseconds (), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
