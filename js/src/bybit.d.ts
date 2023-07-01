@@ -1,5 +1,9 @@
 import Exchange from './abstract/bybit.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bybit
+ * @extends Exchange
+ */
 export default class bybit extends Exchange {
     describe(): any;
     nonce(): number;

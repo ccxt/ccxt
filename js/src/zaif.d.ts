@@ -1,5 +1,9 @@
 import Exchange from './abstract/zaif.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class zaif
+ * @extends Exchange
+ */
 export default class zaif extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

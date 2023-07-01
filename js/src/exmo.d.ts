@@ -1,5 +1,9 @@
 import Exchange from './abstract/exmo.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class exmo
+ * @extends Exchange
+ */
 export default class exmo extends Exchange {
     describe(): any;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<{

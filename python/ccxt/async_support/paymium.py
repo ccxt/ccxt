@@ -272,7 +272,7 @@ class paymium(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the paymium api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -329,7 +329,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         fetch deposit addresses for multiple currencies and chain types
         see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
-        :param [str]|None codes: list of unified currency codes, default is None
+        :param str[]|None codes: list of unified currency codes, default is None
         :param dict params: extra parameters specific to the paymium api endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """

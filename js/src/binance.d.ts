@@ -1,5 +1,9 @@
 import Exchange from './abstract/binance.js';
 import { Market, Int, OrderSide, Balances, OrderType } from './base/types.js';
+/**
+ * @class binance
+ * @extends Exchange
+ */
 export default class binance extends Exchange {
     describe(): any;
     isInverse(type: any, subType?: any): boolean;

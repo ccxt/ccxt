@@ -1,5 +1,9 @@
 import Exchange from './abstract/timex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class timex
+ * @extends Exchange
+ */
 export default class timex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

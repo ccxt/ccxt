@@ -1,5 +1,9 @@
 import Exchange from './abstract/coinbase.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coinbase
+ * @extends Exchange
+ */
 export default class coinbase extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

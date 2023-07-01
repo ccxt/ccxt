@@ -90,7 +90,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @method
          * @description Connects to a websocket channel
          * @param {String} name name of the channel
-         * @param {[String]} symbols CCXT market symbols
+         * @param {string[]} symbols CCXT market symbols
          * @param {Object} params extra parameters specific to the krakenfutures api
          * @returns {Object} data from the websocket stream
          */
@@ -120,7 +120,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @method
          * @description Connects to a websocket channel
          * @param {String} name name of the channel
-         * @param {[String]} symbols CCXT market symbols
+         * @param {string[]} symbols CCXT market symbols
          * @param {Object} params extra parameters specific to the krakenfutures api
          * @returns {Object} data from the websocket stream
          */
@@ -178,7 +178,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const name = 'trade';
@@ -213,7 +213,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {int|undefined} since not used by krakenfutures watchOrders
          * @param {int|undefined} limit not used by krakenfutures watchOrders
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
         const name = 'open_orders';
@@ -238,7 +238,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const name = 'fills';
@@ -264,7 +264,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {int|undefined} limit not used by krakenfutures watchBalance
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
          * @param {string} params.account can be either 'futures' or 'flex_futures'
-         * @returns {[object]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const name = 'balances';

@@ -1,5 +1,9 @@
 import Exchange from './abstract/bigone.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bigone
+ * @extends Exchange
+ */
 export default class bigone extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

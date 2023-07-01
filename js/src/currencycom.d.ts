@@ -1,5 +1,9 @@
 import Exchange from './abstract/currencycom.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class currencycom
+ * @extends Exchange
+ */
 export default class currencycom extends Exchange {
     describe(): any;
     nonce(): number;

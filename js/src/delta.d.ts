@@ -1,5 +1,9 @@
 import Exchange from './abstract/delta.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class delta
+ * @extends Exchange
+ */
 export default class delta extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

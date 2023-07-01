@@ -1,5 +1,9 @@
 import Exchange from './abstract/hitbtc.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class hitbtc
+ * @extends Exchange
+ */
 export default class hitbtc extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;

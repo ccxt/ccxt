@@ -1,5 +1,9 @@
 import Exchange from './abstract/whitebit.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class whitebit
+ * @extends Exchange
+ */
 export default class whitebit extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

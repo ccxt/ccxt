@@ -1,5 +1,9 @@
 import Exchange from './abstract/mexc.js';
 import { IndexType, Int, OrderSide, Balances, OrderType } from './base/types.js';
+/**
+ * @class mexc
+ * @extends Exchange
+ */
 export default class mexc extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{

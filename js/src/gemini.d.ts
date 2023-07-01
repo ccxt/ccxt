@@ -1,5 +1,9 @@
 import Exchange from './abstract/gemini.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class gemini
+ * @extends Exchange
+ */
 export default class gemini extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;

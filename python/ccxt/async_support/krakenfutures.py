@@ -1520,9 +1520,9 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
         fetch the current funding rates
-        :param [str] symbols: unified market symbols
+        :param str[] symbols: unified market symbols
         :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         marketIds = self.market_ids(symbols)
@@ -1636,7 +1636,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         Fetches current contract trading positions
-        :param [str] symbols: List of unified symbols
+        :param str[] symbols: List of unified symbols
         :param dict params: Not used by krakenfutures
         :returns: Parsed exchange response for positions
         """

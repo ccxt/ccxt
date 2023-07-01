@@ -296,7 +296,7 @@ class zonda extends Exchange {
              * @see https://docs.zonda.exchange/reference/ticker-1
              * retrieves data on all markets for zonda
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->v1_01PublicGetTradingTicker ($params));
             $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
@@ -402,7 +402,7 @@ class zonda extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the zonda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -472,7 +472,7 @@ class zonda extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the zonda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -735,7 +735,7 @@ class zonda extends Exchange {
              * @ignore
              * v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
              * @see https://docs.zonda.exchange/reference/market-statistics
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the zonda api endpoint
              * @param {string} $params->method v1_01PublicGetTradingTicker (default) or v1_01PublicGetTradingStats
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1191,7 +1191,7 @@ class zonda extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the zonda api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1317,7 +1317,7 @@ class zonda extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of trades to fetch
              * @param {array} $params extra parameters specific to the zonda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1567,7 +1567,7 @@ class zonda extends Exchange {
             /**
              * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
              * fetch deposit addresses for multiple currencies and chain types
-             * @param {[string]|null} $codes zonda does not support filtering filtering by multiple $codes and will ignore this parameter.
+             * @param {string[]|null} $codes zonda does not support filtering filtering by multiple $codes and will ignore this parameter.
              * @param {array} $params extra parameters specific to the zonda api endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
              */

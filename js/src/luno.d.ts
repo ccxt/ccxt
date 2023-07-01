@@ -1,5 +1,9 @@
 import Exchange from './abstract/luno.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class luno
+ * @extends Exchange
+ */
 export default class luno extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitmex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitmex
+ * @extends Exchange
+ */
 export default class bitmex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;

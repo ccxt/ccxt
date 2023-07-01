@@ -257,7 +257,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $options = $this->safe_value($this->options, 'watchTrades');
@@ -313,7 +313,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
              * @param {string} $params->method the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop $orders
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
             $options = $this->safe_value($this->options, 'watchOrders');
@@ -339,7 +339,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {int|null} since not used by poloniexfutures watchBalance
              * @param {int|null} limit not used by poloniexfutures watchBalance
              * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
             $name = '/contractAccount/wallet';

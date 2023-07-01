@@ -1,5 +1,9 @@
 import Exchange from './abstract/coinsph.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coinsph
+ * @extends Exchange
+ */
 export default class coinsph extends Exchange {
     describe(): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;

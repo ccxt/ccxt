@@ -275,7 +275,7 @@ class paymium extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the paymium api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -335,7 +335,7 @@ class paymium extends Exchange {
         /**
          * fetch deposit addresses for multiple currencies and chain types
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses/get
-         * @param {[string]|null} $codes list of unified currency $codes, default is null
+         * @param {string[]|null} $codes list of unified currency $codes, default is null
          * @param {array} $params extra parameters specific to the paymium api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
          */

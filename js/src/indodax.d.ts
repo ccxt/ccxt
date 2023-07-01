@@ -1,5 +1,9 @@
 import Exchange from './abstract/indodax.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class indodax
+ * @extends Exchange
+ */
 export default class indodax extends Exchange {
     describe(): any;
     nonce(): number;

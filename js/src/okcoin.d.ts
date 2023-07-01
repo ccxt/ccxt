@@ -1,5 +1,9 @@
 import Exchange from './abstract/okcoin.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class okcoin
+ * @extends Exchange
+ */
 export default class okcoin extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
