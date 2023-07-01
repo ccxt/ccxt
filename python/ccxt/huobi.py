@@ -5831,6 +5831,19 @@ class huobi(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
             elif access == 'private':
                 self.check_required_credentials()
+                if method == 'POST':
+                    options = self.safe_value(self.options, 'broker', {})
+                    id = self.safe_string(options, 'id', 'AA03022abc')
+                    if path.find('cancel') == -1 and path.endswith('order'):
+                        # swap order placement
+                        channelCode = self.safe_string(params, 'channel_code')
+                        if channelCode is None:
+                            params['channel_code'] = id
+                    elif path.endswith('orders/place'):
+                        # spot order placement
+                        clientOrderId = self.safe_string(params, 'client-order-id')
+                        if clientOrderId is None:
+                            params['client-order-id'] = id + self.uuid()
                 timestamp = self.ymdhms(self.milliseconds(), 'T')
                 request = {
                     'SignatureMethod': 'HmacSHA256',

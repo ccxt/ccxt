@@ -6148,6 +6148,23 @@ class huobi extends Exchange {
                 }
             } elseif ($access === 'private') {
                 $this->check_required_credentials();
+                if ($method === 'POST') {
+                    $options = $this->safe_value($this->options, 'broker', array());
+                    $id = $this->safe_string($options, 'id', 'AA03022abc');
+                    if (mb_strpos($path, 'cancel') === -1 && str_ends_with($path, 'order')) {
+                        // swap order placement
+                        $channelCode = $this->safe_string($params, 'channel_code');
+                        if ($channelCode === null) {
+                            $params['channel_code'] = $id;
+                        }
+                    } elseif (str_ends_with($path, 'orders/place')) {
+                        // spot order placement
+                        $clientOrderId = $this->safe_string($params, 'client-order-id');
+                        if ($clientOrderId === null) {
+                            $params['client-order-id'] = $id . $this->uuid();
+                        }
+                    }
+                }
                 $timestamp = $this->ymdhms($this->milliseconds(), 'T');
                 $request = array(
                     'SignatureMethod' => 'HmacSHA256',
