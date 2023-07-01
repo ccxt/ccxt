@@ -1345,6 +1345,7 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -1363,7 +1364,13 @@ class cryptocom extends Exchange {
             if ($tag !== null) {
                 $request['address_tag'] = $tag;
             }
-            $response = Async\await($this->v2PrivatePostPrivateCreateWithdrawal (array_merge($request, $params)));
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            $networkId = $this->network_code_to_id($networkCode);
+            if ($networkId !== null) {
+                $request['network_id'] = $networkId;
+            }
+            $response = Async\await($this->v1PrivatePostPrivateCreateWithdrawal (array_merge($request, $params)));
             //
             //    {
             //        "id":-1,

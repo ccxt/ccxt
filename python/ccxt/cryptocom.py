@@ -1269,6 +1269,7 @@ class cryptocom(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1286,7 +1287,12 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['address_tag'] = tag
-        response = self.v2PrivatePostPrivateCreateWithdrawal(self.extend(request, params))
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        networkId = self.network_code_to_id(networkCode)
+        if networkId is not None:
+            request['network_id'] = networkId
+        response = self.v1PrivatePostPrivateCreateWithdrawal(self.extend(request, params))
         #
         #    {
         #        "id":-1,
