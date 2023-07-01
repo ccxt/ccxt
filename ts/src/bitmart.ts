@@ -756,7 +756,8 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#fetchTransactionFee
-         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFee instead
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}

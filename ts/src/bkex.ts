@@ -1660,7 +1660,8 @@ export default class bkex extends Exchange {
         /**
          * @method
          * @name bkex#fetchTransactionFees
-         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFees instead
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bkex api endpoint

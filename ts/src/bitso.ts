@@ -1322,7 +1322,8 @@ export default class bitso extends Exchange {
         /**
          * @method
          * @name bitso#fetchTransactionFees
-         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFees instead
          * @see https://bitso.com/api_info#fees
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitso api endpoint

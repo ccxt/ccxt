@@ -448,7 +448,8 @@ export default class whitebit extends Exchange {
         /**
          * @method
          * @name whitebit#fetchTransactionFees
-         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFees instead
          * @param {string[]|undefined} codes not used by fetchTransactionFees ()
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}

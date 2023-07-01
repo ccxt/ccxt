@@ -1195,7 +1195,8 @@ export default class bitstamp extends Exchange {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
-         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFees instead
          * @see https://www.bitstamp.net/api/#balance
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitstamp api endpoint
@@ -1507,7 +1508,8 @@ export default class bitstamp extends Exchange {
         /**
          * @method
          * @name bitstamp#fetchTransactions
-         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
+         * @deprecated
+         * @description use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

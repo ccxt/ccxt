@@ -1923,7 +1923,8 @@ export default class lbank2 extends Exchange {
         /**
          * @method
          * @name lbank2#fetchTransactionFees
-         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFees instead
          * @param {string[]|undefined} codes not used by lbank2 fetchTransactionFees ()
          * @param {object} params extra parameters specific to the lbank2 api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
