@@ -1328,6 +1328,7 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#withdraw
          * @description make a withdrawal
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1346,7 +1347,7 @@ export default class cryptocom extends Exchange {
         if (tag !== undefined) {
             request['address_tag'] = tag;
         }
-        const response = await this.v2PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
+        const response = await this.v1PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
         //
         //    {
         //        "id":-1,
