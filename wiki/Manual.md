@@ -5535,7 +5535,7 @@ CCXT supports the following proxy types:
 
 #### proxyUrl
 
-This will prepend any url to requests:
+This property prepends an url to API requests. This can also be used to setup a CORS proxy.
 ```
 ex = ccxt.binance({'proxyUrl': 'YOUR_PROXY_URL'})
 
