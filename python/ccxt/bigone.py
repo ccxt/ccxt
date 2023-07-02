@@ -19,6 +19,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bigone(Exchange, ImplicitAPI):
@@ -45,6 +46,7 @@ class bigone(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchMarkets': True,
@@ -85,6 +87,7 @@ class bigone(Exchange, ImplicitAPI):
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
+                    'webExchange': 'https://{hostname}/api/',
                 },
                 'www': 'https://big.one',
                 'doc': 'https://open.big.one/docs/api.html',
@@ -123,6 +126,11 @@ class bigone(Exchange, ImplicitAPI):
                         'transfer',
                     ],
                 },
+                'webExchange': {
+                    'get': [
+                        'uc/v2/assets',
+                    ],
+                },
             },
             'fees': {
                 'trading': {
@@ -144,6 +152,205 @@ class bigone(Exchange, ImplicitAPI):
                     'fillResponseFromRequest': True,
                 },
                 'exchangeMillisecondsCorrection': -100,
+                'fetchCurrencies': {
+                    'webApiEnable': True,  # fetches from WEB
+                    'webApiRetries': 5,
+                },
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
+                'networks': {
+                    'ABBC': 'ABBC',
+                    'ACALA': 'Acala',
+                    'AETERNITY': 'Aeternity',
+                    'ALGORAND': 'Algorand',
+                    'APTOS': 'Aptos',
+                    'ARWEAVE': 'Arweave',
+                    'ASTAR': 'Astar',
+                    'AVALANCHE_C': 'Avax',
+                    'AVALANCHE_X': 'AvaxChain',
+                    'BEAM': 'Beam',
+                    'BEP20': 'BinanceSmartChain',
+                    'BITCI': 'BitciChain',
+                    'BTC': 'Bitcoin',
+                    'BCH': 'BitcoinCash',
+                    'BITCOINDIAMON': 'BitcoinDiamond',
+                    'BITCOINGOLD': 'BitcoinGold',
+                    'BSV': 'BitcoinSV',
+                    'BUTTRUSTSYSTEM': 'BitTrustSystem',
+                    'BYTOM_V2': 'BytomV2',
+                    'CELO': 'Celo',
+                    'CHAINX_V2': 'ChainxV2',
+                    'NERVOS': 'CKB',
+                    'CLASSZZ': 'Classzz',
+                    'CLASSZZ_V2': 'ClasszzV2',
+                    'CLOVER': 'Clover',
+                    'COSMOS': 'Cosmos',
+                    'CRC20': 'CRO',
+                    'DASH': 'Dash',
+                    'INTERNETCOMPUTER': 'Dfinity',
+                    'DOGECOIN': 'Dogecoin',
+                    'ECASH': 'ECash',
+                    'EOS': 'EOS',
+                    'ETH': 'Ethereum',
+                    'ETC': 'EthereumClassic',
+                    'ETHW': 'EthereumPow',
+                    'FANTOM': 'Fantom',
+                    'FILECOIN': 'Filecoin',
+                    'FUSION': 'Fusion',
+                    'GRIN': 'Grin',
+                    'GXSHARES': 'Gxshares',
+                    'HARMONY': 'Harmony',
+                    'HRC20': 'Hecochain',
+                    'HEDERA': 'Hedera',
+                    'HELIUM': 'Helium',
+                    'HORIZEN': 'Horizen',
+                    'IOST': 'IOST',
+                    'IRIS': 'IRIS',
+                    'KLAYTN': 'Klaytn',
+                    'KUSAMA': 'Kusama',
+                    'LAMDEN': 'Lamden',
+                    'LBRY': 'Lbry',
+                    'LIBONOMY': 'Libonomy',
+                    'LTC': 'Litecoin',
+                    'MOBILECOIN': 'Mobilecoin',
+                    'MONERO': 'Monero',
+                    'MOONBEAM': 'Moonbeam',
+                    'NEAR': 'Near',
+                    'NEO': 'Neo',
+                    'NEON3': 'NeoN3',
+                    'BITSHARES_OLD': 'Bitshares',
+                    'BITSHARES_NEW': 'NewBitshares',
+                    'OASIS': 'Oasis',
+                    'OKC': 'Okexchain',
+                    'ONTOLOGY': 'Ontology',
+                    'OPTIMISM': 'Optimism',
+                    'PARALLELFINANCE': 'Parallel',
+                    'PLCULTIMA': 'Plcu',
+                    'PLCULTIMA2': 'Plcu2',
+                    'POLKADOT': 'Polkadot',
+                    'POLYGON': 'Polygon',
+                    'QTUM': 'Qtum',
+                    'REI': 'REI',
+                    'RIPPLE': 'Ripple',
+                    'SONGBIRD': 'SGB',
+                    'SHIDEN': 'Shiden',
+                    'SIACLASSIC': 'Sia',
+                    'SIACOIN': 'SiaCore',
+                    'SOLANA': 'Solana',
+                    'STELLAR': 'Stellar',
+                    'SUPERBITCOIN': 'SuperBitcoin',
+                    'TERA': 'Tera',
+                    'TERRACLASSIC': 'Terra',
+                    'TERRA': 'Terra2',
+                    'TEZOS': 'Tezos',
+                    'TRC20': 'Tron',
+                    'UCACOIN': 'Ucacoin',
+                    'VANILLACASH': 'Vcash',
+                    'VECHAIN': 'Vechain',
+                    'VSYSTEMS': 'VSystems',
+                    'WAX': 'WAX',
+                    'WAYFCOIN': 'Wayfcoin',
+                    'ZCASH': 'Zcash',
+                    'ZEEPIN': 'Zeepin',
+                    # undetermined: XinFin, YAS, Ycash
+                },
+                'networksById': {
+                    'ABBC': 'ABBC',
+                    'Acala': 'ACALA',
+                    'Aeternity': 'AETERNITY',
+                    'Algorand': 'ALGORAND',
+                    'Aptos': 'APTOS',
+                    'Arweave': 'ARWEAVE',
+                    'Astar': 'ASTAR',
+                    'Avax': 'AVALANCHE_C',
+                    'AvaxChain': 'AVALANCHE_X',
+                    'Beam': 'BEAM',
+                    'BinanceSmartChain': 'BEP20',
+                    'BitciChain': 'BITCI',
+                    'Bitcoin': 'BTC',
+                    'BitcoinCash': 'BCH',
+                    'BitcoinDiamond': 'BITCOINDIAMON',
+                    'BitcoinGold': 'BITCOINGOLD',
+                    'BitcoinSV': 'BSV',
+                    'BitTrustSystem': 'BUTTRUSTSYSTEM',
+                    'BytomV2': 'BYTOM_V2',
+                    'Celo': 'CELO',
+                    'ChainxV2': 'CHAINX_V2',
+                    'CKB': 'NERVOS',
+                    'Classzz': 'CLASSZZ',
+                    'ClasszzV2': 'CLASSZZ_V2',
+                    'Clover': 'CLOVER',
+                    'Cosmos': 'COSMOS',
+                    'CRO': 'CRC20',
+                    'Dash': 'DASH',
+                    'Dfinity': 'INTERNETCOMPUTER',
+                    'Dogecoin': 'DOGECOIN',
+                    'ECash': 'ECASH',
+                    'EOS': 'EOS',
+                    'Ethereum': 'ETH',
+                    'EthereumClassic': 'ETC',
+                    'EthereumPow': 'ETHW',
+                    'Fantom': 'FANTOM',
+                    'Filecoin': 'FILECOIN',
+                    'Fusion': 'FUSION',
+                    'Grin': 'GRIN',
+                    'Gxshares': 'GXSHARES',
+                    'Harmony': 'HARMONY',
+                    'Hecochain': 'HRC20',
+                    'Hedera': 'HEDERA',
+                    'Helium': 'HELIUM',
+                    'Horizen': 'HORIZEN',
+                    'IOST': 'IOST',
+                    'IRIS': 'IRIS',
+                    'Klaytn': 'KLAYTN',
+                    'Kusama': 'KUSAMA',
+                    'Lamden': 'LAMDEN',
+                    'Lbry': 'LBRY',
+                    'Libonomy': 'LIBONOMY',
+                    'Litecoin': 'LTC',
+                    'Mobilecoin': 'MOBILECOIN',
+                    'Monero': 'MONERO',
+                    'Moonbeam': 'MOONBEAM',
+                    'Near': 'NEAR',
+                    'Neo': 'NEO',
+                    'NeoN3': 'NEON3',
+                    'Bitshares': 'BITSHARES_OLD',
+                    'NewBitshares': 'BITSHARES_NEW',
+                    'Oasis': 'OASIS',
+                    'Okexchain': 'OKC',
+                    'Ontology': 'ONTOLOGY',
+                    'Optimism': 'OPTIMISM',
+                    'Parallel': 'PARALLELFINANCE',
+                    'Plcu': 'PLCULTIMA',
+                    'Plcu2': 'PLCULTIMA2',
+                    'Polkadot': 'POLKADOT',
+                    'Polygon': 'POLYGON',
+                    'Qtum': 'QTUM',
+                    'REI': 'REI',
+                    'Ripple': 'RIPPLE',
+                    'SGB': 'SONGBIRD',
+                    'Shiden': 'SHIDEN',
+                    'Sia': 'SIACLASSIC',
+                    'SiaCore': 'SIACOIN',
+                    'Solana': 'SOLANA',
+                    'Stellar': 'STELLAR',
+                    'SuperBitcoin': 'SUPERBITCOIN',
+                    'Tera': 'TERA',
+                    'Terra': 'TERRACLASSIC',
+                    'Terra2': 'TERRA',
+                    'Tezos': 'TEZOS',
+                    'Tron': 'TRC20',
+                    'Ucacoin': 'UCACOIN',
+                    'Vcash': 'VANILLACASH',
+                    'Vechain': 'VECHAIN',
+                    'VSystems': 'VSYSTEMS',
+                    'WAX': 'WAX',
+                    'Wayfcoin': 'WAYFCOIN',
+                    'Zcash': 'ZCASH',
+                    'Zeepin': 'ZEEPIN',
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -183,6 +390,185 @@ class bigone(Exchange, ImplicitAPI):
                 'ONE': 'BigONE Token',
             },
         })
+
+    def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        # we use undocumented link(possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
+        data = self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetUcV2Assets', True)
+        if data is None:
+            return None
+        #
+        # {
+        #     code: "0",
+        #     message: "",
+        #     data: [
+        #       {
+        #         name: "TetherUS",
+        #         symbol: "USDT",
+        #         contract_address: "31",
+        #         is_deposit_enabled: True,
+        #         is_withdrawal_enabled: True,
+        #         is_stub: False,
+        #         withdrawal_fee: "5.0",
+        #         is_fiat: False,
+        #         is_memo_required: False,
+        #         logo: {
+        #           default: "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
+        #           white: "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        #         },
+        #         info_link: null,
+        #         scale: "12",
+        #         default_gateway: ...,  # one object from "gateways"
+        #         gateways: [
+        #           {
+        #             uuid: "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+        #             name: "Mixin",
+        #             kind: "CHAIN",
+        #             required_confirmations: "0",
+        #           },
+        #           {
+        #             uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        #             name: "Ethereum",
+        #             kind: "CHAIN",
+        #             required_confirmations: "18",
+        #           },
+        #           {
+        #             uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        #             name: "Tron",
+        #             kind: "CHAIN",
+        #             required_confirmations: "1",
+        #           },
+        #          ...
+        #         ],
+        #         payments: [],
+        #         uuid: "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        #         binding_gateways: [
+        #           {
+        #             guid: "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        #             contract_address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        #             is_deposit_enabled: True,
+        #             display_name: "Ethereum(ERC20)",
+        #             gateway_name: "Ethereum",
+        #             min_withdrawal_amount: "0.000001",
+        #             min_internal_withdrawal_amount: "0.00000001",
+        #             withdrawal_fee: "14",
+        #             is_withdrawal_enabled: True,
+        #             min_deposit_amount: "0.000001",
+        #             is_memo_required: False,
+        #             withdrawal_scale: "2",
+        #             gateway: {
+        #               uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        #               name: "Ethereum",
+        #               kind: "CHAIN",
+        #               required_confirmations: "18",
+        #             },
+        #             scale: "12",
+        #          },
+        #          {
+        #             guid: "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+        #             contract_address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+        #             is_deposit_enabled: True,
+        #             display_name: "Tron(TRC20)",
+        #             gateway_name: "Tron",
+        #             min_withdrawal_amount: "0.000001",
+        #             min_internal_withdrawal_amount: "0.00000001",
+        #             withdrawal_fee: "1",
+        #             is_withdrawal_enabled: True,
+        #             min_deposit_amount: "0.000001",
+        #             is_memo_required: False,
+        #             withdrawal_scale: "6",
+        #             gateway: {
+        #               uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        #               name: "Tron",
+        #               kind: "CHAIN",
+        #               required_confirmations: "1",
+        #             },
+        #             scale: "12",
+        #           },
+        #           ...
+        #         ],
+        #       },
+        #       ...
+        #     ],
+        # }
+        #
+        currenciesData = self.safe_value(data, 'data', [])
+        result = {}
+        for i in range(0, len(currenciesData)):
+            currency = currenciesData[i]
+            id = self.safe_string(currency, 'symbol')
+            code = self.safe_currency_code(id)
+            name = self.safe_string(currency, 'name')
+            type = 'fiat' if self.safe_value(currency, 'is_fiat') else 'crypto'
+            networks = {}
+            chains = self.safe_value(currency, 'binding_gateways', [])
+            currencyMaxPrecision = self.parse_precision(self.safe_string_2(currency, 'withdrawal_scale', 'scale'))
+            currencyDepositEnabled = None
+            currencyWithdrawEnabled = None
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'gateway_name')
+                networkCode = self.network_id_to_code(networkId)
+                deposit = self.safe_value(chain, 'is_deposit_enabled')
+                withdraw = self.safe_value(chain, 'is_withdrawal_enabled')
+                isActive = (deposit and withdraw)
+                minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
+                minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
+                withdrawalFee = self.safe_string(chain, 'withdrawal_fee')
+                precision = self.parse_precision(self.safe_string_2(chain, 'withdrawal_scale', 'scale'))
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'type': type,
+                    'margin': None,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': isActive,
+                    'fee': self.parse_number(withdrawalFee),
+                    'precision': self.parse_number(precision),
+                    'limits': {
+                        'deposit': {
+                            'min': minDepositAmount,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': minWithdrawalAmount,
+                            'max': None,
+                        },
+                    },
+                    'info': chain,
+                }
+                # fill global values
+                currencyDepositEnabled = (currencyDepositEnabled is None) or deposit if deposit else currencyDepositEnabled
+                currencyWithdrawEnabled = (currencyWithdrawEnabled is None) or withdraw if withdraw else currencyWithdrawEnabled
+                currencyMaxPrecision = (currencyMaxPrecision is None) or precision if Precise.string_gt(currencyMaxPrecision, precision) else currencyMaxPrecision
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': None,
+                'deposit': currencyDepositEnabled,
+                'withdraw': currencyWithdrawEnabled,
+                'fee': None,
+                'precision': self.parse_number(currencyMaxPrecision),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'networks': networks,
+            }
+        return result
 
     def fetch_markets(self, params={}):
         """
@@ -1074,7 +1460,7 @@ class bigone(Exchange, ImplicitAPI):
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
         headers = {}
-        if api == 'public':
+        if api == 'public' or api == 'webExchange':
             if query:
                 url += '?' + self.urlencode(query)
         else:
