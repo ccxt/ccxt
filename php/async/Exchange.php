@@ -32,7 +32,7 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-include 'Throttler.php';
+include 'Throttle.php';
 
 $version = '4.0.3';
 
