@@ -1792,7 +1792,9 @@ export default class okx extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit; // default 100
             }
-            response = await this.publicGetMarketTrades (this.extend (request, params));
+            let method = undefined;
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
+            response = await this[method] (this.extend (request, params));
         }
         //
         //     {
