@@ -445,8 +445,6 @@ Below is a detailed description of each of the base exchange properties:
 
 - `markets_by_id`: An associative array of arrays of markets indexed by exchange-specific ids. Typically a length one array unless there are multiple markets with the same marketId. Markets should be loaded prior to accessing this property.
 
-- `proxy`: A string literal containing base URL of http(s) proxy, `''` by default. For use with web browsers and from blocked locations. An example of a proxy string is `'http://cors-anywhere.herokuapp.com/'`. The absolute exchange endpoint URL is appended to this string before sending the HTTP request.
-
 - `apiKey`: This is your public API key string literal. Most exchanges require [API keys setup](#api-keys-setup).
 
 - `secret`: Your private secret API key string literal. Most exchanges require this as well together with the apiKey.
@@ -460,6 +458,8 @@ Below is a detailed description of each of the base exchange properties:
 - `options`: An exchange-specific associative dictionary containing special keys and options that are accepted by the underlying exchange and supported in CCXT.
 
 - `precisionMode`: The exchange decimal precision counting mode, read more about [Precision And Limits](#precision-and-limits)
+
+- For proxies - `proxyUrl`, `httpUrl`, `httpsUrl`, `socksProxy`: An url of specific proxy. Read details in [Proxy](#proxy) section.
 
 See this section on [Overriding exchange properties](#overriding-exchange-properties-upon-instantiation).
 
@@ -658,7 +658,7 @@ The most common symptoms for a DDoS protection problem, rate-limiting problem or
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
-- use a proxy (this is less responsive, though)
+- use a [proxy](#proxy) (this is less responsive, though)
 - ask the exchange support to add you to a whitelist
 - try an alternative IP within a different geographic region
 - run your software in a distributed network of servers
@@ -5522,6 +5522,98 @@ Returns
 }
 ```
 
+
+## Proxy
+
+In some specific cases you may want a proxy, when:
+- Exchange is not available in your location
+- Your IP is forbidden by exchange
+- You experience random restriction by exchange, like [DDoS protection by Cloudflare](https://docs.ccxt.com/#/?id=ddos-protection-by-cloudflare-incapsula)
+
+However, beware that each added intermediary might add some latency to requests.
+
+### Supported proxy types
+CCXT supports the following proxy types:
+
+#### proxyUrl
+
+This property prepends an url to API requests. This can also be used to setup a CORS proxy.
+```
+ex = ccxt.binance({'proxyUrl': 'YOUR_PROXY_URL'})
+
+// or set anytime after instantiation
+
+ex.proxyUrl = 'YOUR_PROXY_URL';
+```
+
+while 'YOUR_PROXY_URL' could be like (note the backslash): 
+- `http://127.0.0.1:8080/`
+- `https://cors-anywhere.herokuapp.com/`
+- `http://your-website.com/sample-script.php?url=`
+- etc
+
+So requests will be made to `http://127.0.0.1:8080/https://exchange.xyz/api/endpoint`. You can test if that works by:
+```
+// Python
+print(await ex.fetch('https://api.ipify.org/')) // for sync version remove 'await'
+
+// JS
+console.log(await ex.fetch('https://api.ipify.org/'));
+
+// PHP
+print(\React\Async\await($my_ex->fetch('https://api.ipify.org/'))); // for sync version remove '\React\Async\await'
+```
+` You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl`. See a sample script named "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/examples).
+
+#### httpProxy and httpsProxy
+If you have an access to a remote [http or https proxy](https://stackoverflow.com/q/10440690/2377343), you can set:
+```
+ex.httpProxy = 'http://1.2.3.4:8080/';
+// or
+ex.httpsProxy = 'http://1.2.3.4:8080/';
+```
+#### socksProxy
+You can also use [socks proxy](https://www.google.com/search?q=what+is+socks+proxy) with the following format:
+```
+ex.socksProxy = 'socks5://1.2.3.4:8080/';
+```
+
+#### using proxy callbacks
+**Note, in addition to above properties, you can also set callbacks instead of strings to any from `proxyUrlCallback, http(s)ProxyCallback, socksProxyCallback`. The callback signature should be like:
+```
+function my_callback(url, method, headers, body) {
+    if (my_condition) {
+        return 'http://222.222.222.222';
+    } else {
+        return 'http://333.333.333.333';
+    }
+}
+```
+### extra proxy related details
+
+#### userAgent
+
+If you need for special cases, you can override `userAgent` property like:
+```
+ex.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)...'
+```
+#### custom proxy agents
+
+Depending your programming language, you can set custom proxy agents.
+ - For JS, see [this example](
+https://github.com/ccxt/ccxt/blob/master/examples/js/custom-proxy-agent-for-js.js)
+ - For Python, see the following examples: [proxies-for-synchronous-python](
+https://github.com/ccxt/ccxt/blob/master/examples/py/proxies-for-synchronous-python.py), [proxy-asyncio-aiohttp-python-3](
+https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-python-3.py), [proxy-asyncio-aiohttp-socks](
+https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-socks.py), [proxy-sync-python-requests-2-and-3](
+https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py)
+
+#### CORS (Access-Control-Allow-Origin)
+
+CORS (known as [Cross-Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)) affects mostly browsers and is the cause of the well-know warning `No 'Access-Control-Allow-Origin' header is present on the requested resource`. It happens because a script (running in a browser) might be trying to make a request data from another domain but that domain does not allow such connection (by default that feature are disabled by domains, unless they specially enable it).
+So, in such cases you will need to communicate a "CORS" proxy, which would redirect requests (as opposed to direct browser-side request) to the target exchange. To set a CORS proxy, refer to [`proxyUrl`](#proxyUrl) paragraph to find out how to route requests through cors/proxy server.
+
+
 # Error Handling
 
 - [Exception Hierarchy](#exception-hierarchy)
@@ -5804,7 +5896,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller [examples](https://github.com/ccxt/ccxt/tree/master/examples), also [here](#order-book--market-depth).
 - Read the [docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) and compare your verbose output to the docs.
 - Check your connectivity with the exchange by accessing it with your browser.
-- Check your connection with the exchange through a proxy. Read the [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy) section for more details.
+- Check your connection with the exchange through a [proxy](#proxy).
 - Try accesing the exchange from a different computer or a remote server, to see if this is a local or global issue with the exchange.
 - Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
 - Make sure that your system time in sync with the rest of the world's clocks since otherwise you may get invalid nonce errors.
@@ -5813,7 +5905,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 - Use the `verbose = true` option or instantiate your troublesome exchange with `new ccxt.exchange ({ 'verbose': true })` to see the HTTP requests and responses in details. The verbose output will also be of use for us to debug it if you submit an issue on GitHub.
 - Use DEBUG logging in Python!
-- As written above, some exchanges are not available in certain countries. You should use a proxy or get a server somewhere closer to the exchange.
+- Some exchanges are not available in certain countries, using a [proxy](#proxy) might be the solution in such cases.
 - If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
 - Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.
 
