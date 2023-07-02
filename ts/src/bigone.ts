@@ -507,6 +507,7 @@ export default class bigone extends Exchange {
                 const networkCode = this.networkIdToCode (networkId);
                 const deposit = this.safeValue (chain, 'is_deposit_enabled');
                 const withdraw = this.safeValue (chain, 'is_withdrawal_enabled');
+                const isActive = (deposit && withdraw);
                 const minDepositAmount = this.safeString (chain, 'min_deposit_amount');
                 const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
                 const withdrawalFee = this.safeString (chain, 'withdrawal_fee');
@@ -518,7 +519,7 @@ export default class bigone extends Exchange {
                     'margin': undefined,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'active': undefined,
+                    'active': isActive,
                     'fee': this.parseNumber (withdrawalFee),
                     'precision': this.parseNumber (precision),
                     'limits': {
