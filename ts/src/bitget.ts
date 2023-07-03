@@ -168,6 +168,7 @@ export default class bitget extends Exchange {
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
                             'market/queryPositionLever': 1,
+                            'market/open-limit': 1,
                         },
                     },
                     'margin': {
