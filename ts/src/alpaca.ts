@@ -16,7 +16,10 @@ export default class alpaca extends Exchange {
             'id': 'alpaca',
             'name': 'Alpaca',
             'countries': [ 'US' ],
-            'rateLimit': 333, // 3 req per second
+            // 3 req/s for free
+            // 150 req/s for subscribers: https://alpaca.markets/data
+            // for brokers: https://alpaca.markets/docs/api-references/broker-api/#authentication-and-rate-limit
+            'rateLimit': 333,
             'hostname': 'alpaca.markets',
             'pro': true,
             'urls': {

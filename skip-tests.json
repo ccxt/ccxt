@@ -17,6 +17,7 @@
         }
     },
     "alpaca": {
+        "skip": true,
         "skipWs": true
     },
     "ascendex": {
