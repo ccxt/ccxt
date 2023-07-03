@@ -1794,7 +1794,11 @@ export default class okx extends Exchange {
             }
             let method = undefined;
             [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
-            response = await this[method] (this.extend (request, params));
+            if (method === 'publicGetMarketTrades') {
+                response = await this.publicGetMarketTrades (this.extend (request, params));
+            } else if (method === 'publicGetMarketHistoryTrades') {
+                response = await this.publicGetMarketHistoryTrades (this.extend (request, params));
+            }
         }
         //
         //     {
