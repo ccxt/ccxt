@@ -1019,6 +1019,14 @@ export default class okx extends Exchange {
         });
     }
 
+    // Override
+    isUsingForcedProxy (params = {}, api = 'public') {
+        if (api === 'private') {
+            return true;
+        }
+        return false;
+    }
+
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
         const instType = this.safeString (params, 'instType');
         params = this.omit (params, 'instType');

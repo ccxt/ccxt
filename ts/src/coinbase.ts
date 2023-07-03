@@ -864,8 +864,8 @@ export default class coinbase extends Exchange {
         } else {
             cost = costString;
         }
-        if((costString !== undefined) && (amountString === undefined) && (priceString !== undefined)) {
-            amount = Precise.stringDiv(costString, priceString);
+        if ((costString !== undefined) && (amountString === undefined) && (priceString !== undefined)) {
+            amount = Precise.stringDiv (costString, priceString);
         } else {
             amount = amountString;
         }
