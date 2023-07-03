@@ -820,7 +820,7 @@ export default class gate extends Exchange {
         }
         return false;
     }
-    
+
     async fetchMarkets (params = {}) {
         /**
          * @method
