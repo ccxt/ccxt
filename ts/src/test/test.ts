@@ -18,6 +18,13 @@ process.on ('unhandledRejection', (e: any) => {
 });
 const [ processPath, , exchangeId = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
+const PermissionDenied = ccxt.PermissionDenied;
+const RateLimitExceeded = ccxt.RateLimitExceeded;
+const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
+const NetworkError = ccxt.NetworkError;
+const DDoSProtection = ccxt.DDoSProtection;
+const OnMaintenance = ccxt.OnMaintenance;
+const RequestTimeout = ccxt.RequestTimeout;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
@@ -252,30 +259,56 @@ export default class testMainClass extends baseMainTestClass {
         if (this.info) {
             dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
         }
-        let result = null;
         try {
             const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
-            result = await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
+            await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
         } catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
-            if (!(isPublic && isAuthError)) {
-                dump ('[TEST_FAILURE]', exceptionMessage (e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
-                throw e;
+            const isPermissionDenied = (e instanceof PermissionDenied);
+            // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+            // todo: changes are needed after .Features implementation
+            if (isPublic) {
+                if (isAuthError || isPermissionDenied) {
+                    dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodNameInTest, argsStringified);
+                    return;
+                }
             }
+            throw e;
         }
-        return result;
     }
 
     async testSafe (methodName, exchange, args, isPublic) {
-        try {
-            await this.testMethod (methodName, exchange, args, isPublic);
-            return true;
-        } catch (e) {
-            return false;
+        const maxRetries = 5;
+        const argsStringified = '(' + args.join (',') + ')';
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                await this.testMethod (methodName, exchange, args, isPublic);
+                return true;
+            } catch (e) {
+                const isRateLimitExceeded = (e instanceof RateLimitExceeded);
+                const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
+                const isNetworkError = (e instanceof NetworkError);
+                const isDDoSProtection = (e instanceof DDoSProtection);
+                const isOnMaintenance = (e instanceof OnMaintenance);
+                const isRequestTimeout = (e instanceof RequestTimeout);
+                const tempFailure = (isRateLimitExceeded || isExchangeNotAvailable || isNetworkError || isDDoSProtection || isOnMaintenance || isRequestTimeout);
+                if (tempFailure) {
+                    // wait and retry again
+                    await exchange.sleep (i); // increase wait seconds on every retry
+                    continue;
+                } else {
+                    // if not temp failure, then throw the exception without retrying
+                    dump ('[TEST_WARNING]', 'Public method could not be tested', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                    return false;
+                }
+            }
         }
+        // if maxretries was gone with same `tempFailure` error, then let's eventually return false
+        dump ('[TEST_WARNING]', 'Method could not be tested, because of temporary access issues', exchange.id, methodName, argsStringified);
+        return false;
     }
 
     async runPublicTests (exchange, symbol) {
