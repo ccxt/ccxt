@@ -2355,18 +2355,28 @@ export default class Exchange {
         return result;
     }
 
+    nts (value: any, existingStringValue = undefined) {
+        // abbreviation for "number-to-string" (if needed)
+        if (typeof value === 'string') {
+            return value;
+        } else {
+            return (existingStringValue === undefined ? this.numberToString (value) : existingStringValue);
+        }
+    }
+
     safeTicker (ticker: object, market = undefined): Ticker {
         let open = this.safeString (ticker, 'open');
         let close = this.safeString (ticker, 'close');
         let last = this.safeString (ticker, 'last');
-        let change = this.safeString (ticker, 'change');
+        let change = this.safeValue (ticker, 'change');
+        let changeString = undefined;
         let percentage = this.safeString (ticker, 'percentage');
         let average = this.safeValue (ticker, 'average');
         let vwap = this.safeValue (ticker, 'vwap');
-        const baseVolume = this.safeString (ticker, 'baseVolume');
-        const quoteVolume = this.safeString (ticker, 'quoteVolume');
+        const baseVolume = this.safeValue (ticker, 'baseVolume');
+        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = Precise.stringDiv (quoteVolume, baseVolume);
+            vwap = Precise.stringDiv (this.nts (quoteVolume), this.nts (baseVolume));
         }
         if ((last !== undefined) && (close === undefined)) {
             close = last;
@@ -2376,19 +2386,23 @@ export default class Exchange {
         if ((last !== undefined) && (open !== undefined)) {
             if (change === undefined) {
                 change = Precise.stringSub (last, open);
+                changeString = change;
             }
             if (average === undefined) {
                 average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
-            percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+            changeString = this.nts (change, changeString);
+            percentage = Precise.stringMul (Precise.stringDiv (changeString, open), '100');
         }
         if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
             change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
+            changeString = change;
         }
         if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-            open = Precise.stringSub (last, change);
+            changeString = this.nts (change, changeString);
+            open = Precise.stringSub (last, changeString);
         }
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
