@@ -117,7 +117,7 @@ export default class huobijp extends huobijpRest {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -142,7 +142,7 @@ export default class huobijp extends huobijpRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -195,7 +195,7 @@ export default class huobijp extends huobijpRest {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -221,7 +221,7 @@ export default class huobijp extends huobijpRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //

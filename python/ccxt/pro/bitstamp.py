@@ -156,7 +156,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -174,7 +174,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         trades = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def parse_ws_trade(self, trade, market=None):
         #
@@ -259,7 +259,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
@@ -277,7 +277,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         orders = await self.subscribe_private(subscription, messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_orders(self, client: Client, message):
         #

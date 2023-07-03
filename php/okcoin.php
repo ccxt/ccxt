@@ -450,7 +450,7 @@ class okcoin extends Exchange {
                     '30032' => '\\ccxt\\BadSymbol', // array( "code" => 30032, "message" => "pair does not exist" )
                     '30033' => '\\ccxt\\BadRequest', // array( "code" => 30033, "message" => "exchange domain does not exist" )
                     '30034' => '\\ccxt\\ExchangeError', // array( "code" => 30034, "message" => "exchange ID does not exist" )
-                    '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not supported in this website" )
+                    '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not property_exists($this, supported) website" )
                     '30036' => '\\ccxt\\ExchangeError', // array( "code" => 30036, "message" => "no relevant data" )
                     '30037' => '\\ccxt\\ExchangeNotAvailable', // array( "code" => 30037, "message" => "endpoint is offline or unavailable" )
                     // '30038' => '\\ccxt\\AuthenticationError', // array( "code" => 30038, "message" => "user does not exist" )
@@ -513,8 +513,8 @@ class okcoin extends Exchange {
                     '32064' => '\\ccxt\\ExchangeError', // Time Stringerval of orders should set between 5-120s
                     '32065' => '\\ccxt\\ExchangeError', // Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
                     '32066' => '\\ccxt\\ExchangeError', // You have open orders. Please cancel all open orders before changing your leverage level.
-                    '32067' => '\\ccxt\\ExchangeError', // Account equity < required margin in this setting. Please adjust your leverage level again.
-                    '32068' => '\\ccxt\\ExchangeError', // The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32067' => '\\ccxt\\ExchangeError', // Account equity < required property_exists($this, margin) setting. Please adjust your leverage level again.
+                    '32068' => '\\ccxt\\ExchangeError', // The margin for this position will fall short of the required property_exists($this, margin) setting. Please adjust your leverage level or increase your margin to proceed.
                     '32069' => '\\ccxt\\ExchangeError', // Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
                     '32070' => '\\ccxt\\ExchangeError', // Please check open position or unfilled order
                     '32071' => '\\ccxt\\ExchangeError', // Your current liquidation mode does not support this action.
@@ -798,7 +798,7 @@ class okcoin extends Exchange {
         /**
          * retrieves data on all $markets for okcoin
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market data
+         * @return {array[]} an array of objects representing market data
          */
         $types = $this->safe_value($this->options, 'fetchMarkets');
         $result = array();
@@ -1301,7 +1301,7 @@ class okcoin extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the okcoin api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -1428,7 +1428,7 @@ class okcoin extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the okcoin api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1535,7 +1535,7 @@ class okcoin extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the okcoin api endpoint
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1930,7 +1930,7 @@ class okcoin extends Exchange {
         throw new NotSupported($this->id . " fetchBalance does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', 'futures', 'swap')");
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -2459,7 +2459,7 @@ class okcoin extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the okcoin api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         // '-2' => failed,
         // '-1' => cancelled,
@@ -2480,7 +2480,7 @@ class okcoin extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the okcoin api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         // '-2' => failed,
         // '-1' => cancelled,
@@ -2685,7 +2685,7 @@ class okcoin extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the okcoin api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array();
@@ -2707,7 +2707,7 @@ class okcoin extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the okcoin api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array();
@@ -3016,7 +3016,7 @@ class okcoin extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the okcoin api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         // okex actually returns ledger entries instead of fills here, so each fill in the order
         // is represented by two trades with opposite buy/sell sides, not one :\
@@ -3123,7 +3123,7 @@ class okcoin extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades to retrieve
          * @param {array} $params extra parameters specific to the okcoin api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $request = array(
             // 'instrument_id' => market['id'],
@@ -3346,9 +3346,9 @@ class okcoin extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
-         * @param {[string]|null} $symbols not used by okcoin fetchPositions
+         * @param {string[]|null} $symbols not used by okcoin fetchPositions
          * @param {array} $params extra parameters specific to the okcoin api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
         $method = null;

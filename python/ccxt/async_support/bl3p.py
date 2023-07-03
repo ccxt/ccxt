@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bl3p import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -262,7 +263,7 @@ class bl3p(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bl3p api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         market = self.market(symbol)
         response = await self.publicGetMarketTrades(self.extend({
@@ -323,7 +324,7 @@ class bl3p(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

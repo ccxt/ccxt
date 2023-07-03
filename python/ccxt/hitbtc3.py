@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc3 import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -66,6 +67,7 @@ class hitbtc3(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': None,
@@ -372,7 +374,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for hitbtc3
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetPublicSymbol(params)
         #
@@ -738,7 +740,7 @@ class hitbtc3(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -825,7 +827,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = None
@@ -858,7 +860,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' only 'isolated' is supported
         :param bool|None params['margin']: True for fetching margin trades
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -1119,7 +1121,8 @@ class hitbtc3(Exchange, ImplicitAPI):
 
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+         * @deprecated
+        use fetchDepositsWithdrawals instead
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None
@@ -1135,7 +1138,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         return self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
 
@@ -1146,14 +1149,14 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         return self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
 
     def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
-        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int|None limit: max number of entries per orderbook to return, default is None
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
@@ -1268,7 +1271,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1366,7 +1369,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' only 'isolated' is supported
         :param bool|None params['margin']: True for fetching margin orders
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1451,7 +1454,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' only 'isolated' is supported
         :param bool|None params['margin']: True for fetching margin trades
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -1520,7 +1523,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' only 'isolated' is supported
         :param bool|None params['margin']: True for fetching open margin orders
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1597,7 +1600,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' only 'isolated' is supported
         :param bool|None params['margin']: True for canceling margin orders
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1648,7 +1651,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
         market = None
         request = {
@@ -1674,7 +1677,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1992,7 +1995,7 @@ class hitbtc3(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
-        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         self.load_markets()
         market = None
@@ -2053,11 +2056,11 @@ class hitbtc3(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        :param [str]|None symbols: not used by hitbtc3 fetchPositions()
+        :param str[]|None symbols: not used by hitbtc3 fetchPositions()
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if self is set
         :param bool|None params['margin']: True for fetching spot-margin positions
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         request = {}
@@ -2492,13 +2495,13 @@ class hitbtc3(Exchange, ImplicitAPI):
         }
         return self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://api.hitbtc.com/#currencies
-        :param [str]|None codes: list of unified currency codes
+        :param str[]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
-        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         response = self.publicGetPublicCurrency(params)
@@ -2581,7 +2584,7 @@ class hitbtc3(Exchange, ImplicitAPI):
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase
+        :returns array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)

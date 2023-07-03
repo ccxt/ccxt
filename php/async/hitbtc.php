@@ -50,6 +50,7 @@ class hitbtc extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => false,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -78,7 +79,6 @@ class hitbtc extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -213,8 +213,8 @@ class hitbtc extends Exchange {
                 'networks' => array(
                     'ETH' => 'T20',
                     'ERC20' => 'T20',
-                    'TRX' => 'TTRX',
-                    'TRC20' => 'TTRX',
+                    'TRX' => 'TRX',
+                    'TRC20' => 'TRX',
                     'OMNI' => '',
                 ),
                 'defaultTimeInForce' => 'FOK',
@@ -283,7 +283,7 @@ class hitbtc extends Exchange {
             /**
              * retrieves data on all markets for hitbtc
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetSymbol ($params));
             //
@@ -634,7 +634,7 @@ class hitbtc extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -717,7 +717,7 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
@@ -840,7 +840,8 @@ class hitbtc extends Exchange {
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch history of deposits and withdrawals
+             * @deprecated
+             * use fetchDepositsWithdrawals instead
              * @see https://api.hitbtc.com/v2#get-transactions-history
              * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
@@ -966,7 +967,7 @@ class hitbtc extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of trades to fetch
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -985,7 +986,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1229,7 +1230,7 @@ class hitbtc extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1251,7 +1252,7 @@ class hitbtc extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1288,7 +1289,7 @@ class hitbtc extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1351,7 +1352,7 @@ class hitbtc extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades to retrieve
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             // The $id needed here is the exchange's $id, and not the clientOrderID,
             // which is the $id that is stored in the unified order $id

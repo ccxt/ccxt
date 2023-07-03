@@ -392,7 +392,7 @@ class currencycom extends \ccxt\async\currencycom {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -400,7 +400,7 @@ class currencycom extends \ccxt\async\currencycom {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -429,7 +429,7 @@ class currencycom extends \ccxt\async\currencycom {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -448,7 +448,7 @@ class currencycom extends \ccxt\async\currencycom {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 

@@ -201,12 +201,12 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         trades = await self.watch_public(symbol, 'trades', None, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -263,7 +263,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         # if limit is None:
         #     limit = 100
@@ -279,7 +279,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         ohlcv = await self.watch_public(symbol, 'ohlcv', period, requestParams)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #

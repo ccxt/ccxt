@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -141,7 +142,7 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for independentreserve
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         baseCurrencies = self.publicGetGetValidPrimaryCurrencyCodes(params)
         #     ['Xbt', 'Eth', 'Usdt', ...]
@@ -459,7 +460,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the independentreserve api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = self.ordered({})
@@ -483,7 +484,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the independentreserve api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = self.ordered({})
@@ -507,7 +508,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the independentreserve api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         pageIndex = self.safe_integer(params, 'pageIndex', 1)
@@ -567,7 +568,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the independentreserve api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -621,7 +622,7 @@ class independentreserve(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

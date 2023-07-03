@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.zaif import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -156,7 +157,7 @@ class zaif(Exchange, ImplicitAPI):
         see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
         retrieves data on all markets for zaif
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         markets = self.publicGetCurrencyPairsAll(params)
         #
@@ -406,7 +407,7 @@ class zaif(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the zaif api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -433,7 +434,7 @@ class zaif(Exchange, ImplicitAPI):
                 response = []
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
         create a trade order
@@ -527,7 +528,7 @@ class zaif(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the zaif api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -549,7 +550,7 @@ class zaif(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the zaif api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None

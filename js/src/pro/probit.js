@@ -171,7 +171,7 @@ export default class probit extends probitRest {
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the probit api endpoint
          * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTrades', 'filter', 'recent_trades');
@@ -179,7 +179,7 @@ export default class probit extends probitRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleTrades(client, message) {
         //
@@ -231,7 +231,7 @@ export default class probit extends probitRest {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         await this.authenticate(params);
@@ -252,7 +252,7 @@ export default class probit extends probitRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //

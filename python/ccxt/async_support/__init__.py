@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.7'
+__version__ = '4.0.4'
 
 # -----------------------------------------------------------------------------
 
@@ -88,7 +88,6 @@ from ccxt.async_support.bl3p import bl3p                                        
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                                # noqa: F401
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
-from ccxt.async_support.btcex import btcex                                      # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
 from ccxt.async_support.btctradeua import btctradeua                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
@@ -148,7 +147,6 @@ from ccxt.async_support.phemex import phemex                                    
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
 from ccxt.async_support.poloniexfutures import poloniexfutures                  # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
-from ccxt.async_support.stex import stex                                        # noqa: F401
 from ccxt.async_support.tidex import tidex                                      # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -157,7 +155,6 @@ from ccxt.async_support.wavesexchange import wavesexchange                      
 from ccxt.async_support.wazirx import wazirx                                    # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
-from ccxt.async_support.xt import xt                                            # noqa: F401
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
@@ -198,7 +195,6 @@ exchanges = [
     'blockchaincom',
     'btcalpha',
     'btcbox',
-    'btcex',
     'btcmarkets',
     'btctradeua',
     'btcturk',
@@ -258,7 +254,6 @@ exchanges = [
     'poloniex',
     'poloniexfutures',
     'probit',
-    'stex',
     'tidex',
     'timex',
     'tokocrypto',
@@ -267,7 +262,6 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
-    'xt',
     'yobit',
     'zaif',
     'zonda',

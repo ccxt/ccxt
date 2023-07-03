@@ -205,7 +205,7 @@ class bittrex(ccxt.async_support.bittrex):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         if symbol is not None:
@@ -373,7 +373,7 @@ class bittrex(ccxt.async_support.bittrex):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -381,7 +381,7 @@ class bittrex(ccxt.async_support.bittrex):
         ohlcv = await self.subscribe_to_ohlcv(negotiation, symbol, timeframe, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def subscribe_to_ohlcv(self, negotiation, symbol, timeframe='1m', params={}):
         await self.load_markets()
@@ -438,7 +438,7 @@ class bittrex(ccxt.async_support.bittrex):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -446,7 +446,7 @@ class bittrex(ccxt.async_support.bittrex):
         trades = await self.subscribe_to_trades(negotiation, symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def subscribe_to_trades(self, negotiation, symbol, params={}):
         await self.load_markets()
@@ -499,7 +499,7 @@ class bittrex(ccxt.async_support.bittrex):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -507,7 +507,7 @@ class bittrex(ccxt.async_support.bittrex):
         trades = await self.subscribe_to_my_trades(authentication, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     async def subscribe_to_my_trades(self, authentication, params={}):
         messageHash = 'execution'
@@ -566,7 +566,7 @@ class bittrex(ccxt.async_support.bittrex):
         #     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
         #     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message(see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
         #     7. Continue to apply messages are received from the socket number on the stream is always increasing by 1 each message(Note: for private streams, the sequence number is scoped to a single account or subaccount).
-        #     8. If a message is received that is not the next in order, return to step 2 in self process
+        #     8. If a message is received that is not the next in order, return to step hasattr(self, 2) process
         #
         orderbook = await self.subscribe_to_order_book(negotiation, symbol, limit, params)
         return orderbook.limit()

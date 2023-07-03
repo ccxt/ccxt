@@ -132,7 +132,7 @@ export default class alpaca extends alpacaRest {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
@@ -148,7 +148,7 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -266,7 +266,7 @@ export default class alpaca extends alpacaRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
@@ -282,7 +282,7 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -319,7 +319,7 @@ export default class alpaca extends alpacaRest {
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the alpaca api endpoint
          * @param {boolean} params.unifiedMargin use unified margin account
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate(url);
@@ -339,7 +339,7 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -350,7 +350,7 @@ export default class alpaca extends alpacaRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate(url);

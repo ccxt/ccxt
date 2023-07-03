@@ -11,6 +11,10 @@ import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/func
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
+/**
+ * @class bitvavo
+ * @extends Exchange
+ */
 export default class bitvavo extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -46,6 +50,8 @@ export default class bitvavo extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -261,6 +267,14 @@ export default class bitvavo extends Exchange {
                 'fetchCurrencies': {
                     'expires': 1000, // 1 second
                 },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'commonCurrencies': {
@@ -305,7 +319,7 @@ export default class bitvavo extends Exchange {
          * @name bitvavo#fetchMarkets
          * @description retrieves data on all markets for bitvavo
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets(params);
         const currencies = await this.fetchCurrenciesFromCache(params);
@@ -549,7 +563,7 @@ export default class bitvavo extends Exchange {
          * @method
          * @name bitvavo#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitvavo api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -584,7 +598,7 @@ export default class bitvavo extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the bitvavo api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -817,7 +831,7 @@ export default class bitvavo extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the bitvavo api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1112,7 +1126,7 @@ export default class bitvavo extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the bitvavo api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1195,7 +1209,7 @@ export default class bitvavo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitvavo api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
@@ -1264,7 +1278,7 @@ export default class bitvavo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bitvavo api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1445,7 +1459,7 @@ export default class bitvavo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bitvavo api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
@@ -1531,7 +1545,7 @@ export default class bitvavo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the bitvavo api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1577,7 +1591,7 @@ export default class bitvavo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the bitvavo api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1703,6 +1717,82 @@ export default class bitvavo extends Exchange {
             'updated': undefined,
             'fee': fee,
         };
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //   {
+        //       "symbol": "1INCH",
+        //       "name": "1inch",
+        //       "decimals": 8,
+        //       "depositFee": "0",
+        //       "depositConfirmations": 64,
+        //       "depositStatus": "OK",
+        //       "withdrawalFee": "6.1",
+        //       "withdrawalMinAmount": "6.1",
+        //       "withdrawalStatus": "OK",
+        //       "networks": [
+        //         "ETH"
+        //       ],
+        //       "message": ""
+        //   }
+        //
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber(fee, 'withdrawalFee'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': this.safeNumber(fee, 'depositFee'),
+                'percentage': false,
+            },
+            'networks': {},
+        };
+        const networks = this.safeValue(fee, 'networks');
+        let networkId = this.safeValue(networks, 0); // Bitvavo currently only supports one network per currency
+        const currencyCode = this.safeString(currency, 'code');
+        if (networkId === 'Mainnet') {
+            networkId = currencyCode;
+        }
+        const networkCode = this.networkIdToCode(networkId, currencyCode);
+        result['networks'][networkCode] = {
+            'deposit': result['deposit'],
+            'withdraw': result['withdraw'],
+        };
+        return result;
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitvavo api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicGetAssets(params);
+        //
+        //   [
+        //       {
+        //           "symbol": "1INCH",
+        //           "name": "1inch",
+        //           "decimals": 8,
+        //           "depositFee": "0",
+        //           "depositConfirmations": 64,
+        //           "depositStatus": "OK",
+        //           "withdrawalFee": "6.1",
+        //           "withdrawalMinAmount": "6.1",
+        //           "withdrawalStatus": "OK",
+        //           "networks": [
+        //             "ETH"
+        //           ],
+        //           "message": ""
+        //       },
+        //   ]
+        //
+        return this.parseDepositWithdrawFees(response, codes, 'symbol');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));

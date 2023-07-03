@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.yobit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -244,9 +245,8 @@ class yobit(Exchange, ImplicitAPI):
                 'XRA': 'Ratecoin',
             },
             'options': {
-                # 'fetchTickersMaxLength': 2048,
+                'maxUrlLength': 2048,
                 'fetchOrdersRequiresSymbol': True,
-                'fetchTickersMaxLength': 512,
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -350,7 +350,7 @@ class yobit(Exchange, ImplicitAPI):
         see https://yobit.net/en/api
         retrieves data on all markets for yobit
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetInfo(params)
         #
@@ -465,7 +465,7 @@ class yobit(Exchange, ImplicitAPI):
         """
         see https://yobit.net/en/api
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
-        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int|None limit: max number of entries per orderbook to return, default is None
         :param dict params: extra parameters specific to the yobit api endpoint
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
@@ -539,25 +539,29 @@ class yobit(Exchange, ImplicitAPI):
         """
         see https://yobit.net/en/api
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the yobit api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires "symbols" argument')
         self.load_markets()
         symbols = self.market_symbols(symbols)
         ids = None
         if symbols is None:
-            numIds = len(self.ids)
-            ids = '-'.join(ids)
-            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
-            # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > self.options['fetchTickersMaxLength']:
-                raise ArgumentsRequired(self.id + ' fetchTickers() has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
+            ids = self.ids
         else:
-            newIds = self.market_ids(symbols)
-            ids = '-'.join(newIds)
+            ids = self.market_ids(symbols)
+        idsLength = len(ids)
+        idsString = '-'.join(ids)
+        maxLength = self.safe_integer(self.options, 'maxUrlLength', 2048)
+        # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        lenghtOfBaseUrl = 30  # the url including api-base and endpoint dir is 30 chars
+        actualLength = len(idsString) + lenghtOfBaseUrl
+        if actualLength > maxLength:
+            raise ArgumentsRequired(self.id + ' fetchTickers() is being requested for ' + str(idsLength) + ' markets(which has an URL length of ' + str(actualLength) + ' characters), but it exceedes max URL length(' + str(maxLength) + '), please pass limisted symbols array to fetchTickers to fit in one request')
         request = {
-            'pair': ids,
+            'pair': idsString,
         }
         tickers = self.publicGetTickerPair(self.extend(request, params))
         result = {}
@@ -663,7 +667,7 @@ class yobit(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the yobit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -742,7 +746,7 @@ class yobit(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         see https://yobit.net/en/api
         create a trade order
@@ -977,7 +981,7 @@ class yobit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the yobit api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -1022,7 +1026,7 @@ class yobit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the yobit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')

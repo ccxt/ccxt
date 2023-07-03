@@ -36,7 +36,10 @@ export default class gate extends gateRest {
                         'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
                         'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
                     },
-                    'option': 'wss://op-ws.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws.gateio.live/v4/ws/btc',
+                    },
                 },
                 'test': {
                     'swap': {
@@ -47,7 +50,10 @@ export default class gate extends gateRest {
                         'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                         'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
                     },
-                    'option': 'wss://op-ws-testnet.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws-testnet.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws-testnet.gateio.live/v4/ws/btc',
+                    },
                 },
             },
             'options': {
@@ -285,7 +291,7 @@ export default class gate extends gateRest {
          * @method
          * @name gate#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -374,7 +380,7 @@ export default class gate extends gateRest {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -389,7 +395,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -437,7 +443,7 @@ export default class gate extends gateRest {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -453,7 +459,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -518,7 +524,7 @@ export default class gate extends gateRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         let subType = undefined;
@@ -552,7 +558,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //
@@ -727,7 +733,7 @@ export default class gate extends gateRest {
          * @param {object} params extra parameters specific to the gate api endpoint
          * @param {string} params.type spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} params.isInverse if future, listen to inverse or linear contracts
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         let market = undefined;
@@ -762,7 +768,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
     handleOrder(client, message) {
         //
@@ -813,7 +819,7 @@ export default class gate extends gateRest {
             // inject order status
             const info = this.safeValue(parsed, 'info');
             const event = this.safeString(info, 'event');
-            if (event === 'put' || event === ' update') {
+            if (event === 'put' || event === 'update') {
                 parsed['status'] = 'open';
             }
             else if (event === 'finish') {

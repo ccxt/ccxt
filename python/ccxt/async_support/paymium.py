@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paymium import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -271,7 +272,7 @@ class paymium(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the paymium api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -328,7 +329,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         fetch deposit addresses for multiple currencies and chain types
         see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
-        :param [str]|None codes: list of unified currency codes, default is None
+        :param str[]|None codes: list of unified currency codes, default is None
         :param dict params: extra parameters specific to the paymium api endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """
@@ -365,7 +366,7 @@ class paymium(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post

@@ -12,7 +12,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleMyTrade(client: Client, message: any, subscription?: {}): void;
     handleTrades(client: Client, message: any, subscription: any): any;
-    parseWsTrade(trade: any, isPublic?: boolean, market?: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleTicker(client: Client, message: any, subscription: any): void;
     parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
@@ -28,6 +28,6 @@ export default class bitfinex2 extends bitfinex2Rest {
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription: any): void;
     parseWsOrderStatus(status: any): string;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleMessage(client: Client, message: any): any;
 }

@@ -80,6 +80,7 @@ export interface Order {
     datetime: string;
     timestamp: number;
     lastTradeTimestamp: number;
+    lastUpdateTimestamp?: number;
     status: 'open' | 'closed' | 'canceled' | string;
     symbol: string;
     type: string;
@@ -90,6 +91,9 @@ export interface Order {
     amount: number;
     filled: number;
     remaining: number;
+    stopPrice?: number;
+    takeProfitPrice?: number;
+    stopLossPrice?: number;
     cost: number;
     trades: Trade[];
     fee: Fee;

@@ -129,7 +129,7 @@ class bitopro extends \ccxt\async\bitopro {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the bitopro api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -139,7 +139,7 @@ class bitopro extends \ccxt\async\bitopro {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 

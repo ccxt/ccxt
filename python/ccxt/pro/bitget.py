@@ -240,7 +240,7 @@ class bitget(ccxt.async_support.bitget):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitget api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -257,7 +257,7 @@ class bitget(ccxt.async_support.bitget):
         ohlcv = await self.watch_public(messageHash, args, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -453,7 +453,7 @@ class bitget(ccxt.async_support.bitget):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bitget api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -468,7 +468,7 @@ class bitget(ccxt.async_support.bitget):
         trades = await self.watch_public(messageHash, args, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -543,7 +543,7 @@ class bitget(ccxt.async_support.bitget):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitget api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         market = None
@@ -809,7 +809,7 @@ class bitget(ccxt.async_support.bitget):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitget api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         # only contracts stream provides the trade info consistently in between order updates
         # the spot stream only provides on limit orders updates so we can't support it for spot
@@ -834,7 +834,7 @@ class bitget(ccxt.async_support.bitget):
         trades = await self.watch_private(messageHash, subscriptionHash, args, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -1014,6 +1014,7 @@ class bitget(ccxt.async_support.bitget):
             account = self.balance[code] if (code in self.balance) else self.account()
             account['free'] = self.safe_string(rawBalance, 'available')
             account['total'] = self.safe_string(rawBalance, 'equity')
+            account['used'] = self.safe_string(rawBalance, 'frozen')
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         arg = self.safe_value(message, 'arg')

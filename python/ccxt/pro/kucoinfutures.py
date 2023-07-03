@@ -181,7 +181,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         url = await self.negotiate(False)
@@ -192,7 +192,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         trades = await self.subscribe(url, messageHash, topic, None, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client: Client, message):
         #
@@ -381,7 +381,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         url = await self.negotiate(True)
@@ -411,8 +411,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     def parse_ws_order(self, order, market=None):
         #
-        #     {
         #         'symbol': 'XCAD-USDT',
+        #     {
         #         'orderType': 'limit',
         #         'side': 'buy',
         #         'orderId': '6249167327218b000135e749',

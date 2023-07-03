@@ -125,7 +125,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -138,7 +138,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -193,7 +193,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $market = null;
@@ -208,7 +208,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -275,7 +275,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -289,7 +289,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -334,7 +334,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;

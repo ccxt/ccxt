@@ -141,7 +141,7 @@ class idex extends idex$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -156,7 +156,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrade(client, message) {
         const type = this.safeString(message, 'type');
@@ -174,7 +174,7 @@ class idex extends idex$1 {
         trades.append(trade);
         client.resolve(trades, messageHash);
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         // public trades
         // { m: 'DIL-ETH',
         //   i: '897ecae6-4b75-368a-ac00-be555e6ad65f',
@@ -236,7 +236,7 @@ class idex extends idex$1 {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -253,7 +253,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         // { type: 'candles',
@@ -508,7 +508,7 @@ class idex extends idex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
@@ -526,7 +526,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
     handleOrder(client, message) {
         // {

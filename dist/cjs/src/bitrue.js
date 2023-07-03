@@ -8,6 +8,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class bitrue
+ * @extends Exchange
+ */
 class bitrue extends bitrue$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -43,6 +47,7 @@ class bitrue extends bitrue$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
@@ -515,45 +520,66 @@ class bitrue extends bitrue$1 {
             const id = this.safeString(currency, 'coin');
             const name = this.safeString(currency, 'coinFulName');
             const code = this.safeCurrencyCode(id);
-            const enableDeposit = this.safeValue(currency, 'enableDeposit');
-            const enableWithdraw = this.safeValue(currency, 'enableWithdraw');
-            const networkIds = this.safeValue(currency, 'chains', []);
+            let deposit = undefined;
+            let withdraw = undefined;
+            let minWithdrawString = undefined;
+            let maxWithdrawString = undefined;
+            let minWithdrawFeeString = undefined;
+            const networkDetails = this.safeValue(currency, 'chainDetail', []);
             const networks = {};
-            for (let j = 0; j < networkIds.length; j++) {
-                const networkId = networkIds[j];
-                const network = this.safeNetwork(networkId);
+            for (let j = 0; j < networkDetails.length; j++) {
+                const entry = networkDetails[j];
+                const networkId = this.safeString(entry, 'chain');
+                const network = this.networkIdToCode(networkId, code);
+                const enableDeposit = this.safeValue(entry, 'enableDeposit');
+                deposit = (enableDeposit) ? enableDeposit : deposit;
+                const enableWithdraw = this.safeValue(entry, 'enableWithdraw');
+                withdraw = (enableWithdraw) ? enableWithdraw : withdraw;
+                const networkWithdrawFeeString = this.safeString(entry, 'withdrawFee');
+                if (networkWithdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? networkWithdrawFeeString : Precise["default"].stringMin(networkWithdrawFeeString, minWithdrawFeeString);
+                }
+                const networkMinWithdrawString = this.safeString(entry, 'minWithdraw');
+                if (networkMinWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? networkMinWithdrawString : Precise["default"].stringMin(networkMinWithdrawString, minWithdrawString);
+                }
+                const networkMaxWithdrawString = this.safeString(entry, 'maxWithdraw');
+                if (networkMaxWithdrawString !== undefined) {
+                    maxWithdrawString = (maxWithdrawString === undefined) ? networkMaxWithdrawString : Precise["default"].stringMax(networkMaxWithdrawString, maxWithdrawString);
+                }
                 networks[network] = {
-                    'info': networkId,
+                    'info': entry,
                     'id': networkId,
                     'network': network,
-                    'active': undefined,
-                    'fee': undefined,
+                    'deposit': enableDeposit,
+                    'withdraw': enableWithdraw,
+                    'active': enableDeposit && enableWithdraw,
+                    'fee': this.parseNumber(networkWithdrawFeeString),
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
+                            'min': this.parseNumber(networkMinWithdrawString),
+                            'max': this.parseNumber(networkMaxWithdrawString),
                         },
                     },
                 };
             }
-            const active = (enableWithdraw && enableDeposit);
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': undefined,
                 'info': currency,
-                'active': active,
-                'deposit': enableDeposit,
-                'withdraw': enableWithdraw,
+                'active': deposit && withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
-                'fee': this.safeNumber(currency, 'withdrawFee'),
+                'fee': this.parseNumber(minWithdrawFeeString),
                 // 'fees': fees,
                 'limits': {
                     'withdraw': {
-                        'min': this.safeNumber(currency, 'minWithdraw'),
-                        'max': this.safeNumber(currency, 'maxWithdraw'),
+                        'min': this.parseNumber(minWithdrawString),
+                        'max': this.parseNumber(maxWithdrawString),
                     },
                 },
             };
@@ -566,7 +592,7 @@ class bitrue extends bitrue$1 {
          * @name bitrue#fetchMarkets
          * @description retrieves data on all markets for bitrue
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.v1PublicGetExchangeInfo(params);
         //
@@ -871,7 +897,7 @@ class bitrue extends bitrue$1 {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -929,7 +955,7 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the bitrue api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -955,7 +981,7 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitrue api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -1095,7 +1121,7 @@ class bitrue extends bitrue$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1353,7 +1379,7 @@ class bitrue extends bitrue$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -1407,7 +1433,7 @@ class bitrue extends bitrue$1 {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -1491,7 +1517,7 @@ class bitrue extends bitrue$1 {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const method = this.safeString(this.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
         if ((symbol === undefined) && (method === 'v2PrivateGetMyTrades')) {
@@ -1546,7 +1572,7 @@ class bitrue extends bitrue$1 {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a code argument');
@@ -1617,7 +1643,7 @@ class bitrue extends bitrue$1 {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires a code argument');
@@ -1904,7 +1930,7 @@ class bitrue extends bitrue$1 {
          * @name bitrue#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
-         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitrue api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */

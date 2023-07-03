@@ -526,7 +526,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -543,7 +543,7 @@ class bitmex(ccxt.async_support.bitmex):
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def authenticate(self, params={}):
         url = self.urls['api']['ws']
@@ -587,7 +587,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -793,7 +793,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         await self.authenticate()
@@ -813,7 +813,7 @@ class bitmex(ccxt.async_support.bitmex):
         trades = await self.watch(url, messageHash, request, subscriptionHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -933,7 +933,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -950,7 +950,7 @@ class bitmex(ccxt.async_support.bitmex):
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #

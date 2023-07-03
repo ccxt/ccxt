@@ -188,7 +188,7 @@ class huobi extends huobi$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -199,7 +199,7 @@ class huobi extends huobi$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -252,7 +252,7 @@ class huobi extends huobi$1 {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -264,7 +264,7 @@ class huobi extends huobi$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -337,6 +337,7 @@ class huobi extends huobi$1 {
         const url = this.getUrlByMarketType(market['type'], market['linear']);
         let method = this.handleOrderBookSubscription;
         if (!market['spot']) {
+            params = this.extend(params);
             params['data_type'] = 'incremental';
             method = undefined;
         }
@@ -636,7 +637,7 @@ class huobi extends huobi$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         this.checkRequiredCredentials();
         let type = undefined;
@@ -683,7 +684,7 @@ class huobi extends huobi$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     getOrderChannelAndMessageHash(type, subType, market = undefined, params = {}) {
         let messageHash = undefined;
@@ -739,7 +740,7 @@ class huobi extends huobi$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -775,7 +776,7 @@ class huobi extends huobi$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
     handleOrder(client, message) {
         //
@@ -1959,7 +1960,7 @@ class huobi extends huobi$1 {
             }
         }
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         // spot private
         //
         //     {
@@ -1991,7 +1992,7 @@ class huobi extends huobi$1 {
         const amount = this.safeString(trade, 'tradeVolume');
         const order = this.safeString(trade, 'orderId');
         const timestamp = this.safeInteger(trade, 'tradeTime');
-        const market = this.market(symbol);
+        market = this.market(symbol);
         const orderType = this.safeString(trade, 'orderType');
         const aggressor = this.safeValue(trade, 'aggressor');
         let takerOrMaker = undefined;

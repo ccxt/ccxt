@@ -153,7 +153,7 @@ class idex extends \ccxt\async\idex {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -168,7 +168,7 @@ class idex extends \ccxt\async\idex {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -189,7 +189,7 @@ class idex extends \ccxt\async\idex {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function parse_ws_trade($trade) {
+    public function parse_ws_trade($trade, $market = null) {
         // public trades
         // { m => 'DIL-ETH',
         //   i => '897ecae6-4b75-368a-ac00-be555e6ad65f',
@@ -251,7 +251,7 @@ class idex extends \ccxt\async\idex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -268,7 +268,7 @@ class idex extends \ccxt\async\idex {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -532,7 +532,7 @@ class idex extends \ccxt\async\idex {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $name = 'orders';
@@ -550,7 +550,7 @@ class idex extends \ccxt\async\idex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
         }) ();
     }
 

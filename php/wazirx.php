@@ -38,6 +38,7 @@ class wazirx extends Exchange {
                 'fetchDepositAddress' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -156,7 +157,7 @@ class wazirx extends Exchange {
          * @see https://docs.wazirx.com/#exchange-info
          * retrieves data on all $markets for wazirx
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetExchangeInfo ($params);
         //
@@ -274,7 +275,7 @@ class wazirx extends Exchange {
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the wazirx api endpoint
          * @param {int|null} $params->until timestamp in s of the latest candle to fetch
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -388,7 +389,7 @@ class wazirx extends Exchange {
         /**
          * @see https://docs.wazirx.com/#24hr-$tickers-price-change-statistics
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the wazirx api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
@@ -429,7 +430,7 @@ class wazirx extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the wazirx api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -625,7 +626,7 @@ class wazirx extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the wazirx api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
@@ -684,7 +685,7 @@ class wazirx extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open $orders for
          * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
          * @param {array} $params extra parameters specific to the wazirx api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -731,7 +732,7 @@ class wazirx extends Exchange {
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the wazirx api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a `$symbol` argument');
@@ -766,7 +767,7 @@ class wazirx extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @see https://docs.wazirx.com/#new-order-trade
          * create a trade order

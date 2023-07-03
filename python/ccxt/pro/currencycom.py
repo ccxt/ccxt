@@ -364,14 +364,14 @@ class currencycom(ccxt.async_support.currencycom):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the currencycom api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
         trades = await self.watch_public('trades.subscribe', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -394,7 +394,7 @@ class currencycom(ccxt.async_support.currencycom):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the currencycom api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -412,7 +412,7 @@ class currencycom(ccxt.async_support.currencycom):
         ohlcv = await self.watch_public(messageHash, symbol, self.extend(request, params))
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_deltas(self, bookside, deltas):
         prices = list(deltas.keys())

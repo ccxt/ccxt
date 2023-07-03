@@ -91,7 +91,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -99,7 +99,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         trades = await self.subscribe(name, symbol, name, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -108,7 +108,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         if symbol is None:
             raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
@@ -120,7 +120,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         trades = await self.subscribe(name, symbol, messageHash, self.extend(params, authentication))
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -129,7 +129,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
@@ -141,7 +141,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         orders = await self.subscribe(name, symbol, messageHash, self.extend(params, authentication))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -224,7 +224,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             client.resolve(tradesArray, messageHash)
         return message
 
-    def parse_ws_trade(self, trade):
+    def parse_ws_trade(self, trade, market=None):
         #
         # private trades
         # {
@@ -453,7 +453,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)
 
-    def parse_ws_order(self, order):
+    def parse_ws_order(self, order, market=None):
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_oid')
         marketId = self.safe_string(order, 'product_id')

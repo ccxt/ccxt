@@ -200,7 +200,7 @@ class mexc(ccxt.async_support.mexc):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -221,7 +221,7 @@ class mexc(ccxt.async_support.mexc):
             ohlcv = await self.watch_swap_public(channel, messageHash, requestParams, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -490,7 +490,7 @@ class mexc(ccxt.async_support.mexc):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -508,7 +508,7 @@ class mexc(ccxt.async_support.mexc):
             trades = await self.watch_swap_public(channel, messageHash, requestParams, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -570,7 +570,7 @@ class mexc(ccxt.async_support.mexc):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -589,7 +589,7 @@ class mexc(ccxt.async_support.mexc):
             trades = await self.watch_swap_private(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trade(self, client: Client, message, subscription=None):
         #
@@ -689,7 +689,7 @@ class mexc(ccxt.async_support.mexc):
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :params string|None params.type: the type of orders to retrieve, can be 'spot' or 'margin'
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         params = self.omit(params, 'type')
@@ -876,8 +876,8 @@ class mexc(ccxt.async_support.mexc):
             'triggerPrice': self.safe_number(order, 'P'),
             'average': self.safe_string(order, 'ap'),
             'amount': self.safe_string(order, 'v'),
-            'cost': self.safe_string(order, 'cv'),
-            'filled': self.safe_string(order, 'ca'),
+            'cost': self.safe_string(order, 'a'),
+            'filled': self.safe_string(order, 'cv'),
             'remaining': self.safe_string(order, 'V'),
             'fee': fee,
             'trades': None,

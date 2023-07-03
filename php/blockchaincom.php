@@ -181,7 +181,7 @@ class blockchaincom extends Exchange {
         /**
          * retrieves data on all $markets for blockchaincom
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing $market data
          */
         //
         //     "USDC-GBP" => {
@@ -404,7 +404,7 @@ class blockchaincom extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the blockchaincom api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -482,7 +482,7 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -634,7 +634,7 @@ class blockchaincom extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the blockchaincom api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $state = 'FILLED';
         return $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
@@ -647,7 +647,7 @@ class blockchaincom extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the blockchaincom api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $state = 'OPEN';
         return $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
@@ -724,7 +724,7 @@ class blockchaincom extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $trades for
          * @param {int|null} $limit the maximum number of $trades structures to retrieve
          * @param {array} $params extra parameters specific to the blockchaincom api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -932,7 +932,7 @@ class blockchaincom extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the blockchaincom api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array(
@@ -973,7 +973,7 @@ class blockchaincom extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the blockchaincom api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array(

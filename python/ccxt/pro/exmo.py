@@ -257,7 +257,7 @@ class exmo(ccxt.async_support.exmo):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -273,7 +273,7 @@ class exmo(ccxt.async_support.exmo):
         }
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -317,7 +317,7 @@ class exmo(ccxt.async_support.exmo):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         await self.authenticate(params)
@@ -339,7 +339,7 @@ class exmo(ccxt.async_support.exmo):
         }
         request = self.deep_extend(message, query)
         trades = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #

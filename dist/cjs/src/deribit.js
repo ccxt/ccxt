@@ -9,6 +9,10 @@ var totp = require('./base/functions/totp.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class deribit
+ * @extends Exchange
+ */
 class deribit extends deribit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -521,7 +525,7 @@ class deribit extends deribit$1 {
          * @name deribit#fetchMarkets
          * @description retrieves data on all markets for deribit
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const currenciesResponse = await this.publicGetGetCurrencies(params);
         //
@@ -548,6 +552,7 @@ class deribit extends deribit$1 {
         //         testnet: false
         //     }
         //
+        const parsedMarkets = {};
         const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
         const result = [];
         for (let i = 0; i < currenciesResult.length; i++) {
@@ -675,6 +680,11 @@ class deribit extends deribit$1 {
                         }
                     }
                 }
+                const parsedMarketValue = this.safeValue(parsedMarkets, symbol);
+                if (parsedMarketValue) {
+                    continue;
+                }
+                parsedMarkets[symbol] = true;
                 const minTradeAmount = this.safeNumber(market, 'min_trade_amount');
                 const tickSize = this.safeNumber(market, 'tick_size');
                 result.push({
@@ -1010,7 +1020,7 @@ class deribit extends deribit$1 {
          * @method
          * @name deribit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -1071,7 +1081,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1220,7 +1230,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1845,7 +1855,7 @@ class deribit extends deribit$1 {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1870,7 +1880,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1900,7 +1910,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1931,7 +1941,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1983,7 +1993,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -2064,7 +2074,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a currency code argument');
@@ -2111,7 +2121,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires a currency code argument');
@@ -2338,9 +2348,9 @@ class deribit extends deribit$1 {
          * @method
          * @name deribit#fetchPositions
          * @description fetch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         let code = undefined;
@@ -2443,7 +2453,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a currency code argument');

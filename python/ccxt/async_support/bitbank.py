@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -105,6 +106,8 @@ class bitbank(Exchange, ImplicitAPI):
                 'public': {
                     'get': [
                         '{pair}/ticker',
+                        'tickers',
+                        'tickers_jpy',
                         '{pair}/depth',
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
@@ -117,7 +120,11 @@ class bitbank(Exchange, ImplicitAPI):
                         'user/spot/order',
                         'user/spot/active_orders',
                         'user/spot/trade_history',
+                        'user/deposit_history',
                         'user/withdrawal_account',
+                        'user/withdrawal_history',
+                        'spot/status',
+                        'spot/pairs',
                     ],
                     'post': [
                         'user/spot/order',
@@ -157,7 +164,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for bitbank
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.marketsGetSpotPairs(params)
         #
@@ -350,7 +357,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bitbank api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -444,7 +451,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitbank api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         if since is None:
             if limit is None:
@@ -593,7 +600,7 @@ class bitbank(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -660,7 +667,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bitbank api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -683,7 +690,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitbank api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {}

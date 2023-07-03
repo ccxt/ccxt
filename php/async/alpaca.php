@@ -56,6 +56,7 @@ class alpaca extends Exchange {
                 'fetchDepositAddress' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
+                'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRates' => false,
@@ -215,7 +216,7 @@ class alpaca extends Exchange {
             /**
              * retrieves data on all $markets for alpaca
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing market data
+             * @return {array[]} an array of objects representing market data
              */
             $request = array(
                 'asset_class' => 'crypto',
@@ -318,7 +319,7 @@ class alpaca extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the alpaca api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -425,7 +426,7 @@ class alpaca extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the alpha api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -501,7 +502,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -639,7 +640,7 @@ class alpaca extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open $orders for
              * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
              * @param {array} $params extra parameters specific to the alpaca api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;

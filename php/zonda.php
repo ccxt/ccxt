@@ -243,6 +243,8 @@ class zonda extends Exchange {
                 ),
             ),
             'options' => array(
+                'fetchTickerMethod' => 'v1_01PublicGetTradingTickerSymbol',  // or v1_01PublicGetTradingStatsSymbol
+                'fetchTickersMethod' => 'v1_01PublicGetTradingTicker',       // or v1_01PublicGetTradingStats
                 'fiatCurrencies' => array( 'EUR', 'USD', 'GBP', 'PLN' ),
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
@@ -289,7 +291,7 @@ class zonda extends Exchange {
          * @see https://docs.zonda.exchange/reference/ticker-1
          * retrieves data on all markets for zonda
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing $market data
          */
         $response = $this->v1_01PublicGetTradingTicker ($params);
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
@@ -393,7 +395,7 @@ class zonda extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -461,7 +463,7 @@ class zonda extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -577,51 +579,78 @@ class zonda extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        //     {
-        //         m => 'ETH-PLN',
-        //         h => '13485.13',
-        //         l => '13100.01',
-        //         v => '126.10710939',
-        //         r24h => '13332.72'
-        //       }
+        // version 1
         //
-        $open = $this->safe_string($ticker, 'r24h');
-        $high = $this->safe_string($ticker, 'h');
-        $low = $this->safe_string($ticker, 'l');
-        $volume = $this->safe_string($ticker, 'v');
-        $marketId = $this->safe_string($ticker, 'm');
-        $market = $this->safe_market($marketId, $market, '-');
-        $symbol = $market['symbol'];
+        //    {
+        //        m => 'ETH-PLN',
+        //        h => '13485.13',
+        //        l => '13100.01',
+        //        v => '126.10710939',
+        //        r24h => '13332.72'
+        //    }
+        //
+        // version 2
+        //
+        //    {
+        //        $market => array(
+        //            code => 'ADA-USDT',
+        //            first => array(
+        //                currency => 'ADA',
+        //                minOffer => '0.2',
+        //                scale => '6'
+        //            ),
+        //            second => array(
+        //                currency => 'USDT',
+        //                minOffer => '0.099',
+        //                scale => '6'
+        //            ),
+        //            amountPrecision => '6',
+        //            pricePrecision => '6',
+        //            ratePrecision => '6'
+        //        ),
+        //        time => '1655812661202',
+        //        highestBid => '0.492',
+        //        lowestAsk => '0.499389',
+        //        $rate => '0.50588',
+        //        previousRate => '0.504981'
+        //    }
+        //
+        $tickerMarket = $this->safe_value($ticker, 'market');
+        $marketId = $this->safe_string_2($tickerMarket, 'code', 'm');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($ticker, 'time');
+        $rate = $this->safe_value($ticker, 'rate');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
-            'timestamp' => null,
-            'datetime' => null,
-            'high' => $high,
-            'low' => $low,
-            'bid' => null,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, 'h'),
+            'low' => $this->safe_string($ticker, 'l'),
+            'bid' => $this->safe_number($ticker, 'highestBid'),
             'bidVolume' => null,
-            'ask' => null,
+            'ask' => $this->safe_number($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
-            'close' => null,
-            'last' => null,
-            'previousClose' => null,
+            'open' => $this->safe_string($ticker, 'r24h'),
+            'close' => $rate,
+            'last' => $rate,
+            'previousClose' => $this->safe_value($ticker, 'previousRate'),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $volume,
+            'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => null,
             'info' => $ticker,
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         /**
+         * v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
          * @see https://docs.zonda.exchange/reference/market-statistics
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} $params extra parameters specific to the zonda api endpoint
+         * @param {string} $params->method v1_01PublicGetTradingTickerSymbol (default) or v1_01PublicGetTradingStatsSymbol
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
@@ -629,47 +658,129 @@ class zonda extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v1_01PublicGetTradingStatsSymbol (array_merge($request, $params));
-        //
-        //     {
-        //       status => 'Ok',
-        //       $stats => {
-        //         m => 'ETH-PLN',
-        //         h => '13485.13',
-        //         l => '13100.01',
-        //         v => '126.10710939',
-        //         r24h => '13332.72'
-        //       }
-        //     }
-        //
-        $stats = $this->safe_value($response, 'stats');
+        $method = 'v1_01PublicGetTradingTickerSymbol';
+        $defaultMethod = $this->safe_string($this->options, 'fetchTickerMethod', $method);
+        $fetchTickerMethod = $this->safe_string_2($params, 'method', 'fetchTickerMethod', $defaultMethod);
+        $response = null;
+        if ($fetchTickerMethod === $method) {
+            $response = $this->v1_01PublicGetTradingTickerSymbol (array_merge($request, $params));
+            //
+            //    {
+            //        "status" => "Ok",
+            //        "ticker" => {
+            //            "market" => array(
+            //                "code" => "ADA-USDT",
+            //                "first" => array(
+            //                    "currency" => "ADA",
+            //                    "minOffer" => "0.21",
+            //                    "scale" => 6
+            //                ),
+            //                "second" => array(
+            //                    "currency" => "USDT",
+            //                    "minOffer" => "0.099",
+            //                    "scale" => 6
+            //                ),
+            //                "amountPrecision" => 6,
+            //                "pricePrecision" => 6,
+            //                "ratePrecision" => 6
+            //            ),
+            //            "time" => "1655810976780",
+            //            "highestBid" => "0.498543",
+            //            "lowestAsk" => "0.50684",
+            //            "rate" => "0.50588",
+            //            "previousRate" => "0.504981"
+            //        }
+            //    }
+            //
+        } elseif ($fetchTickerMethod === 'v1_01PublicGetTradingStatsSymbol') {
+            $response = $this->v1_01PublicGetTradingStatsSymbol (array_merge($request, $params));
+            //
+            //    {
+            //        "status" => "Ok",
+            //        "stats" => {
+            //            "m" => "BTC-USDT",
+            //            "h" => "28800",
+            //            "l" => "26703.950101",
+            //            "v" => "6.72932396",
+            //            "r24h" => "27122.2"
+            //        }
+            //    }
+            //
+        } else {
+            throw new BadRequest($this->id . ' fetchTicker $params["method"] must be "v1_01PublicGetTradingTickerSymbol" or "v1_01PublicGetTradingStatsSymbol"');
+        }
+        $stats = $this->safe_value_2($response, 'ticker', 'stats');
         return $this->parse_ticker($stats, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
+         * @ignore
+         * v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
          * @see https://docs.zonda.exchange/reference/market-statistics
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the zonda api endpoint
+         * @param {string} $params->method v1_01PublicGetTradingTicker (default) or v1_01PublicGetTradingStats
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
-        $response = $this->v1_01PublicGetTradingStats ($params);
-        //
-        //     {
-        //         status => 'Ok',
-        //         $items => {
-        //             'DAI-PLN' => {
-        //                 m => 'DAI-PLN',
-        //                 h => '4.41',
-        //                 l => '4.37',
-        //                 v => '8.71068087',
-        //                 r24h => '4.36'
-        //             }
-        //         }
-        //     }
-        //
+        $method = 'v1_01PublicGetTradingTicker';
+        $defaultMethod = $this->safe_string($this->options, 'fetchTickersMethod', $method);
+        $fetchTickersMethod = $this->safe_string_2($params, 'method', 'fetchTickersMethod', $defaultMethod);
+        $response = null;
+        if ($fetchTickersMethod === $method) {
+            $response = $this->v1_01PublicGetTradingTicker ($params);
+            //
+            //    {
+            //        "status" => "Ok",
+            //        "items" => {
+            //            "DAI-PLN" => array(
+            //                "market" => array(
+            //                    "code" => "DAI-PLN",
+            //                    "first" => array(
+            //                        "currency" => "DAI",
+            //                        "minOffer" => "0.99",
+            //                        "scale" => 8
+            //                    ),
+            //                    "second" => array(
+            //                        "currency" => "PLN",
+            //                        "minOffer" => "5",
+            //                        "scale" => 2
+            //                    ),
+            //                    "amountPrecision" => 8,
+            //                    "pricePrecision" => 2,
+            //                    "ratePrecision" => 2
+            //                ),
+            //                "time" => "1655810825137",
+            //                "highestBid" => "4.42",
+            //                "lowestAsk" => "4.44",
+            //                "rate" => "4.44",
+            //                "previousRate" => "4.43"
+            //            ),
+            //            ...
+            //        }
+            //    }
+            //
+        } elseif ($fetchTickersMethod === 'v1_01PublicGetTradingStats') {
+            $response = $this->v1_01PublicGetTradingStats ($params);
+            //
+            //     {
+            //         status => 'Ok',
+            //         $items => {
+            //             'DAI-PLN' => array(
+            //                 m => 'DAI-PLN',
+            //                 h => '4.41',
+            //                 l => '4.37',
+            //                 v => '8.71068087',
+            //                 r24h => '4.36'
+            //             ),
+            //             ...
+            //         }
+            //     }
+            //
+        } else {
+            throw new BadRequest($this->id . ' fetchTickers $params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"');
+        }
         $items = $this->safe_value($response, 'items');
         return $this->parse_tickers($items, $symbols);
     }
@@ -1059,7 +1170,7 @@ class zonda extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1183,7 +1294,7 @@ class zonda extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1202,7 +1313,7 @@ class zonda extends Exchange {
         return $this->parse_trades($items, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1425,7 +1536,7 @@ class zonda extends Exchange {
         /**
          * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
          * fetch deposit addresses for multiple currencies and chain types
-         * @param {[string]|null} $codes zonda does not support filtering filtering by multiple $codes and will ignore this parameter.
+         * @param {string[]|null} $codes zonda does not support filtering filtering by multiple $codes and will ignore this parameter.
          * @param {array} $params extra parameters specific to the zonda api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
          */

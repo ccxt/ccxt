@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -272,7 +273,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://www.coinspot.com.au/api#latestprices
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinspot api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -314,7 +315,7 @@ class coinspot(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the coinspot api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -368,7 +369,7 @@ class coinspot(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://www.coinspot.com.au/api#placebuyorder

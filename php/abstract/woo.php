@@ -109,6 +109,9 @@ abstract class woo extends \ccxt\Exchange {
     public function v1_private_get_position_symbol($params = array()) {
         return $this->request('position/{symbol}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 3.33));
     }
+    public function v1_private_get_client_transaction_history($params = array()) {
+        return $this->request('client/transaction_history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
     public function v1_private_post_order($params = array()) {
         return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
@@ -175,8 +178,8 @@ abstract class woo extends \ccxt\Exchange {
     public function v3_private_put_algo_order_client_client_order_id($params = array()) {
         return $this->request('algo/order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 2));
     }
-    public function v3_private_delete_algo_order_oid($params = array()) {
-        return $this->request('algo/order/{oid}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    public function v3_private_delete_algo_order_order_id($params = array()) {
+        return $this->request('algo/order/{order_id}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function v3_private_delete_algo_orders_pending($params = array()) {
         return $this->request('algo/orders/pending', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
@@ -289,6 +292,9 @@ abstract class woo extends \ccxt\Exchange {
     public function v1PrivateGetPositionSymbol($params = array()) {
         return $this->request('position/{symbol}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 3.33));
     }
+    public function v1PrivateGetClientTransactionHistory($params = array()) {
+        return $this->request('client/transaction_history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
     public function v1PrivatePostOrder($params = array()) {
         return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
@@ -355,8 +361,8 @@ abstract class woo extends \ccxt\Exchange {
     public function v3PrivatePutAlgoOrderClientClientOrderId($params = array()) {
         return $this->request('algo/order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 2));
     }
-    public function v3PrivateDeleteAlgoOrderOid($params = array()) {
-        return $this->request('algo/order/{oid}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    public function v3PrivateDeleteAlgoOrderOrderId($params = array()) {
+        return $this->request('algo/order/{order_id}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function v3PrivateDeleteAlgoOrdersPending($params = array()) {
         return $this->request('algo/orders/pending', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));

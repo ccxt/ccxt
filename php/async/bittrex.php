@@ -59,6 +59,8 @@ class bittrex extends Exchange {
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -293,7 +295,7 @@ class bittrex extends Exchange {
             /**
              * retrieves data on all markets for bittrex
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetMarkets ($params));
             //
@@ -568,7 +570,7 @@ class bittrex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bittrex api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
@@ -663,7 +665,7 @@ class bittrex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
@@ -790,7 +792,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of trades to fetch
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -915,7 +917,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -977,7 +979,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1049,7 +1051,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1064,7 +1066,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1337,7 +1339,7 @@ class bittrex extends Exchange {
              * cancel all open $orders
              * @param {string|null} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1414,7 +1416,7 @@ class bittrex extends Exchange {
              * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
              * @param {string|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
              * @param {string|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1460,7 +1462,7 @@ class bittrex extends Exchange {
              * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
              * @param {string|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
              * @param {string|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             return $this->fetch_deposits($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
@@ -1501,7 +1503,7 @@ class bittrex extends Exchange {
              * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
              * @param {string|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
              * @param {string|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1544,7 +1546,7 @@ class bittrex extends Exchange {
              * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
              * @param {string|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
              * @param {string|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             return $this->fetch_withdrawals($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
@@ -1880,7 +1882,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1910,7 +1912,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value($params, 'stop');
@@ -2059,6 +2061,77 @@ class bittrex extends Exchange {
                 'network' => null,
                 'info' => $response,
             );
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //     {
+        //         "symbol" => "APXP",
+        //         "name" => "APEX Protocol",
+        //         "coinType" => "ETH_CONTRACT",
+        //         "status" => "ONLINE",
+        //         "minConfirmations" => 36,
+        //         "notice" => "",
+        //         "txFee" => "4702.00000000",
+        //         "logoUrl" => "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+        //         "prohibitedIn" => array(
+        //           "US"
+        //         ),
+        //         "baseAddress" => "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        //         "associatedTermsOfService" => array(
+        //         ),
+        //         "tags" => array(
+        //         )
+        //     }
+        //
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'txFee'),
+                'percentage' => false,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @param {string[]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the bittrex api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetCurrencies ($params));
+            //
+            //   array(
+            //       array(
+            //           "symbol" => "APXP",
+            //           "name" => "APEX Protocol",
+            //           "coinType" => "ETH_CONTRACT",
+            //           "status" => "ONLINE",
+            //           "minConfirmations" => 36,
+            //           "notice" => "",
+            //           "txFee" => "4702.00000000",
+            //           "logoUrl" => "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+            //           "prohibitedIn" => array(
+            //             "US"
+            //           ),
+            //           "baseAddress" => "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+            //           "associatedTermsOfService" => array(
+            //           ),
+            //           "tags" => array(
+            //           )
+            //       ),
+            //   )
+            //
+            return $this->parse_deposit_withdraw_fees($response, $codes, 'symbol');
         }) ();
     }
 

@@ -11,6 +11,7 @@ else:
 
 OrderSide = Literal['buy', 'sell']
 OrderType = Literal['limit', 'market']
+PositionSide = Literal['long', 'short']
 
 
 class Entry:
@@ -43,3 +44,19 @@ class Balance(TypedDict):
 
 
 IndexType = Union[str, int]
+
+
+class Trade(TypedDict):
+    amount: Union[None, str, float]
+    datetime: str
+    id: str
+    info: None
+    order: str
+    price: Union[None, str, float]
+    timestamp: int
+    type: str
+    side: str
+    symbol: str
+    takerOrMaker: str
+    cost: Union[None, str, float]
+    fee: TypedDict

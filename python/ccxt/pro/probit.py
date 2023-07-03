@@ -167,14 +167,14 @@ class probit(ccxt.async_support.probit):
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the probit api endpoint
         :param int|None params['interval']: Unit time to synchronize market information(ms). Available units: 100, 500
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         filter = None
         filter, params = self.handle_option_and_params(params, 'watchTrades', 'filter', 'recent_trades')
         trades = await self.subscribe_order_book(symbol, 'trades', filter, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -222,7 +222,7 @@ class probit(ccxt.async_support.probit):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         await self.authenticate(params)
@@ -241,7 +241,7 @@ class probit(ccxt.async_support.probit):
         trades = await self.watch(url, messageHash, request, channel)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #

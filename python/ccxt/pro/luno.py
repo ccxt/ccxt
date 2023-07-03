@@ -45,7 +45,7 @@ class luno(ccxt.async_support.luno):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of    trades to fetch
         :param dict params: extra parameters specific to the luno api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.check_required_credentials()
         await self.load_markets()
@@ -63,7 +63,7 @@ class luno(ccxt.async_support.luno):
         trades = await self.watch(url, messageHash, request, subscriptionHash, subscription)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message, subscription):
         #

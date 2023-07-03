@@ -242,7 +242,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchTrades');
@@ -253,7 +253,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -296,7 +296,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @param {string} params.method the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchOrders');
@@ -321,7 +321,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {int|undefined} since not used by poloniexfutures watchBalance
          * @param {int|undefined} limit not used by poloniexfutures watchBalance
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
         const name = '/contractAccount/wallet';

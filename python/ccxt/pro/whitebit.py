@@ -71,7 +71,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the whitebit api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -89,7 +89,7 @@ class whitebit(ccxt.async_support.whitebit):
         ohlcv = await self.watch_public(messageHash, method, reqParams, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -293,7 +293,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the whitebit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -304,7 +304,7 @@ class whitebit(ccxt.async_support.whitebit):
         trades = await self.watch_multiple_subscription(messageHash, method, symbol, False, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -354,7 +354,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the whitebit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol argument')
@@ -367,7 +367,7 @@ class whitebit(ccxt.async_support.whitebit):
         trades = await self.watch_multiple_subscription(messageHash, method, symbol, True, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message, subscription=None):
         #
@@ -447,7 +447,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the whitebit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
@@ -460,7 +460,7 @@ class whitebit(ccxt.async_support.whitebit):
         trades = await self.watch_multiple_subscription(messageHash, method, symbol, False, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_order(self, client: Client, message, subscription=None):
         #
@@ -496,13 +496,13 @@ class whitebit(ccxt.async_support.whitebit):
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
         status = self.safe_integer(params, 0)
-        parsed = self.parse_ws_order(data, status)
+        parsed = self.parse_ws_order(self.extend(data, {'status': status}))
         stored.append(parsed)
         symbol = parsed['symbol']
         messageHash = 'orders:' + symbol
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, status, market=None):
+    def parse_ws_order(self, order, market=None):
         #
         #   {
         #         id: 96433622651,
@@ -522,8 +522,10 @@ class whitebit(ccxt.async_support.whitebit):
         #         activation_price: '40',
         #         activation_condition: 'lte',
         #         client_order_id: ''
+        #         status: 1,  # 1 = new, 2 = update 3 = cancel or execute
         #    }
         #
+        status = self.safe_integer(order, 'status')
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
         id = self.safe_string(order, 'id')
@@ -554,13 +556,14 @@ class whitebit(ccxt.async_support.whitebit):
                 'cost': self.parse_number(dealFee),
                 'currency': market['quote'],
             }
+        unifiedStatus = None
         if (status == 1) or (status == 2):
-            status = 'open'
+            unifiedStatus = 'open'
         else:
             if Precise.string_equals(remaining, '0'):
-                status = 'closed'
+                unifiedStatus = 'closed'
             else:
-                status = 'canceled'
+                unifiedStatus = 'canceled'
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -581,7 +584,7 @@ class whitebit(ccxt.async_support.whitebit):
             'average': None,
             'filled': filled,
             'remaining': remaining,
-            'status': status,
+            'status': unifiedStatus,
             'fee': fee,
             'trades': None,
         }, market)

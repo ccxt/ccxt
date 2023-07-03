@@ -12,6 +12,10 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class krakenfutures
+ * @extends Exchange
+ */
 export default class krakenfutures extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -42,9 +46,9 @@ export default class krakenfutures extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined,
                 'fetchFundingHistory': undefined,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverageTiers': true,
@@ -69,6 +73,7 @@ export default class krakenfutures extends Exchange {
                 'test': {
                     'public': 'https://demo-futures.kraken.com/derivatives/api/',
                     'private': 'https://demo-futures.kraken.com/derivatives/api/',
+                    'charts': 'https://demo-futures.kraken.com/api/charts/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -1247,6 +1252,7 @@ export default class krakenfutures extends Exchange {
         const marketId = this.safeString(details, 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.parse8601(this.safeString2(details, 'timestamp', 'receivedTime'));
+        const lastUpdateTimestamp = this.parse8601(this.safeString(details, 'lastUpdateTime'));
         if (price === undefined) {
             price = this.safeString(details, 'limitPrice');
         }
@@ -1319,6 +1325,7 @@ export default class krakenfutures extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': this.safeString(market, 'symbol'),
             'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
@@ -1590,6 +1597,91 @@ export default class krakenfutures extends Exchange {
         }
         return this.safeBalance(result);
     }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchFundingRates
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+         * @description fetch the current funding rates
+         * @param {string[]} symbols unified market symbols
+         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets();
+        const marketIds = this.marketIds(symbols);
+        const response = await this.publicGetTickers(params);
+        const tickers = this.safeValue(response, 'tickers');
+        const fundingRates = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const entry = tickers[i];
+            const entry_symbol = this.safeValue(entry, 'symbol');
+            if (marketIds !== undefined) {
+                if (!this.inArray(entry_symbol, marketIds)) {
+                    continue;
+                }
+            }
+            const market = this.safeMarket(entry_symbol);
+            const parsed = this.parseFundingRate(entry, market);
+            fundingRates.push(parsed);
+        }
+        return this.indexBy(fundingRates, 'symbol');
+    }
+    parseFundingRate(ticker, market = undefined) {
+        //
+        // {'ask': 26.283,
+        //  'askSize': 4.6,
+        //  'bid': 26.201,
+        //  'bidSize': 190,
+        //  'fundingRate': -0.000944642727438883,
+        //  'fundingRatePrediction': -0.000872671532340275,
+        //  'indexPrice': 26.253,
+        //  'last': 26.3,
+        //  'lastSize': 0.1,
+        //  'lastTime': '2023-06-11T18:55:28.958Z',
+        //  'markPrice': 26.239,
+        //  'open24h': 26.3,
+        //  'openInterest': 641.1,
+        //  'pair': 'COMP:USD',
+        //  'postOnly': False,
+        //  'suspended': False,
+        //  'symbol': 'pf_compusd',
+        //  'tag': 'perpetual',
+        //  'vol24h': 0.1,
+        //  'volumeQuote': 2.63}
+        //
+        const fundingRateMultiplier = '8'; // https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
+        const marketId = this.safeString(ticker, 'symbol');
+        const symbol = this.symbol(marketId);
+        const timestamp = this.parse8601(this.safeString(ticker, 'lastTime'));
+        const indexPrice = this.safeNumber(ticker, 'indexPrice');
+        const markPriceString = this.safeString(ticker, 'markPrice');
+        const markPrice = this.parseNumber(markPriceString);
+        const fundingRateString = this.safeString(ticker, 'fundingRate');
+        const fundingRateResult = Precise.stringDiv(Precise.stringMul(fundingRateString, fundingRateMultiplier), markPriceString);
+        const fundingRate = this.parseNumber(fundingRateResult);
+        const nextFundingRateString = this.safeString(ticker, 'fundingRatePrediction');
+        const nextFundingRateResult = Precise.stringDiv(Precise.stringMul(nextFundingRateString, fundingRateMultiplier), markPriceString);
+        const nextFundingRate = this.parseNumber(nextFundingRateResult);
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': nextFundingRate,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
@@ -1634,7 +1726,7 @@ export default class krakenfutures extends Exchange {
          * @method
          * @name krakenfutures#fetchPositions
          * @description Fetches current contract trading positions
-         * @param {[string]} symbols List of unified symbols
+         * @param {string[]} symbols List of unified symbols
          * @param {object} params Not used by krakenfutures
          * @returns Parsed exchange response for positions
          */

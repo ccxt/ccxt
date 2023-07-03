@@ -47,7 +47,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the independentreserve api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -55,7 +55,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         url = self.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote']
         messageHash = 'trades:' + symbol
         trades = await self.watch(url, messageHash, None, messageHash)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #

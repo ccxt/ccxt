@@ -7,6 +7,10 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class bittrex
+ * @extends Exchange
+ */
 class bittrex extends bittrex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -47,6 +51,8 @@ class bittrex extends bittrex$1 {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -280,7 +286,7 @@ class bittrex extends bittrex$1 {
          * @name bittrex#fetchMarkets
          * @description retrieves data on all markets for bittrex
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets(params);
         //
@@ -549,7 +555,7 @@ class bittrex extends bittrex$1 {
          * @method
          * @name bittrex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bittrex api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -642,7 +648,7 @@ class bittrex extends bittrex$1 {
          * @method
          * @name bittrex#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -767,7 +773,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -886,7 +892,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -949,7 +955,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1020,7 +1026,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1315,7 +1321,7 @@ class bittrex extends bittrex$1 {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1390,7 +1396,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
          * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
          * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1436,7 +1442,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
          * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
          * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         return this.fetchDeposits(code, since, limit, this.extend(params, { 'status': 'pending' }));
@@ -1475,7 +1481,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
          * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
          * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1518,7 +1524,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
          * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
          * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         return this.fetchWithdrawals(code, since, limit, this.extend(params, { 'status': 'pending' }));
@@ -1857,7 +1863,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1886,7 +1892,7 @@ class bittrex extends bittrex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const stop = this.safeValue(params, 'stop');
@@ -2033,6 +2039,75 @@ class bittrex extends bittrex$1 {
             'network': undefined,
             'info': response,
         };
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //     {
+        //         "symbol": "APXP",
+        //         "name": "APEX Protocol",
+        //         "coinType": "ETH_CONTRACT",
+        //         "status": "ONLINE",
+        //         "minConfirmations": 36,
+        //         "notice": "",
+        //         "txFee": "4702.00000000",
+        //         "logoUrl": "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+        //         "prohibitedIn": [
+        //           "US"
+        //         ],
+        //         "baseAddress": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        //         "associatedTermsOfService": [
+        //         ],
+        //         "tags": [
+        //         ]
+        //     }
+        //
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber(fee, 'txFee'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicGetCurrencies(params);
+        //
+        //   [
+        //       {
+        //           "symbol": "APXP",
+        //           "name": "APEX Protocol",
+        //           "coinType": "ETH_CONTRACT",
+        //           "status": "ONLINE",
+        //           "minConfirmations": 36,
+        //           "notice": "",
+        //           "txFee": "4702.00000000",
+        //           "logoUrl": "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+        //           "prohibitedIn": [
+        //             "US"
+        //           ],
+        //           "baseAddress": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        //           "associatedTermsOfService": [
+        //           ],
+        //           "tags": [
+        //           ]
+        //       },
+        //   ]
+        //
+        return this.parseDepositWithdrawFees(response, codes, 'symbol');
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**

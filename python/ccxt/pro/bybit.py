@@ -314,7 +314,7 @@ class bybit(ccxt.async_support.bybit):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -328,7 +328,7 @@ class bybit(ccxt.async_support.bybit):
         ohlcv = await self.watch_topics(url, messageHash, topics, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -377,7 +377,7 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'kline' + ':' + timeframeId + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv):
+    def parse_ws_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "start": 1670363160000,
@@ -394,7 +394,7 @@ class bybit(ccxt.async_support.bybit):
         #     }
         #
         return [
-            self.safe_integer(ohlcv, 'timestamp'),
+            self.safe_integer(ohlcv, 'start'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -507,7 +507,7 @@ class bybit(ccxt.async_support.bybit):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -519,7 +519,7 @@ class bybit(ccxt.async_support.bybit):
         trades = await self.watch_topics(url, messageHash, [topic], params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -646,7 +646,7 @@ class bybit(ccxt.async_support.bybit):
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
         :param boolean params['unifiedMargin']: use unified margin account
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         method = 'watchMyTrades'
         messageHash = 'myTrades'
@@ -665,7 +665,7 @@ class bybit(ccxt.async_support.bybit):
         trades = await self.watch_topics(url, messageHash, [topic], params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -763,7 +763,7 @@ class bybit(ccxt.async_support.bybit):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         method = 'watchOrders'

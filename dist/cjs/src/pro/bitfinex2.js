@@ -79,7 +79,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the biftfinex2 api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -99,7 +99,7 @@ class bitfinex2 extends bitfinex2$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message, subscription) {
         //
@@ -193,13 +193,13 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the bitfinex2 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.subscribe('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -210,7 +210,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitfinex2 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         let messageHash = 'myTrade';
@@ -222,7 +222,7 @@ class bitfinex2 extends bitfinex2$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -259,7 +259,7 @@ class bitfinex2 extends bitfinex2$1 {
         //
         const name = 'myTrade';
         const data = this.safeValue(message, 2);
-        const trade = this.parseWsTrade(data, false);
+        const trade = this.parseWsTrade(data);
         const symbol = trade['symbol'];
         const market = this.market(symbol);
         const messageHash = name + ':' + market['id'];
@@ -317,13 +317,12 @@ class bitfinex2 extends bitfinex2$1 {
             stored = new Cache.ArrayCache(tradesLimit);
             this.trades[symbol] = stored;
         }
-        const isPublicTrade = true;
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
             const trades = this.safeValue(message, 1, []);
             for (let i = 0; i < trades.length; i++) {
-                const parsed = this.parseWsTrade(trades[i], isPublicTrade, market);
+                const parsed = this.parseWsTrade(trades[i], market);
                 stored.append(parsed);
             }
         }
@@ -336,13 +335,13 @@ class bitfinex2 extends bitfinex2$1 {
                 return;
             }
             const trade = this.safeValue(message, 2, []);
-            const parsed = this.parseWsTrade(trade, isPublicTrade, market);
+            const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
         return message;
     }
-    parseWsTrade(trade, isPublic = false, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -385,6 +384,8 @@ class bitfinex2 extends bitfinex2$1 {
         //       1655110144596
         //    ]
         //
+        const numFields = trade.length;
+        const isPublic = numFields <= 8;
         let marketId = (!isPublic) ? this.safeString(trade, 1) : undefined;
         market = this.safeMarket(marketId, market);
         const createdKey = isPublic ? 1 : 2;
@@ -878,7 +879,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitfinex2 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         let messageHash = 'orders';
@@ -975,7 +976,7 @@ class bitfinex2 extends bitfinex2$1 {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1040,7 +1041,7 @@ class bitfinex2 extends bitfinex2$1 {
         const trimmedStatus = this.safeString(stateParts, 0);
         const status = this.parseWsOrderStatus(trimmedStatus);
         const price = this.safeString(order, 16);
-        const timestamp = this.safeInteger(order, 4);
+        const timestamp = this.safeInteger2(order, 5, 4);
         const average = this.safeString(order, 17);
         const stopPrice = this.omitZero(this.safeString(order, 18));
         return this.safeOrder({

@@ -37,6 +37,7 @@ class btcmarkets extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => 'emulated',
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -186,7 +187,8 @@ class btcmarkets extends Exchange {
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch history of deposits and withdrawals
+         * @deprecated
+         * use fetchDepositsWithdrawals instead
          * @param {string|null} $code unified currency $code for the currency of the transactions, default is null
          * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
          * @param {int|null} $limit max number of transactions to return, default is null
@@ -203,7 +205,7 @@ class btcmarkets extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         return $this->fetch_transactions_with_method('privateGetDeposits', $code, $since, $limit, $params);
     }
@@ -215,7 +217,7 @@ class btcmarkets extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         return $this->fetch_transactions_with_method('privateGetWithdrawals', $code, $since, $limit, $params);
     }
@@ -346,7 +348,7 @@ class btcmarkets extends Exchange {
         /**
          * retrieves data on all markets for btcmarkets
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetMarkets ($params);
         //
@@ -502,7 +504,7 @@ class btcmarkets extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -734,7 +736,7 @@ class btcmarkets extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -753,7 +755,7 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -850,7 +852,7 @@ class btcmarkets extends Exchange {
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
-         * @param {[string]} $ids order $ids
+         * @param {string[]} $ids order $ids
          * @param {string|null} $symbol not used by btcmarkets cancelOrders ()
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1006,7 +1008,7 @@ class btcmarkets extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
@@ -1034,7 +1036,7 @@ class btcmarkets extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $request = array( 'status' => 'open' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
@@ -1047,7 +1049,7 @@ class btcmarkets extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
@@ -1060,7 +1062,7 @@ class btcmarkets extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();

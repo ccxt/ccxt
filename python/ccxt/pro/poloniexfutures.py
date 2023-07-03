@@ -232,7 +232,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'watchTrades')
@@ -242,7 +242,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         trades = await self.subscribe(name, False, symbol, None, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -279,7 +279,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
         :param str params['method']: the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'watchOrders')
@@ -300,7 +300,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :param int|None since: not used by poloniexfutures watchBalance
         :param int|None limit: not used by poloniexfutures watchBalance
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         name = '/contractAccount/wallet'

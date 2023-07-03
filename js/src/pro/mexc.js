@@ -204,7 +204,7 @@ export default class mexc extends mexcRest {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -228,7 +228,7 @@ export default class mexc extends mexcRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -516,7 +516,7 @@ export default class mexc extends mexcRest {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -537,7 +537,7 @@ export default class mexc extends mexcRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -605,7 +605,7 @@ export default class mexc extends mexcRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets();
         let messageHash = 'myTrades';
@@ -628,7 +628,7 @@ export default class mexc extends mexcRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrade(client, message, subscription = undefined) {
         //
@@ -734,7 +734,7 @@ export default class mexc extends mexcRest {
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @params {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
         params = this.omit(params, 'type');
@@ -929,8 +929,8 @@ export default class mexc extends mexcRest {
             'triggerPrice': this.safeNumber(order, 'P'),
             'average': this.safeString(order, 'ap'),
             'amount': this.safeString(order, 'v'),
-            'cost': this.safeString(order, 'cv'),
-            'filled': this.safeString(order, 'ca'),
+            'cost': this.safeString(order, 'a'),
+            'filled': this.safeString(order, 'cv'),
             'remaining': this.safeString(order, 'V'),
             'fee': fee,
             'trades': undefined,

@@ -41,6 +41,7 @@ class bitfinex2 extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
@@ -449,7 +450,7 @@ class bitfinex2 extends Exchange {
         /**
          * retrieves data on all $markets for bitfinex2
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing $market data
          */
         $spotMarketsInfo = $this->publicGetConfPubInfoPair ($params);
         $futuresMarketsInfo = $this->publicGetConfPubInfoPairFutures ($params);
@@ -1079,7 +1080,7 @@ class bitfinex2 extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
@@ -1249,7 +1250,7 @@ class bitfinex2 extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of $trades to fetch
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1288,7 +1289,7 @@ class bitfinex2 extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1450,7 +1451,7 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an $order on the exchange
          * @param {string} $symbol Unified CCXT $market $symbol
@@ -1616,7 +1617,7 @@ class bitfinex2 extends Exchange {
          * cancel all open $orders
          * @param {string|null} $symbol unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $request = array(
             'all' => 1,
@@ -1701,7 +1702,7 @@ class bitfinex2 extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -1762,7 +1763,7 @@ class bitfinex2 extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         // returns the most recent closed or canceled orders up to circa two weeks ago
         $this->load_markets();
@@ -1831,7 +1832,7 @@ class bitfinex2 extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades to retrieve
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
@@ -1855,7 +1856,7 @@ class bitfinex2 extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -2215,7 +2216,8 @@ class bitfinex2 extends Exchange {
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch history of deposits and withdrawals
+         * @deprecated
+         * use fetchDepositsWithdrawals instead
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
          * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
          * @param {int|null} $limit max number of transactions to return, default is null
@@ -2360,9 +2362,9 @@ class bitfinex2 extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
-         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
         $response = $this->privatePostAuthRPositions ($params);

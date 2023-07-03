@@ -89,7 +89,7 @@ class coinbasepro extends coinbasepro$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -98,7 +98,7 @@ class coinbasepro extends coinbasepro$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -109,7 +109,7 @@ class coinbasepro extends coinbasepro$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         if (symbol === undefined) {
             throw new errors.BadSymbol(this.id + ' watchMyTrades requires a symbol');
@@ -123,7 +123,7 @@ class coinbasepro extends coinbasepro$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -134,7 +134,7 @@ class coinbasepro extends coinbasepro$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.BadSymbol(this.id + ' watchMyTrades requires a symbol');
@@ -148,7 +148,7 @@ class coinbasepro extends coinbasepro$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -237,7 +237,7 @@ class coinbasepro extends coinbasepro$1 {
         }
         return message;
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         //
         // private trades
         // {
@@ -298,7 +298,7 @@ class coinbasepro extends coinbasepro$1 {
             parsed['takerOrMaker'] = 'taker';
             feeRate = this.safeNumber(trade, 'taker_fee_rate');
         }
-        const market = this.market(parsed['symbol']);
+        market = this.market(parsed['symbol']);
         const feeCurrency = market['quote'];
         let feeCost = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
@@ -486,7 +486,7 @@ class coinbasepro extends coinbasepro$1 {
             }
         }
     }
-    parseWsOrder(order) {
+    parseWsOrder(order, market = undefined) {
         const id = this.safeString(order, 'order_id');
         const clientOrderId = this.safeString(order, 'client_oid');
         const marketId = this.safeString(order, 'product_id');

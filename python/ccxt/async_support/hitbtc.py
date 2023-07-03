@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -58,6 +59,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': False,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -86,7 +88,6 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactions': True,
-                'fetchWithdrawals': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -221,8 +222,8 @@ class hitbtc(Exchange, ImplicitAPI):
                 'networks': {
                     'ETH': 'T20',
                     'ERC20': 'T20',
-                    'TRX': 'TTRX',
-                    'TRC20': 'TTRX',
+                    'TRX': 'TRX',
+                    'TRC20': 'TRX',
                     'OMNI': '',
                 },
                 'defaultTimeInForce': 'FOK',
@@ -288,7 +289,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for hitbtc
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetSymbol(params)
         #
@@ -610,7 +611,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -683,7 +684,7 @@ class hitbtc(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the hitbtc api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -796,7 +797,8 @@ class hitbtc(Exchange, ImplicitAPI):
 
     async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+         * @deprecated
+        use fetchDepositsWithdrawals instead
         see https://api.hitbtc.com/v2#get-transactions-history
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None
@@ -913,7 +915,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -928,7 +930,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = await self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1149,7 +1151,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1167,7 +1169,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1196,7 +1198,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {
@@ -1253,7 +1255,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         # The id needed here is the exchange's id, and not the clientOrderID,
         # which is the id that is stored in the unified order id

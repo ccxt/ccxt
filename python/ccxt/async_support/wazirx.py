@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wazirx import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -51,6 +52,7 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchDepositAddress': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -168,7 +170,7 @@ class wazirx(Exchange, ImplicitAPI):
         see https://docs.wazirx.com/#exchange-info
         retrieves data on all markets for wazirx
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetExchangeInfo(params)
         #
@@ -282,7 +284,7 @@ class wazirx(Exchange, ImplicitAPI):
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the wazirx api endpoint
         :param int|None params['until']: timestamp in s of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -388,7 +390,7 @@ class wazirx(Exchange, ImplicitAPI):
         """
         see https://docs.wazirx.com/#24hr-tickers-price-change-statistics
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the wazirx api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -427,7 +429,7 @@ class wazirx(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -614,7 +616,7 @@ class wazirx(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
@@ -669,7 +671,7 @@ class wazirx(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -714,7 +716,7 @@ class wazirx(Exchange, ImplicitAPI):
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a `symbol` argument')
@@ -745,7 +747,7 @@ class wazirx(Exchange, ImplicitAPI):
         response = await self.privateDeleteOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         see https://docs.wazirx.com/#new-order-trade
         create a trade order

@@ -198,7 +198,7 @@ class wazirx extends \ccxt\async\wazirx {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @see https://docs.wazirx.com/#all-market-$tickers-$stream
-             * @param {[string]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the wazirx api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
@@ -303,7 +303,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the wazirx api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -319,7 +319,7 @@ class wazirx extends \ccxt\async\wazirx {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -371,7 +371,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the wazirx api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate($params));
@@ -391,7 +391,7 @@ class wazirx extends \ccxt\async\wazirx {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -404,7 +404,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the wazirx api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -421,7 +421,7 @@ class wazirx extends \ccxt\async\wazirx {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -620,7 +620,7 @@ class wazirx extends \ccxt\async\wazirx {
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order) {
+    public function parse_ws_order($order, $market = null) {
         //
         //     {
         //         "E" => 1631683058904,

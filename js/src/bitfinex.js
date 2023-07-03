@@ -11,6 +11,10 @@ import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class bitfinex
+ * @extends Exchange
+ */
 export default class bitfinex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -38,6 +42,7 @@ export default class bitfinex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': false,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchIndexOHLCV': false,
@@ -61,7 +66,6 @@ export default class bitfinex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -396,11 +400,12 @@ export default class bitfinex extends Exchange {
         /**
          * @method
          * @name bitfinex#fetchTransactionFees
-         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFees instead
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
-         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const result = {};
@@ -434,9 +439,9 @@ export default class bitfinex extends Exchange {
          * @name bitfinex#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
-         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostAccountFees(params);
@@ -556,7 +561,7 @@ export default class bitfinex extends Exchange {
          * @name bitfinex#fetchMarkets
          * @description retrieves data on all markets for bitfinex
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const ids = await this.publicGetSymbols();
         //
@@ -843,7 +848,7 @@ export default class bitfinex extends Exchange {
          * @method
          * @name bitfinex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitfinex api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -991,7 +996,7 @@ export default class bitfinex extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1014,7 +1019,7 @@ export default class bitfinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a `symbol` argument');
@@ -1209,7 +1214,7 @@ export default class bitfinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         if (symbol !== undefined) {
@@ -1233,7 +1238,7 @@ export default class bitfinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -1295,7 +1300,7 @@ export default class bitfinex extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         if (limit === undefined) {
@@ -1381,7 +1386,8 @@ export default class bitfinex extends Exchange {
         /**
          * @method
          * @name bitfinex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @deprecated
+         * @description use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -1567,9 +1573,9 @@ export default class bitfinex extends Exchange {
          * @method
          * @name bitfinex#fetchPositions
          * @description fetch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostPositions(params);

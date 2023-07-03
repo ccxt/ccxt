@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -371,7 +372,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for kraken
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetAssetPairs(params)
         #
@@ -450,6 +451,7 @@ class kraken(Exchange, ImplicitAPI):
             precisionPrice = self.parse_number(self.parse_precision(self.safe_string(market, 'pair_decimals')))
             result.append({
                 'id': id,
+                'wsId': self.safe_string(market, 'wsname'),
                 'symbol': altname if darkpool else (base + '/' + quote),
                 'base': base,
                 'quote': quote,
@@ -761,7 +763,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the kraken api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -837,7 +839,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1103,7 +1105,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1182,8 +1184,9 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+        see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1191,6 +1194,8 @@ class kraken(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the kraken api endpoint
+        :param bool params.postOnly:
+        :param bool params.reduceOnly:
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1305,9 +1310,26 @@ class kraken(Exchange, ImplicitAPI):
         #             "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
         #         }
         #     }
+        #  ws - createOrder
+        #    {
+        #        descr: 'sell 0.00010000 XBTUSDT @ market',
+        #        event: 'addOrderStatus',
+        #        reqid: 1,
+        #        status: 'ok',
+        #        txid: 'OAVXZH-XIE54-JCYYDG'
+        #    }
+        #  ws - editOrder
+        #    {
+        #        "descr": "order edited price = 9000.00000000",
+        #        "event": "editOrderStatus",
+        #        "originaltxid": "O65KZW-J4AW3-VFS74A",
+        #        "reqid": 3,
+        #        "status": "ok",
+        #        "txid": "OTI672-HJFAO-XOIPPK"
+        #    }
         #
         description = self.safe_value(order, 'descr', {})
-        orderDescription = self.safe_string(description, 'order')
+        orderDescription = self.safe_string(description, 'order', description)
         side = None
         type = None
         marketId = None
@@ -1346,11 +1368,12 @@ class kraken(Exchange, ImplicitAPI):
             price = self.safe_string(description, 'price2')
         if (price is None) or Precise.string_equals(price, '0'):
             price = self.safe_string(order, 'price', price)
+        flags = self.safe_string(order, 'oflags', '')
+        isPostOnly = flags.find('post') > -1
         average = self.safe_number(order, 'price')
         if market is not None:
             symbol = market['symbol']
             if 'fee' in order:
-                flags = order['oflags']
                 feeCost = self.safe_string(order, 'fee')
                 fee = {
                     'cost': feeCost,
@@ -1379,7 +1402,7 @@ class kraken(Exchange, ImplicitAPI):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
-            'postOnly': None,
+            'postOnly': isPostOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1442,10 +1465,21 @@ class kraken(Exchange, ImplicitAPI):
             if closePrice2 is not None:
                 close['price2'] = self.price_to_precision(symbol, closePrice2)
             request['close'] = close
-        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close'])
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'timeinforce')
+        if timeInForce is not None:
+            request['timeinforce'] = timeInForce
+        isMarket = (type == 'market')
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, False, params)
+        if postOnly:
+            request['oflags'] = 'post'
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly:
+            request['reduce_only'] = True
+        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly'])
         return [request, params]
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
@@ -1561,7 +1595,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         orderTrades = self.safe_value(params, 'trades')
         tradeIds = []
@@ -1646,7 +1680,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {
@@ -1720,7 +1754,7 @@ class kraken(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
-        :param [str] ids: open orders transaction ID(txid) or user reference(userref)
+        :param str[] ids: open orders transaction ID(txid) or user reference(userref)
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the kraken api endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1744,7 +1778,7 @@ class kraken(Exchange, ImplicitAPI):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         return await self.privatePostCancelAll(params)
@@ -1756,7 +1790,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1782,7 +1816,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1970,7 +2004,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # https://www.kraken.com/en-us/help/api#deposit-status
         if code is None:
@@ -2023,7 +2057,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # https://www.kraken.com/en-us/help/api#withdraw-status
         if code is None:
@@ -2201,9 +2235,9 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        :param [str]|None symbols: not used by kraken fetchPositions()
+        :param str[]|None symbols: not used by kraken fetchPositions()
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         request = {

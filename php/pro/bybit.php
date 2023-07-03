@@ -326,7 +326,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -341,7 +341,7 @@ class bybit extends \ccxt\async\bybit {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -396,7 +396,7 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv) {
+    public function parse_ws_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "start" => 1670363160000,
@@ -413,7 +413,7 @@ class bybit extends \ccxt\async\bybit {
         //     }
         //
         return array(
-            $this->safe_integer($ohlcv, 'timestamp'),
+            $this->safe_integer($ohlcv, 'start'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
@@ -541,7 +541,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -554,7 +554,7 @@ class bybit extends \ccxt\async\bybit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -692,7 +692,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bybit api endpoint
              * @param {boolean} $params->unifiedMargin use unified margin account
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             $method = 'watchMyTrades';
             $messageHash = 'myTrades';
@@ -713,7 +713,7 @@ class bybit extends \ccxt\async\bybit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -819,7 +819,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $method = 'watchOrders';

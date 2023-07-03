@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
+use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\Precise;
@@ -701,7 +702,7 @@ class phemex extends Exchange {
             /**
              * retrieves data on all markets for phemex
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing $market data
              */
             $v2Products = Async\await($this->publicGetCfgV2Products ($params));
             //
@@ -1110,44 +1111,46 @@ class phemex extends Exchange {
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $since *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $userLimit = $limit;
             $request = array(
                 'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-                // 'from' => 1588830682, // seconds
-                // 'to' => $this->seconds(),
             );
-            $duration = $this->parse_timeframe($timeframe);
-            $now = $this->seconds();
             $possibleLimitValues = array( 5, 10, 50, 100, 500, 1000 );
-            $maxLimit = 1000; // maximum $limit, we shouldn't sent $request of more than it
-            if ($limit === null) {
-                $limit = 100; // set default, doesn't have any defaults and needs something to be set
+            $maxLimit = 1000;
+            if ($limit === null && $since === null) {
+                $limit = $possibleLimitValues[5];
             }
-            $limit = min ($limit, $maxLimit);
-            if ($since !== null) { // phemex also provides kline query with from/to, however, this interface is NOT recommended.
-                $since = $this->parse_to_int($since / 1000);
-                $request['from'] = $since;
-                // time ranges ending in the future are not accepted
-                // https://github.com/ccxt/ccxt/issues/8050
-                $request['to'] = min ($now, $this->sum($since, $duration * $limit));
+            if ($since !== null) {
+                // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
+                // we do not send $since param to the exchange, instead we calculate appropriate $limit param
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $timeDelta = $this->milliseconds() - $since;
+                $limit = $this->parse_to_int($timeDelta / $duration); // setting $limit to the number of candles after $since
+            }
+            if ($limit > $maxLimit) {
+                $limit = $maxLimit;
             } else {
-                if (!$this->in_array($limit, $possibleLimitValues)) {
-                    $limit = 100;
+                for ($i = 0; $i < count($possibleLimitValues); $i++) {
+                    if ($limit <= $possibleLimitValues[$i]) {
+                        $limit = $possibleLimitValues[$i];
+                    }
                 }
-                $request['limit'] = $limit;
             }
-            $method = 'publicGetMdV2Kline';
+            $request['limit'] = $limit;
+            $response = null;
             if ($market['linear'] || $market['settle'] === 'USDT') {
-                $method = 'publicGetMdV2KlineLast';
+                $response = Async\await($this->publicGetMdV2KlineLast (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetMdV2Kline (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code":0,
@@ -1164,7 +1167,7 @@ class phemex extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $rows = $this->safe_value($data, 'rows', array());
-            return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
+            return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $userLimit);
         }) ();
     }
 
@@ -1227,7 +1230,7 @@ class phemex extends Exchange {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
         $last = $this->from_ep($this->safe_string_2($ticker, 'lastEp', 'closeRp'), $market);
-        $quoteVolume = $this->from_ev($this->safe_string_2($ticker, 'turnoverEv', 'turnoverRv'), $market);
+        $quoteVolume = $this->from_er($this->safe_string_2($ticker, 'turnoverEv', 'turnoverRv'), $market);
         $baseVolume = $this->safe_string($ticker, 'volume');
         if ($baseVolume === null) {
             $baseVolume = $this->from_ev($this->safe_string_2($ticker, 'volumeEv', 'volumeRq'), $market);
@@ -1337,7 +1340,7 @@ class phemex extends Exchange {
              * @see https://phemex-docs.github.io/#$query-24-hours-ticker-for-all-$symbols-2     // spot
              * @see https://phemex-docs.github.io/#$query-24-ticker-for-all-$symbols             // linear
              * @see https://phemex-docs.github.io/#$query-24-hours-ticker-for-all-$symbols       // inverse
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the phemex api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
@@ -1376,7 +1379,7 @@ class phemex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1463,6 +1466,9 @@ class phemex extends Exchange {
         //         "leavesQuoteQtyEv" => 0,
         //         "execFeeEv" => 0,
         //         "feeRateEr" => 0
+        //         "baseCurrency" => 'BTC',
+        //         "quoteCurrency" => 'USDT',
+        //         "feeCurrency" => 'BTC'
         //     }
         //
         // swap
@@ -1632,12 +1638,12 @@ class phemex extends Exchange {
                 $priceString = $this->from_ep($this->safe_string($trade, 'execPriceEp'), $market);
                 $amountString = $this->from_ev($this->safe_string($trade, 'execBaseQtyEv'), $market);
                 $amountString = $this->safe_string($trade, 'execQty', $amountString);
-                $costString = $this->from_ev($this->safe_string_2($trade, 'execQuoteQtyEv', 'execValueEv'), $market);
-                $feeCostString = $this->from_ev($this->safe_string($trade, 'execFeeEv'), $market);
+                $costString = $this->from_er($this->safe_string_2($trade, 'execQuoteQtyEv', 'execValueEv'), $market);
+                $feeCostString = $this->from_er($this->safe_string($trade, 'execFeeEv'), $market);
                 if ($feeCostString !== null) {
                     $feeRateString = $this->from_er($this->safe_string($trade, 'feeRateEr'), $market);
                     if ($market['spot']) {
-                        $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
+                        $feeCurrencyCode = $this->safe_currency_code($this->safe_string($trade, 'feeCurrency'));
                     } else {
                         $info = $this->safe_value($market, 'info');
                         if ($info !== null) {
@@ -2230,13 +2236,15 @@ class phemex extends Exchange {
             $lastTradeTimestamp = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->safe_number_2($order, 'stopPx', 'stopPxRp');
+        $stopPrice = $this->omit_zero($this->safe_number_2($order, 'stopPx', 'stopPxRp'));
         $postOnly = ($timeInForce === 'PO');
         $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $execInst = $this->safe_string($order, 'execInst');
         if ($execInst === 'ReduceOnly') {
             $reduceOnly = true;
         }
+        $takeProfit = $this->safe_string($order, 'takeProfitRp');
+        $stopLoss = $this->safe_string($order, 'stopLossRp');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2253,6 +2261,8 @@ class phemex extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
+            'takeProfitPrice' => $takeProfit,
+            'stopLossPrice' => $stopLoss,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -2273,7 +2283,7 @@ class phemex extends Exchange {
         return $this->parse_spot_order($order, $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2284,6 +2294,10 @@ class phemex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the phemex api endpoint
+             * @param {array|null} $params->takeProfit *swap only* *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+             * @param {float|null} $params->takeProfit.triggerPrice take profit trigger $price
+             * @param {array|null} $params->stopLoss *swap only* *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+             * @param {float|null} $params->stopLoss.triggerPrice stop loss trigger $price
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2311,7 +2325,7 @@ class phemex extends Exchange {
                 // 'orderQty' => $this->amount_to_precision($amount, $symbol),
                 // 'reduceOnly' => false,
                 // 'closeOnTrigger' => false, // implicit $reduceOnly and cancel other orders in the same direction
-                // 'takeProfitEp' => $this->to_ep(takeProfit, $market),
+                // 'takeProfitEp' => $this->to_ep($takeProfit, $market),
                 // 'stopLossEp' => $this->to_ep(stopLossEp, $market),
                 // 'triggerType' => 'ByMarkPrice', // ByMarkPrice, ByLastPrice
                 // 'pegOffsetValueEp' => integer, // Trailing offset from current $price-> Negative value when position is long, positive when position is short
@@ -2320,6 +2334,10 @@ class phemex extends Exchange {
                 // 'posSide' => Position direction - "Merged" for oneway mode , "Long" / "Short" for hedge mode
             );
             $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
+            $stopLoss = $this->safe_value($params, 'stopLoss');
+            $stopLossDefined = ($stopLoss !== null);
+            $takeProfit = $this->safe_value($params, 'takeProfit');
+            $takeProfitDefined = ($takeProfit !== null);
             if ($clientOrderId === null) {
                 $brokerId = $this->safe_string($this->options, 'brokerId');
                 if ($brokerId !== null) {
@@ -2337,7 +2355,7 @@ class phemex extends Exchange {
                     $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
                 }
             }
-            $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
+            $params = $this->omit($params, array( 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit' ));
             if ($market['spot']) {
                 $qtyType = $this->safe_value($params, 'qtyType', 'ByBase');
                 if (($type === 'Market') || ($type === 'Stop') || ($type === 'MarketIfTouched')) {
@@ -2384,6 +2402,56 @@ class phemex extends Exchange {
                 if ($stopPrice !== null) {
                     $triggerType = $this->safe_string($params, 'triggerType', 'ByMarkPrice');
                     $request['triggerType'] = $triggerType;
+                }
+                if ($stopLossDefined || $takeProfitDefined) {
+                    if ($stopLossDefined) {
+                        $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
+                        if ($stopLossTriggerPrice === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"] for a stop loss order');
+                        }
+                        if ($market['settle'] === 'USDT') {
+                            $request['stopLossRp'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                        } else {
+                            $request['stopLossEp'] = $this->to_ep($stopLossTriggerPrice, $market);
+                        }
+                        $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTrigger');
+                        if ($stopLossTriggerPriceType !== null) {
+                            if ($market['settle'] === 'USDT') {
+                                if (($stopLossTriggerPriceType !== 'ByMarkPrice') && ($stopLossTriggerPriceType !== 'ByLastPrice') && ($stopLossTriggerPriceType !== 'ByIndexPrice') && ($stopLossTriggerPriceType !== 'ByAskPrice') && ($stopLossTriggerPriceType !== 'ByBidPrice') && ($stopLossTriggerPriceType !== 'ByMarkPriceLimit') && ($stopLossTriggerPriceType !== 'ByLastPriceLimit')) {
+                                    throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
+                                }
+                            } else {
+                                if (($stopLossTriggerPriceType !== 'ByMarkPrice') && ($stopLossTriggerPriceType !== 'ByLastPrice')) {
+                                    throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", or "ByLastPrice"');
+                                }
+                            }
+                            $request['slTrigger'] = $stopLossTriggerPriceType;
+                        }
+                    }
+                    if ($takeProfitDefined) {
+                        $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
+                        if ($takeProfitTriggerPrice === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["takeProfit"]["triggerPrice"], or $params["takeProfit"]["stopPrice"] for a take profit order');
+                        }
+                        if ($market['settle'] === 'USDT') {
+                            $request['takeProfitRp'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                        } else {
+                            $request['takeProfitEp'] = $this->to_ep($takeProfitTriggerPrice, $market);
+                        }
+                        $takeProfitTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'tpTrigger');
+                        if ($takeProfitTriggerPriceType !== null) {
+                            if ($market['settle'] === 'USDT') {
+                                if (($takeProfitTriggerPriceType !== 'ByMarkPrice') && ($takeProfitTriggerPriceType !== 'ByLastPrice') && ($takeProfitTriggerPriceType !== 'ByIndexPrice') && ($takeProfitTriggerPriceType !== 'ByAskPrice') && ($takeProfitTriggerPriceType !== 'ByBidPrice') && ($takeProfitTriggerPriceType !== 'ByMarkPriceLimit') && ($takeProfitTriggerPriceType !== 'ByLastPriceLimit')) {
+                                    throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
+                                }
+                            } else {
+                                if (($takeProfitTriggerPriceType !== 'ByMarkPrice') && ($takeProfitTriggerPriceType !== 'ByLastPrice')) {
+                                    throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", or "ByLastPrice"');
+                                }
+                            }
+                            $request['tpTrigger'] = $takeProfitTriggerPriceType;
+                        }
+                    }
                 }
             }
             if (($type === 'Limit') || ($type === 'StopLimit') || ($type === 'LimitIfTouched')) {
@@ -2625,7 +2693,7 @@ class phemex extends Exchange {
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -2702,7 +2770,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -2742,7 +2810,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -2786,7 +2854,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -2866,7 +2934,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -3070,7 +3138,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -3111,7 +3179,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -3236,9 +3304,9 @@ class phemex extends Exchange {
              * fetch all open $positions
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-$positions
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-$positions
-             * @param {[string]|null} $symbols list of unified $market $symbols
+             * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -3807,7 +3875,7 @@ class phemex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the phemex api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
@@ -4110,7 +4178,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $transfers for
              * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
             Async\await($this->load_markets());
             if ($code === null) {

@@ -99,7 +99,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -108,7 +108,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -120,7 +120,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             if ($symbol === null) {
                 throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
@@ -134,7 +134,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -146,7 +146,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
@@ -160,7 +160,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -254,7 +254,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         return $message;
     }
 
-    public function parse_ws_trade($trade) {
+    public function parse_ws_trade($trade, $market = null) {
         //
         // private trades
         // {
@@ -503,7 +503,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }
     }
 
-    public function parse_ws_order($order) {
+    public function parse_ws_order($order, $market = null) {
         $id = $this->safe_string($order, 'order_id');
         $clientOrderId = $this->safe_string($order, 'client_oid');
         $marketId = $this->safe_string($order, 'product_id');

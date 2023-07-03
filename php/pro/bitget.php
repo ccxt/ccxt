@@ -250,7 +250,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -268,7 +268,7 @@ class bitget extends \ccxt\async\bitget {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -487,7 +487,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -503,7 +503,7 @@ class bitget extends \ccxt\async\bitget {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -585,7 +585,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $market = null;
@@ -869,7 +869,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades structures to retrieve
              * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             // only contracts stream provides the trade info consistently in between order updates
             // the spot stream only provides on $limit orders updates so we can't support it for spot
@@ -897,7 +897,7 @@ class bitget extends \ccxt\async\bitget {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -1087,6 +1087,7 @@ class bitget extends \ccxt\async\bitget {
             $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
             $account['free'] = $this->safe_string($rawBalance, 'available');
             $account['total'] = $this->safe_string($rawBalance, 'equity');
+            $account['used'] = $this->safe_string($rawBalance, 'frozen');
             $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);

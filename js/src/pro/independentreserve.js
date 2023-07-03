@@ -44,7 +44,7 @@ export default class independentreserve extends independentreserveRest {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -52,7 +52,7 @@ export default class independentreserve extends independentreserveRest {
         const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
         const messageHash = 'trades:' + symbol;
         const trades = await this.watch(url, messageHash, undefined, messageHash);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //

@@ -8,6 +8,7 @@ from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -706,7 +707,7 @@ class phemex(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for phemex
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         v2Products = self.publicGetCfgV2Products(params)
         #
@@ -1080,40 +1081,40 @@ class phemex(Exchange, ImplicitAPI):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None since: *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
+        userLimit = limit
         request = {
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
-            # 'from': 1588830682,  # seconds
-            # 'to': self.seconds(),
         }
-        duration = self.parse_timeframe(timeframe)
-        now = self.seconds()
         possibleLimitValues = [5, 10, 50, 100, 500, 1000]
-        maxLimit = 1000  # maximum limit, we shouldn't sent request of more than it
-        if limit is None:
-            limit = 100  # set default, doesn't have any defaults and needs something to be set
-        limit = min(limit, maxLimit)
-        if since is not None:  # phemex also provides kline query with from/to, however, self interface is NOT recommended.
-            since = self.parse_to_int(since / 1000)
-            request['from'] = since
-            # time ranges ending in the future are not accepted
-            # https://github.com/ccxt/ccxt/issues/8050
-            request['to'] = min(now, self.sum(since, duration * limit))
+        maxLimit = 1000
+        if limit is None and since is None:
+            limit = possibleLimitValues[5]
+        if since is not None:
+            # phemex also provides kline query with from/to, however, self interface is NOT recommended and does not work properly.
+            # we do not send since param to the exchange, instead we calculate appropriate limit param
+            duration = self.parse_timeframe(timeframe) * 1000
+            timeDelta = self.milliseconds() - since
+            limit = self.parse_to_int(timeDelta / duration)  # setting limit to the number of candles after since
+        if limit > maxLimit:
+            limit = maxLimit
         else:
-            if not self.in_array(limit, possibleLimitValues):
-                limit = 100
-            request['limit'] = limit
-        method = 'publicGetMdV2Kline'
+            for i in range(0, len(possibleLimitValues)):
+                if limit <= possibleLimitValues[i]:
+                    limit = possibleLimitValues[i]
+        request['limit'] = limit
+        response = None
         if market['linear'] or market['settle'] == 'USDT':
-            method = 'publicGetMdV2KlineLast'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.publicGetMdV2KlineLast(self.extend(request, params))
+        else:
+            response = self.publicGetMdV2Kline(self.extend(request, params))
         #
         #     {
         #         "code":0,
@@ -1130,7 +1131,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         rows = self.safe_value(data, 'rows', [])
-        return self.parse_ohlcvs(rows, market, timeframe, since, limit)
+        return self.parse_ohlcvs(rows, market, timeframe, since, userLimit)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1191,7 +1192,7 @@ class phemex(Exchange, ImplicitAPI):
         symbol = market['symbol']
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         last = self.from_ep(self.safe_string_2(ticker, 'lastEp', 'closeRp'), market)
-        quoteVolume = self.from_ev(self.safe_string_2(ticker, 'turnoverEv', 'turnoverRv'), market)
+        quoteVolume = self.from_er(self.safe_string_2(ticker, 'turnoverEv', 'turnoverRv'), market)
         baseVolume = self.safe_string(ticker, 'volume')
         if baseVolume is None:
             baseVolume = self.from_ev(self.safe_string_2(ticker, 'volumeEv', 'volumeRq'), market)
@@ -1293,7 +1294,7 @@ class phemex(Exchange, ImplicitAPI):
         see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     # spot
         see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             # linear
         see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       # inverse
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the phemex api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -1327,7 +1328,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1411,6 +1412,9 @@ class phemex(Exchange, ImplicitAPI):
         #         "leavesQuoteQtyEv": 0,
         #         "execFeeEv": 0,
         #         "feeRateEr": 0
+        #         "baseCurrency": 'BTC',
+        #         "quoteCurrency": 'USDT',
+        #         "feeCurrency": 'BTC'
         #     }
         #
         # swap
@@ -1575,12 +1579,12 @@ class phemex(Exchange, ImplicitAPI):
                 priceString = self.from_ep(self.safe_string(trade, 'execPriceEp'), market)
                 amountString = self.from_ev(self.safe_string(trade, 'execBaseQtyEv'), market)
                 amountString = self.safe_string(trade, 'execQty', amountString)
-                costString = self.from_ev(self.safe_string_2(trade, 'execQuoteQtyEv', 'execValueEv'), market)
-                feeCostString = self.from_ev(self.safe_string(trade, 'execFeeEv'), market)
+                costString = self.from_er(self.safe_string_2(trade, 'execQuoteQtyEv', 'execValueEv'), market)
+                feeCostString = self.from_er(self.safe_string(trade, 'execFeeEv'), market)
                 if feeCostString is not None:
                     feeRateString = self.from_er(self.safe_string(trade, 'feeRateEr'), market)
                     if market['spot']:
-                        feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
+                        feeCurrencyCode = self.safe_currency_code(self.safe_string(trade, 'feeCurrency'))
                     else:
                         info = self.safe_value(market, 'info')
                         if info is not None:
@@ -2145,12 +2149,14 @@ class phemex(Exchange, ImplicitAPI):
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
-        stopPrice = self.safe_number_2(order, 'stopPx', 'stopPxRp')
+        stopPrice = self.omit_zero(self.safe_number_2(order, 'stopPx', 'stopPxRp'))
         postOnly = (timeInForce == 'PO')
         reduceOnly = self.safe_value(order, 'reduceOnly')
         execInst = self.safe_string(order, 'execInst')
         if execInst == 'ReduceOnly':
             reduceOnly = True
+        takeProfit = self.safe_string(order, 'takeProfitRp')
+        stopLoss = self.safe_string(order, 'stopLossRp')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2167,6 +2173,8 @@ class phemex(Exchange, ImplicitAPI):
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfit,
+            'stopLossPrice': stopLoss,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -2184,7 +2192,7 @@ class phemex(Exchange, ImplicitAPI):
             return self.parse_swap_order(order, market)
         return self.parse_spot_order(order, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
@@ -2194,6 +2202,10 @@ class phemex(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the phemex api endpoint
+        :param dict|None params['takeProfit']: *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
+        :param float|None params.takeProfit.triggerPrice: take profit trigger price
+        :param dict|None params['stopLoss']: *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float|None params.stopLoss.triggerPrice: stop loss trigger price
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2230,6 +2242,10 @@ class phemex(Exchange, ImplicitAPI):
             # 'posSide': Position direction - "Merged" for oneway mode , "Long" / "Short" for hedge mode
         }
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        stopLossDefined = (stopLoss is not None)
+        takeProfit = self.safe_value(params, 'takeProfit')
+        takeProfitDefined = (takeProfit is not None)
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
             if brokerId is not None:
@@ -2243,7 +2259,7 @@ class phemex(Exchange, ImplicitAPI):
                 request['stopPxRp'] = self.price_to_precision(symbol, stopPrice)
             else:
                 request['stopPxEp'] = self.to_ep(stopPrice, market)
-        params = self.omit(params, ['stopPx', 'stopPrice'])
+        params = self.omit(params, ['stopPx', 'stopPrice', 'stopLoss', 'takeProfit'])
         if market['spot']:
             qtyType = self.safe_value(params, 'qtyType', 'ByBase')
             if (type == 'Market') or (type == 'Stop') or (type == 'MarketIfTouched'):
@@ -2282,6 +2298,41 @@ class phemex(Exchange, ImplicitAPI):
             if stopPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
                 request['triggerType'] = triggerType
+            if stopLossDefined or takeProfitDefined:
+                if stopLossDefined:
+                    stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
+                    if stopLossTriggerPrice is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order')
+                    if market['settle'] == 'USDT':
+                        request['stopLossRp'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                    else:
+                        request['stopLossEp'] = self.to_ep(stopLossTriggerPrice, market)
+                    stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTrigger')
+                    if stopLossTriggerPriceType is not None:
+                        if market['settle'] == 'USDT':
+                            if (stopLossTriggerPriceType != 'ByMarkPrice') and (stopLossTriggerPriceType != 'ByLastPrice') and (stopLossTriggerPriceType != 'ByIndexPrice') and (stopLossTriggerPriceType != 'ByAskPrice') and (stopLossTriggerPriceType != 'ByBidPrice') and (stopLossTriggerPriceType != 'ByMarkPriceLimit') and (stopLossTriggerPriceType != 'ByLastPriceLimit'):
+                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"')
+                        else:
+                            if (stopLossTriggerPriceType != 'ByMarkPrice') and (stopLossTriggerPriceType != 'ByLastPrice'):
+                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"')
+                        request['slTrigger'] = stopLossTriggerPriceType
+                if takeProfitDefined:
+                    takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
+                    if takeProfitTriggerPrice is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"] for a take profit order')
+                    if market['settle'] == 'USDT':
+                        request['takeProfitRp'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                    else:
+                        request['takeProfitEp'] = self.to_ep(takeProfitTriggerPrice, market)
+                    takeProfitTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'tpTrigger')
+                    if takeProfitTriggerPriceType is not None:
+                        if market['settle'] == 'USDT':
+                            if (takeProfitTriggerPriceType != 'ByMarkPrice') and (takeProfitTriggerPriceType != 'ByLastPrice') and (takeProfitTriggerPriceType != 'ByIndexPrice') and (takeProfitTriggerPriceType != 'ByAskPrice') and (takeProfitTriggerPriceType != 'ByBidPrice') and (takeProfitTriggerPriceType != 'ByMarkPriceLimit') and (takeProfitTriggerPriceType != 'ByLastPriceLimit'):
+                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"')
+                        else:
+                            if (takeProfitTriggerPriceType != 'ByMarkPrice') and (takeProfitTriggerPriceType != 'ByLastPrice'):
+                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"')
+                        request['tpTrigger'] = takeProfitTriggerPriceType
         if (type == 'Limit') or (type == 'StopLimit') or (type == 'LimitIfTouched'):
             if market['settle'] == 'USDT':
                 request['priceRp'] = self.price_to_precision(symbol, price)
@@ -2491,7 +2542,7 @@ class phemex(Exchange, ImplicitAPI):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -2554,7 +2605,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -2587,7 +2638,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -2623,7 +2674,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2695,7 +2746,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -2883,7 +2934,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -2920,7 +2971,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -3038,9 +3089,9 @@ class phemex(Exchange, ImplicitAPI):
         fetch all open positions
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
-        :param [str]|None symbols: list of unified market symbols
+        :param str[]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3567,7 +3618,7 @@ class phemex(Exchange, ImplicitAPI):
     def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        :param [str]|None symbols: list of unified market symbols
+        :param str[]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the phemex api endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
@@ -3843,7 +3894,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch transfers for
         :param int|None limit: the maximum number of  transfers structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
         if code is None:

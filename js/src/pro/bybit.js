@@ -324,7 +324,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -339,7 +339,7 @@ export default class bybit extends bybitRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -391,7 +391,7 @@ export default class bybit extends bybitRest {
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
         client.resolve(stored, messageHash);
     }
-    parseWsOHLCV(ohlcv) {
+    parseWsOHLCV(ohlcv, market = undefined) {
         //
         //     {
         //         "start": 1670363160000,
@@ -408,7 +408,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         return [
-            this.safeInteger(ohlcv, 'timestamp'),
+            this.safeInteger(ohlcv, 'start'),
             this.safeNumber(ohlcv, 'open'),
             this.safeNumber(ohlcv, 'high'),
             this.safeNumber(ohlcv, 'low'),
@@ -535,7 +535,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -548,7 +548,7 @@ export default class bybit extends bybitRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -685,7 +685,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @param {boolean} params.unifiedMargin use unified margin account
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const method = 'watchMyTrades';
         let messageHash = 'myTrades';
@@ -706,7 +706,7 @@ export default class bybit extends bybitRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleMyTrades(client, message) {
         //
@@ -810,7 +810,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         const method = 'watchOrders';

@@ -50,6 +50,7 @@ class bitpanda extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -359,7 +360,7 @@ class bitpanda extends Exchange {
             /**
              * retrieves data on all markets for bitpanda
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetInstruments ($params));
             //
@@ -660,7 +661,7 @@ class bitpanda extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bitpanda api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
@@ -833,7 +834,7 @@ class bitpanda extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitpanda api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -961,7 +962,7 @@ class bitpanda extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of trades to fetch
              * @param {array} $params extra parameters specific to the bitpanda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1117,7 +1118,7 @@ class bitpanda extends Exchange {
              * @param {int|null} $since the earliest time in ms $to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures $to retrieve
              * @param {array} $params extra parameters specific $to the bitpanda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1182,7 +1183,7 @@ class bitpanda extends Exchange {
              * @param {int|null} $since the earliest time in ms $to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures $to retrieve
              * @param {array} $params extra parameters specific $to the bitpanda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1513,7 +1514,7 @@ class bitpanda extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1614,7 +1615,7 @@ class bitpanda extends Exchange {
              * cancel all open orders
              * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the bitpanda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1636,7 +1637,7 @@ class bitpanda extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
-             * @param {[string]} $ids order $ids
+             * @param {string[]} $ids order $ids
              * @param {string|null} $symbol unified market $symbol, default is null
              * @param {array} $params extra parameters specific to the bitpanda api endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1721,7 +1722,7 @@ class bitpanda extends Exchange {
              * @param {int|null} $since the earliest time in ms $to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures $to retrieve
              * @param {array} $params extra parameters specific $to the bitpanda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1842,7 +1843,7 @@ class bitpanda extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bitpanda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array(
                 'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
@@ -1860,7 +1861,7 @@ class bitpanda extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades to retrieve
              * @param {array} $params extra parameters specific to the bitpanda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1919,7 +1920,7 @@ class bitpanda extends Exchange {
              * @param {int|null} $since the earliest time in ms $to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures $to retrieve
              * @param {array} $params extra parameters specific $to the bitpanda api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(

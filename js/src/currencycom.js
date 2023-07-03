@@ -11,6 +11,10 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class currencycom
+ * @extends Exchange
+ */
 export default class currencycom extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -57,6 +61,7 @@ export default class currencycom extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -74,7 +79,7 @@ export default class currencycom extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
@@ -200,6 +205,7 @@ export default class currencycom extends Exchange {
                         'v2/tradingPositionsHistory': 1,
                         'v2/transactions': 1,
                         'v2/withdrawals': 1,
+                        'v2/fetchOrder': 1,
                     },
                     'post': {
                         'v1/order': 1,
@@ -254,7 +260,9 @@ export default class currencycom extends Exchange {
                     'Invalid limit price': BadRequest,
                     'Only leverage symbol allowed here:': BadSymbol,
                     'market data service is not available': ExchangeNotAvailable,
-                    'your time is ahead of server': InvalidNonce, // {"code":"-1021","msg":"your time is ahead of server"}
+                    'your time is ahead of server': InvalidNonce,
+                    'Can not find account': BadRequest,
+                    'You mentioned an invalid value for the price parameter': BadRequest, // -1030
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable,
@@ -386,7 +394,7 @@ export default class currencycom extends Exchange {
          * @name currencycom#fetchMarkets
          * @description retrieves data on all markets for currencycom
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetV2ExchangeInfo(params);
         //
@@ -611,7 +619,7 @@ export default class currencycom extends Exchange {
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
-            const accountId = this.safeInteger(account, 'accountId');
+            const accountId = this.safeString(account, 'accountId'); // must be string, because the numeric value is far too big for integer, and causes bugs
             const currencyId = this.safeString(account, 'asset');
             const currencyCode = this.safeCurrencyCode(currencyId);
             result.push({
@@ -900,7 +908,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the currencycom api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -956,7 +964,7 @@ export default class currencycom extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1067,7 +1075,7 @@ export default class currencycom extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1106,28 +1114,14 @@ export default class currencycom extends Exchange {
         //         "orderId": "00000000-0000-0000-0000-000006eacaa0",
         //         "transactTime": "1645281669295",
         //         "price": "30000.00000000",
-        //         "origQty": "0.0002",
-        //         "executedQty": "0.0",  // positive for BUY, negative for SELL
-        //         "status": "NEW",
+        //         "origQty": "0.0002",     // might not be present for "market" order
+        //         "executedQty": "0.0",    // positive for BUY, negative for SELL. This property might not be present in Leverage markets
+        //         "margin": 0.1,           // present in leverage markets
+        //         "status": "NEW",         // NEW, FILLED, ...
         //         "timeInForce": "GTC",
-        //         "type": "LIMIT",
+        //         "type": "LIMIT",         // LIMIT, MARKET
         //         "side": "BUY",
-        //     }
-        //
-        // market
-        //
-        //     {
-        //         "symbol": "DOGE/USD",
-        //         "orderId": "00000000-0000-0000-0000-000006eab2ad",
-        //         "transactTime": "1645283022252",
-        //         "price": "0.14066000",
-        //         "origQty": "40",
-        //         "executedQty": "40.0",  // positive for BUY, negative for SELL
-        //         "status": "FILLED",
-        //         "timeInForce": "FOK",
-        //         "type": "MARKET",
-        //         "side": "SELL",
-        //         "fills": [
+        //         "fills": [               // this field might not be present if there were no fills
         //             {
         //                 "price": "0.14094",
         //                 "qty": "40.0",
@@ -1136,6 +1130,32 @@ export default class currencycom extends Exchange {
         //             },
         //         ],
         //     }
+        //
+        // fetchOrder (fetchOpenOrders is an array same structure, with some extra fields)
+        //
+        //    {
+        //        "symbol": "BTC/USD_LEVERAGE",
+        //        "accountId": "123456789012345678",
+        //        "orderId": "00a01234-0123-54c4-0000-123451234567",
+        //        "price": "25779.35",
+        //        "status": "MODIFIED",
+        //        "type": "LIMIT",
+        //        "timeInForceType": "GTC",
+        //        "side": "BUY",
+        //        "guaranteedStopLoss": false,
+        //        "trailingStopLoss": false,
+        //        "margin": "0.05",
+        //        "takeProfit": "27020.00",
+        //        "stopLoss": "24500.35",
+        //        "fills": [], // might not be present
+        //        "timestamp": "1685958369623",  // "time" in "fetchOpenOrders"
+        //        "expireTime": "1686167960000", // "expireTimestamp" in "fetchOpenOrders"
+        //        "quantity": "0.00040", // "origQty" in "fetchOpenOrders"
+        //        "executedQty": "0.0", // present in "fetchOpenOrders"
+        //        "updateTime": "1685958369542", // present in "fetchOpenOrders"
+        //        "leverage": true, // present in "fetchOpenOrders"
+        //        "working": true // present in "fetchOpenOrders"
+        //    }
         //
         // cancelOrder
         //
@@ -1151,36 +1171,18 @@ export default class currencycom extends Exchange {
         //         "side": "BUY",
         //     }
         //
-        // fetchOpenOrders
-        //
-        //   {
-        //       "symbol": "DOGE/USD",
-        //       "orderId": "00000000-0000-0003-0000-000004bcc27a",
-        //       "price": "0.13",
-        //       "origQty": "39.0",
-        //       "executedQty": "0.0",
-        //       "status": "NEW",
-        //       "timeInForce": "GTC",
-        //       "type": "LIMIT",
-        //       "side": "BUY",
-        //       "time": "1645284216240",
-        //       "updateTime": "1645284216240",
-        //       "leverage": false, // whether it's swap or not
-        //       "working": true,
-        //   }
-        //
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '/');
         const id = this.safeString(order, 'orderId');
         const price = this.safeString(order, 'price');
-        const amount = this.safeString(order, 'origQty');
+        const amount = this.safeString2(order, 'origQty', 'quantity');
         const filledRaw = this.safeString(order, 'executedQty');
         const filled = Precise.stringAbs(filledRaw);
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
-        const timeInForce = this.parseOrderTimeInForce(this.safeString(order, 'timeInForce'));
+        const timeInForce = this.parseOrderTimeInForce(this.safeString2(order, 'timeInForce', 'timeInForceType'));
         const type = this.parseOrderType(this.safeString(order, 'type'));
         const side = this.parseOrderSide(this.safeString(order, 'side'));
-        const timestamp = this.safeInteger2(order, 'time', 'transactTime');
+        const timestamp = this.safeIntegerN(order, ['time', 'transactTime', 'timestamp']);
         const fills = this.safeValue(order, 'fills');
         return this.safeOrder({
             'info': order,
@@ -1208,6 +1210,8 @@ export default class currencycom extends Exchange {
     parseOrderStatus(status) {
         const statuses = {
             'NEW': 'open',
+            'CREATED': 'open',
+            'MODIFIED': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -1342,6 +1346,48 @@ export default class currencycom extends Exchange {
         //
         return this.parseOrder(response, market);
     }
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the currencycom api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredSymbol('fetchOrder', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'orderId': id,
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetV2FetchOrder(this.extend(request, params));
+        //
+        //    {
+        //        "accountId": "109698017413125316",
+        //        "orderId": "2810f1c5-0079-54c4-0000-000080421601",
+        //        "quantity": "20.0",
+        //        "price": "0.06",
+        //        "timestamp": "1661157503788",
+        //        "status": "CREATED",
+        //        "type": "LIMIT",
+        //        "timeInForceType": "GTC",
+        //        "side": "BUY",
+        //        "margin": "0.1",
+        //        "fills": [ // might not be present
+        //             {
+        //                 "price": "0.14094",
+        //                 "qty": "40.0",
+        //                 "commission": "0",
+        //                 "commissionAsset": "dUSD"
+        //             }
+        //        ]
+        //    }
+        //
+        return this.parseOrder(response);
+    }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1351,7 +1397,7 @@ export default class currencycom extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1440,7 +1486,7 @@ export default class currencycom extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
@@ -1483,7 +1529,7 @@ export default class currencycom extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsByMethod('privateGetV2Deposits', code, since, limit, params);
     }
@@ -1496,7 +1542,7 @@ export default class currencycom extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsByMethod('privateGetV2Withdrawals', code, since, limit, params);
     }
@@ -1504,7 +1550,8 @@ export default class currencycom extends Exchange {
         /**
          * @method
          * @name currencycom#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @deprecated
+         * @description use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -1805,9 +1852,9 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchPositions
          * @description fetch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetV2TradingPositions(params);

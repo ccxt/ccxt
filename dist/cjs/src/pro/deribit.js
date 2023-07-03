@@ -219,7 +219,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @param {str|undefined} params.interval specify aggregation and frequency of notifications. Possible values: 100ms, raw
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -243,7 +243,7 @@ class deribit extends deribit$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -299,7 +299,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @param {str|undefined} params.interval specify aggregation and frequency of notifications. Possible values: 100ms, raw
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.authenticate(params);
         if (symbol !== undefined) {
@@ -320,7 +320,7 @@ class deribit extends deribit$1 {
         };
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, channel, request, channel, request);
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //
@@ -455,7 +455,7 @@ class deribit extends deribit$1 {
         const channel = this.safeString(params, 'channel');
         const marketId = this.safeString(data, 'instrument_name');
         const symbol = this.safeSymbol(marketId);
-        const timestamp = this.safeNumber(data, 'timestamp');
+        const timestamp = this.safeInteger(data, 'timestamp');
         let storedOrderBook = this.safeValue(this.orderbooks, symbol);
         if (storedOrderBook === undefined) {
             storedOrderBook = this.countedOrderBook();
@@ -511,7 +511,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         await this.authenticate(params);
@@ -605,7 +605,7 @@ class deribit extends deribit$1 {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -629,7 +629,7 @@ class deribit extends deribit$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //

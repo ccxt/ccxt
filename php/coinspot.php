@@ -276,7 +276,7 @@ class coinspot extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://www.coinspot.com.au/api#latestprices
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the coinspot api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
          */
@@ -321,7 +321,7 @@ class coinspot extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of $trades to fetch
          * @param {array} $params extra parameters specific to the coinspot api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -377,7 +377,7 @@ class coinspot extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://www.coinspot.com.au/api#placebuyorder

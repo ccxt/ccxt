@@ -8,6 +8,7 @@ from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -51,6 +52,9 @@ class bitopro(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': False,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -276,7 +280,7 @@ class bitopro(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for bitopro
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetProvisioningTradingPairs()
         markets = self.safe_value(response, 'data', [])
@@ -434,7 +438,7 @@ class bitopro(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitopro api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -582,7 +586,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -709,7 +713,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -934,7 +938,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1017,7 +1021,7 @@ class bitopro(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
-        :param [str] ids: order ids
+        :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the bitopro api endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1047,7 +1051,7 @@ class bitopro(Exchange, ImplicitAPI):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1121,7 +1125,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires the symbol argument')
@@ -1183,7 +1187,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'statusKind': 'DONE',
@@ -1197,7 +1201,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires the symbol argument')
@@ -1330,7 +1334,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires the code argument')
@@ -1376,7 +1380,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires the code argument')
@@ -1496,6 +1500,59 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #    {
+        #        "currency":"eth",
+        #        "withdrawFee":"0.007",
+        #        "minWithdraw":"0.001",
+        #        "maxWithdraw":"1000",
+        #        "maxDailyWithdraw":"2000",
+        #        "withdraw":true,
+        #        "deposit":true,
+        #        "depositConfirmation":"12"
+        #    }
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdrawFee'),
+                'percentage': False,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
+        :param str[]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetProvisioningCurrencies(params)
+        #
+        #     {
+        #         "data":[
+        #             {
+        #                 "currency":"eth",
+        #                 "withdrawFee":"0.007",
+        #                 "minWithdraw":"0.001",
+        #                 "maxWithdraw":"1000",
+        #                 "maxDailyWithdraw":"2000",
+        #                 "withdraw":true,
+        #                 "deposit":true,
+        #                 "depositConfirmation":"12"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_deposit_withdraw_fees(data, codes, 'currency')
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -1507,7 +1564,7 @@ class bitopro(Exchange, ImplicitAPI):
             if method == 'POST' or method == 'PUT':
                 body = self.json(params)
                 payload = self.string_to_base64(body)
-                signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
                 headers['X-BITOPRO-APIKEY'] = self.apiKey
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature

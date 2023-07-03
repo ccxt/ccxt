@@ -229,9 +229,8 @@ class yobit extends Exchange {
                 'XRA' => 'Ratecoin',
             ),
             'options' => array(
-                // 'fetchTickersMaxLength' => 2048,
+                'maxUrlLength' => 2048,
                 'fetchOrdersRequiresSymbol' => true,
-                'fetchTickersMaxLength' => 512,
                 'networks' => array(
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
@@ -339,7 +338,7 @@ class yobit extends Exchange {
          * @see https://yobit.net/en/api
          * retrieves data on all $markets for yobit
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetInfo ($params);
         //
@@ -459,7 +458,7 @@ class yobit extends Exchange {
         /**
          * @see https://yobit.net/en/api
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-         * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
+         * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
          * @param {int|null} $limit max number of entries per orderbook to return, default is null
          * @param {array} $params extra parameters specific to the yobit api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=order-book-structure order book structures~ indexed by market $symbol
@@ -539,27 +538,32 @@ class yobit extends Exchange {
         /**
          * @see https://yobit.net/en/api
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the yobit api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
          */
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires "symbols" argument');
+        }
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $ids = null;
         if ($symbols === null) {
-            $numIds = count($this->ids);
-            $ids = implode('-', $ids);
-            $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
-            // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired($this->id . ' fetchTickers() has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
-            }
+            $ids = $this->ids;
         } else {
-            $newIds = $this->market_ids($symbols);
-            $ids = implode('-', $newIds);
+            $ids = $this->market_ids($symbols);
+        }
+        $idsLength = count($ids);
+        $idsString = implode('-', $ids);
+        $maxLength = $this->safe_integer($this->options, 'maxUrlLength', 2048);
+        // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
+        $lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
+        $actualLength = strlen($idsString) . $lenghtOfBaseUrl;
+        if ($actualLength > $maxLength) {
+            throw new ArgumentsRequired($this->id . ' fetchTickers() is being requested for ' . (string) $idsLength . ' markets (which has an URL length of ' . (string) $actualLength . ' characters), but it exceedes max URL length (' . (string) $maxLength . '), please pass limisted $symbols array to fetchTickers to fit in one request');
         }
         $request = array(
-            'pair' => $ids,
+            'pair' => $idsString,
         );
         $tickers = $this->publicGetTickerPair (array_merge($request, $params));
         $result = array();
@@ -673,7 +677,7 @@ class yobit extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -758,7 +762,7 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @see https://yobit.net/en/api
          * create a trade order
@@ -1000,7 +1004,7 @@ class yobit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -1048,7 +1052,7 @@ class yobit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $trades for
          * @param {int|null} $limit the maximum number of $trades structures to retrieve
          * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=$trade-structure $trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?$id=$trade-structure $trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
