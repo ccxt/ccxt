@@ -278,7 +278,7 @@ export default class bkex extends Exchange {
          * @description retrieves data on all markets for bkex
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-1
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-market-symbols
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
         let promises = [
@@ -400,7 +400,7 @@ export default class bkex extends Exchange {
          * @method
          * @name bkex#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicSpotGetCommonCurrencys(params);
@@ -459,7 +459,7 @@ export default class bkex extends Exchange {
          * @method
          * @name bkex#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicSpotGetCommonTimestamp(params);
@@ -478,7 +478,7 @@ export default class bkex extends Exchange {
          * @method
          * @name bkex#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.publicSpotGetCommonTimestamp(params);
@@ -510,9 +510,9 @@ export default class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -616,7 +616,7 @@ export default class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -683,7 +683,7 @@ export default class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -831,8 +831,8 @@ export default class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-4
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-deep-data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -901,9 +901,9 @@ export default class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-5
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-trades-history
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
@@ -1024,7 +1024,7 @@ export default class bkex extends Exchange {
          * @method
          * @name bkex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -1074,7 +1074,7 @@ export default class bkex extends Exchange {
          * @name bkex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
@@ -1121,9 +1121,9 @@ export default class bkex extends Exchange {
          * @name bkex#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
@@ -1178,9 +1178,9 @@ export default class bkex extends Exchange {
          * @name bkex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
@@ -1289,8 +1289,8 @@ export default class bkex extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1322,8 +1322,8 @@ export default class bkex extends Exchange {
          * @name bkex#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1347,8 +1347,8 @@ export default class bkex extends Exchange {
          * @name bkex#cancelOrders
          * @description cancel multiple orders
          * @param {string[]} ids order ids
-         * @param {string|undefined} symbol unified market symbol, default is undefined
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (!Array.isArray(ids)) {
@@ -1379,9 +1379,9 @@ export default class bkex extends Exchange {
          * @name bkex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1437,8 +1437,8 @@ export default class bkex extends Exchange {
          * @name bkex#fetchOpenOrder
          * @description fetch an open order by it's id
          * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol, default is undefined
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
@@ -1477,9 +1477,9 @@ export default class bkex extends Exchange {
          * @name bkex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1637,7 +1637,7 @@ export default class bkex extends Exchange {
          * @description please use fetchDepositWithdrawFees instead
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
          * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -1712,7 +1712,7 @@ export default class bkex extends Exchange {
          * @description fetch deposit and withdraw fees
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
          * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -1771,10 +1771,10 @@ export default class bkex extends Exchange {
          * @name bkex#fetchFundingRateHistory
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-fundingRate
          * @description fetches historical funding rate prices
-         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         if (symbol === undefined) {
@@ -1824,7 +1824,7 @@ export default class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-riskLimit
          * @description retrieve information on the maximum leverage, for different trade sizes for a single market
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @param {object} [params] extra parameters specific to the bkex api endpoint
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
          */
         await this.loadMarkets();

@@ -88,7 +88,7 @@ class krakenfutures extends krakenfutures$1 {
          * @description Connects to a websocket channel
          * @param {String} name name of the channel
          * @param {string[]} symbols CCXT market symbols
-         * @param {Object} params extra parameters specific to the krakenfutures api
+         * @param {Object} [params] extra parameters specific to the krakenfutures api
          * @returns {Object} data from the websocket stream
          */
         await this.loadMarkets();
@@ -118,7 +118,7 @@ class krakenfutures extends krakenfutures$1 {
          * @description Connects to a websocket channel
          * @param {String} name name of the channel
          * @param {string[]} symbols CCXT market symbols
-         * @param {Object} params extra parameters specific to the krakenfutures api
+         * @param {Object} [params] extra parameters specific to the krakenfutures api
          * @returns {Object} data from the websocket stream
          */
         await this.loadMarkets();
@@ -141,7 +141,7 @@ class krakenfutures extends krakenfutures$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const options = this.safeValue(this.options, 'watchTicker');
@@ -157,7 +157,7 @@ class krakenfutures extends krakenfutures$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const method = this.safeString(this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
@@ -172,9 +172,9 @@ class krakenfutures extends krakenfutures$1 {
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
@@ -192,8 +192,8 @@ class krakenfutures extends krakenfutures$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit not used by krakenfutures watchOrderBook
-         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @param {int} [limit] not used by krakenfutures watchOrderBook
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const orderbook = await this.subscribePublic('book', [symbol], params);
@@ -206,10 +206,10 @@ class krakenfutures extends krakenfutures$1 {
          * @description watches information on multiple orders made by the user
          * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
          * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose
-         * @param {string|undefined} symbol not used by krakenfutures watchOrders
-         * @param {int|undefined} since not used by krakenfutures watchOrders
-         * @param {int|undefined} limit not used by krakenfutures watchOrders
-         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @param {string} symbol not used by krakenfutures watchOrders
+         * @param {int} [since] not used by krakenfutures watchOrders
+         * @param {int} [limit] not used by krakenfutures watchOrders
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
@@ -232,9 +232,9 @@ class krakenfutures extends krakenfutures$1 {
          * @description watches information on multiple trades made by the user
          * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
@@ -256,11 +256,11 @@ class krakenfutures extends krakenfutures$1 {
          * @name krakenfutures#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
-         * @param {string|undefined} symbol not used by krakenfutures watchBalance
-         * @param {int|undefined} since not used by krakenfutures watchBalance
-         * @param {int|undefined} limit not used by krakenfutures watchBalance
-         * @param {object} params extra parameters specific to the krakenfutures api endpoint
-         * @param {string} params.account can be either 'futures' or 'flex_futures'
+         * @param {string} symbol not used by krakenfutures watchBalance
+         * @param {int} [since] not used by krakenfutures watchBalance
+         * @param {int} [limit] not used by krakenfutures watchBalance
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
+         * @param {string} [params.account] can be either 'futures' or 'flex_futures'
          * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();

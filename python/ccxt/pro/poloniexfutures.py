@@ -120,9 +120,9 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         Connects to a websocket channel
         :param str name: name of the channel and suscriptionHash
         :param bool isPrivate: True for the authenticated url, False for the public url
-        :param str|None symbol: is required for all public channels, not required for private channels(except position)
+        :param str symbol: is required for all public channels, not required for private channels(except position)
         :param Object subscription: subscription parameters
-        :param Object params: extra parameters specific to the poloniex api
+        :param Object [params]: extra parameters specific to the poloniex api
         :returns Object: data from the websocket stream
         """
         url = await self.negotiate(isPrivate)
@@ -216,7 +216,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
@@ -229,9 +229,9 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         get the list of most recent trades for a particular symbol
         see https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
@@ -249,9 +249,9 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://futures-docs.poloniex.com/#level-2-market-data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: not used by poloniexfutures watchOrderBook
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param str params['method']: the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
+        :param int [limit]: not used by poloniexfutures watchOrderBook
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param str [params.method]: the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -274,11 +274,11 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         """
         watches information on multiple orders made by the user
         see https://futures-docs.poloniex.com/#private-messages
-        :param str|None symbol: filter by unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param str params['method']: the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
+        :param str symbol: filter by unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param str [params.method]: the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -296,10 +296,10 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         """
         watches information on multiple orders made by the user
         see https://futures-docs.poloniex.com/#account-balance-events
-        :param str|None symbol: not used by poloniexfutures watchBalance
-        :param int|None since: not used by poloniexfutures watchBalance
-        :param int|None limit: not used by poloniexfutures watchBalance
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
+        :param str symbol: not used by poloniexfutures watchBalance
+        :param int [since]: not used by poloniexfutures watchBalance
+        :param int [limit]: not used by poloniexfutures watchBalance
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()

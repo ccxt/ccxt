@@ -41,7 +41,7 @@ export default class bigone extends Exchange {
         currency: string;
         address: string;
         tag: string;
-        network: any;
+        network: string;
         info: any;
     }>;
     parseTransactionStatus(status: any): string;

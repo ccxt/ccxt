@@ -88,6 +88,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function public_mix_get_market_querypositionlever($params = array()) {
         return $this->request('market/queryPositionLever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_mix_get_market_open_limit($params = array()) {
+        return $this->request('market/open-limit', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_margin_get_cross_public_interestrateandlimit($params = array()) {
         return $this->request('cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -750,6 +753,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function publicMixGetMarketQueryPositionLever($params = array()) {
         return $this->request('market/queryPositionLever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMixGetMarketOpenLimit($params = array()) {
+        return $this->request('market/open-limit', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicMarginGetCrossPublicInterestRateAndLimit($params = array()) {
         return $this->request('cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));

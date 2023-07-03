@@ -29,6 +29,7 @@ class ImplicitAPI:
     public_mix_get_market_mark_price = publicMixGetMarketMarkPrice = Entry('market/mark-price', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_market_symbol_leverage = publicMixGetMarketSymbolLeverage = Entry('market/symbol-leverage', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_market_querypositionlever = publicMixGetMarketQueryPositionLever = Entry('market/queryPositionLever', ['public', 'mix'], 'GET', {'cost': 1})
+    public_mix_get_market_open_limit = publicMixGetMarketOpenLimit = Entry('market/open-limit', ['public', 'mix'], 'GET', {'cost': 1})
     public_margin_get_cross_public_interestrateandlimit = publicMarginGetCrossPublicInterestRateAndLimit = Entry('cross/public/interestRateAndLimit', ['public', 'margin'], 'GET', {'cost': 2})
     public_margin_get_isolated_public_interestrateandlimit = publicMarginGetIsolatedPublicInterestRateAndLimit = Entry('isolated/public/interestRateAndLimit', ['public', 'margin'], 'GET', {'cost': 2})
     public_margin_get_cross_public_tierdata = publicMarginGetCrossPublicTierData = Entry('cross/public/tierData', ['public', 'margin'], 'GET', {'cost': 2})

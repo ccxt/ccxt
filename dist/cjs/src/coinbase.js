@@ -295,7 +295,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.v2PublicGetTime(params);
@@ -315,7 +315,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         const method = this.safeString(this.options, 'fetchAccounts', 'fetchAccountsV3');
@@ -492,7 +492,7 @@ class coinbase extends coinbase$1 {
          * @name coinbase#createDepositAddress
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         let accountId = this.safeString(params, 'account_id');
@@ -565,10 +565,10 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchMySells
          * @description fetch sells
-         * @param {string|undefined} symbol not used by coinbase fetchMySells ()
-         * @param {int|undefined} since timestamp in ms of the earliest sell, default is undefined
-         * @param {int|undefined} limit max number of sells to return, default is undefined
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} symbol not used by coinbase fetchMySells ()
+         * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
+         * @param {int} [limit] max number of sells to return, default is undefined
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // v2 did't have an endpoint for all historical trades
@@ -583,10 +583,10 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchMyBuys
          * @description fetch buys
-         * @param {string|undefined} symbol not used by coinbase fetchMyBuys ()
-         * @param {int|undefined} since timestamp in ms of the earliest buy, default is undefined
-         * @param {int|undefined} limit max number of buys to return, default is undefined
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} symbol not used by coinbase fetchMyBuys ()
+         * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
+         * @param {int} [limit] max number of buys to return, default is undefined
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // v2 did't have an endpoint for all historical trades
@@ -608,10 +608,10 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
@@ -622,10 +622,10 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
@@ -875,7 +875,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchMarkets
          * @description retrieves data on all markets for coinbase
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const method = this.safeString(this.options, 'fetchMarkets', 'fetchMarketsV3');
@@ -1096,7 +1096,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.fetchCurrenciesFromCache(params);
@@ -1172,7 +1172,7 @@ class coinbase extends coinbase$1 {
          * @name coinbase#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const method = this.safeString(this.options, 'fetchTickers', 'fetchTickersV3');
@@ -1273,7 +1273,7 @@ class coinbase extends coinbase$1 {
          * @name coinbase#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const method = this.safeString(this.options, 'fetchTicker', 'fetchTickerV3');
@@ -1465,7 +1465,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -1520,10 +1520,10 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -1921,16 +1921,16 @@ class coinbase extends coinbase$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
-         * @param {float|undefined} price the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @param {float|undefined} params.stopPrice price to trigger stop orders
-         * @param {float|undefined} params.triggerPrice price to trigger stop orders
-         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
-         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
-         * @param {bool|undefined} params.postOnly true or false
-         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'GTD' or 'PO'
-         * @param {string|undefined} params.stop_direction 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
-         * @param {string|undefined} params.end_time '2023-05-25T17:01:05.092Z' for 'GTD' orders
+         * @param {float} price the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {float} [params.stopPrice] price to trigger stop orders
+         * @param {float} [params.triggerPrice] price to trigger stop orders
+         * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+         * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+         * @param {bool} [params.postOnly] true or false
+         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+         * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
+         * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2245,8 +2245,8 @@ class coinbase extends coinbase$1 {
          * @description cancels an open order
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
          * @param {string} id order id
-         * @param {string|undefined} symbol not used by coinbase cancelOrder()
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} symbol not used by coinbase cancelOrder()
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2260,8 +2260,8 @@ class coinbase extends coinbase$1 {
          * @description cancel multiple orders
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
          * @param {string[]} ids order ids
-         * @param {string|undefined} symbol not used by coinbase cancelOrders()
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} symbol not used by coinbase cancelOrders()
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2300,8 +2300,8 @@ class coinbase extends coinbase$1 {
          * @description fetches information on an order made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
          * @param {string} id the order id
-         * @param {string|undefined} symbol unified market symbol that the order was made in
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} symbol unified market symbol that the order was made in
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2361,10 +2361,10 @@ class coinbase extends coinbase$1 {
          * @name coinbase#fetchOrders
          * @description fetches information on multiple orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
-         * @param {string|undefined} symbol unified market symbol that the orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders
-         * @param {int|undefined} limit the maximum number of order structures to retrieve
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} symbol unified market symbol that the orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2499,10 +2499,10 @@ class coinbase extends coinbase$1 {
          * @name coinbase#fetchOpenOrders
          * @description fetches information on all currently open orders
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
-         * @param {string|undefined} symbol unified market symbol of the orders
-         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
-         * @param {int|undefined} limit the maximum number of open order structures to retrieve
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} symbol unified market symbol of the orders
+         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('OPEN', symbol, since, limit, params);
@@ -2513,10 +2513,10 @@ class coinbase extends coinbase$1 {
          * @name coinbase#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
-         * @param {string|undefined} symbol unified market symbol of the orders
-         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
-         * @param {int|undefined} limit the maximum number of closed order structures to retrieve
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string} symbol unified market symbol of the orders
+         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+         * @param {int} [limit] the maximum number of closed order structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('FILLED', symbol, since, limit, params);
@@ -2528,9 +2528,9 @@ class coinbase extends coinbase$1 {
          * @description fetches information on multiple canceled orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
          * @param {string} symbol unified market symbol of the orders
-         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
-         * @param {int|undefined} limit the maximum number of canceled order structures to retrieve
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+         * @param {int} [limit] the maximum number of canceled order structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('CANCELLED', symbol, since, limit, params);
@@ -2543,9 +2543,9 @@ class coinbase extends coinbase$1 {
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch, not used by coinbase
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch, not used by coinbase
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -2611,9 +2611,9 @@ class coinbase extends coinbase$1 {
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
          * @param {string} symbol unified market symbol of the trades
-         * @param {int|undefined} since not used by coinbase fetchTrades
-         * @param {int|undefined} limit the maximum number of trade structures to fetch
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {int} [since] not used by coinbase fetchTrades
+         * @param {int} [limit] the maximum number of trade structures to fetch
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
@@ -2651,9 +2651,9 @@ class coinbase extends coinbase$1 {
          * @description fetch all trades made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
          * @param {string} symbol unified market symbol of the trades
-         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
-         * @param {int|undefined} limit the maximum number of trade structures to fetch
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+         * @param {int} [limit] the maximum number of trade structures to fetch
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
@@ -2705,8 +2705,8 @@ class coinbase extends coinbase$1 {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();

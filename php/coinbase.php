@@ -291,7 +291,7 @@ class coinbase extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->v2PublicGetTime ($params);
@@ -310,7 +310,7 @@ class coinbase extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
         $method = $this->safe_string($this->options, 'fetchAccounts', 'fetchAccountsV3');
@@ -489,7 +489,7 @@ class coinbase extends Exchange {
         /**
          * create a currency deposit $address
          * @param {string} $code unified currency $code of the currency for the deposit $address
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $accountId = $this->safe_string($params, 'account_id');
@@ -561,10 +561,10 @@ class coinbase extends Exchange {
     public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch $sells
-         * @param {string|null} $symbol not used by coinbase fetchMySells ()
-         * @param {int|null} $since timestamp in ms of the earliest sell, default is null
-         * @param {int|null} $limit max number of $sells to return, default is null
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $symbol not used by coinbase fetchMySells ()
+         * @param {int} [$since] timestamp in ms of the earliest sell, default is null
+         * @param {int} [$limit] max number of $sells to return, default is null
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=order-structure list of order structures~
          */
         // v2 did't have an endpoint for all historical trades
@@ -578,10 +578,10 @@ class coinbase extends Exchange {
     public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch $buys
-         * @param {string|null} $symbol not used by coinbase fetchMyBuys ()
-         * @param {int|null} $since timestamp in ms of the earliest buy, default is null
-         * @param {int|null} $limit max number of $buys to return, default is null
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $symbol not used by coinbase fetchMyBuys ()
+         * @param {int} [$since] timestamp in ms of the earliest buy, default is null
+         * @param {int} [$limit] max number of $buys to return, default is null
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a list of  ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         // v2 did't have an endpoint for all historical trades
@@ -603,10 +603,10 @@ class coinbase extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
-         * @param {string|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $code unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         // fiat only, for crypto transactions use fetchLedger
@@ -616,10 +616,10 @@ class coinbase extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
-         * @param {string|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $code unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         // fiat only, for crypto transactions use fetchLedger
@@ -868,7 +868,7 @@ class coinbase extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for coinbase
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
         $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
@@ -1091,7 +1091,7 @@ class coinbase extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available $currencies on an exchange
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} an associative dictionary of $currencies
          */
         $response = $this->fetch_currencies_from_cache($params);
@@ -1166,7 +1166,7 @@ class coinbase extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $method = $this->safe_string($this->options, 'fetchTickers', 'fetchTickersV3');
@@ -1268,7 +1268,7 @@ class coinbase extends Exchange {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $method = $this->safe_string($this->options, 'fetchTicker', 'fetchTickerV3');
@@ -1462,7 +1462,7 @@ class coinbase extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
@@ -1516,10 +1516,10 @@ class coinbase extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|null} $code unified $currency $code, default is null
-         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $code unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
@@ -1921,16 +1921,16 @@ class coinbase extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
-         * @param {float|null} $price the $price to fulfill the order, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
-         * @param {float|null} $params->stopPrice $price to trigger stop orders
-         * @param {float|null} $params->triggerPrice $price to trigger stop orders
-         * @param {float|null} $params->stopLossPrice $price to trigger stop-loss orders
-         * @param {float|null} $params->takeProfitPrice $price to trigger take-profit orders
-         * @param {bool|null} $params->postOnly true or false
-         * @param {string|null} $params->timeInForce 'GTC', 'IOC', 'GTD' or 'PO'
-         * @param {string|null} $params->stop_direction 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
-         * @param {string|null} $params->end_time '2023-05-25T17:01:05.092Z' for 'GTD' orders
+         * @param {float} $price the $price to fulfill the order, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+         * @param {float} [$params->stopPrice] $price to trigger stop orders
+         * @param {float} [$params->triggerPrice] $price to trigger stop orders
+         * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
+         * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
+         * @param {bool} [$params->postOnly] true or false
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+         * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
+         * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2237,8 +2237,8 @@ class coinbase extends Exchange {
          * cancels an open order
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
          * @param {string} $id order $id
-         * @param {string|null} $symbol not used by coinbase cancelOrder()
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $symbol not used by coinbase cancelOrder()
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -2251,8 +2251,8 @@ class coinbase extends Exchange {
          * cancel multiple $orders
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
          * @param {string[]} $ids order $ids
-         * @param {string|null} $symbol not used by coinbase cancelOrders()
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $symbol not used by coinbase cancelOrders()
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -2290,8 +2290,8 @@ class coinbase extends Exchange {
          * fetches information on an $order made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
          * @param {string} $id the $order $id
-         * @param {string|null} $symbol unified $market $symbol that the $order was made in
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $symbol unified $market $symbol that the $order was made in
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -2350,10 +2350,10 @@ class coinbase extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
-         * @param {string|null} $symbol unified $market $symbol that the $orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch $orders
-         * @param {int|null} $limit the maximum number of order structures to retrieve
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $symbol unified $market $symbol that the $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -2488,10 +2488,10 @@ class coinbase extends Exchange {
         /**
          * fetches information on all currently open orders
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
-         * @param {string|null} $symbol unified market $symbol of the orders
-         * @param {int|null} $since timestamp in ms of the earliest order, default is null
-         * @param {int|null} $limit the maximum number of open order structures to retrieve
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $symbol unified market $symbol of the orders
+         * @param {int} [$since] timestamp in ms of the earliest order, default is null
+         * @param {int} [$limit] the maximum number of open order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('OPEN', $symbol, $since, $limit, $params);
@@ -2501,10 +2501,10 @@ class coinbase extends Exchange {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
-         * @param {string|null} $symbol unified market $symbol of the orders
-         * @param {int|null} $since timestamp in ms of the earliest order, default is null
-         * @param {int|null} $limit the maximum number of closed order structures to retrieve
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string} $symbol unified market $symbol of the orders
+         * @param {int} [$since] timestamp in ms of the earliest order, default is null
+         * @param {int} [$limit] the maximum number of closed order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params);
@@ -2515,9 +2515,9 @@ class coinbase extends Exchange {
          * fetches information on multiple canceled orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
          * @param {string} $symbol unified market $symbol of the orders
-         * @param {int|null} $since timestamp in ms of the earliest order, default is null
-         * @param {int|null} $limit the maximum number of canceled order structures to retrieve
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {int} [$since] timestamp in ms of the earliest order, default is null
+         * @param {int} [$limit] the maximum number of canceled order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('CANCELLED', $symbol, $since, $limit, $params);
@@ -2529,9 +2529,9 @@ class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of $candles to fetch, not used by coinbase
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch, not used by coinbase
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -2596,9 +2596,9 @@ class coinbase extends Exchange {
          * get the list of most recent $trades for a particular $symbol
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
          * @param {string} $symbol unified $market $symbol of the $trades
-         * @param {int|null} $since not used by coinbase fetchTrades
-         * @param {int|null} $limit the maximum number of trade structures to fetch
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {int} [$since] not used by coinbase fetchTrades
+         * @param {int} [$limit] the maximum number of trade structures to fetch
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
          */
         $this->load_markets();
@@ -2635,9 +2635,9 @@ class coinbase extends Exchange {
          * fetch all $trades made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
          * @param {string} $symbol unified $market $symbol of the $trades
-         * @param {int|null} $since timestamp in ms of the earliest order, default is null
-         * @param {int|null} $limit the maximum number of trade structures to fetch
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {int} [$since] timestamp in ms of the earliest order, default is null
+         * @param {int} [$limit] the maximum number of trade structures to fetch
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
@@ -2688,8 +2688,8 @@ class coinbase extends Exchange {
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();

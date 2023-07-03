@@ -51,7 +51,7 @@ class wazirx(ccxt.async_support.wazirx):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://docs.wazirx.com/#account-update
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
@@ -168,7 +168,7 @@ class wazirx(ccxt.async_support.wazirx):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://docs.wazirx.com/#all-market-tickers-stream
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -189,7 +189,7 @@ class wazirx(ccxt.async_support.wazirx):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         see https://docs.wazirx.com/#all-market-tickers-stream
         :param str[] symbols: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -284,9 +284,9 @@ class wazirx(ccxt.async_support.wazirx):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
@@ -345,9 +345,9 @@ class wazirx(ccxt.async_support.wazirx):
         watch trades by user
         see https://docs.wazirx.com/#trade-update
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
@@ -373,9 +373,9 @@ class wazirx(ccxt.async_support.wazirx):
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -457,8 +457,8 @@ class wazirx(ccxt.async_support.wazirx):
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://docs.wazirx.com/#depth-stream
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -538,7 +538,7 @@ class wazirx(ccxt.async_support.wazirx):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_order(self, client: Client, message):
         #

@@ -28,6 +28,7 @@ interface Exchange {
     publicMixGetMarketMarkPrice(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketSymbolLeverage(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketQueryPositionLever(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketOpenLimit(params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicInterestRateAndLimit(params?: {}): Promise<implicitReturnType>;
     publicMarginGetIsolatedPublicInterestRateAndLimit(params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicTierData(params?: {}): Promise<implicitReturnType>;

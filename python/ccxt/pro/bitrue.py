@@ -61,7 +61,7 @@ class bitrue(ccxt.async_support.bitrue):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict [params]: extra parameters specific to the bitrue api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         url = await self.authenticate()
@@ -168,9 +168,9 @@ class bitrue(ccxt.async_support.bitrue):
         watches information on user orders
         see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
         :param str[] symbols: unified symbols of the market to watch the orders for
-        :param int|None since: timestamp in ms of the earliest order
-        :param int|None limit: the maximum amount of orders to return
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the maximum amount of orders to return
+        :param dict [params]: extra parameters specific to the bitrue api endpoint
         :returns dict: A dictionary of `order structure <https://docs.ccxt.com/#/?id=order-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -189,7 +189,7 @@ class bitrue(ccxt.async_support.bitrue):
         orders = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_order(self, client: Client, message):
         #
