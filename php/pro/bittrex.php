@@ -236,7 +236,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {
@@ -435,7 +435,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -509,7 +509,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -580,7 +580,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -658,7 +658,7 @@ class bittrex extends \ccxt\async\bittrex {
             //     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
             //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
             //     7. Continue to apply messages are received from the socket number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
-            //     8. If a message is received that is not the next in order, return to step 2 in this process
+            //     8. If a message is received that is not the next in order, return to step property_exists($this, 2) process
             //
             $orderbook = Async\await($this->subscribe_to_order_book($negotiation, $symbol, $limit, $params));
             return $orderbook->limit ();

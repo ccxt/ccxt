@@ -487,6 +487,18 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_user_get_sub_virtual_api_list($params = array()) {
         return $this->request('sub/virtual-api-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_user_get_tax_spot_record($params = array()) {
+        return $this->request('tax/spot-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_tax_future_record($params = array()) {
+        return $this->request('tax/future-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_tax_margin_record($params = array()) {
+        return $this->request('tax/margin-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_tax_p2p_record($params = array()) {
+        return $this->request('tax/p2p-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_user_post_sub_virtual_create($params = array()) {
         return $this->request('sub/virtual-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
     }
@@ -1137,6 +1149,18 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateUserGetSubVirtualApiList($params = array()) {
         return $this->request('sub/virtual-api-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUserGetTaxSpotRecord($params = array()) {
+        return $this->request('tax/spot-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetTaxFutureRecord($params = array()) {
+        return $this->request('tax/future-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetTaxMarginRecord($params = array()) {
+        return $this->request('tax/margin-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetTaxP2pRecord($params = array()) {
+        return $this->request('tax/p2p-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateUserPostSubVirtualCreate($params = array()) {
         return $this->request('sub/virtual-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));

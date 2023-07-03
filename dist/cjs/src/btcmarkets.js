@@ -8,6 +8,10 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class btcmarkets
+ * @extends Exchange
+ */
 class btcmarkets extends btcmarkets$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -186,7 +190,8 @@ class btcmarkets extends btcmarkets$1 {
         /**
          * @method
          * @name btcmarkets#fetchTransactions
-         * @description *deprecated* use fetchDepositsWithdrawals instead
+         * @deprecated
+         * @description use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -204,7 +209,7 @@ class btcmarkets extends btcmarkets$1 {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsWithMethod('privateGetDeposits', code, since, limit, params);
     }
@@ -217,7 +222,7 @@ class btcmarkets extends btcmarkets$1 {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsWithMethod('privateGetWithdrawals', code, since, limit, params);
     }
@@ -346,7 +351,7 @@ class btcmarkets extends btcmarkets$1 {
          * @name btcmarkets#fetchMarkets
          * @description retrieves data on all markets for btcmarkets
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets(params);
         //
@@ -503,7 +508,7 @@ class btcmarkets extends btcmarkets$1 {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -736,7 +741,7 @@ class btcmarkets extends btcmarkets$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -859,7 +864,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#cancelOrders
          * @description cancel multiple orders
-         * @param {[string]} ids order ids
+         * @param {string[]} ids order ids
          * @param {string|undefined} symbol not used by btcmarkets cancelOrders ()
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1017,7 +1022,7 @@ class btcmarkets extends btcmarkets$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1046,7 +1051,7 @@ class btcmarkets extends btcmarkets$1 {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = { 'status': 'open' };
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
@@ -1060,7 +1065,7 @@ class btcmarkets extends btcmarkets$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const orders = await this.fetchOrders(symbol, since, limit, params);
         return this.filterBy(orders, 'status', 'closed');
@@ -1074,7 +1079,7 @@ class btcmarkets extends btcmarkets$1 {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {};

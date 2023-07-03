@@ -89,7 +89,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrderBook': False,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
@@ -203,6 +203,8 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
                             'brokerage/transaction_summary',
+                            'brokerage/product_book',
+                            'brokerage/best_bid_ask',
                         ],
                         'post': [
                             'brokerage/orders',
@@ -607,7 +609,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # fiat only, for crypto transactions use fetchLedger
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
@@ -619,7 +621,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # fiat only, for crypto transactions use fetchLedger
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params)
@@ -859,7 +861,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for coinbase
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
         return getattr(self, method)(params)
@@ -1144,7 +1146,7 @@ class coinbase(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -2168,7 +2170,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         cancel multiple orders
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
-        :param [str] ids: order ids
+        :param str[] ids: order ids
         :param str|None symbol: not used by coinbase cancelOrders()
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2266,7 +2268,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders
         :param int|None limit: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -2394,7 +2396,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest order, default is None
         :param int|None limit: the maximum number of open order structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('OPEN', symbol, since, limit, params)
 
@@ -2406,7 +2408,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest order, default is None
         :param int|None limit: the maximum number of closed order structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('FILLED', symbol, since, limit, params)
 
@@ -2431,7 +2433,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch, not used by coinbase
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2495,7 +2497,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: not used by coinbase fetchTrades
         :param int|None limit: the maximum number of trade structures to fetch
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2532,7 +2534,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest order, default is None
         :param int|None limit: the maximum number of trade structures to fetch
         :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -2571,6 +2573,48 @@ class coinbase(Exchange, ImplicitAPI):
         #
         trades = self.safe_value(response, 'fills', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.v3PrivateGetBrokerageProductBook(self.extend(request, params))
+        #
+        #     {
+        #         "pricebook": {
+        #             "product_id": "BTC-USDT",
+        #             "bids": [
+        #                 {
+        #                     "price": "30757.85",
+        #                     "size": "0.115"
+        #                 },
+        #             ],
+        #             "asks": [
+        #                 {
+        #                     "price": "30759.07",
+        #                     "size": "0.04877659"
+        #                 },
+        #             ],
+        #             "time": "2023-06-30T04:02:40.533606Z"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'pricebook', {})
+        time = self.safe_string(data, 'time')
+        timestamp = self.parse8601(time)
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'size')
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]

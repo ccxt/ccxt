@@ -475,7 +475,7 @@ class okcoin(Exchange, ImplicitAPI):
                     '30032': BadSymbol,  # {"code": 30032, "message": "pair does not exist"}
                     '30033': BadRequest,  # {"code": 30033, "message": "exchange domain does not exist"}
                     '30034': ExchangeError,  # {"code": 30034, "message": "exchange ID does not exist"}
-                    '30035': ExchangeError,  # {"code": 30035, "message": "trading is not supported in self website"}
+                    '30035': ExchangeError,  # {"code": 30035, "message": "trading is not hasattr(self, supported) website"}
                     '30036': ExchangeError,  # {"code": 30036, "message": "no relevant data"}
                     '30037': ExchangeNotAvailable,  # {"code": 30037, "message": "endpoint is offline or unavailable"}
                     # '30038': AuthenticationError,  # {"code": 30038, "message": "user does not exist"}
@@ -538,8 +538,8 @@ class okcoin(Exchange, ImplicitAPI):
                     '32064': ExchangeError,  # Time Stringerval of orders should set between 5-120s
                     '32065': ExchangeError,  # Close amount exceeds the limit of Market-close-all(999 for BTC, and 9999 for the rest tokens)
                     '32066': ExchangeError,  # You have open orders. Please cancel all open orders before changing your leverage level.
-                    '32067': ExchangeError,  # Account equity < required margin in self setting. Please adjust your leverage level again.
-                    '32068': ExchangeError,  # The margin for self position will fall short of the required margin in self setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32067': ExchangeError,  # Account equity < required hasattr(self, margin) setting. Please adjust your leverage level again.
+                    '32068': ExchangeError,  # The margin for self position will fall short of the required hasattr(self, margin) setting. Please adjust your leverage level or increase your margin to proceed.
                     '32069': ExchangeError,  # Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
                     '32070': ExchangeError,  # Please check open position or unfilled order
                     '32071': ExchangeError,  # Your current liquidation mode does not support self action.
@@ -821,7 +821,7 @@ class okcoin(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for okcoin
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         types = self.safe_value(self.options, 'fetchMarkets')
         result = []
@@ -1300,7 +1300,7 @@ class okcoin(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the okcoin api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -1422,7 +1422,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1524,7 +1524,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2386,7 +2386,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # '-2': failed,
         # '-1': cancelled,
@@ -2406,7 +2406,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # '-2': failed,
         # '-1': cancelled,
@@ -2598,7 +2598,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {}
@@ -2618,7 +2618,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {}
@@ -2910,7 +2910,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         # okex actually returns ledger entries instead of fills here, so each fill in the order
         # is represented by two trades with opposite buy/sell sides, not one :\
@@ -3014,7 +3014,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         request = {
             # 'instrument_id': market['id'],
@@ -3233,9 +3233,9 @@ class okcoin(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        :param [str]|None symbols: not used by okcoin fetchPositions
+        :param str[]|None symbols: not used by okcoin fetchPositions
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         method = None

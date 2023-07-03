@@ -1,5 +1,9 @@
 import Exchange from './abstract/krakenfutures.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class krakenfutures
+ * @extends Exchange
+ */
 export default class krakenfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

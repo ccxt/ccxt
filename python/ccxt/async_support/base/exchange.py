@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.48'
+__version__ = '4.0.4'
 
 # -----------------------------------------------------------------------------
 
@@ -38,6 +38,14 @@ from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
 from ccxt.async_support.base.ws.fast_client import FastClient
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
+
+
+# -----------------------------------------------------------------------------
+
+try:
+    from aiohttp_socks import ProxyConnector
+except ImportError:
+    ProxyConnector = None
 
 # -----------------------------------------------------------------------------
 
@@ -116,7 +124,40 @@ class Exchange(BaseExchange):
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
-        url = self.proxy + url
+
+        # ##### PROXY & HEADERS #####
+        final_proxy = None  # set default
+        final_session = None
+        proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+        if proxyUrl:
+            request_headers.update({'Origin': self.origin})
+            url = proxyUrl + url
+        elif httpProxy:
+            final_proxy = httpProxy
+        elif httpsProxy:
+            final_proxy = httpsProxy
+        elif socksProxy:
+            if ProxyConnector is None:
+                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
+            # Create our SSL context object with our CA cert file
+            context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            connector = ProxyConnector.from_url(
+                socksProxy,
+                # extra args copied from self.open()
+                ssl=context,
+                loop=self.asyncio_loop,
+                enable_cleanup_closed=True
+            )
+            # override session
+            final_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+        # add aiohttp_proxy for python as exclusion
+        elif self.aiohttp_proxy:
+            final_proxy = self.aiohttp_proxy
+
+        # avoid old proxies mixing
+        if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
+            raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
+        # ######## end of proxies ########
 
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
@@ -125,7 +166,7 @@ class Exchange(BaseExchange):
         request_body = body
         encoded_body = body.encode() if body else None
         self.open()
-        session_method = getattr(self.session, method.lower())
+        session_method = getattr(final_session if final_session is not None else self.session, method.lower())
 
         http_response = None
         http_status_code = None
@@ -136,7 +177,7 @@ class Exchange(BaseExchange):
                                       data=encoded_body,
                                       headers=request_headers,
                                       timeout=(self.timeout / 1000),
-                                      proxy=self.aiohttp_proxy) as response:
+                                      proxy=final_proxy) as response:
                 http_response = await response.text(errors='replace')
                 # CIMultiDictProxy
                 raw_headers = response.headers
@@ -481,6 +522,50 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def check_proxy_settings(self, url, method, headers, body):
+        proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
+        proxyUrlCallback = self.proxyUrlCallback if (self.proxyUrlCallback is not None) else self.proxy_url_callback
+        if proxyUrlCallback is not None:
+            proxyUrl = proxyUrlCallback(url, method, headers, body)
+        # backwards-compatibility
+        if self.proxy is not None:
+            if callable(self.proxy):
+                proxyUrl = self.proxy(url, method, headers, body)
+            else:
+                proxyUrl = self.proxy
+        httpProxy = self.httpProxy if (self.httpProxy is not None) else self.http_proxy
+        httpProxyCallback = self.httpProxyCallback if (self.httpProxyCallback is not None) else self.http_proxy_callback
+        if httpProxyCallback is not None:
+            httpProxy = httpProxyCallback(url, method, headers, body)
+        httpsProxy = self.httpsProxy if (self.httpsProxy is not None) else self.https_proxy
+        httpsProxyCallback = self.httpsProxyCallback if (self.httpsProxyCallback is not None) else self.https_proxy_callback
+        if httpsProxyCallback is not None:
+            httpsProxy = httpsProxyCallback(url, method, headers, body)
+        socksProxy = self.socksProxy if (self.socksProxy is not None) else self.socks_proxy
+        socksProxyCallback = self.socksProxyCallback if (self.socksProxyCallback is not None) else self.socks_proxy_callback
+        if socksProxyCallback is not None:
+            socksProxy = socksProxyCallback(url, method, headers, body)
+        val = 0
+        if proxyUrl is not None:
+            val = val + 1
+        if proxyUrlCallback is not None:
+            val = val + 1
+        if httpProxy is not None:
+            val = val + 1
+        if httpProxyCallback is not None:
+            val = val + 1
+        if httpsProxy is not None:
+            val = val + 1
+        if httpsProxyCallback is not None:
+            val = val + 1
+        if socksProxy is not None:
+            val = val + 1
+        if socksProxyCallback is not None:
+            val = val + 1
+        if val > 1:
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent')
+        return [proxyUrl, httpProxy, httpsProxy, socksProxy]
+
     def find_message_hashes(self, client, element: str):
         result = []
         messageHashes = list(client.futures.keys())
@@ -536,6 +621,25 @@ class Exchange(BaseExchange):
         if tail:
             return result[-limit:]
         return self.filter_by_limit(result, limit, key)
+
+    def set_sandbox_mode(self, enabled):
+        if enabled:
+            if 'test' in self.urls:
+                if isinstance(self.urls['api'], str):
+                    self.urls['apiBackup'] = self.urls['api']
+                    self.urls['api'] = self.urls['test']
+                else:
+                    self.urls['apiBackup'] = self.clone(self.urls['api'])
+                    self.urls['api'] = self.clone(self.urls['test'])
+            else:
+                raise NotSupported(self.id + ' does not have a sandbox URL')
+        elif 'apiBackup' in self.urls:
+            if isinstance(self.urls['api'], str):
+                self.urls['api'] = self.urls['apiBackup']
+            else:
+                self.urls['api'] = self.clone(self.urls['apiBackup'])
+            newUrls = self.omit(self.urls, 'apiBackup')
+            self.urls = newUrls
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
@@ -1228,8 +1332,8 @@ class Exchange(BaseExchange):
         percentage = self.safe_value(ticker, 'percentage')
         average = self.safe_value(ticker, 'average')
         vwap = self.safe_value(ticker, 'vwap')
-        baseVolume = self.safe_value(ticker, 'baseVolume')
-        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        baseVolume = self.safe_string(ticker, 'baseVolume')
+        quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
             vwap = Precise.string_div(quoteVolume, baseVolume)
         if (last is not None) and (close is None):
@@ -1313,6 +1417,41 @@ class Exchange(BaseExchange):
             result[close].append(ohlcvs[i][4])
             result[volume].append(ohlcvs[i][5])
         return result
+
+    async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
+        errorMessage = ''
+        try:
+            options = self.safe_value(self.options, method, {})
+            # if it was not explicitly disabled, then don't fetch
+            if self.safe_value(options, 'webApiEnable', True) is not True:
+                return None
+            maxRetries = self.safe_value(options, 'webApiRetries', 10)
+            response = None
+            retry = 0
+            while(retry < maxRetries):
+                try:
+                    response = await getattr(self, endpointMethod)({})
+                    break
+                except Exception as e:
+                    retry = retry + 1
+                    if retry == maxRetries:
+                        raise e
+            content = response
+            if startRegex is not None:
+                splitted_by_start = content.split(startRegex)
+                content = splitted_by_start[1]  # we need second part after start
+            if endRegex is not None:
+                splitted_by_end = content.split(endRegex)
+                content = splitted_by_end[0]  # we need first part after start
+            if returnAsJson and (isinstance(content, str)):
+                jsoned = self.parse_json(content.strip())  # content should be trimmed before json parsing
+                if jsoned:
+                    return jsoned  # if parsing was not successfull, exception should be thrown
+            else:
+                return content
+        except Exception as e:
+            errorMessage = str(e)
+        raise NotSupported(self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage)
 
     def market_ids(self, symbols):
         if symbols is None:
@@ -1421,7 +1560,7 @@ class Exchange(BaseExchange):
         tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
         :param str networkCode: unified network code
         :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
-        :returns [str|None]: exchange-specific network id
+        :returns str|None: exchange-specific network id
         """
         networkIdsByCodes = self.safe_value(self.options, 'networks', {})
         networkId = self.safe_string(networkIdsByCodes, networkCode)
@@ -1455,7 +1594,7 @@ class Exchange(BaseExchange):
         tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have 'options->networksById' defined.
         :param str networkId: unified network code
         :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
-        :returns [str|None]: unified network code
+        :returns str|None: unified network code
         """
         networkCodesByIds = self.safe_value(self.options, 'networksById', {})
         networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
@@ -1974,7 +2113,7 @@ class Exchange(BaseExchange):
             # check if exchange has properties for self method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
-                # check if the option is defined in self method's props
+                # check if the option is defined inside self method's props
                 value = self.safe_value_2(exchangeWideMethodOptions, optionName, defaultOptionName)
             if value is None:
                 # if it's still None, check if global exchange-wide option exists
@@ -2027,7 +2166,7 @@ class Exchange(BaseExchange):
         """
          * @ignore
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        :returns Array: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
         return self.handleOptionAndParams(params, methodName, 'marginMode', defaultValue)
 
@@ -2505,7 +2644,7 @@ class Exchange(BaseExchange):
         :param str type: Order type
         :param boolean exchangeSpecificBoolean: exchange specific postOnly
         :param dict params: exchange specific params
-        :returns [boolean, params]:
+        :returns Array:
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.safe_value(params, 'postOnly', False)
@@ -2573,7 +2712,7 @@ class Exchange(BaseExchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]]: A list of candles ordered, open, high, low, close, None
+        :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
             request = {
@@ -2591,7 +2730,7 @@ class Exchange(BaseExchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]]: A list of candles ordered, open, high, low, close, None
+         * @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
             request = {
@@ -2609,7 +2748,7 @@ class Exchange(BaseExchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]]: A list of candles ordered, open, high, low, close, None
+        :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
             request = {
@@ -2656,7 +2795,7 @@ class Exchange(BaseExchange):
         :param str argument: the argument to check
         :param str argumentName: the name of the argument to check
         :param str methodName: the name of the method that the argument is being checked for
-        :param [str] options: a list of options that the argument can be
+        :param str[] options: a list of options that the argument can be
         :returns None:
         """
         optionsLength = len(options)
@@ -2690,8 +2829,8 @@ class Exchange(BaseExchange):
     def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
         """
          * @ignore
-        :param [object]|dict response: unparsed response from the exchange
-        :param [str]|None codes: the unified currency codes to fetch transactions fees for, returns all currencies when None
+        :param object[]|dict response: unparsed response from the exchange
+        :param str[]|None codes: the unified currency codes to fetch transactions fees for, returns all currencies when None
         :param str|None currencyIdKey: *should only be None when response is a dictionary* the object key that corresponds to the currency id
         :returns dict: objects with withdraw and deposit fees, indexed by currency codes
         """
@@ -2757,11 +2896,11 @@ class Exchange(BaseExchange):
         """
          * @ignore
         parses funding fee info from exchange response
-        :param [dict] incomes: each item describes once instance of currency being received or paid
+        :param dict[] incomes: each item describes once instance of currency being received or paid
         :param dict|None market: ccxt market
         :param int|None since: when defined, the response items are filtered to only include items after self timestamp
         :param int|None limit: limits the number of items in the response
-        :returns [dict]: an array of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict[]: an array of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         result = []
         for i in range(0, len(incomes)):

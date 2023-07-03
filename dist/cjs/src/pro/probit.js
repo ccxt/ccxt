@@ -166,7 +166,7 @@ class probit extends probit$1 {
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the probit api endpoint
          * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTrades', 'filter', 'recent_trades');
@@ -226,7 +226,7 @@ class probit extends probit$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         await this.authenticate(params);

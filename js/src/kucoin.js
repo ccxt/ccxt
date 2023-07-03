@@ -11,6 +11,10 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class kucoin
+ * @extends Exchange
+ */
 export default class kucoin extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -56,7 +60,7 @@ export default class kucoin extends Exchange {
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
-                'fetchDepositWithdrawFees': false,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -604,7 +608,7 @@ export default class kucoin extends Exchange {
          * @name kucoin#fetchMarkets
          * @description retrieves data on all markets for kucoin
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetSymbols(params);
         //
@@ -741,6 +745,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.kucoin.com/#get-currencies
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -840,7 +845,8 @@ export default class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchTransactionFee
-         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @deprecated
+         * @description please use fetchDepositWithdrawFee instead
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoin api endpoint
@@ -929,23 +935,35 @@ export default class kucoin extends Exchange {
         //        "chain": "ERC20"
         //    }
         //
-        const result = this.depositWithdrawFee(fee);
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
         const isWithdrawEnabled = this.safeValue(fee, 'isWithdrawEnabled');
         if (isWithdrawEnabled) {
+            result['withdraw']['fee'] = this.safeNumber(fee, 'withdrawalMinFee');
+            result['withdraw']['percentage'] = false;
             const networkId = this.safeString(fee, 'chain');
-            const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': this.safeNumber(fee, 'withdrawMinFee'),
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkId) {
+                const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
+                result['networks'][networkCode] = {
+                    'withdraw': result['withdraw'],
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
-        return this.assignDefaultDepositWithdrawFees(result);
+        return result;
     }
     isFuturesMethod(methodName, params) {
         //
@@ -1061,7 +1079,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -1181,7 +1199,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1851,7 +1869,7 @@ export default class kucoin extends Exchange {
          * @param {string|undefined} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
          * @param {bool} params.stop True if fetching a stop order
          * @param {bool} params.hf false, // true for hf order
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('done', symbol, since, limit, params);
     }
@@ -1873,7 +1891,7 @@ export default class kucoin extends Exchange {
          * @param {string} params.orderIds *stop orders only* comma seperated order ID list
          * @param {bool} params.stop True if fetching a stop order
          * @param {bool} params.hf false, // true for hf order
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('active', symbol, since, limit, params);
     }
@@ -2144,7 +2162,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const request = {
             'orderId': id,
@@ -2163,7 +2181,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @param {bool} params.hf false, // true for hf order
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2268,7 +2286,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2655,7 +2673,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2729,7 +2747,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -3332,7 +3350,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} since timestamp for the earliest borrow rate
          * @param {int|undefined} limit the maximum number of [borrow rate structures]
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -3404,7 +3422,7 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} limit the maximum number of structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @param {string|undefined} params.marginMode 'cross' or 'isolated' default is 'cross'
-         * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+         * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
         await this.loadMarkets();
         let marginMode = undefined;
@@ -3719,6 +3737,39 @@ export default class kucoin extends Exchange {
             'datetime': this.iso8601(timestamp),
             'info': info,
         };
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
+         * @see https://docs.kucoin.com/#get-currencies
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicGetCurrencies(params);
+        //
+        //  [
+        //      {
+        //        "currency": "CSP",
+        //        "name": "CSP",
+        //        "fullName": "Caspian",
+        //        "precision": 8,
+        //        "confirms": 12,
+        //        "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+        //        "withdrawalMinSize": "2000",
+        //        "withdrawalMinFee": "1000",
+        //        "isWithdrawEnabled": true,
+        //        "isDepositEnabled": true,
+        //        "isMarginEnabled": false,
+        //        "isDebitEnabled": false
+        //      },
+        //  ]
+        //
+        const data = this.safeValue(response, 'data', []);
+        return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         //

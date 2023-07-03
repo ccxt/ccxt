@@ -1,5 +1,9 @@
 import Exchange from './abstract/coinmate.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coinmate
+ * @extends Exchange
+ */
 export default class coinmate extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

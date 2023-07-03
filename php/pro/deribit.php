@@ -230,7 +230,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the deribit api endpoint
              * @param {str|null} $params->interval specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -312,7 +312,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the deribit api endpoint
              * @param {str|null} $params->interval specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->authenticate($params));
             if ($symbol !== null) {
@@ -474,7 +474,7 @@ class deribit extends \ccxt\async\deribit {
         $channel = $this->safe_string($params, 'channel');
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
-        $timestamp = $this->safe_number($data, 'timestamp');
+        $timestamp = $this->safe_integer($data, 'timestamp');
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         if ($storedOrderBook === null) {
             $storedOrderBook = $this->counted_order_book();
@@ -532,7 +532,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -627,7 +627,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

@@ -263,7 +263,7 @@ class probit(Exchange, ImplicitAPI):
         see https://docs-en.probit.com/reference/market
         retrieves data on all markets for probit
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetMarket(params)
         #
@@ -586,7 +586,7 @@ class probit(Exchange, ImplicitAPI):
         """
         see https://docs-en.probit.com/reference/ticker
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the probit api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -702,20 +702,22 @@ class probit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
+        now = self.milliseconds()
         request = {
             'limit': 100,
-            'start_time': self.iso8601(0),
-            'end_time': self.iso8601(self.milliseconds()),
+            'start_time': self.iso8601(now - 31536000000),  # -365 days
+            'end_time': self.iso8601(now),
         }
         if symbol is not None:
             market = self.market(symbol)
             request['market_id'] = market['id']
         if since is not None:
             request['start_time'] = self.iso8601(since)
+            request['end_time'] = self.iso8601(min(now, since + 31536000000))
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetTradeHistory(self.extend(request, params))
@@ -749,7 +751,7 @@ class probit(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -907,7 +909,7 @@ class probit(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -990,7 +992,7 @@ class probit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         since = self.parse8601(since)
@@ -1011,7 +1013,7 @@ class probit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1302,7 +1304,7 @@ class probit(Exchange, ImplicitAPI):
         """
         see https://docs-en.probit.com/reference/deposit_address
         fetch deposit addresses for multiple currencies and chain types
-        :param [str]|None codes: list of unified currency codes, default is None
+        :param str[]|None codes: list of unified currency codes, default is None
         :param dict params: extra parameters specific to the probit api endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """
@@ -1368,7 +1370,7 @@ class probit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of transaction structures to retrieve
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         request = {
             'type': 'deposit',
@@ -1383,7 +1385,7 @@ class probit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of transaction structures to retrieve
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         request = {
             'type': 'withdrawal',
@@ -1398,7 +1400,7 @@ class probit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch transactions for
         :param int|None limit: the maximum number of transaction structures to retrieve
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -1490,13 +1492,13 @@ class probit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         see https://docs-en.probit.com/reference/currency
         fetch deposit and withdraw fees
-        :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :param str[]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         response = self.publicGetCurrencyWithPlatform(params)

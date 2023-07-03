@@ -1,5 +1,9 @@
 import Exchange from './abstract/blockchaincom.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class blockchaincom
+ * @extends Exchange
+ */
 export default class blockchaincom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

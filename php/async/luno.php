@@ -53,7 +53,7 @@ class luno extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false, // overload of base fetchOHLCV, doesn't work in this exchange
+                'fetchOHLCV' => false, // overload of base fetchOHLCV, doesn't property_exists($this, work) exchange
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -162,7 +162,7 @@ class luno extends Exchange {
             /**
              * retrieves data on all $markets for luno
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->exchangeGetMarkets ($params));
             //
@@ -477,7 +477,7 @@ class luno extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the luno api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_state(null, $symbol, $since, $limit, $params));
         }) ();
@@ -491,7 +491,7 @@ class luno extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the luno api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_state('PENDING', $symbol, $since, $limit, $params));
         }) ();
@@ -505,7 +505,7 @@ class luno extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the luno api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_state('COMPLETE', $symbol, $since, $limit, $params));
         }) ();
@@ -553,7 +553,7 @@ class luno extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the luno api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
              */
@@ -700,7 +700,7 @@ class luno extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the luno api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -737,7 +737,7 @@ class luno extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades structures to retrieve
              * @param {array} $params extra parameters specific to the luno api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -791,7 +791,7 @@ class luno extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id'],
+                'pair' => $market['id'],
             );
             $response = Async\await($this->privateGetFeeInfo (array_merge($request, $params)));
             //
@@ -977,7 +977,7 @@ class luno extends Exchange {
         // $details = $this->safe_value($entry, 'details', array());
         $id = $this->safe_string($entry, 'row_index');
         $account_id = $this->safe_string($entry, 'account_id');
-        $timestamp = $this->safe_value($entry, 'timestamp');
+        $timestamp = $this->safe_integer($entry, 'timestamp');
         $currencyId = $this->safe_string($entry, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $available_delta = $this->safe_string($entry, 'available_delta');
@@ -1018,8 +1018,8 @@ class luno extends Exchange {
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'before' => $before,
-            'after' => $after,
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
             'status' => $status,
             'fee' => null,
             'info' => $entry,

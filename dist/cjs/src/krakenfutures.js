@@ -9,6 +9,10 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class krakenfutures
+ * @extends Exchange
+ */
 class krakenfutures extends krakenfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -66,6 +70,7 @@ class krakenfutures extends krakenfutures$1 {
                 'test': {
                     'public': 'https://demo-futures.kraken.com/derivatives/api/',
                     'private': 'https://demo-futures.kraken.com/derivatives/api/',
+                    'charts': 'https://demo-futures.kraken.com/api/charts/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -1244,6 +1249,7 @@ class krakenfutures extends krakenfutures$1 {
         const marketId = this.safeString(details, 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.parse8601(this.safeString2(details, 'timestamp', 'receivedTime'));
+        const lastUpdateTimestamp = this.parse8601(this.safeString(details, 'lastUpdateTime'));
         if (price === undefined) {
             price = this.safeString(details, 'limitPrice');
         }
@@ -1316,6 +1322,7 @@ class krakenfutures extends krakenfutures$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': this.safeString(market, 'symbol'),
             'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
@@ -1593,9 +1600,9 @@ class krakenfutures extends krakenfutures$1 {
          * @name krakenfutures#fetchFundingRates
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
          * @description fetch the current funding rates
-         * @param {[string]} symbols unified market symbols
+         * @param {string[]} symbols unified market symbols
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
-         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const marketIds = this.marketIds(symbols);
@@ -1716,7 +1723,7 @@ class krakenfutures extends krakenfutures$1 {
          * @method
          * @name krakenfutures#fetchPositions
          * @description Fetches current contract trading positions
-         * @param {[string]} symbols List of unified symbols
+         * @param {string[]} symbols List of unified symbols
          * @param {object} params Not used by krakenfutures
          * @returns Parsed exchange response for positions
          */

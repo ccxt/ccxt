@@ -1,5 +1,9 @@
 import Exchange from './abstract/latoken.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class latoken
+ * @extends Exchange
+ */
 export default class latoken extends Exchange {
     describe(): any;
     nonce(): number;
@@ -57,7 +61,12 @@ export default class latoken extends Exchange {
         currency: any;
         status: string;
         updated: any;
-        fee: any;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: any;
+            rate: any;
+        };
     };
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;

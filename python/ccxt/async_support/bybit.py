@@ -70,6 +70,8 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingRate': True,  # emulated in exchange
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -367,6 +369,7 @@ class bybit(Exchange, ImplicitAPI):
                         'user/v3/private/frozen-sub-member': 10,  # 5/s
                         'user/v3/private/query-sub-members': 5,  # 10/s
                         'user/v3/private/query-api': 5,  # 10/s
+                        'user/v3/private/get-member-type': 1,
                         'asset/v3/private/transfer/transfer-coin/list/query': 0.84,  # 60/s
                         'asset/v3/private/transfer/account-coin/balance/query': 0.84,  # 60/s
                         'asset/v3/private/transfer/account-coins/balance/query': 50,
@@ -908,7 +911,7 @@ class bybit(Exchange, ImplicitAPI):
                     '170199': InvalidOrder,  # Your order quantity to buy is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170200': InvalidOrder,  # Your order quantity to sell is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170221': BadRequest,  # This coin does not exist.
-                    '170222': RateLimitExceeded,  # Too many requests in self time frame.
+                    '170222': RateLimitExceeded,  # Too many hasattr(self, requests) time frame.
                     '170223': InsufficientFunds,  # Your Spot Account with Institutional Lending triggers an alert or liquidation.
                     '170224': PermissionDenied,  # You're not a user of the Innovation Zone.
                     '170226': InsufficientFunds,  # Your Spot Account for Margin Trading is being liquidated.
@@ -1388,7 +1391,7 @@ class bybit(Exchange, ImplicitAPI):
         retrieves data on all markets for bybit
         see https://bybit-exchange.github.io/docs/v5/market/instrument
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
@@ -1924,7 +1927,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://bybit-exchange.github.io/docs/v5/market/tickers
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -2040,7 +2043,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.check_required_symbol('fetchOHLCV', symbol)
         await self.load_markets()
@@ -2177,7 +2180,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         fetches funding rates for multiple markets
         see https://bybit-exchange.github.io/docs/v5/market/tickers
-        :param [str]|None symbols: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
@@ -2255,7 +2258,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the bybit api endpoint
         :param int|None params['until']: timestamp in ms of the latest funding rate
-        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
@@ -2558,7 +2561,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.check_required_symbol('fetchTrades', symbol)
         await self.load_markets()
@@ -4553,7 +4556,7 @@ class bybit(Exchange, ImplicitAPI):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -4879,7 +4882,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -4964,7 +4967,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -5363,7 +5366,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -5401,7 +5404,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
          *
         """
         request = {}
@@ -5723,7 +5726,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = None
@@ -5876,7 +5879,7 @@ class bybit(Exchange, ImplicitAPI):
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str|None params['cursor']: used for pagination
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
        """
         await self.load_markets()
         request = {
@@ -5931,7 +5934,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -6786,9 +6789,9 @@ class bybit(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        :param [str]|None symbols: list of unified market symbols
+        :param str[]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         if isinstance(symbols, list):
             symbolsLength = len(symbols)
@@ -7402,7 +7405,7 @@ class bybit(Exchange, ImplicitAPI):
         :param number|None since: the earliest time in ms to fetch borrrow interest for
         :param number|None limit: the maximum number of structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
         """
         await self.load_markets()
         request = {}
@@ -7532,7 +7535,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch transfers for
         :param int|None limit: the maximum number of  transfers structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = None
@@ -7895,6 +7898,101 @@ class bybit(Exchange, ImplicitAPI):
             symbol = fee['symbol']
             result[symbol] = fee
         return result
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        "name": "BTC",
+        #        "coin": "BTC",
+        #        "remainAmount": "150",
+        #        "chains": [
+        #            {
+        #                "chainType": "BTC",
+        #                "confirmation": "10000",
+        #                "withdrawFee": "0.0005",
+        #                "depositMin": "0.0005",
+        #                "withdrawMin": "0.001",
+        #                "chain": "BTC",
+        #                "chainDeposit": "1",
+        #                "chainWithdraw": "1",
+        #                "minAccuracy": "8"
+        #            }
+        #        ]
+        #    }
+        #
+        chains = self.safe_value(fee, 'chains', [])
+        chainsLength = len(chains)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        if chainsLength != 0:
+            for i in range(0, chainsLength):
+                chain = chains[i]
+                networkId = self.safe_string(chain, 'chain')
+                currencyCode = self.safe_string(currency, 'code')
+                networkCode = self.network_id_to_code(networkId, currencyCode)
+                result['networks'][networkCode] = {
+                    'deposit': {'fee': None, 'percentage': None},
+                    'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+                }
+                if chainsLength == 1:
+                    result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
+                    result['withdraw']['percentage'] = False
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://bybit-exchange.github.io/docs/v5/asset/coin-info
+        :param str[]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.check_required_credentials()
+        await self.load_markets()
+        response = await self.privateGetV5AssetCoinQueryInfo(params)
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "",
+        #         "result": {
+        #             "rows": [
+        #                 {
+        #                     "name": "BTC",
+        #                     "coin": "BTC",
+        #                     "remainAmount": "150",
+        #                     "chains": [
+        #                         {
+        #                             "chainType": "BTC",
+        #                             "confirmation": "10000",
+        #                             "withdrawFee": "0.0005",
+        #                             "depositMin": "0.0005",
+        #                             "withdrawMin": "0.001",
+        #                             "chain": "BTC",
+        #                             "chainDeposit": "1",
+        #                             "chainWithdraw": "1",
+        #                             "minAccuracy": "8"
+        #                         }
+        #                     ]
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1672194582264
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        rows = self.safe_value(data, 'rows', [])
+        return self.parse_deposit_withdraw_fees(rows, codes, 'coin')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path

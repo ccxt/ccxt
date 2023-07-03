@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitfinex2.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitfinex2
+ * @extends Exchange
+ */
 export default class bitfinex2 extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;

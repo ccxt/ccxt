@@ -1,5 +1,9 @@
 import Exchange from './abstract/cryptocom.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class cryptocom
+ * @extends Exchange
+ */
 export default class cryptocom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -135,7 +139,49 @@ export default class cryptocom extends Exchange {
         };
         networks: {};
     };
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseLedgerEntry(item: any, currency?: any): {
+        id: string;
+        direction: any;
+        account: string;
+        referenceId: string;
+        referenceAccount: string;
+        type: string;
+        currency: any;
+        amount: number;
+        timestamp: number;
+        datetime: string;
+        before: any;
+        after: any;
+        status: any;
+        fee: {
+            currency: any;
+            cost: any;
+        };
+        info: any;
+    };
+    parseLedgerEntryType(type: any): string;
+    fetchAccounts(params?: {}): Promise<any[]>;
+    parseAccount(account: any): {
+        id: string;
+        type: string;
+        code: any;
+        info: any;
+    };
+    fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseSettlement(settlement: any, market: any): {
+        info: any;
+        symbol: any;
+        price: number;
+        timestamp: number;
+        datetime: string;
+    };
+    parseSettlements(settlements: any, market: any): any[];
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchPosition(symbol: string, params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

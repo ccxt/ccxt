@@ -1,5 +1,9 @@
 import Exchange from './abstract/ascendex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class ascendex
+ * @extends Exchange
+ */
 export default class ascendex extends Exchange {
     describe(): any;
     getAccount(params?: {}): string;

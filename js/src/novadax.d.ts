@@ -1,5 +1,9 @@
 import Exchange from './abstract/novadax.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class novadax
+ * @extends Exchange
+ */
 export default class novadax extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

@@ -72,6 +72,7 @@ class krakenfutures extends Exchange {
                 'test' => array(
                     'public' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'private' => 'https://demo-futures.kraken.com/derivatives/api/',
+                    'charts' => 'https://demo-futures.kraken.com/api/charts/',
                     'www' => 'https://demo-futures.kraken.com',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -1023,7 +1024,7 @@ class krakenfutures extends Exchange {
             'insufficientAvailableFunds' => 'rejected', // the order was not placed because available funds are insufficient
             'selfFill' => 'rejected', // the order was not placed because it would be filled against an existing order belonging to the same account
             'tooManySmallOrders' => 'rejected', // the order was not placed because the number of small open orders would exceed the permissible limit
-            'maxPositionViolation' => 'rejected', // Order would cause you to exceed your maximum position in this contract.
+            'maxPositionViolation' => 'rejected', // Order would cause you to exceed your maximum property_exists($this, position) contract.
             'marketSuspended' => 'rejected', // the order was not placed because the market is suspended
             'marketInactive' => 'rejected', // the order was not placed because the market is inactive
             'clientOrderIdAlreadyExist' => 'rejected', // the specified client id already exist
@@ -1260,6 +1261,7 @@ class krakenfutures extends Exchange {
         $marketId = $this->safe_string($details, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string_2($details, 'timestamp', 'receivedTime'));
+        $lastUpdateTimestamp = $this->parse8601($this->safe_string($details, 'lastUpdateTime'));
         if ($price === null) {
             $price = $this->safe_string($details, 'limitPrice');
         }
@@ -1329,6 +1331,7 @@ class krakenfutures extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'symbol' => $this->safe_string($market, 'symbol'),
             'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
@@ -1609,9 +1612,9 @@ class krakenfutures extends Exchange {
             /**
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-$tickers
              * fetch the current funding rates
-             * @param {[string]} $symbols unified $market $symbols
+             * @param {string[]} $symbols unified $market $symbols
              * @param {array} $params extra parameters specific to the krakenfutures api endpoint
-             * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+             * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
             $marketIds = $this->market_ids($symbols);
@@ -1737,7 +1740,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * Fetches current contract trading positions
-             * @param {[string]} $symbols List of unified $symbols
+             * @param {string[]} $symbols List of unified $symbols
              * @param {array} $params Not used by krakenfutures
              * @return Parsed exchange $response for positions
              */

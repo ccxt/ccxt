@@ -387,7 +387,7 @@ class ndax extends Exchange {
             /**
              * retrieves data on all markets for ndax
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing $market data
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             $request = array(
@@ -737,7 +737,7 @@ class ndax extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -950,7 +950,7 @@ class ndax extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of trades to fetch
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -1430,7 +1430,7 @@ class ndax extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -1516,7 +1516,7 @@ class ndax extends Exchange {
              * cancel all open orders
              * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -1592,7 +1592,7 @@ class ndax extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -1671,7 +1671,7 @@ class ndax extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -1843,7 +1843,7 @@ class ndax extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades to retrieve
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -2015,7 +2015,7 @@ class ndax extends Exchange {
              * @param {int|null} $since not used by ndax fetchDeposits
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -2075,7 +2075,7 @@ class ndax extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());

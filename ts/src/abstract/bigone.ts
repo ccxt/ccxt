@@ -30,6 +30,7 @@ interface Exchange {
     privatePostOrdersCancel (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
     privatePostTransfer (params?: {}): Promise<implicitReturnType>;
+    webExchangeGetUcV2Assets (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

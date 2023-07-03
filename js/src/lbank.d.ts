@@ -1,5 +1,9 @@
 import Exchange from './abstract/lbank.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class lbank
+ * @extends Exchange
+ */
 export default class lbank extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.48';
+$version = '4.0.4';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.48';
+    const VERSION = '4.0.4';
 
     public $browser;
     public $marketsLoading = null;
@@ -53,17 +53,21 @@ class Exchange extends \ccxt\Exchange {
         'maxPingPongMisses' => 2.0,
     );
 
+    public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
+
     use \ccxt\pro\ClientTrait;
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $connector = new React\Socket\Connector(Loop::get(), array(
-            'timeout' => $this->timeout,
-        ));
-        if ($this->browser === null) {
-            $this->browser = (new React\Http\Browser(Loop::get(), $connector))->withRejectErrorResponse(false);
-        }
+        $this->set_request_browser();
         $this->throttle = new Throttle($this->tokenBucket);
+    }
+
+    public function set_request_browser($connector_options = array()) {
+        $connector = new React\Socket\Connector(array_merge(array(
+            'timeout' => $this->timeout,
+        ), $connector_options), Loop::get());
+        $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
     }
 
     public static function execute_and_run($closure) {
@@ -75,26 +79,40 @@ class Exchange extends \ccxt\Exchange {
         // wrap this in as a promise so it executes asynchronously
         return React\Async\async(function () use ($url, $method, $headers, $body) {
 
+            // ##### PROXY & HEADERS #####
             $headers = array_merge($this->headers, $headers ? $headers : array());
-            if (!$headers) {
-                $headers = array();
-            }
 
-            if (strlen($this->proxy)) {
+            [ $proxyUrl, $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
+            if ($proxyUrl !== null) {
+                $url = $proxyUrl . $url;
                 $headers['Origin'] = $this->origin;
+            } else if ($httpProxy !== null) {
+                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+            }  else if ($httpsProxy !== null) {
+                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpsProxy);
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+                $this->set_request_browser($request_browser_options);
+            } else if ($socksProxy !== null) {
+                if (!class_exists('\Clue\React\Socks\Client')) {
+                    throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
+                }
+                $proxy = new \Clue\React\Socks\Client($socksProxy);
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+                $this->set_request_browser($request_browser_options);
             }
 
-            if ($this->userAgent) {
-                if (gettype($this->userAgent) == 'string') {
-                    $headers['User-Agent'] = $this->userAgent;
-                } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
-                    $headers['User-Agent'] = $this->userAgent['User-Agent'];
+            $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
+            if ($userAgent) {
+                if (gettype($userAgent) === 'string') {
+                    $headers['User-Agent'] = $userAgent;
+                } elseif ((gettype($userAgent) === 'array') && array_key_exists('User-Agent', $userAgent)) {
+                    $headers['User-Agent'] = $userAgent['User-Agent'];
                 }
             }
-
-            // this name for the proxy string is deprecated
-            // we should rename it to $this->cors everywhere
-            $url = $this->proxy . $url;
+            // ######## end of proxies ########
 
             if ($this->verbose) {
                 print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
@@ -270,6 +288,66 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function check_proxy_settings($url, $method, $headers, $body) {
+        $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
+        $proxyUrlCallback = ($this->proxyUrlCallback !== null) ? $this->proxyUrlCallback : $this->proxy_url_callback;
+        if ($proxyUrlCallback !== null) {
+            $proxyUrl = $proxyUrlCallback ($url, $method, $headers, $body);
+        }
+        // backwards-compatibility
+        if ($this->proxy !== null) {
+            if (is_callable($this->proxy)) {
+                $proxyUrl = $this->proxy ($url, $method, $headers, $body);
+            } else {
+                $proxyUrl = $this->proxy;
+            }
+        }
+        $httpProxy = ($this->httpProxy !== null) ? $this->httpProxy : $this->http_proxy;
+        $httpProxyCallback = ($this->httpProxyCallback !== null) ? $this->httpProxyCallback : $this->http_proxy_callback;
+        if ($httpProxyCallback !== null) {
+            $httpProxy = $httpProxyCallback ($url, $method, $headers, $body);
+        }
+        $httpsProxy = ($this->httpsProxy !== null) ? $this->httpsProxy : $this->https_proxy;
+        $httpsProxyCallback = ($this->httpsProxyCallback !== null) ? $this->httpsProxyCallback : $this->https_proxy_callback;
+        if ($httpsProxyCallback !== null) {
+            $httpsProxy = $httpsProxyCallback ($url, $method, $headers, $body);
+        }
+        $socksProxy = ($this->socksProxy !== null) ? $this->socksProxy : $this->socks_proxy;
+        $socksProxyCallback = ($this->socksProxyCallback !== null) ? $this->socksProxyCallback : $this->socks_proxy_callback;
+        if ($socksProxyCallback !== null) {
+            $socksProxy = $socksProxyCallback ($url, $method, $headers, $body);
+        }
+        $val = 0;
+        if ($proxyUrl !== null) {
+            $val = $val + 1;
+        }
+        if ($proxyUrlCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($httpProxy !== null) {
+            $val = $val + 1;
+        }
+        if ($httpProxyCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($httpsProxy !== null) {
+            $val = $val + 1;
+        }
+        if ($httpsProxyCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($socksProxy !== null) {
+            $val = $val + 1;
+        }
+        if ($socksProxyCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($val > 1) {
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, $httpProxy, $httpsProxy, $socksProxy, userAgent');
+        }
+        return array( $proxyUrl, $httpProxy, $httpsProxy, $socksProxy );
+    }
+
     public function find_message_hashes($client, string $element) {
         $result = array();
         $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
@@ -342,6 +420,30 @@ class Exchange extends \ccxt\Exchange {
             return mb_substr($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
+    }
+
+    public function set_sandbox_mode($enabled) {
+        if ($enabled) {
+            if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
+                if (gettype($this->urls['api']) === 'string') {
+                    $this->urls['apiBackup'] = $this->urls['api'];
+                    $this->urls['api'] = $this->urls['test'];
+                } else {
+                    $this->urls['apiBackup'] = $this->clone ($this->urls['api']);
+                    $this->urls['api'] = $this->clone ($this->urls['test']);
+                }
+            } else {
+                throw new NotSupported($this->id . ' does not have a sandbox URL');
+            }
+        } elseif (is_array($this->urls) && array_key_exists('apiBackup', $this->urls)) {
+            if (gettype($this->urls['api']) === 'string') {
+                $this->urls['api'] = $this->urls['apiBackup'];
+            } else {
+                $this->urls['api'] = $this->clone ($this->urls['apiBackup']);
+            }
+            $newUrls = $this->omit ($this->urls, 'apiBackup');
+            $this->urls = $newUrls;
+        }
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
@@ -1172,8 +1274,8 @@ class Exchange extends \ccxt\Exchange {
         $percentage = $this->safe_value($ticker, 'percentage');
         $average = $this->safe_value($ticker, 'average');
         $vwap = $this->safe_value($ticker, 'vwap');
-        $baseVolume = $this->safe_value($ticker, 'baseVolume');
-        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        $baseVolume = $this->safe_string($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         if ($vwap === null) {
             $vwap = Precise::string_div($quoteVolume, $baseVolume);
         }
@@ -1272,6 +1374,53 @@ class Exchange extends \ccxt\Exchange {
             $result[$volume][] = $ohlcvs[$i][5];
         }
         return $result;
+    }
+
+    public function fetch_web_endpoint($method, $endpointMethod, $returnAsJson, $startRegex = null, $endRegex = null) {
+        return Async\async(function () use ($method, $endpointMethod, $returnAsJson, $startRegex, $endRegex) {
+            $errorMessage = '';
+            try {
+                $options = $this->safe_value($this->options, $method, array());
+                // if it was not explicitly disabled, then don't fetch
+                if ($this->safe_value($options, 'webApiEnable', true) !== true) {
+                    return null;
+                }
+                $maxRetries = $this->safe_value($options, 'webApiRetries', 10);
+                $response = null;
+                $retry = 0;
+                while ($retry < $maxRetries) {
+                    try {
+                        $response = Async\await($this->$endpointMethod (array()));
+                        break;
+                    } catch (Exception $e) {
+                        $retry = $retry + 1;
+                        if ($retry === $maxRetries) {
+                            throw $e;
+                        }
+                    }
+                }
+                $content = $response;
+                if ($startRegex !== null) {
+                    $splitted_by_start = explode($startRegex, $content);
+                    $content = $splitted_by_start[1]; // we need second part after start
+                }
+                if ($endRegex !== null) {
+                    $splitted_by_end = explode($endRegex, $content);
+                    $content = $splitted_by_end[0]; // we need first part after start
+                }
+                if ($returnAsJson && (gettype($content) === 'string')) {
+                    $jsoned = $this->parse_json(trim($content)); // $content should be trimmed before json parsing
+                    if ($jsoned) {
+                        return $jsoned; // if parsing was not successfull, exception should be thrown
+                    }
+                } else {
+                    return $content;
+                }
+            } catch (Exception $e) {
+                $errorMessage = (string) $e;
+            }
+            throw new NotSupported($this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' . $errorMessage);
+        }) ();
     }
 
     public function market_ids($symbols) {
@@ -1404,7 +1553,7 @@ class Exchange extends \ccxt\Exchange {
          * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} $networkCode unified network code
          * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
-         * @return {[string|null]} exchange-specific network id
+         * @return {string|null} exchange-specific network id
          */
         $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
         $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
@@ -1445,7 +1594,7 @@ class Exchange extends \ccxt\Exchange {
          * tries to convert the provided exchange-specific $networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
          * @param {string} $networkId unified network code
          * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
-         * @return {[string|null]} unified network code
+         * @return {string|null} unified network code
          */
         $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
         $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
@@ -2121,7 +2270,7 @@ class Exchange extends \ccxt\Exchange {
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
-                // check if the option is defined in this method's props
+                // check if the option is defined inside this method's props
                 $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
             if ($value === null) {
@@ -2187,7 +2336,7 @@ class Exchange extends \ccxt\Exchange {
         /**
          * @ignore
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the marginMode in lowercase by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         * @return {Array} the marginMode in lowercase by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
          */
         return $this->handleOptionAndParams ($params, $methodName, 'marginMode', $defaultValue);
     }
@@ -2826,7 +2975,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} type Order type
          * @param {boolean} exchangeSpecificBoolean exchange specific $postOnly
          * @param {array} $params exchange specific $params
-         * @return array([boolean, $params])
+         * @return {Array}
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->safe_value($params, 'postOnly', false);
@@ -2914,7 +3063,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[[int|float]]} A list of candles ordered, open, high, low, close, null
+             * @return {float[][]} A list of candles ordered, open, high, low, close, null
              */
             if ($this->has['fetchMarkOHLCV']) {
                 $request = array(
@@ -2936,7 +3085,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[[int|float]]} A list of candles ordered, open, high, low, close, null
+             * @return array() A list of candles ordered, open, high, low, close, null
              */
             if ($this->has['fetchIndexOHLCV']) {
                 $request = array(
@@ -2958,7 +3107,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[[int|float]]} A list of candles ordered, open, high, low, close, null
+             * @return {float[][]} A list of candles ordered, open, high, low, close, null
              */
             if ($this->has['fetchPremiumIndexOHLCV']) {
                 $request = array(
@@ -3013,7 +3162,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $argument the $argument to check
          * @param {string} $argumentName the name of the $argument to check
          * @param {string} $methodName the name of the method that the $argument is being checked for
-         * @param {[string]} $options a list of $options that the $argument can be
+         * @param {string[]} $options a list of $options that the $argument can be
          * @return {null}
          */
         $optionsLength = count($options);
@@ -3053,8 +3202,8 @@ class Exchange extends \ccxt\Exchange {
     public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
         /**
          * @ignore
-         * @param {[object]|array} $response unparsed $response from the exchange
-         * @param {[string]|null} $codes the unified $currency $codes to fetch transactions fees for, returns all currencies when null
+         * @param {object[]|array} $response unparsed $response from the exchange
+         * @param {string[]|null} $codes the unified $currency $codes to fetch transactions fees for, returns all currencies when null
          * @param {str|null} $currencyIdKey *should only be null when $response is a $dictionary* the object key that corresponds to the $currency id
          * @return {array} objects with withdraw and deposit fees, indexed by $currency $codes
          */
@@ -3131,11 +3280,11 @@ class Exchange extends \ccxt\Exchange {
         /**
          * @ignore
          * parses funding fee info from exchange response
-         * @param {[array]} $incomes each item describes once instance of currency being received or paid
+         * @param {array[]} $incomes each item describes once instance of currency being received or paid
          * @param {array|null} $market ccxt $market
          * @param {int|null} $since when defined, the response items are filtered to only include items after this timestamp
          * @param {int|null} $limit limits the number of items in the response
-         * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {

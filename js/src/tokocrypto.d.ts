@@ -1,5 +1,9 @@
 import Exchange from './abstract/tokocrypto.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class tokocrypto
+ * @extends Exchange
+ */
 export default class tokocrypto extends Exchange {
     describe(): any;
     nonce(): number;

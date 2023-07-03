@@ -86,6 +86,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'test': {
                     'public': 'https://demo-futures.kraken.com/derivatives/api/',
                     'private': 'https://demo-futures.kraken.com/derivatives/api/',
+                    'charts': 'https://demo-futures.kraken.com/api/charts/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -970,7 +971,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'insufficientAvailableFunds': 'rejected',  # the order was not placed because available funds are insufficient
             'selfFill': 'rejected',  # the order was not placed because it would be filled against an existing order belonging to the same account
             'tooManySmallOrders': 'rejected',  # the order was not placed because the number of small open orders would exceed the permissible limit
-            'maxPositionViolation': 'rejected',  # Order would cause you to exceed your maximum position in self contract.
+            'maxPositionViolation': 'rejected',  # Order would cause you to exceed your maximum hasattr(self, position) contract.
             'marketSuspended': 'rejected',  # the order was not placed because the market is suspended
             'marketInactive': 'rejected',  # the order was not placed because the market is inactive
             'clientOrderIdAlreadyExist': 'rejected',  # the specified client id already exist
@@ -1199,6 +1200,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         marketId = self.safe_string(details, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.parse8601(self.safe_string_2(details, 'timestamp', 'receivedTime'))
+        lastUpdateTimestamp = self.parse8601(self.safe_string(details, 'lastUpdateTime'))
         if price is None:
             price = self.safe_string(details, 'limitPrice')
         amount = self.safe_string(details, 'quantity')
@@ -1254,6 +1256,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': self.safe_string(market, 'symbol'),
             'type': self.parse_order_type(type),
             'timeInForce': timeInForce,
@@ -1517,9 +1520,9 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
         fetch the current funding rates
-        :param [str] symbols: unified market symbols
+        :param str[] symbols: unified market symbols
         :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         marketIds = self.market_ids(symbols)
@@ -1633,7 +1636,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         Fetches current contract trading positions
-        :param [str] symbols: List of unified symbols
+        :param str[] symbols: List of unified symbols
         :param dict params: Not used by krakenfutures
         :returns: Parsed exchange response for positions
         """

@@ -408,7 +408,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -465,7 +465,7 @@ class poloniex extends Exchange {
              * retrieves data on all $markets for poloniex
              * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing $market data
              */
             $markets = Async\await($this->publicGetMarkets ($params));
             //
@@ -619,7 +619,7 @@ class poloniex extends Exchange {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
@@ -920,7 +920,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -957,7 +957,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1163,7 +1163,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1342,7 +1342,7 @@ class poloniex extends Exchange {
              * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
              * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1438,7 +1438,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1904,7 +1904,8 @@ class poloniex extends Exchange {
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * *DEPRECATED* use fetchDepositsWithdrawals instead
+             * @deprecated
+             * use fetchDepositsWithdrawals instead
              * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
              * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
@@ -1936,7 +1937,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
              * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $params));
             $currency = null;
@@ -1949,14 +1950,14 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
              * @see https://docs.poloniex.com/#public-endpoints-reference-$data-currency-information
-             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetCurrencies (array_merge($params, array( 'includeMultiChainCurrencies' => true ))));
@@ -2085,7 +2086,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $deposits for
              * @param {int|null} $limit the maximum number of $deposits structures to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $params));
             $currency = null;

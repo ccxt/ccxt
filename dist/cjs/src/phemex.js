@@ -8,6 +8,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+/**
+ * @class phemex
+ * @extends Exchange
+ */
 class phemex extends phemex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -690,7 +694,7 @@ class phemex extends phemex$1 {
          * @name phemex#fetchMarkets
          * @description retrieves data on all markets for phemex
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const v2Products = await this.publicGetCfgV2Products(params);
         //
@@ -1091,7 +1095,7 @@ class phemex extends phemex$1 {
          * @param {int|undefined} since *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1207,7 +1211,7 @@ class phemex extends phemex$1 {
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.000001);
         const last = this.fromEp(this.safeString2(ticker, 'lastEp', 'closeRp'), market);
-        const quoteVolume = this.fromEv(this.safeString2(ticker, 'turnoverEv', 'turnoverRv'), market);
+        const quoteVolume = this.fromEr(this.safeString2(ticker, 'turnoverEv', 'turnoverRv'), market);
         let baseVolume = this.safeString(ticker, 'volume');
         if (baseVolume === undefined) {
             baseVolume = this.fromEv(this.safeString2(ticker, 'volumeEv', 'volumeRq'), market);
@@ -1317,7 +1321,7 @@ class phemex extends phemex$1 {
          * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     // spot
          * @see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             // linear
          * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -1357,7 +1361,7 @@ class phemex extends phemex$1 {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1442,6 +1446,9 @@ class phemex extends phemex$1 {
         //         "leavesQuoteQtyEv": 0,
         //         "execFeeEv": 0,
         //         "feeRateEr": 0
+        //         "baseCurrency": 'BTC',
+        //         "quoteCurrency": 'USDT',
+        //         "feeCurrency": 'BTC'
         //     }
         //
         // swap
@@ -1614,12 +1621,12 @@ class phemex extends phemex$1 {
                 priceString = this.fromEp(this.safeString(trade, 'execPriceEp'), market);
                 amountString = this.fromEv(this.safeString(trade, 'execBaseQtyEv'), market);
                 amountString = this.safeString(trade, 'execQty', amountString);
-                costString = this.fromEv(this.safeString2(trade, 'execQuoteQtyEv', 'execValueEv'), market);
-                feeCostString = this.fromEv(this.safeString(trade, 'execFeeEv'), market);
+                costString = this.fromEr(this.safeString2(trade, 'execQuoteQtyEv', 'execValueEv'), market);
+                feeCostString = this.fromEr(this.safeString(trade, 'execFeeEv'), market);
                 if (feeCostString !== undefined) {
                     feeRateString = this.fromEr(this.safeString(trade, 'feeRateEr'), market);
                     if (market['spot']) {
-                        feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+                        feeCurrencyCode = this.safeCurrencyCode(this.safeString(trade, 'feeCurrency'));
                     }
                     else {
                         const info = this.safeValue(market, 'info');
@@ -2682,7 +2689,7 @@ class phemex extends phemex$1 {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
@@ -2760,7 +2767,7 @@ class phemex extends phemex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
@@ -2800,7 +2807,7 @@ class phemex extends phemex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -2846,7 +2853,7 @@ class phemex extends phemex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -2927,7 +2934,7 @@ class phemex extends phemex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
@@ -3131,7 +3138,7 @@ class phemex extends phemex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -3171,7 +3178,7 @@ class phemex extends phemex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -3293,9 +3300,9 @@ class phemex extends phemex$1 {
          * @description fetch all open positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -3862,7 +3869,7 @@ class phemex extends phemex$1 {
          * @method
          * @name phemex#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
@@ -4164,7 +4171,7 @@ class phemex extends phemex$1 {
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         if (code === undefined) {

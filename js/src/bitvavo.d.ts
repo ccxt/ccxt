@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitvavo.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitvavo
+ * @extends Exchange
+ */
 export default class bitvavo extends Exchange {
     describe(): any;
     currencyToPrecision(code: any, fee: any, networkCode?: any): any;

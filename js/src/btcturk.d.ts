@@ -1,5 +1,9 @@
 import Exchange from './abstract/btcturk.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class btcturk
+ * @extends Exchange
+ */
 export default class btcturk extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

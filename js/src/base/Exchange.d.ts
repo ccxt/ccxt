@@ -6,18 +6,41 @@ import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
 export { Market, Trade, Fee, Ticker } from './types';
+/**
+ * @class Exchange
+ */
 export default class Exchange {
     options: {
         [key: string]: any;
     };
+    api: any;
+    proxy: any;
+    proxyUrl: string;
+    proxy_url: string;
+    proxyUrlCallback: any;
+    proxy_url_callback: any;
+    httpProxy: string;
+    http_proxy: string;
+    httpProxyCallback: any;
+    http_proxy_callback: any;
+    httpsProxy: string;
+    https_proxy: string;
+    httpsProxyCallback: any;
+    https_proxy_callback: any;
+    socksProxy: string;
+    socks_proxy: string;
+    socksProxyCallback: any;
+    socks_proxy_callback: any;
+    userAgent: {
+        'User-Agent': string;
+    } | false;
+    user_agent: {
+        'User-Agent': string;
+    } | false;
     userAgents: any;
     headers: any;
-    httpAgent: any;
-    httpsAgent: any;
-    agent: any;
-    api: any;
-    proxy: string;
     origin: string;
+    agent: any;
     minFundingAddressLength: number;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
@@ -31,10 +54,6 @@ export default class Exchange {
     validateClientSsl: boolean;
     timeout: number;
     verbose: boolean;
-    debug: boolean;
-    userAgent: {
-        'User-Agent': string;
-    } | false;
     twofa: any;
     apiKey: string;
     secret: string;
@@ -449,7 +468,6 @@ export default class Exchange {
     checkAddress(address: any): any;
     initRestRateLimiter(): void;
     throttle(cost?: any): any;
-    setSandboxMode(enabled: any): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
     log(...args: any[]): void;
@@ -488,10 +506,13 @@ export default class Exchange {
     convertToBigInt(value: string): bigint;
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
+    getProperty(obj: any, property: any, defaultValue?: any): any;
+    checkProxySettings(url: any, method: any, headers: any, body: any): string[];
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
+    setSandboxMode(enabled: any): void;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -573,6 +594,7 @@ export default class Exchange {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     convertTradingViewToOHLCV(ohlcvs: any, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): any[];
     convertOHLCVToTradingView(ohlcvs: any, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
+    fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: any, endRegex?: any): Promise<any>;
     marketIds(symbols: any): any;
     marketSymbols(symbols: any, type?: string): any;
     marketCodes(codes: any): any;

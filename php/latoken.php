@@ -235,7 +235,7 @@ class latoken extends Exchange {
         /**
          * retrieves data on all markets for latoken
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing $market data
          */
         $currencies = $this->fetch_currencies_from_cache($params);
         //
@@ -636,7 +636,7 @@ class latoken extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the latoken api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -752,7 +752,7 @@ class latoken extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the latoken api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -847,7 +847,7 @@ class latoken extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the latoken api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array(
@@ -1028,7 +1028,7 @@ class latoken extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the latoken api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -1072,7 +1072,7 @@ class latoken extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the latoken api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
@@ -1228,7 +1228,7 @@ class latoken extends Exchange {
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the latoken api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
@@ -1255,7 +1255,8 @@ class latoken extends Exchange {
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * *DEPRECATED* use fetchDepositsWithdrawals instead
+         * @deprecated
+         * use fetchDepositsWithdrawals instead
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
          * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
          * @param {int|null} $limit max number of transactions to return, default is null
@@ -1331,13 +1332,15 @@ class latoken extends Exchange {
         $addressTo = $this->safe_string($transaction, 'recipientAddress');
         $txid = $this->safe_string($transaction, 'transactionHash');
         $tagTo = $this->safe_string($transaction, 'memo');
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         $feeCost = $this->safe_number($transaction, 'transactionFee');
         if ($feeCost !== null) {
-            $fee = array(
-                'cost' => $feeCost,
-                'currency' => $code,
-            );
+            $fee['cost'] = $feeCost;
+            $fee['currency'] = $code;
         }
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         return array(
@@ -1358,6 +1361,7 @@ class latoken extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => null,
+            'comment' => null,
             'fee' => $fee,
         );
     }
@@ -1386,7 +1390,7 @@ class latoken extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $transfers for
          * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
          * @param {array} $params extra parameters specific to the latoken api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
         $currency = $this->currency($code);

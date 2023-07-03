@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.1.48'
+__version__ = '4.0.4'
 
 # ----------------------------------------------------------------------------
 
@@ -108,7 +108,6 @@ from ccxt.bl3p import bl3p                                            # noqa: F4
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.btcalpha import btcalpha                                    # noqa: F401
 from ccxt.btcbox import btcbox                                        # noqa: F401
-from ccxt.btcex import btcex                                          # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
 from ccxt.btctradeua import btctradeua                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
@@ -176,7 +175,6 @@ from ccxt.wavesexchange import wavesexchange                          # noqa: F4
 from ccxt.wazirx import wazirx                                        # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
-from ccxt.xt import xt                                                # noqa: F401
 from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
 from ccxt.zonda import zonda                                          # noqa: F401
@@ -217,7 +215,6 @@ exchanges = [
     'blockchaincom',
     'btcalpha',
     'btcbox',
-    'btcex',
     'btcmarkets',
     'btctradeua',
     'btcturk',
@@ -285,7 +282,6 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
-    'xt',
     'yobit',
     'zaif',
     'zonda',

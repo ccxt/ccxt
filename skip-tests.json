@@ -17,6 +17,7 @@
         }
     },
     "alpaca": {
+        "skip": true,
         "skipWs": true
     },
     "ascendex": {
@@ -44,9 +45,8 @@
         }
     },
     "binance": {
-        "httpProxy": "http://51.83.140.52:11230",
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true,
-		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC",
@@ -60,7 +60,6 @@
         }
     },
     "binanceus": {
-		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry": "expiry not set for future markets",
@@ -77,8 +76,7 @@
         }
     },
     "binancecoinm": {
-        "httpProxy": "http://51.83.140.52:11230",
-		"skipPhpAsync":true,
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -96,8 +94,7 @@
         }
     },
     "binanceusdm": {
-        "httpProxy": "http://51.83.140.52:11230",
-		"skipPhpAsync":true,
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
@@ -120,8 +117,7 @@
         }
     },
     "tokocrypto": {
-        "httpProxy": "http://51.83.140.52:11230",
-		"skipPhpAsync":true,
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true
     },
     "bitbank": {
@@ -482,7 +478,7 @@
         }
     },
     "bybit": {
-        "httpProxy": "http://51.83.140.52:11230",
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": {
@@ -499,6 +495,10 @@
     },
     "bigone": {
         "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            },
             "fetchTickers": {
                 "bid": "broken bid-ask",
                 "ask": "broken bid-ask"
@@ -792,6 +792,7 @@
         }
     },
     "huobijp": {
+        "skip": "29/06 fetchMarkets returns empty array",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {

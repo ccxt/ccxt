@@ -1,5 +1,9 @@
 import Exchange from './abstract/yobit.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class yobit
+ * @extends Exchange
+ */
 export default class yobit extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

@@ -11,6 +11,10 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class okx
+ * @extends Exchange
+ */
 export default class okx extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -163,6 +167,7 @@ export default class okx extends Exchange {
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
+                        'market/history-trades': 2,
                         'market/platform-24-volume': 10,
                         'market/open-oracle': 40,
                         'market/index-components': 1,
@@ -1077,7 +1082,7 @@ export default class okx extends Exchange {
          * @name okx#fetchMarkets
          * @description retrieves data on all markets for okx
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const types = this.safeValue(this.options, 'fetchMarkets');
         let promises = [];
@@ -1642,7 +1647,7 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -1760,7 +1765,7 @@ export default class okx extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1858,7 +1863,7 @@ export default class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {string|undefined} params.price "mark" or "index" for mark price and index price candles
          * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1883,11 +1888,13 @@ export default class okx extends Exchange {
         if (since !== undefined) {
             const now = this.milliseconds();
             const difference = now - since;
+            const durationInMilliseconds = duration * 1000;
             // if the since timestamp is more than limit candles back in the past
-            if (difference > 1440 * duration * 1000) {
+            // additional one bar for max offset to round the current day to UTC
+            const calc = (1440 - limit - 1) * durationInMilliseconds;
+            if (difference > calc) {
                 defaultType = 'HistoryCandles';
             }
-            const durationInMilliseconds = duration * 1000;
             const startTime = Math.max(since - 1, 0);
             request['before'] = startTime;
             request['after'] = this.sum(startTime, durationInMilliseconds * limit);
@@ -1932,7 +1939,7 @@ export default class okx extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -2638,8 +2645,8 @@ export default class okx extends Exchange {
          * @ignore
          * @method
          * @name okx#parseIds
-         * @param {[str]|str} ids order ids
-         * @returns {[str]} list of order ids
+         * @param {string[]|string} ids order ids
+         * @returns {string[]} list of order ids
          */
         if (typeof ids === 'string') {
             return ids.split(',');
@@ -2653,7 +2660,7 @@ export default class okx extends Exchange {
          * @method
          * @name okx#cancelOrders
          * @description cancel multiple orders
-         * @param {[string]} ids order ids
+         * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3109,7 +3116,7 @@ export default class okx extends Exchange {
          * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -3431,7 +3438,7 @@ export default class okx extends Exchange {
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
          * @param {int|undefined} params.until timestamp in ms to fetch orders for
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -3592,7 +3599,7 @@ export default class okx extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -3653,7 +3660,7 @@ export default class okx extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const request = {
             // 'instrument_id': market['id'],
@@ -4126,7 +4133,7 @@ export default class okx extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -4224,7 +4231,7 @@ export default class okx extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -4581,10 +4588,10 @@ export default class okx extends Exchange {
          * @name okx#fetchPositions
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
          * @description fetch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {string|undefined} params.instType MARGIN, SWAP, FUTURES, OPTION
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -4989,7 +4996,7 @@ export default class okx extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of transfers structures to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -5055,6 +5062,28 @@ export default class okx extends Exchange {
         }
         else if (api === 'private') {
             this.checkRequiredCredentials();
+            // inject id in implicit api call
+            if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
+                const brokerId = this.safeString(this.options, 'brokerId', 'e847386590ce4dBC');
+                if (Array.isArray(params)) {
+                    for (let i = 0; i < params.length; i++) {
+                        const entry = params[i];
+                        const clientOrderId = this.safeString(entry, 'clOrdId');
+                        if (clientOrderId === undefined) {
+                            entry['clOrdId'] = brokerId + this.uuid16();
+                            entry['tag'] = brokerId;
+                            params[i] = entry;
+                        }
+                    }
+                }
+                else {
+                    const clientOrderId = this.safeString(params, 'clOrdId');
+                    if (clientOrderId === undefined) {
+                        params['clOrdId'] = brokerId + this.uuid16();
+                        params['tag'] = brokerId;
+                    }
+                }
+            }
             const timestamp = this.iso8601(this.milliseconds());
             headers = {
                 'OK-ACCESS-KEY': this.apiKey,
@@ -5601,7 +5630,7 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchBorrowRateHistories
          * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
-         * @param {[string]|undefined} codes list of unified currency codes, default is undefined
+         * @param {string[]|undefined} codes list of unified currency codes, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest borrowRate, default is undefined
          * @param {int|undefined} limit max number of borrow rate prices to return, default is undefined
          * @param {object} params extra parameters specific to the okx api endpoint
@@ -5647,7 +5676,7 @@ export default class okx extends Exchange {
          * @param {int|undefined} since timestamp for the earliest borrow rate
          * @param {int|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -5864,7 +5893,7 @@ export default class okx extends Exchange {
          * @param {object} params exchange specific parameters
          * @param {int|undefined} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
          * @param {string} params.marginMode 'cross' or 'isolated'
-         * @returns {[object]} An list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+         * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
         await this.loadMarkets();
         let marginMode = undefined;
@@ -6226,9 +6255,9 @@ export default class okx extends Exchange {
          * @name okx#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
-         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetAssetCurrencies(params);
@@ -6349,7 +6378,7 @@ export default class okx extends Exchange {
          * @param {int} since timestamp in ms
          * @param {int} limit number of records
          * @param {object} params exchange specific params
-         * @returns {[object]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]
          */
         this.checkRequiredSymbol('fetchSettlementHistory', symbol);
         await this.loadMarkets();

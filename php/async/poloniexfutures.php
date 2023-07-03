@@ -204,7 +204,7 @@ class poloniexfutures extends Exchange {
              * retrieves $data on all markets for poloniexfutures
              * @see https://futures-docs.poloniex.com/#$symbol-2
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market $data
+             * @return {array[]} an array of objects representing $market $data
              */
             $response = Async\await($this->publicGetContractsActive ($params));
             //
@@ -439,7 +439,7 @@ class poloniexfutures extends Exchange {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
@@ -652,7 +652,7 @@ class poloniexfutures extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -711,7 +711,7 @@ class poloniexfutures extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -961,9 +961,9 @@ class poloniexfutures extends Exchange {
             /**
              * fetch all open positions
              * @see https://futures-docs.poloniex.com/#get-position-list
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetPositions ($params));
@@ -1190,7 +1190,7 @@ class poloniexfutures extends Exchange {
              * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
              * @param {array} $params->stop When true, all the trigger orders will be cancelled
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1362,7 +1362,7 @@ class poloniexfutures extends Exchange {
              * @param {int|null} $params->till end time in ms
              * @param {string|null} $params->side buy or sell
              * @param {string|null} $params->type $limit, or market
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
         }) ();
@@ -1381,7 +1381,7 @@ class poloniexfutures extends Exchange {
              * @param {int|null} $params->till end time in ms
              * @param {string|null} $params->side buy or sell
              * @param {string|null} $params->type $limit, or market
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params));
         }) ();
@@ -1649,7 +1649,7 @@ class poloniexfutures extends Exchange {
              * @param {string|null} side buy or sell
              * @param {string|null} type  $limit, $market, limit_stop or market_stop
              * @param {int|null} endAt end time (milisecond)
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(

@@ -279,7 +279,7 @@ class bkex extends Exchange {
              * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-1
              * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-$market-symbols
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market $data
+             * @return {array[]} an array of objects representing $market $data
              */
             $promises = array(
                 $this->publicSpotGetCommonSymbols ($params),
@@ -517,7 +517,7 @@ class bkex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bkex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -688,7 +688,7 @@ class bkex extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
              * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bkex api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
@@ -911,7 +911,7 @@ class bkex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
              * @param {array} $params extra parameters specific to the bkex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1137,7 +1137,7 @@ class bkex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the bkex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDeposits() requires $code argument');
@@ -1195,7 +1195,7 @@ class bkex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the bkex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires $code argument');
@@ -1365,7 +1365,7 @@ class bkex extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
-             * @param {[string]} $ids order $ids
+             * @param {string[]} $ids order $ids
              * @param {string|null} $symbol unified $market $symbol, default is null
              * @param {array} $params extra parameters specific to the bkex api endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1402,7 +1402,7 @@ class bkex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the bkex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -1502,7 +1502,7 @@ class bkex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bkex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -1660,9 +1660,10 @@ class bkex extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * *DEPRECATED* please use fetchDepositWithdrawFees instead
+             * @deprecated
+             * please use fetchDepositWithdrawFees instead
              * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
-             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} $params extra parameters specific to the bkex api endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
@@ -1735,12 +1736,12 @@ class bkex extends Exchange {
         return $this->safe_number($transaction, 'withdrawFee');
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
              * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
-             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} $params extra parameters specific to the bkex api endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
@@ -1806,7 +1807,7 @@ class bkex extends Exchange {
              * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
              * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} $params extra parameters specific to the bkex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');

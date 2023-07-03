@@ -488,6 +488,7 @@ class gate(Exchange, ImplicitAPI):
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
                 'VAI': 'VAIOT',
+                'TRAC': 'TRACO',  # conflict with OriginTrail(TRAC)
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -785,7 +786,7 @@ class gate(Exchange, ImplicitAPI):
         see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          # future
         see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  # option
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :returns dict[]: an array of objects representing market data
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         rawPromises = [
@@ -1502,7 +1503,7 @@ class gate(Exchange, ImplicitAPI):
     async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
-        :param [str]|None symbols: list of unified market symbols
+        :param str[]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
@@ -1821,9 +1822,10 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
-        *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @deprecated
+        please use fetchDepositWithdrawFees instead
         see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
-        :param [str]|None codes: list of unified currency codes
+        :param str[]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
@@ -1870,11 +1872,11 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
-        :param [str]|None codes: list of unified currency codes
+        :param str[]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
@@ -2283,7 +2285,7 @@ class gate(Exchange, ImplicitAPI):
         see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
         see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
         see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -2541,7 +2543,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the gateio api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume(units in quote currency)
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume(units in quote currency)
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2604,7 +2606,7 @@ class gate(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -2689,7 +2691,7 @@ class gate(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2777,7 +2779,7 @@ class gate(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         self.check_required_symbol('fetchOrderTrades', symbol)
@@ -2823,7 +2825,7 @@ class gate(Exchange, ImplicitAPI):
         :param int|None params['offset']: *contract only* list offset, starting from 0
         :param str|None params['last_id']: *contract only* specify list staring point using the id of last record in previous list-query results
         :param int|None params['count_total']: *contract only* whether to return total number matched, default to 0(no return)
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         type = None
@@ -3072,7 +3074,7 @@ class gate(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {}
@@ -3096,7 +3098,7 @@ class gate(Exchange, ImplicitAPI):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {}
@@ -3905,7 +3907,7 @@ class gate(Exchange, ImplicitAPI):
         :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str params['marginMode']: 'cross' or 'isolated' - marginMode for type='margin', if not provided self.options['defaultMarginMode'] is used
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
@@ -3919,7 +3921,7 @@ class gate(Exchange, ImplicitAPI):
         :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, swap or future, if not provided self.options['defaultType'] is used
         :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
@@ -4221,7 +4223,7 @@ class gate(Exchange, ImplicitAPI):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
@@ -4582,11 +4584,11 @@ class gate(Exchange, ImplicitAPI):
         see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user
         see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
         see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
-        :param [str]|None symbols: Not used by gate, but parsed internally by CCXT
+        :param str[]|None symbols: Not used by gate, but parsed internally by CCXT
         :param dict params: extra parameters specific to the gate api endpoint
         :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
         :param str params['type']: swap, future or option, if not provided self.options['defaultType'] is used
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         market = None
@@ -4675,7 +4677,7 @@ class gate(Exchange, ImplicitAPI):
     async def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        :param [str]|None symbols: list of unified market symbols
+        :param str[]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
@@ -5246,8 +5248,8 @@ class gate(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['future']:
-            raise BadRequest(self.id + ' fetchOpenInterest() supports future markets only')
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports swap markets only')
         request = {
             'contract': market['id'],
             'settle': market['settleId'],
@@ -5318,7 +5320,7 @@ class gate(Exchange, ImplicitAPI):
         :param int|None since: timestamp in ms
         :param int|None limit: number of records
         :param dict params: exchange specific params
-        :returns [dict]: a list of [settlement history objects]
+        :returns dict[]: a list of [settlement history objects]
         """
         self.check_required_symbol('fetchSettlementHistory', symbol)
         await self.load_markets()
