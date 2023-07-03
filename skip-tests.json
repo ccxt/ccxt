@@ -329,10 +329,14 @@
                 "precision":"not provided",
                 "active": "not provided"
             },
-            "fetchCurrencies":{
-            },
             "fetchOrderBook": "bid/ask might be 0",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": "same",
+            "fetchTicker": {
+                "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027"
+            },
+            "fetchTickers": {
+                "bid": "same"
+            }
         }
     },
     "bl3p": {
