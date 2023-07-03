@@ -494,6 +494,10 @@
     },
     "bigone": {
         "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            },
             "fetchTickers": {
                 "bid": "broken bid-ask",
                 "ask": "broken bid-ask"

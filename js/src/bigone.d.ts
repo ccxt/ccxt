@@ -6,6 +6,7 @@ import { Int, OrderSide, OrderType } from './base/types.js';
  */
 export default class bigone extends Exchange {
     describe(): any;
+    fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Market>>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
