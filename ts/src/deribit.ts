@@ -1091,8 +1091,8 @@ export default class deribit extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -1240,8 +1240,8 @@ export default class deribit extends Exchange {
          * @see https://docs.deribit.com/#private-get_user_trades_by_currency
          * @description get the list of most recent trades for a particular symbol.
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} [limit] the maximum amount of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -1412,7 +1412,7 @@ export default class deribit extends Exchange {
          * @name deribit#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -1606,7 +1606,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1657,7 +1657,7 @@ export default class deribit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1849,7 +1849,7 @@ export default class deribit extends Exchange {
          * @name deribit#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol not used by deribit cancelOrder ()
+         * @param {string} symbol not used by deribit cancelOrder ()
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1867,7 +1867,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1890,9 +1890,9 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
-         * @param {int|undefined} [limit] the maximum number of  open orders structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1920,9 +1920,9 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} [since] the earliest time in ms to fetch orders for
-         * @param {int|undefined} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1951,9 +1951,9 @@ export default class deribit extends Exchange {
          * @name deribit#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
-         * @param {int|undefined} [limit] the maximum number of trades to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -2004,9 +2004,9 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
-         * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -2084,8 +2084,8 @@ export default class deribit extends Exchange {
          * @name deribit#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string} code unified currency code
-         * @param {int|undefined} [since] the earliest time in ms to fetch deposits for
-         * @param {int|undefined} [limit] the maximum number of deposits structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -2132,8 +2132,8 @@ export default class deribit extends Exchange {
          * @name deribit#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string} code unified currency code
-         * @param {int|undefined} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -2469,8 +2469,8 @@ export default class deribit extends Exchange {
          * @name deribit#fetchTransfers
          * @description fetch a history of internal transfers made on an account
          * @param {string} code unified currency code of the currency transferred
-         * @param {int|undefined} [since] the earliest time in ms to fetch transfers for
-         * @param {int|undefined} [limit] the maximum number of  transfers structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
@@ -2621,7 +2621,7 @@ export default class deribit extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
+         * @param {string} tag
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */

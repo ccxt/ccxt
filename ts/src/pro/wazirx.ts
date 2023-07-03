@@ -298,8 +298,8 @@ export default class wazirx extends wazirxRest {
          * @name wazirx#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} [limit] the maximum amount of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -366,8 +366,8 @@ export default class wazirx extends wazirxRest {
          * @description watch trades by user
          * @see https://docs.wazirx.com/#trade-update
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} [limit] the maximum amount of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -399,8 +399,8 @@ export default class wazirx extends wazirxRest {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -490,7 +490,7 @@ export default class wazirx extends wazirxRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.wazirx.com/#depth-stream
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */

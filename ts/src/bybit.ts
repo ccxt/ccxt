@@ -2086,8 +2086,8 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/market/preimum-index-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -2315,11 +2315,11 @@ export default class bybit extends Exchange {
          * @name bybit#fetchFundingRateHistory
          * @description fetches historical funding rate prices
          * @see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
-         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms of the latest funding rate
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
@@ -2647,8 +2647,8 @@ export default class bybit extends Exchange {
          * @description get the list of most recent trades for a particular symbol
          * @see https://bybit-exchange.github.io/docs/v5/market/recent-trade
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} [limit] the maximum amount of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -2711,7 +2711,7 @@ export default class bybit extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://bybit-exchange.github.io/docs/v5/market/orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -3456,7 +3456,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3541,7 +3541,7 @@ export default class bybit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -4827,7 +4827,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -5183,8 +5183,8 @@ export default class bybit extends Exchange {
          * @name bybit#fetchOrders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} [since] the earliest time in ms to fetch orders for
-         * @param {int|undefined} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -5279,9 +5279,9 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} [since] the earliest time in ms to fetch orders for
-         * @param {int|undefined} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -5308,8 +5308,8 @@ export default class bybit extends Exchange {
          * @name bybit#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} [since] timestamp in ms of the earliest order, default is undefined
-         * @param {int|undefined} [limit] max number of orders to return, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+         * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -5713,9 +5713,9 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
-         * @param {int|undefined} [limit] the maximum number of  open orders structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -5758,9 +5758,9 @@ export default class bybit extends Exchange {
          * @name bybit#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
-         * @param {int|undefined} [limit] the maximum number of trades to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          *
@@ -6107,8 +6107,8 @@ export default class bybit extends Exchange {
          * @name bybit#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
-         * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -6271,14 +6271,14 @@ export default class bybit extends Exchange {
          * @name bybit#fetchDeposits
          * @description fetch all deposits made to an account
          * @see https://bybit-exchange.github.io/docs/v5/asset/deposit-record
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} [since] the earliest time in ms to fetch deposits for, default = 30 days before the current time
-         * @param {int|undefined} [limit] the maximum number of deposits structures to retrieve, default = 50, max = 50
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for, default = 30 days before the current time
+         * @param {int} [limit] the maximum number of deposits structures to retrieve, default = 50, max = 50
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {int|undefined} [params.until] the latest time in ms to fetch deposits for, default = 30 days after since
+         * @param {int} [params.until] the latest time in ms to fetch deposits for, default = 30 days after since
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string|undefined} [params.cursor] used for pagination
+         * @param {string} [params.cursor] used for pagination
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         await this.loadMarkets ();
@@ -6337,8 +6337,8 @@ export default class bybit extends Exchange {
          * @description fetch all withdrawals made from an account
          * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
          * @param {string} code unified currency code
-         * @param {int|undefined} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -6514,9 +6514,9 @@ export default class bybit extends Exchange {
          * @name bybit#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} [limit] max number of ledger entrys to return, default is undefined
+         * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -6777,7 +6777,7 @@ export default class bybit extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
+         * @param {string} tag
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -7632,7 +7632,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/position/position-mode
          * @see https://bybit-exchange.github.io/docs/derivatives/contract/position-mode
          * @param {bool} hedged
-         * @param {string|undefined} symbol used for unified account with inverse market
+         * @param {string} symbol used for unified account with inverse market
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} response from the exchange
          */
@@ -7759,8 +7759,8 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/market/open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @param {string|undefined} [params.interval] 5m, 15m, 30m, 1h, 4h, 1d
-         * @param {string|undefined} [params.category] "linear" or "inverse"
+         * @param {string} [params.interval] 5m, 15m, 30m, 1h, 4h, 1d
+         * @param {string} [params.category] "linear" or "inverse"
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
          */
         await this.loadMarkets ();
@@ -7921,10 +7921,10 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
-         * @param {string|undefined} code unified currency code
-         * @param {string|undefined} symbol unified market symbol when fetch interest in isolated markets
-         * @param {number|undefined} [since] the earliest time in ms to fetch borrrow interest for
-         * @param {number|undefined} [limit] the maximum number of structures to retrieve
+         * @param {string} code unified currency code
+         * @param {string} symbol unified market symbol when fetch interest in isolated markets
+         * @param {number} [since] the earliest time in ms to fetch borrrow interest for
+         * @param {number} [limit] the maximum number of structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
@@ -8060,9 +8060,9 @@ export default class bybit extends Exchange {
          * @name bybit#fetchTransfers
          * @description fetch a history of internal transfers made on an account
          * @see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
-         * @param {string|undefined} code unified currency code of the currency transferred
-         * @param {int|undefined} [since] the earliest time in ms to fetch transfers for
-         * @param {int|undefined} [limit] the maximum number of  transfers structures to retrieve
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
@@ -8115,7 +8115,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/spot/v3/#t-borrowmarginloan
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string|undefined} symbol not used by bybit.borrowMargin ()
+         * @param {string} symbol not used by bybit.borrowMargin ()
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
@@ -8157,7 +8157,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/spot/v3/#t-repaymarginloan
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string|undefined} symbol not used by bybit.repayMargin ()
+         * @param {string} symbol not used by bybit.repayMargin ()
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */

@@ -275,10 +275,10 @@ export default class wazirx extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
-         * @param {int|undefined} [params.until] timestamp in s of the latest candle to fetch
+         * @param {int} [params.until] timestamp in s of the latest candle to fetch
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -329,7 +329,7 @@ export default class wazirx extends Exchange {
          * @see https://docs.wazirx.com/#order-book
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -439,8 +439,8 @@ export default class wazirx extends Exchange {
          * @see https://docs.wazirx.com/#recent-trades-list
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} [limit] the maximum amount of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -643,8 +643,8 @@ export default class wazirx extends Exchange {
          * @see https://docs.wazirx.com/#all-orders-user_data
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} [since] the earliest time in ms to fetch orders for
-         * @param {int|undefined} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -703,9 +703,9 @@ export default class wazirx extends Exchange {
          * @name wazirx#fetchOpenOrders
          * @see https://docs.wazirx.com/#current-open-orders-user_data
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
-         * @param {int|undefined} [limit] the maximum number of  open orders structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -803,7 +803,7 @@ export default class wazirx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

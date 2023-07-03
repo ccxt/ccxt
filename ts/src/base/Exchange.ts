@@ -2642,7 +2642,7 @@ export default class Exchange {
          * @name exchange#networkCodeToId
          * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
-         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
@@ -2685,7 +2685,7 @@ export default class Exchange {
          * @name exchange#networkIdToCode
          * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
          * @param {string} networkId unified network code
-         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
         const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
@@ -4081,8 +4081,8 @@ export default class Exchange {
          * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
@@ -4103,8 +4103,8 @@ export default class Exchange {
          * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
@@ -4125,8 +4125,8 @@ export default class Exchange {
          * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
@@ -4230,7 +4230,7 @@ export default class Exchange {
          * @method
          * @param {object[]|object} response unparsed response from the exchange
          * @param {string[]|undefined} codes the unified currency codes to fetch transactions fees for, returns all currencies when undefined
-         * @param {str|undefined} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
+         * @param {str} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         const depositWithdrawFees = {};
@@ -4309,9 +4309,9 @@ export default class Exchange {
          * @method
          * @description parses funding fee info from exchange response
          * @param {object[]} incomes each item describes once instance of currency being received or paid
-         * @param {object|undefined} market ccxt market
-         * @param {int|undefined} [since] when defined, the response items are filtered to only include items after this timestamp
-         * @param {int|undefined} [limit] limits the number of items in the response
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
@@ -4338,9 +4338,9 @@ export default class Exchange {
          * @method
          * @name exchange#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
-         * @param {string|undefined} code unified currency code for the currency of the deposit/withdrawals, default is undefined
-         * @param {int|undefined} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-         * @param {int|undefined} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */

@@ -402,7 +402,7 @@ export default class krakenfutures extends Exchange {
          * @name krakenfutures#fetchOrderBook
          * @description Fetches a list of open orders in a market
          * @param {string} symbol Unified market symbol
-         * @param {int|undefined} [limit] Not used by krakenfutures
+         * @param {int} [limit] Not used by krakenfutures
          * @param {object} [params] exchange specific params
          * @returns An [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
          */
@@ -631,10 +631,10 @@ export default class krakenfutures extends Exchange {
          * @name krakenfutures#fetchTrades
          * @descriptions Fetch a history of filled trades that this account has made
          * @param {string} symbol Unified CCXT market symbol
-         * @param {int|undefined} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
-         * @param {int|undefined} [limit] Total number of trades, cannot exceed 100
+         * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
+         * @param {int} [limit] Total number of trades, cannot exceed 100
          * @param {object} [params] Exchange specific params
-         * @param {int|undefined} [params.until] Timestamp in ms of latest trade
+         * @param {int} [params.until] Timestamp in ms of latest trade
          * @returns An array of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -803,12 +803,12 @@ export default class krakenfutures extends Exchange {
          * @param {string} side buy or sell
          * @param {int} amount Contract quantity
          * @param {float} price Limit order price
-         * @param {float|undefined} [params.stopPrice] The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
-         * @param {bool|undefined} [params.reduceOnly] Set as true if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
-         * @param {bool|undefined} [params.postOnly] Set as true if you wish to make a postOnly order, Default false
-         * @param {string|undefined} [params.triggerSignal] If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
-         * @param {string|undefined} [params.cliOrdId] UUID The order identity that is specified from the user, It must be globally unique
-         * @param {string|undefined} [params.clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
+         * @param {float} [params.stopPrice] The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
+         * @param {bool} [params.reduceOnly] Set as true if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
+         * @param {bool} [params.postOnly] Set as true if you wish to make a postOnly order, Default false
+         * @param {string} [params.triggerSignal] If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
+         * @param {string} [params.cliOrdId] UUID The order identity that is specified from the user, It must be globally unique
+         * @param {string} [params.clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
          */
         await this.loadMarkets ();
         type = this.safeString (params, 'orderType', type);
@@ -890,8 +890,8 @@ export default class krakenfutures extends Exchange {
          * @param {string} symbol Not used by Krakenfutures
          * @param {string} type Not used by Krakenfutures
          * @param {string} side Not used by Krakenfutures
-         * @param {float|undefined} amount Order size
-         * @param {float|undefined} price Price to fill order at
+         * @param {float} amount Order size
+         * @param {float} price Price to fill order at
          * @param {object} [params] Exchange specific params
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -915,7 +915,7 @@ export default class krakenfutures extends Exchange {
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @param {string} id Order id
-         * @param {string|undefined} symbol Not used by Krakenfutures
+         * @param {string} symbol Not used by Krakenfutures
          * @param {object} [params] Exchange specific params
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

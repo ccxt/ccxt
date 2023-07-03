@@ -1471,12 +1471,12 @@ export default class bitget extends Exchange {
          * @name bitget#fetchDeposits
          * @description fetch all deposits made to an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
-         * @param {string|undefined} code unified currency code
+         * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int|undefined} [limit] the maximum number of deposits structures to retrieve
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {string|undefined} [params.pageNo] pageNo default 1
-         * @param {string|undefined} [params.pageSize] pageSize default 20. Max 100
+         * @param {string} [params.pageNo] pageNo default 1
+         * @param {string} [params.pageSize] pageSize default 20. Max 100
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
@@ -1530,7 +1530,7 @@ export default class bitget extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
+         * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.chain] the chain to withdraw to
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
@@ -1603,12 +1603,12 @@ export default class bitget extends Exchange {
          * @name bitget#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
-         * @param {string|undefined} code unified currency code
+         * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {string|undefined} [params.pageNo] pageNo default 1
-         * @param {string|undefined} [params.pageSize] pageSize default 20. Max 100
+         * @param {string} [params.pageNo] pageNo default 1
+         * @param {string} [params.pageSize] pageSize default 20. Max 100
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
@@ -1773,7 +1773,7 @@ export default class bitget extends Exchange {
          * @name bitget#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -2156,8 +2156,8 @@ export default class bitget extends Exchange {
          * @name bitget#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} [limit] the maximum amount of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -2336,10 +2336,10 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -2651,14 +2651,14 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
-         * @param {float|undefined} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
-         * @param {float|undefined} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
-         * @param {float|undefined} [params.stopLoss] *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
-         * @param {float|undefined} [params.takeProfit] *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
-         * @param {string|undefined} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
+         * @param {float} [params.stopLoss] *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfit] *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2841,7 +2841,7 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3049,7 +3049,7 @@ export default class bitget extends Exchange {
          * @description cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
-         * @param {string|undefined} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.code] marginCoin unified currency code
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3206,8 +3206,8 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
-         * @param {int|undefined} [limit] the maximum number of open order structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3374,8 +3374,8 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
          * @param {string} symbol unified market symbol of the closed orders
-         * @param {int|undefined} [since] timestamp in ms of the earliest order
-         * @param {int|undefined} [limit] the max number of closed orders to return
+         * @param {int} [since] timestamp in ms of the earliest order
+         * @param {int} [limit] the max number of closed orders to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3402,8 +3402,8 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
          * @param {string} symbol unified market symbol of the canceled orders
-         * @param {int|undefined} [since] timestamp in ms of the earliest order
-         * @param {int|undefined} [limit] the max number of canceled orders to return
+         * @param {int} [since] timestamp in ms of the earliest order
+         * @param {int} [limit] the max number of canceled orders to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3585,9 +3585,9 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} [limit] max number of ledger entrys to return, default is undefined
+         * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -3676,8 +3676,8 @@ export default class bitget extends Exchange {
          * @name bitget#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
-         * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -3728,8 +3728,8 @@ export default class bitget extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
-         * @param {int|undefined} [limit] the maximum number of trades to retrieve
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -4002,9 +4002,9 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchFundingRateHistory
          * @description fetches historical funding rate prices
-         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
@@ -4124,8 +4124,8 @@ export default class bitget extends Exchange {
          * @description fetch the funding history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} [since] the starting timestamp in milliseconds
-         * @param {int|undefined} [limit] the number of entries to return
+         * @param {int} [since] the starting timestamp in milliseconds
+         * @param {int} [limit] the number of entries to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
@@ -4399,7 +4399,7 @@ export default class bitget extends Exchange {
          * @name bitget#setPositionMode
          * @description set hedged to true or false for a market
          * @param {bool} hedged set to true to use dualSidePosition
-         * @param {string|undefined} symbol not used by bitget setPositionMode ()
+         * @param {string} symbol not used by bitget setPositionMode ()
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} response from the exchange
          *
@@ -4474,9 +4474,9 @@ export default class bitget extends Exchange {
          * @name bitget#fetchTransfers
          * @description fetch a history of internal transfers made on an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
-         * @param {string|undefined} code unified currency code of the currency transferred
-         * @param {int|undefined} [since] the earliest time in ms to fetch transfers for
-         * @param {int|undefined} [limit] the maximum number of  transfers structures to retrieve
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */

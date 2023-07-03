@@ -883,7 +883,7 @@ export default class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-orderbook
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -1382,8 +1382,8 @@ export default class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-recent-trades
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#recenttrades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} [limit] the maximum amount of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -1487,8 +1487,8 @@ export default class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#recentcandle
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -1568,7 +1568,7 @@ export default class digifinex extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -1683,7 +1683,7 @@ export default class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
          * @param {string} id order id
-         * @param {string|undefined} symbol not used by digifinex cancelOrder ()
+         * @param {string} symbol not used by digifinex cancelOrder ()
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1752,7 +1752,7 @@ export default class digifinex extends Exchange {
          * @name digifinex#cancelOrders
          * @description cancel multiple orders
          * @param {string[]} ids order ids
-         * @param {string|undefined} symbol not used by digifinex cancelOrders ()
+         * @param {string} symbol not used by digifinex cancelOrders ()
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1933,9 +1933,9 @@ export default class digifinex extends Exchange {
          * @description fetch all unfilled currently open orders
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#current-active-orders
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#openorder
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
-         * @param {int|undefined} [limit] the maximum number of  open orders structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2035,9 +2035,9 @@ export default class digifinex extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-all-orders-including-history-orders
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} [since] the earliest time in ms to fetch orders for
-         * @param {int|undefined} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2140,7 +2140,7 @@ export default class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-order-status
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderinfo
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2235,9 +2235,9 @@ export default class digifinex extends Exchange {
          * @description fetch all trades made by the user
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#customer-39-s-trades
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historytrade
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
-         * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -2387,9 +2387,9 @@ export default class digifinex extends Exchange {
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} [limit] max number of ledger entrys to return, default is undefined
+         * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -2576,9 +2576,9 @@ export default class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} [since] the earliest time in ms to fetch deposits for
-         * @param {int|undefined} [limit] the maximum number of deposits structures to retrieve
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -2590,9 +2590,9 @@ export default class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -2763,7 +2763,7 @@ export default class digifinex extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
+         * @param {string} tag
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -3036,9 +3036,9 @@ export default class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchFundingRateHistory
          * @description fetches historical funding rate prices
-         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
@@ -3433,8 +3433,8 @@ export default class digifinex extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @param {string|undefined} [params.marginMode] either 'cross' or 'isolated', default is cross
-         * @param {string|undefined} [params.side] either 'long' or 'short', required for isolated markets only
+         * @param {string} [params.marginMode] either 'cross' or 'isolated', default is cross
+         * @param {string} [params.side] either 'long' or 'short', required for isolated markets only
          * @returns {object} response from the exchange
          */
         await this.loadMarkets ();
@@ -3486,9 +3486,9 @@ export default class digifinex extends Exchange {
          * @name digifinex#fetchTransfers
          * @description fetch the transfer history, only transfers between spot and swap accounts are supported
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
-         * @param {string|undefined} code unified currency code of the currency transferred
-         * @param {int|undefined} [since] the earliest time in ms to fetch transfers for
-         * @param {int|undefined} [limit] the maximum number of  transfers to retrieve
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */

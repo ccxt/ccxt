@@ -124,7 +124,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @description Connects to a websocket channel
          * @param {string} name name of the channel and suscriptionHash
          * @param {bool} isPrivate true for the authenticated url, false for the public url
-         * @param {string|undefined} symbol is required for all public channels, not required for private channels (except position)
+         * @param {string} symbol is required for all public channels, not required for private channels (except position)
          * @param {Object} subscription subscription parameters
          * @param {Object} [params] extra parameters specific to the poloniex api
          * @returns {Object} data from the websocket stream
@@ -248,8 +248,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @description get the list of most recent trades for a particular symbol
          * @see https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} [limit] the maximum amount of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -272,7 +272,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://futures-docs.poloniex.com/#level-2-market-data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} [limit] not used by poloniexfutures watchOrderBook
+         * @param {int} [limit] not used by poloniexfutures watchOrderBook
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @param {string} [params.method] the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
@@ -302,9 +302,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @name poloniexfutures#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://futures-docs.poloniex.com/#private-messages
-         * @param {string|undefined} symbol filter by unified market symbol of the market orders were made in
-         * @param {int|undefined} [since] the earliest time in ms to fetch orders for
-         * @param {int|undefined} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol filter by unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @param {string} [params.method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -329,9 +329,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @name poloniexfutures#watchBalance
          * @description watches information on multiple orders made by the user
          * @see https://futures-docs.poloniex.com/#account-balance-events
-         * @param {string|undefined} symbol not used by poloniexfutures watchBalance
-         * @param {int|undefined} [since] not used by poloniexfutures watchBalance
-         * @param {int|undefined} [limit] not used by poloniexfutures watchBalance
+         * @param {string} symbol not used by poloniexfutures watchBalance
+         * @param {int} [since] not used by poloniexfutures watchBalance
+         * @param {int} [limit] not used by poloniexfutures watchBalance
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

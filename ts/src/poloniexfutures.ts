@@ -456,7 +456,7 @@ export default class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-2
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the poloniexfuturesfutures api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -541,7 +541,7 @@ export default class poloniexfutures extends Exchange {
          * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} [limit] max number of orders to return, default is undefined
+         * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
          * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
          */
@@ -649,8 +649,8 @@ export default class poloniexfutures extends Exchange {
          * @description get the list of most recent trades for a particular symbol
          * @see https://futures-docs.poloniex.com/#historical-data
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} [limit] the maximum amount of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -708,8 +708,8 @@ export default class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#k-chart
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -921,7 +921,7 @@ export default class poloniexfutures extends Exchange {
          * @description cancels an open order
          * @see https://futures-docs.poloniex.com/#cancel-an-order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1115,8 +1115,8 @@ export default class poloniexfutures extends Exchange {
          * @description fetch the history of funding payments paid and received on this account
          * @see https://futures-docs.poloniex.com/#get-funding-history
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch funding history for
-         * @param {int|undefined} [limit] the maximum number of funding history structures to retrieve
+         * @param {int} [since] the earliest time in ms to fetch funding history for
+         * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
@@ -1187,7 +1187,7 @@ export default class poloniexfutures extends Exchange {
          * @method
          * @name poloniexfutures#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @param {object} [params.stop] When true, all the trigger orders will be cancelled
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1251,14 +1251,14 @@ export default class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-order-list
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
          * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
-         * @param {string|undefined} symbol unified symbol for the market to retrieve orders from
-         * @param {int|undefined} [since] timestamp in ms of the earliest order to retrieve
-         * @param {int|undefined} [limit] The maximum number of orders to retrieve
+         * @param {string} symbol unified symbol for the market to retrieve orders from
+         * @param {int} [since] timestamp in ms of the earliest order to retrieve
+         * @param {int} [limit] The maximum number of orders to retrieve
          * @param {object} [params] exchange specific parameters
-         * @param {bool|undefined} [params.stop] set to true to retrieve untriggered stop orders
-         * @param {int|undefined} [params.until] End time in ms
-         * @param {string|undefined} [params.side] buy or sell
-         * @param {string|undefined} [params.type] limit or market
+         * @param {bool} [params.stop] set to true to retrieve untriggered stop orders
+         * @param {int} [params.until] End time in ms
+         * @param {string} [params.side] buy or sell
+         * @param {string} [params.type] limit or market
          * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1355,13 +1355,13 @@ export default class poloniexfutures extends Exchange {
          * @description fetch all unfilled currently open orders
          * @see https://futures-docs.poloniex.com/#get-order-list
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
-         * @param {int|undefined} [limit] the maximum number of  open orders structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
-         * @param {int|undefined} [params.till] end time in ms
-         * @param {string|undefined} [params.side] buy or sell
-         * @param {string|undefined} [params.type] limit, or market
+         * @param {int} [params.till] end time in ms
+         * @param {string} [params.side] buy or sell
+         * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
@@ -1374,13 +1374,13 @@ export default class poloniexfutures extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @see https://futures-docs.poloniex.com/#get-order-list
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} [since] the earliest time in ms to fetch orders for
-         * @param {int|undefined} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
-         * @param {int|undefined} [params.till] end time in ms
-         * @param {string|undefined} [params.side] buy or sell
-         * @param {string|undefined} [params.type] limit, or market
+         * @param {int} [params.till] end time in ms
+         * @param {string} [params.side] buy or sell
+         * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
@@ -1393,7 +1393,7 @@ export default class poloniexfutures extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
          * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1641,14 +1641,14 @@ export default class poloniexfutures extends Exchange {
          * @name poloniexfutures#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://futures-docs.poloniex.com/#get-fills
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
-         * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
-         * @param {string|undefined} orderIdFills filles for a specific order (other parameters can be ignored if specified)
-         * @param {string|undefined} side buy or sell
-         * @param {string|undefined} type  limit, market, limit_stop or market_stop
-         * @param {int|undefined} endAt end time (milisecond)
+         * @param {string} orderIdFills filles for a specific order (other parameters can be ignored if specified)
+         * @param {string} side buy or sell
+         * @param {string} type  limit, market, limit_stop or market_stop
+         * @param {int} endAt end time (milisecond)
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();

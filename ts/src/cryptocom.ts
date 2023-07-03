@@ -649,10 +649,10 @@ export default class cryptocom extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
          * @param {string} symbol unified market symbol of the market the orders were made in
-         * @param {int|undefined} [since] the earliest time in ms to fetch orders for, max date range is one day
-         * @param {int|undefined} [limit] the maximum number of order structures to retrieve, default 100 max 100
+         * @param {int} [since] the earliest time in ms to fetch orders for, max date range is one day
+         * @param {int} [limit] the maximum number of order structures to retrieve, default 100 max 100
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -725,10 +725,10 @@ export default class cryptocom extends Exchange {
          * @description get a list of the most recent trades for a particular symbol
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} [since] timestamp in ms of the earliest trade to fetch, maximum date range is one day
-         * @param {int|undefined} [limit] the maximum number of trades to fetch
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch, maximum date range is one day
+         * @param {int} [limit] the maximum number of trades to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
@@ -780,10 +780,10 @@ export default class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -837,7 +837,7 @@ export default class cryptocom extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} [limit] the number of order book entries to return, max 50
+         * @param {int} [limit] the number of order book entries to return, max 50
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -955,7 +955,7 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1015,13 +1015,13 @@ export default class cryptocom extends Exchange {
          * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @param {string|undefined} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-         * @param {string|undefined} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-         * @param {float|undefined} [params.stopPrice] price to trigger a stop order
-         * @param {float|undefined} [params.stopLossPrice] price to trigger a stop-loss trigger order
-         * @param {float|undefined} [params.takeProfitPrice] price to trigger a take-profit trigger order
+         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+         * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
+         * @param {float} [params.stopPrice] price to trigger a stop order
+         * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
+         * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1145,7 +1145,7 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#cancelAllOrders
          * @description cancel all open orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
-         * @param {string|undefined} symbol unified market symbol of the orders to cancel
+         * @param {string} symbol unified market symbol of the orders to cancel
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1166,7 +1166,7 @@ export default class cryptocom extends Exchange {
          * @description cancels an open order
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
          * @param {string} id the order id of the order to cancel
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1201,9 +1201,9 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
-         * @param {int|undefined} [limit] the maximum number of open order structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1263,11 +1263,11 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch trades for, maximum date range is one day
-         * @param {int|undefined} [limit] the maximum number of trade structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for, maximum date range is one day
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -1346,7 +1346,7 @@ export default class cryptocom extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
+         * @param {string} tag
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -1488,9 +1488,9 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} [since] the earliest time in ms to fetch deposits for
-         * @param {int|undefined} [limit] the maximum number of deposits structures to retrieve
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -1538,9 +1538,9 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -1632,9 +1632,9 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @param {string|undefined} code unified currency code of the currency transferred
-         * @param {int|undefined} [since] the earliest time in ms to fetch transfers for
-         * @param {int|undefined} [limit] the maximum number of  transfers structures to retrieve
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
@@ -2125,7 +2125,7 @@ export default class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
+         * @param {string} symbol unified market symbol, not used by cryptocom.repayMargin ()
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
@@ -2160,7 +2160,7 @@ export default class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
+         * @param {string} symbol unified market symbol, not used by cryptocom.repayMargin ()
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
@@ -2448,11 +2448,11 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} [since] timestamp in ms of the earliest ledger entry
-         * @param {int|undefined} [limit] max number of ledger entries to return
+         * @param {string} code unified currency code
+         * @param {int} [since] timestamp in ms of the earliest ledger entry
+         * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
@@ -2677,10 +2677,10 @@ export default class cryptocom extends Exchange {
          * @description fetches historical settlement records
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
          * @param {string} symbol unified market symbol of the settlement history
-         * @param {int|undefined} [since] timestamp in ms
-         * @param {int|undefined} [limit] number of records
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @param {int|undefined} [params.type] 'future', 'option'
+         * @param {int} [params.type] 'future', 'option'
          * @returns {object[]} a list of [settlement history objects]
          */
         await this.loadMarkets ();
@@ -2766,11 +2766,11 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchFundingRateHistory
          * @description fetches historical funding rates
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
-         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} [limit] the maximum amount of [funding rate structures] to fetch
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
