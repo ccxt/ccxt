@@ -281,6 +281,16 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testSafe (methodName, exchange, args, isPublic) {
+        // `testSafe` method does not throw an exception, instead mutes it.
+        // The reason we mute the thrown exceptions here is because if this test is part
+        // of "runPublicTests", then we don't want to stop the whole test if any single
+        // test-method fails. For example, if "fetchOrderBook" public test fails, we still
+        // want to run "fetchTickers" and other methods. However, independently this fact,
+        // from those test-methods we still echo-out (console.log/print...) the exception
+        // messages with specific formatted message "[TEST_FAILURE] ..." and that output is
+        // then regex-parsed by run-tests.js, so the exceptions are still printed out to
+        // console from there. So, even if some public tests fail, the script will continue
+        // doing other things (testing other spot/swap or private tests ...)
         const maxRetries = 5;
         const argsStringified = '(' + args.join (',') + ')';
         for (let i = 0; i < maxRetries; i++) {
@@ -346,11 +356,18 @@ export default class testMainClass extends baseMainTestClass {
             const testArgs = tests[testName];
             promises.push (this.testSafe (testName, exchange, testArgs, true));
         }
-        // todo - not yet ready in other langs too
-        // promises.push (testThrottle ());
-        await Promise.all (promises);
+        // promises.push (testThrottle ()); // todo - not yet ready in other langs too
+        const results = await Promise.all (promises);
+        const errors = [];
+        for (let i = 0; i < testNames.length; i++) {
+            if (!results[i]) {
+                errors.push (testNames[i]);
+            }
+        }
         if (this.info) {
-            dump (this.addPadding ('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
+            // we don't throw exception for public-tests, see comments under 'testSafe' method
+            const failedMsg = errors.length ? ' | Failed methods: ' + errors.join (', ') : '';
+            dump (this.addPadding ('[INFO:PUBLIC_TESTS_DONE]' +  market['type'] + failedMsg, 25), exchange.id);
         }
     }
 
