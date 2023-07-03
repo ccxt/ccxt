@@ -44,7 +44,7 @@ const template = fs.readFileSync ('./wiki/spec.hbs', 'utf8')
 const outputs = await Promise.all (templateData.map (data => jsdoc2md.render ({ template, data, partial, helper })))
 
 console.log ('📰 creating index of exchange classes')
-const classes = templateData.map (data => data[0].id)
+const classes = templateData.map (data => data[0].id).sort ()
 const alphabet = Array.from ( Array (26)).map((e, i) => String.fromCharCode(i + 97));
 
 const index = {}

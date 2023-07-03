@@ -12,3 +12,7 @@ exports.getFragment = function (func) {
     const part = (cache[id] > 1) ? '-' + cache[id] : ''
     return lower + part
 }
+
+exports.cleanNames = function (names) {
+    return names.map (name => name.replace ('Array.', 'Array'))
+}
