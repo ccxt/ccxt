@@ -111,7 +111,7 @@ const exec = (bin, ...args) =>
         let hasWarnings = false
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true})
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
         psSpawn.on ('exit', code => {
             // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
@@ -120,7 +120,6 @@ const exec = (bin, ...args) =>
             // output = removeDebuger(output);
             // if (stderr === '') { hasWarnings = false; }
 
-            let hasWarnings = stderr.length > 0;
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
 
@@ -172,7 +171,6 @@ const exec = (bin, ...args) =>
                 } while (matchInfo);
                 output = output.replace (infoRegex, '')
             }
-
             return_ ({
                 failed: hasFailed || code !== 0,
                 output,
@@ -380,7 +378,7 @@ async function testAllExchanges () {
     const allKeys = Object.assign (optionKeys, langKeys)
     log.bright.magenta.noPretty ('Testing'.white, Object.assign (
                                                             { exchanges, symbol, allKeys, exchangeSpecificFlags },
-                                                            maxConcurrenc >= Number.MAX_VALUE ? {} : { maxConcurrency }))
+                                                            maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
 
     const tested    = await testAllExchanges ()
         , warnings  = tested.filter (t => !t.failed && t.hasWarnings)
