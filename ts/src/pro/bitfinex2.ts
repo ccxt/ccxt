@@ -908,7 +908,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrders (client: Client, message, subscription) {
