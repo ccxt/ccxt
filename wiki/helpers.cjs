@@ -1,3 +1,5 @@
+var arrayify = require('array-back')
+
 const cache = {}
 
 exports.getFragment = function (func) {
@@ -14,5 +16,30 @@ exports.getFragment = function (func) {
 }
 
 exports.cleanNames = function (names) {
-    return names.map (name => name.replace ('Array.', 'Array'))
+    return names.map (name => name.replace (/Array./g, 'Array'))
 }
+
+// this method is copied from dmd except for the option params handling
+function methodSig () {
+    const args = arrayify(this.params).filter(function (param) {
+      return param.name && !/\./.test(param.name)
+    })
+    function firstOptionalIndex (params) {
+        let i = 0;
+        for (; i < params.length && !(params[i].optional); i++);
+        return i
+    }
+    const names = args.map (arg => arg.name)
+    if (args.length) {
+        const firstOptional = firstOptionalIndex (args)
+        if ((firstOptional > 0) && (args.length > 1)) {
+            names[firstOptional - 1] = names[firstOptional - 1] + '['
+        } else {
+            names[firstOptional] = '[' + names[firstOptional]
+        }
+        names[names.length - 1] = names[names.length - 1] + ']'
+    }
+    return names.join (', ')
+}
+
+exports.methodSig = methodSig

@@ -3390,7 +3390,7 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
@@ -3969,7 +3969,7 @@ export default class Exchange {
          * @method
          * @param {string} type Order type
          * @param {boolean} exchangeSpecificParam exchange specific postOnly
-         * @param {object} params exchange specific params
+         * @param {object} [params] exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -3998,7 +3998,7 @@ export default class Exchange {
          * @method
          * @param {string} type Order type
          * @param {boolean} exchangeSpecificBoolean exchange specific postOnly
-         * @param {object} params exchange specific params
+         * @param {object} [params] exchange specific params
          * @returns {Array}
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -4081,9 +4081,9 @@ export default class Exchange {
          * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
@@ -4103,9 +4103,9 @@ export default class Exchange {
          * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
@@ -4125,9 +4125,9 @@ export default class Exchange {
          * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
@@ -4310,8 +4310,8 @@ export default class Exchange {
          * @description parses funding fee info from exchange response
          * @param {object[]} incomes each item describes once instance of currency being received or paid
          * @param {object|undefined} market ccxt market
-         * @param {int|undefined} since when defined, the response items are filtered to only include items after this timestamp
-         * @param {int|undefined} limit limits the number of items in the response
+         * @param {int|undefined} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int|undefined} [limit] limits the number of items in the response
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
@@ -4339,9 +4339,9 @@ export default class Exchange {
          * @name exchange#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
          * @param {string|undefined} code unified currency code for the currency of the deposit/withdrawals, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest deposit/withdrawal, default is undefined
-         * @param {int|undefined} limit max number of deposit/withdrawals to return, default is undefined
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int|undefined} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int|undefined} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         if (this.has['fetchTransactions']) {
