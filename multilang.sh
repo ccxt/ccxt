@@ -119,10 +119,6 @@ done
 
 shift $((OPTIND - 1))
 
-if grep  -q -e "-[^0-9]" <<< "$@"; then
-  usage
-fi
-
 if ${verbose}; then
   args="--verbose $@"
 else
