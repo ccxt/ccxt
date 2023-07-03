@@ -309,9 +309,15 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "fetchTickers": {
+            "fetchTicker": {
+                "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027",
                 "baseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152",
                 "quoteVolume": "quoteVolume >= baseVolume * low <<< bitstamp fetchTickers"
+            },
+            "fetchTickers": {
+                "bid": "same",
+                "baseVolume": "same",
+                "quoteVolume": "same"
             }
         }
     },
