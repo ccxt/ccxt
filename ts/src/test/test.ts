@@ -300,7 +300,7 @@ export default class testMainClass extends baseMainTestClass {
                     await exchange.sleep (i); // increase wait seconds on every retry
                     continue;
                 } else {
-                    // if not temp failure, then throw the exception without retrying
+                    // if not temp failure, then dump exception without retrying
                     dump ('[TEST_WARNING]', 'Public method could not be tested', exceptionMessage (e), exchange.id, methodName, argsStringified);
                     return false;
                 }
