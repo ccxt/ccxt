@@ -21,6 +21,7 @@
         "skipWs": true
     },
     "ascendex": {
+        "skip": "03/06: 502 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
