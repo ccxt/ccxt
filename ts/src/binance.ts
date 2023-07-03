@@ -236,10 +236,14 @@ export default class binance extends Exchange {
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
                         'margin/dribblet': 0.1,
+                        'margin/dust': 20, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
                         'margin/crossMarginCollateralRatio': 10,
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
                         'margin/next-hourly-interest-rate': 0.6667,
+                        'loan/vip/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/request/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
@@ -434,6 +438,7 @@ export default class binance extends Exchange {
                         'margin/repay': 20.001,
                         'margin/order': 0.040002, // Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
                         'margin/order/oco': 0.040002,
+                        'margin/dust': 20, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
                         'margin/exchange-small-liability': 20.001,
                         // 'margin/isolated/create': 1, discontinued
                         'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
@@ -503,6 +508,7 @@ export default class binance extends Exchange {
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
                         'portfolio/repay': 20.001,
+                        'loan/vip/borrow': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/borrow': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/adjust/ltv': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
