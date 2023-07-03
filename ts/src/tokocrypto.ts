@@ -204,6 +204,7 @@ export default class tokocrypto extends Exchange {
             'precisionMode': DECIMAL_PLACES,
             'options': {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
+                'createMarketBuyOrderRequiresPrice': true,
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 // 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
