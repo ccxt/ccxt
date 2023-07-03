@@ -1588,7 +1588,8 @@ export default class bigone extends Exchange {
         const request = {
             'asset_symbol': currency['id'],
         };
-        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, params));
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
+        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, paramsOmitted));
         //
         // the actual response format is not the same as the documented one
         // the data key contains an array in the actual response
@@ -1611,15 +1612,17 @@ export default class bigone extends Exchange {
         if (dataLength < 1) {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');
         }
-        const firstElement = data[0];
-        const address = this.safeString (firstElement, 'value');
-        const tag = this.safeString (firstElement, 'memo');
+        const chainsIndexedById = this.indexBy (data, 'chain');
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
+        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const address = this.safeString (addressObject, 'value');
+        const tag = this.safeString (addressObject, 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': this.networkIdToCode (selectedNetworkId),
             'info': response,
         };
     }
@@ -1921,6 +1924,11 @@ export default class bigone extends Exchange {
         };
         if (tag !== undefined) {
             request['memo'] = tag;
+        }
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['gateway_name'] = this.networkCodeToId (networkCode);
         }
         // requires write permission on the wallet
         const response = await this.privatePostWithdrawals (this.extend (request, params));
