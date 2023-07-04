@@ -208,6 +208,7 @@ interface Exchange {
     privateGetUserV3PrivateFrozenSubMember (params?: {}): Promise<implicitReturnType>;
     privateGetUserV3PrivateQuerySubMembers (params?: {}): Promise<implicitReturnType>;
     privateGetUserV3PrivateQueryApi (params?: {}): Promise<implicitReturnType>;
+    privateGetUserV3PrivateGetMemberType (params?: {}): Promise<implicitReturnType>;
     privateGetAssetV3PrivateTransferTransferCoinListQuery (params?: {}): Promise<implicitReturnType>;
     privateGetAssetV3PrivateTransferAccountCoinBalanceQuery (params?: {}): Promise<implicitReturnType>;
     privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery (params?: {}): Promise<implicitReturnType>;
@@ -219,6 +220,7 @@ interface Exchange {
     privateGetV5OrderSpotBorrowCheck (params?: {}): Promise<implicitReturnType>;
     privateGetV5OrderRealtime (params?: {}): Promise<implicitReturnType>;
     privateGetV5PositionList (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PositionSwitchMode (params?: {}): Promise<implicitReturnType>;
     privateGetV5ExecutionList (params?: {}): Promise<implicitReturnType>;
     privateGetV5PositionClosedPnl (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountWalletBalance (params?: {}): Promise<implicitReturnType>;
@@ -250,11 +252,21 @@ interface Exchange {
     privateGetV5AssetTransferQueryAccountCoinsBalance (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQuerySubMembers (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQueryApi (params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserGetMemberType (params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserAffCustomerInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetV5CustomerInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeAccount (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeOrders (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeRepayHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanLtvConvert (params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerEarningRecord (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PreUpgradeOrderHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PreUpgradeExecutionList (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PreUpgradePositionClosedPnl (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PreUpgradeAccountTransactionLog (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PreUpgradeAssetDeliveryRecord (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PreUpgradeAssetSettlementRecord (params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCreate (params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancel (params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancelAll (params?: {}): Promise<implicitReturnType>;

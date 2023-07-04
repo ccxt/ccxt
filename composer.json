@@ -1,7 +1,7 @@
 {
     "name": "ccxt/ccxt",
     "type": "library",
-    "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for more than 90 bitcoin/altcoin exchanges",
+    "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for more than 100 bitcoin/altcoin exchanges",
     "keywords": [
         "algorithmic",
         "algotrading",
@@ -211,11 +211,6 @@
         "name": "Igor Kroitor",
         "email": "igor.kroitor@gmail.com",
         "homepage": "https://github.com/kroitor",
-        "role": "Developer"
-    }, {
-        "name": "Vitaly Gordon",
-        "email": "rocket.mind@gmail.com",
-        "homepage": "https://github.com/xpl",
         "role": "Developer"
     }, {
         "name": "Carlo Revelli",

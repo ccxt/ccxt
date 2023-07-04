@@ -145,10 +145,19 @@ class coinex(ccxt.async_support.coinex):
             symbol = self.safe_symbol(marketId, None, None, defaultType)
             market = self.safe_market(marketId, None, None, defaultType)
             parsedTicker = self.parse_ws_ticker(rawTicker, market)
-            messageHash = 'ticker:' + symbol
             self.tickers[symbol] = parsedTicker
             newTickers.append(parsedTicker)
-            client.resolve(parsedTicker, messageHash)
+        messageHashes = self.find_message_hashes(client, 'tickers::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            tickers = self.filter_by_array(newTickers, 'symbol', symbols)
+            tickersSymbols = list(tickers.keys())
+            numTickers = len(tickersSymbols)
+            if numTickers > 0:
+                client.resolve(tickers, messageHash)
         client.resolve(newTickers, 'tickers')
 
     def parse_ws_ticker(self, ticker, market=None):
@@ -218,7 +227,7 @@ class coinex(ccxt.async_support.coinex):
     async def watch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
@@ -369,7 +378,7 @@ class coinex(ccxt.async_support.coinex):
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_tickers([symbol], params)
@@ -378,8 +387,8 @@ class coinex(ccxt.async_support.coinex):
         """
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param [str] symbols: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -388,21 +397,18 @@ class coinex(ccxt.async_support.coinex):
         type, params = self.handle_market_type_and_params('watchTickers', None, params)
         url = self.urls['api']['ws'][type]
         messageHash = 'tickers'
+        if symbols is not None:
+            messageHash = 'tickers::' + ','.join(symbols)
         subscribe = {
             'method': 'state.subscribe',
             'id': self.request_id(),
             'params': [],
         }
         request = self.deep_extend(subscribe, params)
-        tickers = await self.watch(url, messageHash, request, messageHash)
-        result = self.filter_by_array(tickers, 'symbol', symbols)
-        keys = list(result.keys())
-        resultLength = len(keys)
-        if resultLength > 0:
-            if self.newUpdates:
-                return result
-            return self.filter_by_array(self.tickers, 'symbol', symbols)
-        return await self.watch_tickers(symbols, params)
+        newTickers = await self.watch(url, messageHash, request, messageHash)
+        if self.newUpdates:
+            return newTickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -410,10 +416,10 @@ class coinex(ccxt.async_support.coinex):
         see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -432,7 +438,7 @@ class coinex(ccxt.async_support.coinex):
         self.options['watchTradesSubscriptions'] = subscribedSymbols
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, subscriptionHash)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -440,8 +446,8 @@ class coinex(ccxt.async_support.coinex):
         see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -482,10 +488,10 @@ class coinex(ccxt.async_support.coinex):
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -600,13 +606,13 @@ class coinex(ccxt.async_support.coinex):
             message['params'] = [market['id']]
             messageHash += ':' + symbol
         else:
-            message['params'] = self.ids
+            message['params'] = []
         url = self.urls['api']['ws'][type]
         request = self.deep_extend(message, query)
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_orders(self, client: Client, message):
         #
@@ -707,7 +713,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash += ':' + parsedOrder['symbol']
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order):
+    def parse_ws_order(self, order, market=None):
         #
         #  spot
         #
@@ -821,7 +827,7 @@ class coinex(ccxt.async_support.coinex):
         amount = self.safe_string(order, 'amount')
         status = self.safe_string(order, 'status')
         defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, None, None, defaultType)
+        market = self.safe_market(marketId, market, None, defaultType)
         cost = self.safe_string(order, 'deal_money')
         filled = self.safe_string(order, 'deal_stock')
         average = None
@@ -899,13 +905,14 @@ class coinex(ccxt.async_support.coinex):
         #         id: 1
         #     }
         #
-        future = self.safe_value(client.futures, 'authenticated')
-        if future is not None:
-            future.resolve(True)
+        messageHashSpot = 'authenticated:spot'
+        messageHashSwap = 'authenticated:swap'
+        client.resolve(message, messageHashSpot)
+        client.resolve(message, messageHashSwap)
         return message
 
     def handle_subscription_status(self, client: Client, message):
-        id = self.safe_string(message, 'id')
+        id = self.safe_integer(message, 'id')
         subscription = self.safe_value(client.subscriptions, id)
         if subscription is not None:
             futureIndex = self.safe_string(subscription, 'future')
@@ -922,10 +929,9 @@ class coinex(ccxt.async_support.coinex):
         time = self.milliseconds()
         if type == 'spot':
             messageHash = 'authenticated:spot'
-            authenticated = self.safe_value(client.futures, messageHash)
-            if authenticated is not None:
-                return
-            future = client.future(messageHash)
+            future = self.safe_value(client.subscriptions, messageHash)
+            if future is not None:
+                return future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
@@ -942,14 +948,14 @@ class coinex(ccxt.async_support.coinex):
                 ],
                 'id': requestId,
             }
-            self.spawn(self.watch, url, messageHash, request, requestId, subscribe)
+            future = self.watch(url, messageHash, request, requestId, subscribe)
+            client.subscriptions[messageHash] = future
             return future
         else:
             messageHash = 'authenticated:swap'
-            authenticated = self.safe_value(client.futures, messageHash)
-            if authenticated is not None:
-                return
-            future = client.future('authenticated:swap')
+            future = self.safe_value(client.subscriptions, messageHash)
+            if future is not None:
+                return future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
@@ -966,5 +972,6 @@ class coinex(ccxt.async_support.coinex):
                 ],
                 'id': requestId,
             }
-            self.spawn(self.watch, url, messageHash, request, requestId, subscribe)
+            future = self.watch(url, messageHash, request, requestId, subscribe)
+            client.subscriptions[messageHash] = future
             return future

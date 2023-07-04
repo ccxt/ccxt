@@ -3,8 +3,12 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
+/**
+ * @class hitbtc3
+ * @extends Exchange
+ */
 export default class hitbtc3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -43,6 +47,7 @@ export default class hitbtc3 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': undefined,
@@ -631,8 +636,8 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchMarkets
          * @description retrieves data on all markets for hitbtc3
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetPublicSymbol (params);
         //
@@ -770,7 +775,7 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetPublicCurrency (params);
@@ -902,7 +907,7 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#createDepositAddress
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} params extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
@@ -936,7 +941,7 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
@@ -986,7 +991,7 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const type = this.safeStringLower (params, 'type', 'spot');
@@ -1024,7 +1029,7 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const response = await this.fetchTickers ([ symbol ], params);
@@ -1036,8 +1041,8 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -1126,10 +1131,10 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1163,13 +1168,13 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool|undefined} params.margin true for fetching margin trades
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for fetching margin trades
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1448,11 +1453,12 @@ export default class hitbtc3 extends Exchange {
         /**
          * @method
          * @name hitbtc3#fetchTransactions
-         * @description fetch history of deposits and withdrawals
-         * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
-         * @param {int|undefined} limit max number of transactions to return, default is undefined
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @deprecated
+         * @description use fetchDepositsWithdrawals instead
+         * @param {string} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
+         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
@@ -1463,11 +1469,11 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
     }
@@ -1477,11 +1483,11 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
     }
@@ -1491,9 +1497,9 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchOrderBooks
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-         * @param {[string]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-         * @param {int|undefined} limit max number of entries per orderbook to return, default is undefined
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
+         * @param {int} [limit] max number of entries per orderbook to return, default is undefined
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
          */
         await this.loadMarkets ();
@@ -1524,8 +1530,8 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const result = await this.fetchOrderBooks ([ symbol ], limit, params);
@@ -1558,7 +1564,7 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchTradingFee
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
@@ -1585,7 +1591,7 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -1620,10 +1626,10 @@ export default class hitbtc3 extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1722,13 +1728,13 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool|undefined} params.margin true for fetching margin orders
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for fetching margin orders
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1764,10 +1770,10 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool|undefined} params.margin true for fetching a margin order
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for fetching a margin order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1819,13 +1825,13 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool|undefined} params.margin true for fetching margin trades
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for fetching margin trades
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1893,13 +1899,13 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool|undefined} params.margin true for fetching open margin orders
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for fetching open margin orders
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1948,10 +1954,10 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchOpenOrder
          * @description fetch an open order by it's id
          * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol, default is undefined
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool|undefined} params.margin true for fetching an open margin order
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for fetching an open margin order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1982,11 +1988,11 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool|undefined} params.margin true for canceling margin orders
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for canceling margin orders
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2016,10 +2022,10 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool|undefined} params.margin true for canceling a margin order
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for canceling a margin order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2045,7 +2051,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -2076,7 +2082,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#createOrder
@@ -2085,10 +2091,10 @@ export default class hitbtc3 extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
-         * @param {bool|undefined} params.margin true for creating a margin order
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+         * @param {bool} [params.margin] true for creating a margin order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2291,7 +2297,7 @@ export default class hitbtc3 extends Exchange {
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         // account can be "spot", "wallet", or "derivatives"
@@ -2380,8 +2386,8 @@ export default class hitbtc3 extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -2421,11 +2427,11 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchFundingRateHistory
          * @description fetches historical funding rate prices
-         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2494,11 +2500,11 @@ export default class hitbtc3 extends Exchange {
          * @method
          * @name hitbtc3#fetchPositions
          * @description fetch all open positions
-         * @param {[string]|undefined} symbols not used by hitbtc3 fetchPositions ()
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
-         * @param {bool|undefined} params.margin true for fetching spot-margin positions
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @param {string[]|undefined} symbols not used by hitbtc3 fetchPositions ()
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+         * @param {bool} [params.margin] true for fetching spot-margin positions
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2558,9 +2564,9 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchPosition
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
-         * @param {bool|undefined} params.margin true for fetching a spot-margin position
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+         * @param {bool} [params.margin] true for fetching a spot-margin position
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -2705,7 +2711,7 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchFundingRate
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
@@ -2853,9 +2859,9 @@ export default class hitbtc3 extends Exchange {
          * @description remove margin from a position
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
-         * @param {bool|undefined} params.margin true for reducing spot-margin
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
+         * @param {bool} [params.margin] true for reducing spot-margin
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
         if (amount !== 0) {
@@ -2871,9 +2877,9 @@ export default class hitbtc3 extends Exchange {
          * @description add margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
-         * @param {bool|undefined} params.margin true for adding spot-margin
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
+         * @param {bool} [params.margin] true for adding spot-margin
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
@@ -2885,9 +2891,9 @@ export default class hitbtc3 extends Exchange {
          * @name hitbtc3#fetchLeverage
          * @description fetch the set leverage for a market
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
-         * @param {bool|undefined} params.margin true for fetching spot-margin leverage
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
+         * @param {bool} [params.margin] true for fetching spot-margin leverage
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
@@ -2945,7 +2951,7 @@ export default class hitbtc3 extends Exchange {
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} response from the exchange
          */
         await this.loadMarkets ();
@@ -2973,15 +2979,15 @@ export default class hitbtc3 extends Exchange {
         return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://api.hitbtc.com/#currencies
-         * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} [params] extra parameters specific to the hitbtc3 api endpoint
+         * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetPublicCurrency (params);
@@ -3068,8 +3074,8 @@ export default class hitbtc3 extends Exchange {
          * @ignore
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[string|undefined, object]} the marginMode in lowercase
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);

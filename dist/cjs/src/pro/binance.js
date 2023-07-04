@@ -111,8 +111,8 @@ class binance extends binance$1 {
          * @name binance#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         //
@@ -400,10 +400,10 @@ class binance extends binance$1 {
          * @name binance#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -431,7 +431,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -623,10 +623,10 @@ class binance extends binance$1 {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -661,7 +661,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -734,8 +734,8 @@ class binance extends binance$1 {
          * @name binance#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {string} params.name stream to use can be ticker or bookTicker
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {string} [params.name] stream to use can be ticker or bookTicker
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -769,8 +769,8 @@ class binance extends binance$1 {
          * @method
          * @name binance#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -778,10 +778,10 @@ class binance extends binance$1 {
         const marketIds = this.marketIds(symbols);
         let market = undefined;
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
-        if (marketIds !== undefined) {
-            market = this.safeMarket(marketIds[0], undefined, undefined, type);
+        if (symbols !== undefined) {
+            market = this.market(symbols[0]);
         }
+        [type, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchTickers', market, params);
         if (this.isLinear(type, subType)) {
@@ -793,10 +793,12 @@ class binance extends binance$1 {
         const options = this.safeValue(this.options, 'watchTickers', {});
         let name = this.safeString(options, 'name', 'ticker');
         name = this.safeString(params, 'name', name);
-        const oriParams = params;
         params = this.omit(params, 'name');
         let wsParams = [];
-        const messageHash = '!' + name + '@arr';
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join(',');
+        }
         if (name === 'bookTicker') {
             if (marketIds === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' watchTickers() requires symbols for bookTicker');
@@ -808,7 +810,7 @@ class binance extends binance$1 {
         }
         else {
             wsParams = [
-                messageHash,
+                '!' + name + '@arr',
             ];
         }
         const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);
@@ -821,24 +823,11 @@ class binance extends binance$1 {
         const subscribe = {
             'id': requestId,
         };
-        const tickers = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const tickerSymbol = ticker['symbol'];
-            if (symbols === undefined || this.inArray(tickerSymbol, symbols)) {
-                result[tickerSymbol] = ticker;
-            }
+        const newTickers = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
+        if (this.newUpdates) {
+            return newTickers;
         }
-        const resultKeys = Object.keys(result);
-        const resultKeysLength = resultKeys.length;
-        if (resultKeysLength > 0) {
-            if (this.newUpdates) {
-                return result;
-            }
-            return this.filterByArray(this.tickers, 'symbol', symbols);
-        }
-        return await this.watchTickers(symbols, oriParams);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     parseWsTicker(message, marketType) {
         //
@@ -976,27 +965,37 @@ class binance extends binance$1 {
         }
     }
     handleTickers(client, message) {
-        let event = undefined;
         const index = client.url.indexOf('/stream');
         const marketType = (index >= 0) ? 'spot' : 'contract';
-        for (let i = 0; i < message.length; i++) {
-            const ticker = message[i];
-            event = this.safeString(ticker, 'e');
-            if (event === '24hrTicker') {
-                event = 'ticker';
-            }
-            else if (event === '24hrMiniTicker') {
-                event = 'miniTicker';
-            }
-            const wsMarketId = this.safeStringLower(ticker, 's');
-            const messageHash = wsMarketId + '@' + event;
+        let rawTickers = [];
+        const newTickers = [];
+        if (Array.isArray(message)) {
+            rawTickers = message;
+        }
+        else {
+            rawTickers.push(message);
+        }
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = rawTickers[i];
             const result = this.parseWsTicker(ticker, marketType);
             const symbol = result['symbol'];
             this.tickers[symbol] = result;
-            client.resolve(result, messageHash);
+            newTickers.push(result);
         }
-        const values = Object.values(this.tickers);
-        client.resolve(values, '!' + event + '@arr');
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys(tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve(tickers, messageHash);
+            }
+        }
+        client.resolve(newTickers, 'tickers');
     }
     async authenticate(params = {}) {
         const time = this.milliseconds();
@@ -1037,7 +1036,7 @@ class binance extends binance$1 {
                     throw new errors.ArgumentsRequired(this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId(symbol);
-                params['symbol'] = marketId;
+                params = this.extend(params, { 'symbol': marketId });
             }
             const response = await this[method](params);
             this.options[type] = this.extend(options, {
@@ -1145,7 +1144,7 @@ class binance extends binance$1 {
          * @method
          * @name binance#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -1281,11 +1280,11 @@ class binance extends binance$1 {
          * @method
          * @name binance#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let messageHash = 'orders';
@@ -1294,7 +1293,7 @@ class binance extends binance$1 {
             market = this.market(symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params['symbol'] = symbol; // needed inside authenticate for isolated margin
+            params = this.extend(params, { 'symbol': symbol }); // needed inside authenticate for isolated margin
         }
         await this.authenticate(params);
         let type = undefined;
@@ -1315,7 +1314,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -1402,7 +1401,7 @@ class binance extends binance$1 {
         let timestamp = this.safeInteger(order, 'O');
         const T = this.safeInteger(order, 'T');
         let lastTradeTimestamp = undefined;
-        if (executionType === 'NEW') {
+        if (executionType === 'NEW' || executionType === 'AMENDMENT' || executionType === 'CANCELED') {
             if (timestamp === undefined) {
                 timestamp = T;
             }
@@ -1410,6 +1409,7 @@ class binance extends binance$1 {
         else if (executionType === 'TRADE') {
             lastTradeTimestamp = T;
         }
+        const lastUpdateTimestamp = T;
         let fee = undefined;
         const feeCost = this.safeString(order, 'n');
         if ((feeCost !== undefined) && (Precise["default"].stringGt(feeCost, '0'))) {
@@ -1448,6 +1448,7 @@ class binance extends binance$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': undefined,
@@ -1561,10 +1562,10 @@ class binance extends binance$1 {
          * @name binance#watchMyTrades
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         const defaultType = this.safeString2(this.options, 'watchMyTrades', 'defaultType', 'spot');
@@ -1581,7 +1582,7 @@ class binance extends binance$1 {
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
             messageHash += ':' + symbol;
-            params['symbol'] = symbol;
+            params = this.extend(params, { 'symbol': symbol });
         }
         await this.authenticate(params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
@@ -1592,7 +1593,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrade(client, message) {
         const messageHash = 'myTrades';
@@ -1685,8 +1686,11 @@ class binance extends binance$1 {
                     parsed['fees'] = fees;
                 }
                 parsed['trades'] = this.safeValue(order, 'trades');
-                parsed['timestamp'] = this.safeInteger(order, 'timestamp');
-                parsed['datetime'] = this.safeString(order, 'datetime');
+                const timestamp = this.safeInteger(parsed, 'timestamp');
+                if (timestamp === undefined) {
+                    parsed['timestamp'] = this.safeInteger(order, 'timestamp');
+                    parsed['datetime'] = this.safeString(order, 'datetime');
+                }
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, messageHash);
@@ -1737,6 +1741,7 @@ class binance extends binance$1 {
             //
             if (event === undefined) {
                 this.handleTicker(client, message);
+                this.handleTickers(client, message);
             }
         }
         else {

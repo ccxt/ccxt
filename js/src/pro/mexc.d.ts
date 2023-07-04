@@ -26,7 +26,7 @@ export default class mexc extends mexcRest {
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     parseWsOrderStatus(status: any, market?: any): string;
     parseWsOrderType(type: any): string;
     parseWsTimeInForce(timeInForce: any): string;

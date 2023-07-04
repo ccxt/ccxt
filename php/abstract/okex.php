@@ -43,6 +43,9 @@ abstract class okex extends \ccxt\okx {
     public function public_get_market_trades($params = array()) {
         return $this->request('market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_market_history_trades($params = array()) {
+        return $this->request('market/history-trades', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function public_get_market_platform_24_volume($params = array()) {
         return $this->request('market/platform-24-volume', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -229,6 +232,9 @@ abstract class okex extends \ccxt\okx {
     public function private_get_asset_transfer_state($params = array()) {
         return $this->request('asset/transfer-state', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_asset_transfer_record($params = array()) {
+        return $this->request('asset/transfer-record', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_asset_deposit_history($params = array()) {
         return $this->request('asset/deposit-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -288,6 +294,9 @@ abstract class okex extends \ccxt\okx {
     }
     public function private_get_asset_subaccount_bills($params = array()) {
         return $this->request('asset/subaccount/bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function private_get_asset_subaccount_managed_subaccount_bills($params = array()) {
+        return $this->request('asset/subaccount/managed-subaccount-bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -646,6 +655,9 @@ abstract class okex extends \ccxt\okx {
     public function publicGetMarketTrades($params = array()) {
         return $this->request('market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetMarketHistoryTrades($params = array()) {
+        return $this->request('market/history-trades', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function publicGetMarketPlatform24Volume($params = array()) {
         return $this->request('market/platform-24-volume', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -832,6 +844,9 @@ abstract class okex extends \ccxt\okx {
     public function privateGetAssetTransferState($params = array()) {
         return $this->request('asset/transfer-state', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function privateGetAssetTransferRecord($params = array()) {
+        return $this->request('asset/transfer-record', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function privateGetAssetDepositHistory($params = array()) {
         return $this->request('asset/deposit-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -891,6 +906,9 @@ abstract class okex extends \ccxt\okx {
     }
     public function privateGetAssetSubaccountBills($params = array()) {
         return $this->request('asset/subaccount/bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function privateGetAssetSubaccountManagedSubaccountBills($params = array()) {
+        return $this->request('asset/subaccount/managed-subaccount-bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
