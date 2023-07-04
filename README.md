@@ -20,7 +20,7 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![OKX + CCXT Exclusive Event: Trade And Earn](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/250898976-6300ed05-6606-4432-b0c0-3bb32854af60.png)](https://www.okx.com/activities/ccxt-trade-and-earn?chanelid=CCXT2023)
+[![OKX + CCXT Exclusive Event: Trade And Earn](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/250898976-6300ed05-6606-4432-b0c0-3bb32854af60.png)](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)
 
 ## See Also
 
