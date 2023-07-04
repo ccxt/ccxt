@@ -49,6 +49,7 @@ export default class coinbase extends Exchange {
                 'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBidsAsks': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -1430,19 +1431,51 @@ export default class coinbase extends Exchange {
         //         ...
         //     ]
         //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "product_id": "TRAC-EUR",
+        //         "bids": [
+        //             {
+        //                 "price": "0.2384",
+        //                 "size": "386.1"
+        //             }
+        //         ],
+        //         "asks": [
+        //             {
+        //                 "price": "0.2406",
+        //                 "size": "672"
+        //             }
+        //         ],
+        //         "time": "2023-06-30T07:15:24.656044Z"
+        //     }
+        //
+        let bid = this.safeNumber (ticker, 'bid');
+        let ask = this.safeNumber (ticker, 'ask');
+        let bidVolume = undefined;
+        let askVolume = undefined;
+        if (('bids' in ticker)) {
+            const bids = this.safeValue (ticker, 'bids', []);
+            const asks = this.safeValue (ticker, 'asks', []);
+            bid = this.safeNumber (bids[0], 'price');
+            bidVolume = this.safeNumber (bids[0], 'size');
+            ask = this.safeNumber (asks[0], 'price');
+            askVolume = this.safeNumber (asks[0], 'size');
+        }
         const marketId = this.safeString (ticker, 'product_id');
         const last = this.safeNumber (ticker, 'price');
+        const datetime = this.safeString (ticker, 'time');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'bid': this.safeNumber (ticker, 'bid'),
-            'ask': this.safeNumber (ticker, 'ask'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'bid': bid,
+            'ask': ask,
             'last': last,
             'high': undefined,
             'low': undefined,
-            'bidVolume': undefined,
-            'askVolume': undefined,
+            'bidVolume': bidVolume,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -2780,6 +2813,46 @@ export default class coinbase extends Exchange {
         const time = this.safeString (data, 'time');
         const timestamp = this.parse8601 (time);
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
+    }
+
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        // the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
+        const response = await this.v3PrivateGetBrokerageBestBidAsk (params);
+        //
+        //     {
+        //         "pricebooks": [
+        //             {
+        //                 "product_id": "TRAC-EUR",
+        //                 "bids": [
+        //                     {
+        //                         "price": "0.2384",
+        //                         "size": "386.1"
+        //                     }
+        //                 ],
+        //                 "asks": [
+        //                     {
+        //                         "price": "0.2406",
+        //                         "size": "672"
+        //                     }
+        //                 ],
+        //                 "time": "2023-06-30T07:15:24.656044Z"
+        //             },
+        //         ]
+        //     }
+        //
+        const tickers = this.safeValue (response, 'pricebooks', []);
+        return this.parseTickers (tickers, symbols);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
