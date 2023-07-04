@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitget.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitget
+ * @extends Exchange
+ */
 export default class bitget extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;

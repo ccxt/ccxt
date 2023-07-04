@@ -42,10 +42,14 @@ interface Exchange {
     sapiGetMarginIsolatedMarginTier(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginDribblet(params?: {}): Promise<implicitReturnType>;
+    sapiGetMarginDust(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginCrossMarginCollateralRatio(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginExchangeSmallLiability(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginExchangeSmallLiabilityHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginNextHourlyInterestRate(params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanVipLoanableData(params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanVipCollateralData(params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanVipRequestData(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanIncome(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanOngoingOrders(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanLtvAdjustmentHistory(params?: {}): Promise<implicitReturnType>;
@@ -222,6 +226,7 @@ interface Exchange {
     sapiPostMarginRepay(params?: {}): Promise<implicitReturnType>;
     sapiPostMarginOrder(params?: {}): Promise<implicitReturnType>;
     sapiPostMarginOrderOco(params?: {}): Promise<implicitReturnType>;
+    sapiPostMarginDust(params?: {}): Promise<implicitReturnType>;
     sapiPostMarginExchangeSmallLiability(params?: {}): Promise<implicitReturnType>;
     sapiPostMarginIsolatedTransfer(params?: {}): Promise<implicitReturnType>;
     sapiPostMarginIsolatedAccount(params?: {}): Promise<implicitReturnType>;
@@ -282,6 +287,7 @@ interface Exchange {
     sapiPostStakingRedeem(params?: {}): Promise<implicitReturnType>;
     sapiPostStakingSetAutoStaking(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRepay(params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanVipBorrow(params?: {}): Promise<implicitReturnType>;
     sapiPostLoanBorrow(params?: {}): Promise<implicitReturnType>;
     sapiPostLoanRepay(params?: {}): Promise<implicitReturnType>;
     sapiPostLoanAdjustLtv(params?: {}): Promise<implicitReturnType>;

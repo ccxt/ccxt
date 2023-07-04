@@ -130,6 +130,9 @@ abstract class binanceus extends \ccxt\binance {
     public function sapi_get_margin_dribblet($params = array()) {
         return $this->request('margin/dribblet', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_get_margin_dust($params = array()) {
+        return $this->request('margin/dust', 'sapi', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function sapi_get_margin_crossmargincollateralratio($params = array()) {
         return $this->request('margin/crossMarginCollateralRatio', 'sapi', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -141,6 +144,15 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapi_get_margin_next_hourly_interest_rate($params = array()) {
         return $this->request('margin/next-hourly-interest-rate', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapi_get_loan_vip_loanable_data($params = array()) {
+        return $this->request('loan/vip/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapi_get_loan_vip_collateral_data($params = array()) {
+        return $this->request('loan/vip/collateral/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapi_get_loan_vip_request_data($params = array()) {
+        return $this->request('loan/vip/request/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
     public function sapi_get_loan_income($params = array()) {
         return $this->request('loan/income', 'sapi', 'GET', $params, null, null, array("cost" => 40));
@@ -670,6 +682,9 @@ abstract class binanceus extends \ccxt\binance {
     public function sapi_post_margin_order_oco($params = array()) {
         return $this->request('margin/order/oco', 'sapi', 'POST', $params, null, null, array("cost" => 0.040002));
     }
+    public function sapi_post_margin_dust($params = array()) {
+        return $this->request('margin/dust', 'sapi', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function sapi_post_margin_exchange_small_liability($params = array()) {
         return $this->request('margin/exchange-small-liability', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
     }
@@ -849,6 +864,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapi_post_portfolio_repay($params = array()) {
         return $this->request('portfolio/repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
+    }
+    public function sapi_post_loan_vip_borrow($params = array()) {
+        return $this->request('loan/vip/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40));
     }
     public function sapi_post_loan_borrow($params = array()) {
         return $this->request('loan/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40));
@@ -1870,6 +1888,9 @@ abstract class binanceus extends \ccxt\binance {
     public function sapiGetMarginDribblet($params = array()) {
         return $this->request('margin/dribblet', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiGetMarginDust($params = array()) {
+        return $this->request('margin/dust', 'sapi', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function sapiGetMarginCrossMarginCollateralRatio($params = array()) {
         return $this->request('margin/crossMarginCollateralRatio', 'sapi', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1881,6 +1902,15 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapiGetMarginNextHourlyInterestRate($params = array()) {
         return $this->request('margin/next-hourly-interest-rate', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapiGetLoanVipLoanableData($params = array()) {
+        return $this->request('loan/vip/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiGetLoanVipCollateralData($params = array()) {
+        return $this->request('loan/vip/collateral/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiGetLoanVipRequestData($params = array()) {
+        return $this->request('loan/vip/request/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
     public function sapiGetLoanIncome($params = array()) {
         return $this->request('loan/income', 'sapi', 'GET', $params, null, null, array("cost" => 40));
@@ -2410,6 +2440,9 @@ abstract class binanceus extends \ccxt\binance {
     public function sapiPostMarginOrderOco($params = array()) {
         return $this->request('margin/order/oco', 'sapi', 'POST', $params, null, null, array("cost" => 0.040002));
     }
+    public function sapiPostMarginDust($params = array()) {
+        return $this->request('margin/dust', 'sapi', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function sapiPostMarginExchangeSmallLiability($params = array()) {
         return $this->request('margin/exchange-small-liability', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
     }
@@ -2589,6 +2622,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapiPostPortfolioRepay($params = array()) {
         return $this->request('portfolio/repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
+    }
+    public function sapiPostLoanVipBorrow($params = array()) {
+        return $this->request('loan/vip/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40));
     }
     public function sapiPostLoanBorrow($params = array()) {
         return $this->request('loan/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40));

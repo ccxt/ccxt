@@ -1,5 +1,9 @@
 import Exchange from './abstract/mercado.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class mercado
+ * @extends Exchange
+ */
 export default class mercado extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

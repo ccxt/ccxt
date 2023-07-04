@@ -1,5 +1,9 @@
 import Exchange from './abstract/okx.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class okx
+ * @extends Exchange
+ */
 export default class okx extends Exchange {
     describe(): any;
     handleMarketTypeAndParams(methodName: any, market?: any, params?: {}): any;
@@ -415,7 +419,7 @@ export default class okx extends Exchange {
         info: any;
     };
     setSandboxMode(enable: any): void;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {

@@ -1,5 +1,9 @@
 import Exchange from './abstract/binance.js';
 import { Market, Int, OrderSide, Balances, OrderType } from './base/types.js';
+/**
+ * @class binance
+ * @extends Exchange
+ */
 export default class binance extends Exchange {
     describe(): any;
     isInverse(type: any, subType?: any): boolean;
@@ -216,7 +220,7 @@ export default class binance extends Exchange {
         deposit: {};
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;

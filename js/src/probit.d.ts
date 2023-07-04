@@ -1,5 +1,9 @@
 import Exchange from './abstract/probit.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class probit
+ * @extends Exchange
+ */
 export default class probit extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -84,7 +88,7 @@ export default class probit extends Exchange {
         info: any;
     };
     parseTransactionStatus(status: any): string;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

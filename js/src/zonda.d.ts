@@ -1,5 +1,9 @@
 import Exchange from './abstract/zonda.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class zonda
+ * @extends Exchange
+ */
 export default class zonda extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.50'
+__version__ = '4.0.5'
 
 # -----------------------------------------------------------------------------
 
@@ -564,8 +564,6 @@ class Exchange(BaseExchange):
             val = val + 1
         if val > 1:
             raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent')
-        if (val == 1) and (self.proxy is not None):
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy')
         return [proxyUrl, httpProxy, httpsProxy, socksProxy]
 
     def find_message_hashes(self, client, element: str):
@@ -1334,8 +1332,8 @@ class Exchange(BaseExchange):
         percentage = self.safe_value(ticker, 'percentage')
         average = self.safe_value(ticker, 'average')
         vwap = self.safe_value(ticker, 'vwap')
-        baseVolume = self.safe_value(ticker, 'baseVolume')
-        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        baseVolume = self.safe_string(ticker, 'baseVolume')
+        quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
             vwap = Precise.string_div(quoteVolume, baseVolume)
         if (last is not None) and (close is None):
@@ -1419,6 +1417,41 @@ class Exchange(BaseExchange):
             result[close].append(ohlcvs[i][4])
             result[volume].append(ohlcvs[i][5])
         return result
+
+    async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
+        errorMessage = ''
+        try:
+            options = self.safe_value(self.options, method, {})
+            # if it was not explicitly disabled, then don't fetch
+            if self.safe_value(options, 'webApiEnable', True) is not True:
+                return None
+            maxRetries = self.safe_value(options, 'webApiRetries', 10)
+            response = None
+            retry = 0
+            while(retry < maxRetries):
+                try:
+                    response = await getattr(self, endpointMethod)({})
+                    break
+                except Exception as e:
+                    retry = retry + 1
+                    if retry == maxRetries:
+                        raise e
+            content = response
+            if startRegex is not None:
+                splitted_by_start = content.split(startRegex)
+                content = splitted_by_start[1]  # we need second part after start
+            if endRegex is not None:
+                splitted_by_end = content.split(endRegex)
+                content = splitted_by_end[0]  # we need first part after start
+            if returnAsJson and (isinstance(content, str)):
+                jsoned = self.parse_json(content.strip())  # content should be trimmed before json parsing
+                if jsoned:
+                    return jsoned  # if parsing was not successfull, exception should be thrown
+            else:
+                return content
+        except Exception as e:
+            errorMessage = str(e)
+        raise NotSupported(self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage)
 
     def market_ids(self, symbols):
         if symbols is None:
@@ -1526,8 +1559,8 @@ class Exchange(BaseExchange):
          * @ignore
         tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
         :param str networkCode: unified network code
-        :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
-        :returns [str|None]: exchange-specific network id
+        :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        :returns str|None: exchange-specific network id
         """
         networkIdsByCodes = self.safe_value(self.options, 'networks', {})
         networkId = self.safe_string(networkIdsByCodes, networkCode)
@@ -1560,8 +1593,8 @@ class Exchange(BaseExchange):
          * @ignore
         tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have 'options->networksById' defined.
         :param str networkId: unified network code
-        :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
-        :returns [str|None]: unified network code
+        :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        :returns str|None: unified network code
         """
         networkCodesByIds = self.safe_value(self.options, 'networksById', {})
         networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
@@ -2015,7 +2048,7 @@ class Exchange(BaseExchange):
 
     async def fetch_status(self, params={}):
         if self.has['fetchTime']:
-            time = await self.fetchTime(params)
+            time = await self.fetch_time(params)
             self.status = self.extend(self.status, {
                 'updated': time,
                 'info': time,
@@ -2070,7 +2103,7 @@ class Exchange(BaseExchange):
         return rate
 
     def handle_option_and_params(self, params, methodName, optionName, defaultValue=None):
-        # This method can be used to obtain method specific properties, i.e: self.handleOptionAndParams(params, 'fetchPosition', 'marginMode', 'isolated')
+        # This method can be used to obtain method specific properties, i.e: self.handle_option_and_params(params, 'fetchPosition', 'marginMode', 'isolated')
         defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
         # check if params contain the key
         value = self.safe_value_2(params, optionName, defaultOptionName)
@@ -2091,7 +2124,7 @@ class Exchange(BaseExchange):
 
     def handle_option(self, methodName, optionName, defaultValue=None):
         # eslint-disable-next-line no-unused-vars
-        result, empty = self.handleOptionAndParams({}, methodName, optionName, defaultValue)
+        result, empty = self.handle_option_and_params({}, methodName, optionName, defaultValue)
         return result
 
     def handle_market_type_and_params(self, methodName, market=None, params={}):
@@ -2125,17 +2158,17 @@ class Exchange(BaseExchange):
                     subType = 'inverse'
             # if it was not defined in market object
             if subType is None:
-                values = self.handleOptionAndParams(None, methodName, 'subType', defaultValue)  # no need to re-test params here
+                values = self.handle_option_and_params(None, methodName, 'subType', defaultValue)  # no need to re-test params here
                 subType = values[0]
         return [subType, params]
 
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns Array: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
-        return self.handleOptionAndParams(params, methodName, 'marginMode', defaultValue)
+        return self.handle_option_and_params(params, methodName, 'marginMode', defaultValue)
 
     def throw_exactly_matched_exception(self, exact, string, message):
         if string in exact:
@@ -2401,7 +2434,7 @@ class Exchange(BaseExchange):
         return parsedPrecision + '1'
 
     async def load_time_difference(self, params={}):
-        serverTime = await self.fetchTime(params)
+        serverTime = await self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
@@ -2585,7 +2618,7 @@ class Exchange(BaseExchange):
          * @ignore
         :param str type: Order type
         :param boolean exchangeSpecificParam: exchange specific postOnly
-        :param dict params: exchange specific params
+        :param dict [params]: exchange specific params
         :returns boolean: True if a post only order, False otherwise
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')
@@ -2610,8 +2643,8 @@ class Exchange(BaseExchange):
          * @ignore
         :param str type: Order type
         :param boolean exchangeSpecificBoolean: exchange specific postOnly
-        :param dict params: exchange specific params
-        :returns [boolean, params]:
+        :param dict [params]: exchange specific params
+        :returns Array:
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.safe_value(params, 'postOnly', False)
@@ -2676,10 +2709,10 @@ class Exchange(BaseExchange):
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]]: A list of candles ordered, open, high, low, close, None
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
             request = {
@@ -2694,10 +2727,10 @@ class Exchange(BaseExchange):
         fetches historical index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]]: A list of candles ordered, open, high, low, close, None
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+         * @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
             request = {
@@ -2712,10 +2745,10 @@ class Exchange(BaseExchange):
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]]: A list of candles ordered, open, high, low, close, None
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
             request = {
@@ -2762,7 +2795,7 @@ class Exchange(BaseExchange):
         :param str argument: the argument to check
         :param str argumentName: the name of the argument to check
         :param str methodName: the name of the method that the argument is being checked for
-        :param [str] options: a list of options that the argument can be
+        :param str[] options: a list of options that the argument can be
         :returns None:
         """
         optionsLength = len(options)
@@ -2796,9 +2829,9 @@ class Exchange(BaseExchange):
     def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
         """
          * @ignore
-        :param [object]|dict response: unparsed response from the exchange
-        :param [str]|None codes: the unified currency codes to fetch transactions fees for, returns all currencies when None
-        :param str|None currencyIdKey: *should only be None when response is a dictionary* the object key that corresponds to the currency id
+        :param object[]|dict response: unparsed response from the exchange
+        :param str[]|None codes: the unified currency codes to fetch transactions fees for, returns all currencies when None
+        :param str currencyIdKey: *should only be None when response is a dictionary* the object key that corresponds to the currency id
         :returns dict: objects with withdraw and deposit fees, indexed by currency codes
         """
         depositWithdrawFees = {}
@@ -2863,11 +2896,11 @@ class Exchange(BaseExchange):
         """
          * @ignore
         parses funding fee info from exchange response
-        :param [dict] incomes: each item describes once instance of currency being received or paid
-        :param dict|None market: ccxt market
-        :param int|None since: when defined, the response items are filtered to only include items after self timestamp
-        :param int|None limit: limits the number of items in the response
-        :returns [dict]: an array of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :param dict[] incomes: each item describes once instance of currency being received or paid
+        :param dict market: ccxt market
+        :param int [since]: when defined, the response items are filtered to only include items after self timestamp
+        :param int [limit]: limits the number of items in the response
+        :returns dict[]: an array of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         result = []
         for i in range(0, len(incomes)):
@@ -2887,10 +2920,10 @@ class Exchange(BaseExchange):
     async def fetch_deposits_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
         fetch history of deposits and withdrawals
-        :param str|None code: unified currency code for the currency of the deposit/withdrawals, default is None
-        :param int|None since: timestamp in ms of the earliest deposit/withdrawal, default is None
-        :param int|None limit: max number of deposit/withdrawals to return, default is None
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param str code: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         if self.has['fetchTransactions']:

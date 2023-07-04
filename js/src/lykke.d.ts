@@ -1,5 +1,9 @@
 import Exchange from './abstract/lykke.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class lykke
+ * @extends Exchange
+ */
 export default class lykke extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;

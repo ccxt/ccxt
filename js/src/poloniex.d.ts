@@ -1,5 +1,9 @@
 import Exchange from './abstract/poloniex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class poloniex
+ * @extends Exchange
+ */
 export default class poloniex extends Exchange {
     describe(): any;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -95,7 +99,7 @@ export default class poloniex extends Exchange {
     fetchTransactionsHelper(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

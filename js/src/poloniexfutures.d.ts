@@ -1,5 +1,9 @@
 import Exchange from './abstract/poloniexfutures.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class poloniexfutures
+ * @extends Exchange
+ */
 export default class poloniexfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

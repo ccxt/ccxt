@@ -1,5 +1,9 @@
 import Exchange from './abstract/kraken.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class kraken
+ * @extends Exchange
+ */
 export default class kraken extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;

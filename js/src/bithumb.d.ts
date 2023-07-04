@@ -1,5 +1,9 @@
 import Exchange from './abstract/bithumb.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bithumb
+ * @extends Exchange
+ */
 export default class bithumb extends Exchange {
     describe(): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;

@@ -21,6 +21,7 @@ interface Exchange {
     publicGetMarketIndexCandles (params?: {}): Promise<implicitReturnType>;
     publicGetMarketMarkPriceCandles (params?: {}): Promise<implicitReturnType>;
     publicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketHistoryTrades (params?: {}): Promise<implicitReturnType>;
     publicGetMarketPlatform24Volume (params?: {}): Promise<implicitReturnType>;
     publicGetMarketOpenOracle (params?: {}): Promise<implicitReturnType>;
     publicGetMarketIndexComponents (params?: {}): Promise<implicitReturnType>;
