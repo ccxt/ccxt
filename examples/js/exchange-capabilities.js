@@ -1,16 +1,25 @@
-"use strict";
 
-const csv = process.argv.includes ('--csv')
-    , delimiter = csv ? ',' : '|'
-    , ccxt = require ('../../ccxt.js')
-    , asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }
-    , asTable = require ('as-table').configure (asTableConfig)
-    , log = require ('ololog').noLocate
-    , ansi = require ('ansicolor').nice
-    , sortCertified = process.argv.includes ('--sort-certified') || process.argv.includes ('--certified')
-    , exchangesArgument = process.argv.find (arg => arg.startsWith ('--exchanges='))
-    , exchangesArgumentParts = exchangesArgument ? exchangesArgument.split ('=') : []
-    , selectedExchanges = (exchangesArgumentParts.length > 1) ? exchangesArgumentParts[1].split (',') : []
+
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog';
+import ansicolor from 'ansicolor';
+import asTable from 'as-table';
+
+const { noLocate } = ololog;
+const log = noLocate;
+
+ansicolor.nice
+
+
+
+const csv = process.argv.includes ('--csv'), delimiter = csv ? ',' : '|', asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }
+
+asTable.configure (asTableConfig);
+
+const sortCertified = process.argv.includes ('--sort-certified') || process.argv.includes ('--certified')
+const exchangesArgument = process.argv.find (arg => arg.startsWith ('--exchanges='))
+const exchangesArgumentParts = exchangesArgument ? exchangesArgument.split ('=') : []
+const selectedExchanges = (exchangesArgumentParts.length > 1) ? exchangesArgumentParts[1].split (',') : []
 
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
@@ -55,8 +64,6 @@ async function main () {
     const table = asTable (exchanges.map (exchange => {
         let result = {};
         const basics = [
-            'publicAPI',
-            'privateAPI',
             'CORS',
             'spot',
             'margin',
