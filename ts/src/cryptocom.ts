@@ -317,7 +317,7 @@ export default class cryptocom extends Exchange {
                     'future': 'DERIVATIVES',
                 },
                 'networks': {
-                    'BEP20': 'BSC', // 'BEP20': 'BNB' ? 
+                    'BEP20': 'BSC', // 'BEP20': 'BNB' ?
                     'TRX': 'TRON',
                     'TRC20': 'TRON',
                     'ERC20': 'ETH',
@@ -397,6 +397,7 @@ export default class cryptocom extends Exchange {
                     'MOONRIVER': 'MOVR',
                 },
                 'networksById': {
+                    'BSC': 'BEP20', // ?
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
                     'CRONOS': 'CRONOS',
