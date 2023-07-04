@@ -76,6 +76,7 @@ interface Exchange {
     privateSubAccountsPostSubAccountsUserIdUnlock (params?: {}): Promise<implicitReturnType>;
     privateSubAccountsPutSubAccountsUserIdKeysKey (params?: {}): Promise<implicitReturnType>;
     privateSubAccountsDeleteSubAccountsUserIdKeysKey (params?: {}): Promise<implicitReturnType>;
+    privateAccountGetDetail (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccounts (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountBook (params?: {}): Promise<implicitReturnType>;
     privateSpotGetOpenOrders (params?: {}): Promise<implicitReturnType>;

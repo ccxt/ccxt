@@ -41,6 +41,7 @@ export default class gate extends Exchange {
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'subAccounts': 'https://api.gateio.ws/api/v4',
+                        'account': 'https://api.gateio.ws/api/v4',
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
                     },
@@ -254,6 +255,11 @@ export default class gate extends Exchange {
                         },
                         'delete': {
                             'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                    },
+                    'account': {
+                        'get': {
+                            'detail': 1,
                         },
                     },
                     'spot': {
