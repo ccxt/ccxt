@@ -317,7 +317,9 @@ export default class cryptocom extends Exchange {
                     'future': 'DERIVATIVES',
                 },
                 'networks': {
-                    // 'BEP20': 'BNB',  ? 'BEP20': 'BSC',
+                    'BEP20': 'BSC', // 'BEP20': 'BNB' ? 
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
                     'ERC20': 'ETH',
                     'ETH': 'ETH',
                     'CRC20': 'CRONOS',
@@ -325,7 +327,6 @@ export default class cryptocom extends Exchange {
                     'CRO': 'CRO', // this network-id is not used for main coin, so might be redundant
                     'POLYGON': 'MATIC',
                     'AVALANCHE_C': 'AVAXC',
-                    'BEP20': 'BNB',
                     'BEP2': 'BEP2',
                     'BTC': 'BTC',
                     'SOLANA': 'SOL',
