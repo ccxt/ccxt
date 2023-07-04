@@ -1594,7 +1594,7 @@ class bitopro extends Exchange {
          * fetch deposit and withdraw fees
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
          * @param {[string]|null} $codes list of unified currency $codes
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {array} $params extra parameters specific to the bitopro api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */
         $this->load_markets();

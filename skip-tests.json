@@ -787,6 +787,7 @@
         }
     },
     "huobijp": {
+        "skip": "29/06 fetchMarkets returns empty array",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -1145,6 +1146,13 @@
                 "quoteVolume": "same",
                 "baseVolume": "same"
             }
+        }
+    },
+    "protondex": {
+        "skipMethods": {
+            "fetchTrades": "ide key is expected to be one from: [buy,sell]",
+            "fetchOrderBook": "bid should be less than next bid",
+            "fetchOHLCV": "unexpected issue, works for regular calls from example"
         }
     },
     "okx": {

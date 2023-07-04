@@ -1934,7 +1934,7 @@ class bittrex(Exchange, ImplicitAPI):
         """
         fetch deposit and withdraw fees
         :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict params: extra parameters specific to the bittrex api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()

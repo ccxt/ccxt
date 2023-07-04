@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    webexchange_get = webExchangeGet = Entry('', 'webExchange', 'GET', {})
     web_get_rest_api = webGetRestApi = Entry('rest-api', 'web', 'GET', {})
     public_get_v1_symbols = publicGetV1Symbols = Entry('v1/symbols', 'public', 'GET', {'cost': 5})
     public_get_v1_symbols_details_symbol = publicGetV1SymbolsDetailsSymbol = Entry('v1/symbols/details/{symbol}', 'public', 'GET', {'cost': 5})

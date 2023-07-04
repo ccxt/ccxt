@@ -1,21 +1,24 @@
-'use strict';
-
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
-
+import Exchange from './abstract/protondex.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { ripemd160 } from './static_dependencies/noble-hashes/ripemd160.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { CurveFn } from './static_dependencies/noble-curves/abstract/weierstrass.js';
+import { numberToBytesBE, concatBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils.js';
+import { Int, Trade, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
-module.exports = class protondex extends Exchange {
+export default class protondex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'protondex',
             'name': 'protondex',
             'countries': [ 'US' ],
-            'rateLimit': 1000,
+            'rateLimit': 600,
             'version': 'v1',
             'has': {
                 'CORS': undefined,
@@ -37,6 +40,7 @@ module.exports = class protondex extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
@@ -45,6 +49,7 @@ module.exports = class protondex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchL2OrderBook': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -56,13 +61,12 @@ module.exports = class protondex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrdersHistory': true,
+                'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchRecentTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -70,30 +74,35 @@ module.exports = class protondex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': true,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
-                'withdraw': true,
+                'withdraw': false,
             },
-            'hostname': 'https://metallicus-dbapi-dev01.binfra.one',
+            'hostname': 'https://mainnet.api.protondex.com',
             'urls': {
-                'logo': 'https://testnet.protonswap.com/img/logo.svg',
+                'logo': 'https://protonswap.com/img/logo.svg',
                 'api': {
-                    'rest': 'https://metallicus-dbapi-dev01.binfra.one/dex',
-                    'public': 'https://metallicus-dbapi-dev01.binfra.one/dex',
-                    'private': 'https://metallicus-dbapi-dev01.binfra.one/dex',
+                    'rest': 'https://mainnet.api.protondex.com/dex',
+                    'public': 'https://mainnet.api.protondex.com/dex',
+                    'private': 'https://mainnet.api.protondex.com/dex',
                 },
-                'www': 'https://www.protonswap.com',
+                'test': {
+                    'rest': 'https://testnet.api.protondex.com/dex',
+                    'public': 'https://testnet.api.protondex.com/dex',
+                    'private': 'https://testnet.api.protondex.com/dex',
+                },
+                'www': 'https://protondex.com/',
                 'doc': [
                     'https://www.docs.protondex.com',
                 ],
                 'fees': [
                     'https://www.docs.protondex.com/dex/what-is-proton-dex/dex-fees-and-discounts',
                 ],
-                'referral': 'https://www.protonswap.com',
+                'referral': 'https://protondex.com/',
             },
             'api': {
                 'public': {
@@ -101,42 +110,35 @@ module.exports = class protondex extends Exchange {
                         'markets/all',
                         'orders/open', // ?{account}/{marketid}/{offset}/{limit}'
                         'orders/history', // ?{account}/{marketid}/{offset}/{limit}'
+                        'orders/lifecycle', // ?{orderid}'
                         'orders/depth', // ?{marketid}/{step}/{limit}'
-                        'trades/recent', // ?{marketid}/{offset}/{limit}'
                         'trades/daily',
+                        'trades/history', // ?{account}/{symbol}/{offset}/{ordinal_order_ids}/{limit}'
+                        'trades/recent', // ?{marketid}/{offset}/{limit}'
                         'chart/ohlcv', // ?{interval}/{dateFrom}/{dateTo}/{marketid}/{limit}'
                         'status/sync',
+                        'account/balances', // ?{account}'
+                    ],
+                    'post': [
+                        'orders/serialize', // application/json - transaction
+                        'orders/submit', // application/json - serilized_tx_hex, signatures
                     ],
                 },
                 'private': {
-                    'get': [
-                        'user/accounts',
-                        'user/orders',
-                        'user/orders/{id}',
-                        'user/orders/{id}/trades',
-                        'user/trades',
-                        'user/fees',
-                        'account/withdrawals/{id}',
-                        'account/withdrawals',
-                        'account/deposit/{id}',
-                        'account/deposits',
-                        'account/deposit_address',
-                    ],
                     'post': [
-                        'user/orders',
-                        'account/withdraw',
                     ],
-                    'delete': [
-                        'user/orders/{id}',
-                        'account/withdrawals/{id}',
+                    'get': [
+                        'user/fees',
+                        'account/deposits',
+                        'account/withdrawals',
                     ],
                 },
             },
             'fees': {
                 'trading': {
                     'tierBased': true,
-                    'maker': 0.001,
-                    'taker': 0.002, // tiered fee starts at 0.2%
+                    'maker': 0.001, // tiered fee discounts
+                    'taker': 0.001, // tiered fee discounts
                 },
             },
             'precision': {
@@ -200,7 +202,7 @@ module.exports = class protondex extends Exchange {
                 'option': false,
                 'active': true,
                 'contract': false,
-                'linear': false,
+                'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
@@ -256,22 +258,22 @@ module.exports = class protondex extends Exchange {
         const timestamp = this.milliseconds ();
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': ticker['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': this.safeString (ticker, 'highest_bid'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString (ticker, 'volume_bid'),
             'ask': this.safeString (ticker, 'lowest_ask'),
-            'askVolume': undefined,
+            'askVolume': this.safeString (ticker, 'volume_ask'),
             'vwap': undefined,
-            'open': undefined,
-            'close': last,
+            'open': this.safeString (ticker, 'open'),
+            'close': this.safeString (ticker, 'close'),
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'change_in_24h'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'change_percentage'),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'volume'),
@@ -289,7 +291,7 @@ module.exports = class protondex extends Exchange {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers = await this.fetchTickers ([ symbol ], params);
+        const tickers = await this.fetchTickers ();
         return tickers[symbol];
     }
 
@@ -304,7 +306,7 @@ module.exports = class protondex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetMarkets (params);
+        const response = await this.publicGetTradesDaily (params);
         //
         //     {
         //         "data":[
@@ -334,7 +336,7 @@ module.exports = class protondex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol, step, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
          * @name protondex#fetchOrderBook
@@ -348,74 +350,15 @@ module.exports = class protondex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['symbol'],
-            'step': step,
         };
+        request['limit'] = (limit !== undefined) ? limit : 100;
+        request['step'] = (params['step'] !== undefined) ? params['step'] : 100;
         const response = await this.publicGetOrdersDepth (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'bid', 'ask');
     }
 
-    safeTrade (trade, market = undefined) {
-        const amount = this.safeString (trade, 'amount');
-        const price = this.safeString (trade, 'price');
-        const cost = this.safeString (trade, 'cost');
-        const parseFee = this.safeValue (trade, 'fee') === undefined;
-        const parseFees = this.safeValue (trade, 'fees') === undefined;
-        const shouldParseFees = parseFee || parseFees;
-        const fees = [];
-        if (shouldParseFees) {
-            const tradeFees = this.safeValue (trade, 'fees');
-            if (tradeFees !== undefined) {
-                for (let j = 0; j < tradeFees.length; j++) {
-                    const tradeFee = tradeFees[j];
-                    fees.push (this.extend ({}, tradeFee));
-                }
-            } else {
-                const tradeFee = this.safeValue (trade, 'fee');
-                if (tradeFee !== undefined) {
-                    fees.push (this.extend ({}, tradeFee));
-                }
-            }
-        }
-        const fee = this.safeValue (trade, 'fee');
-        if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
-            const reducedLength = reducedFees.length;
-            for (let i = 0; i < reducedLength; i++) {
-                reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
-                if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
-                }
-            }
-            if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.safeNumber (fee, 'cost');
-                if ('rate' in fee) {
-                    fee['rate'] = this.safeNumber (fee, 'rate');
-                }
-                reducedFees.push (fee);
-            }
-            if (parseFees) {
-                trade['fees'] = reducedFees;
-            }
-            if (parseFee && (reducedLength === 1)) {
-                trade['fee'] = reducedFees[0];
-            }
-            const tradeFee = this.safeValue (trade, 'fee');
-            if (tradeFee !== undefined) {
-                tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
-                if ('rate' in tradeFee) {
-                    tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
-                }
-                trade['fee'] = tradeFee;
-            }
-        }
-        trade['amount'] = this.parseNumber (amount);
-        trade['price'] = this.parseNumber (price);
-        trade['cost'] = this.parseNumber (cost);
-        return trade;
-    }
-
-    parseTrade (trade, symbol, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -443,21 +386,31 @@ module.exports = class protondex extends Exchange {
         //      }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'block_time'));
-        const priceString = this.safeString (trade, 'price');
-        const amountString = undefined;
         const tradeId = this.safeString (trade, 'trade_id');
-        const side = this.safeString (trade, 'order_side');
-        const orderId = this.safeString (trade, 'order_id');
-        const fee = undefined;
+        const priceString = this.safeString (trade, 'price');
+        const orderSide = this.safeString (trade, 'order_side');
+        const account = this.safeString (trade, 'account');
+        const amountString = account === this.safeString (trade, 'bid_user') ? this.safeString (trade, 'bid_amount') : this.safeString (trade, 'ask_amount');
+        const orderId = account === this.safeString (trade, 'bid_user') ? this.safeString (trade, 'bid_user_order_id') : this.safeString (trade, 'ask_user_order_id');
+        const feeString = account === this.safeString (trade, 'bid_user') ? this.safeString (trade, 'bid_fee') : this.safeString (trade, 'ask_fee');
+        const feeCurrencyId = account === this.safeString (trade, 'bid_user') ? this.safeString (market, 'baseId') : this.safeString (market, 'quoteId');
+        let fee = undefined;
+        if (feeString !== undefined) {
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeString,
+                'currency': feeCurrencyCode,
+            };
+        }
         return this.safeTrade ({
             'info': trade,
+            'id': tradeId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': tradeId,
+            'symbol': market['symbol'],
             'order': orderId,
-            'type': undefined,
-            'side': side,
+            'type': null,
+            'side': orderSide,
             'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
@@ -466,33 +419,43 @@ module.exports = class protondex extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    parseTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        trades = this.toArray (trades);
+        const result = [];
+        for (let i = 0; i < trades.length; i++) {
+            trades[i]['account'] = params['account'];
+            const trade = this.extend (this.parseTrade (trades[i], market));
+            result.push (trade);
+        }
+        return result;
+    }
+
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#fetchMyTrades
+         * @name protondex#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the protondex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        const market = this.market (symbol);
+        if (params['account'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a account argument in params');
         }
         const request = {
-            // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
-            // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
+            'account': params['account'],
+            'symbol': market['symbol'],
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
+        request['limit'] = (limit !== undefined) ? limit : 100;
+        request['offset'] = (params['offset'] !== undefined) ? params['offset'] : 0;
+        if (params['ordinal_order_ids'] !== undefined) {
+            request['ordinal_order_ids'] = params['ordinal_order_ids'];
         }
-        if (limit !== undefined) {
-            request['limit'] = parseInt (limit);
-        }
-        const response = await this.privateGetTrades (this.extend (request, params));
+        const response = await this.publicGetTradesHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -514,32 +477,77 @@ module.exports = class protondex extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parseTrades (response, market);
-        return this.filterBySinceLimit (result, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, 1, 1, { 'account': params['account'] });
     }
 
-    async fetchRecentTrades (symbol, offset = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name protondex#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {int|undefined} offset offset value
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @name protondex#fetchOrders
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the protondex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (params['account'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a account argument in params');
+        }
+        const request = {
+            'account': params['account'],
+            'symbol': market['symbol'],
+        };
+        request['offset'] = (params['offset'] !== undefined) ? params['offset'] : 0;
+        request['limit'] = (limit !== undefined) ? limit : 100;
+        if (params['ordinal_order_ids'] !== undefined) {
+            request['ordinal_order_ids'] = params['ordinal_order_ids'];
+        }
+        if (params['trx_id'] !== undefined) {
+            request['trx_id'] = params['trx_id'];
+        }
+        if (params['status'] !== undefined) {
+            request['status'] = params['status'];
+        }
+        const response = await this.publicGetOrdersHistory (this.extend (request, params));
+        //
+        //      {
+        //          "data":[
+        //              {
+        //                  "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
+        //                  "price":"4050.06","size":"0.0044",
+        //                  "market_name":"ETH-USDT",
+        //                  "side":"sell",
+        //                  "created_at":"2021-12-07T17:47:36.811000Z"
+        //              },
+        //          ]
+        //      }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market);
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name protondexx#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the protondex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['symbol'],
         };
-        if (offset !== undefined) {
-            request['offset'] = offset;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        request['limit'] = (limit !== undefined) ? limit : 100;
+        request['offset'] = (params['offset'] !== undefined) ? params['offset'] : 0;
         const response = await this.publicGetTradesRecent (this.extend (request, params));
         //
         //      {
@@ -560,75 +568,7 @@ module.exports = class protondex extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data);
-    }
-
-    async fetchOrdersHistory (symbol, account, offset, limit, params = {}) {
-        /**
-         * @method
-         * @name protondex#fetchOrdersHistory
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the protondex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'account': account,
-            'symbol': market['symbol'],
-        };
-        if (offset !== undefined) {
-            request['offset'] = offset;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.publicGetOrdersHistory (this.extend (request, params));
-        //
-        //      {
-        //          "data":[
-        //              {
-        //                  "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
-        //                  "price":"4050.06","size":"0.0044",
-        //                  "market_name":"ETH-USDT",
-        //                  "side":"sell",
-        //                  "created_at":"2021-12-07T17:47:36.811000Z"
-        //              },
-        //          ]
-        //      }
-        //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, limit);
-    }
-
-    async fetchTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name protondex#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the protondex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
-        const response = await this.publicGetTradesDaily ();
-        //      {
-        //          "data":[
-        //              {
-        //                  "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
-        //                  "price":"4050.06","size":"0.0044",
-        //                  "market_name":"ETH-USDT",
-        //                  "side":"sell",
-        //                  "created_at":"2021-12-07T17:47:36.811000Z"
-        //              },
-        //          ]
-        //      }
-        const data = this.safeValue (response, 'data', []);
-        return data;
+        return this.parseTrades (data, market, 1, 1);
     }
 
     async fetchTradingFees (params = {}) {
@@ -675,12 +615,12 @@ module.exports = class protondex extends Exchange {
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency_code');
+            const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'available_balance');
-            account['used'] = this.safeString (balance, 'hold_balance');
-            account['total'] = this.safeString (balance, 'balance');
+            account['token'] = this.safeString (balance, 'contract');
+            account['free'] = this.safeString (balance, 'amount');
+            account['total'] = this.safeString (balance, 'amount');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -695,7 +635,13 @@ module.exports = class protondex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetUserAccounts (params);
+        if (params['account'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a account argument in params');
+        }
+        const request = {
+            'account': params['account'],
+        };
+        const response = await this.publicGetAccountBalances (this.extend (request, params));
         return this.parseBalance (response);
     }
 
@@ -716,33 +662,6 @@ module.exports = class protondex extends Exchange {
             'network': undefined,
             'info': depositAddress,
         };
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        /**
-         * @method
-         * @name protondex#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the protondex api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
-         */
-        await this.loadMarkets ();
-        const currency = this.safeCurrency (code);
-        const request = {
-            'currency': this.safeStringLower (currency, 'id'),
-        };
-        const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
-        //
-        //     {
-        //         data: {
-        //             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
-        //             tag:null
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseDepositAddress (data, currency);
     }
 
     parseOrderStatus (status) {
@@ -783,13 +702,13 @@ module.exports = class protondex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'order_type');
         if (type !== undefined) {
-            type = type.split ('_');
-            type = type[0];
+            const parts = type.split ('_');
+            type = parts[0];
         }
         const side = this.safeString (order, 'order_side');
         return this.safeOrder ({
-            'id': this.safeString (order, 'market_id'),
-            'clientOrderId': this.safeString (order, 'order_id'),
+            'id': this.safeString (order, 'order_id'),
+            'clientOrderId': this.safeString (order, 'ordinal_order_id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
@@ -805,57 +724,6 @@ module.exports = class protondex extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name protondex#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the protondex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        // price/size must be string
-        const request = {
-            'market': market['id'],
-            'size': this.amountToPrecision (symbol, amount),
-            'order_type': side,
-        };
-        if (type === 'limit') {
-            price = this.priceToPrecision (symbol, price);
-            request['price'] = price.toString ();
-        }
-        request['operation_type'] = type + '_order';
-        const response = await this.privatePostUserOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name protondex#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the protondex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        const request = {
-            'id': id,
-        };
-        const response = await this.privateDeleteUserOrdersId (this.extend (request, params));
-        const market = this.market (symbol);
-        const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -867,40 +735,44 @@ module.exports = class protondex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'id': id,
+            'order_id': id,
         };
-        const response = await this.privateGetUserOrdersId (this.extend (request, params));
+        if (params['ordinal_order_id'] !== undefined) {
+            request['ordinal_order_id'] = params['ordinal_order_id'];
+        }
+        const response = await this.publicGetOrdersLifecycle (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data);
+        return this.parseOrder (data[0]);
     }
 
-    async fetchOpenOrders (symbol, account, offset = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name protondex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {string} account account holder name
-         * @param {int|undefined} offset the earliest time in ms to fetch open orders for
+         * @description fetch all unfilled currently open orders
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the protondex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (params['account'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a account argument in params');
+        }
         const request = {
-            'account': account,
-            'symbol': symbol,
+            'account': params['account'],
+            'symbol': market['symbol'],
         };
-        if (offset !== undefined) {
-            request['offset'] = offset;
+        request['offset'] = (params['offset'] !== undefined) ? params['offset'] : 0;
+        request['limit'] = (limit !== undefined) ? limit : 100;
+        if (params['ordinal_order_ids'] !== undefined) {
+            request['ordinal_order_ids'] = params['ordinal_order_ids'];
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        // TODO: test status=all if it works for closed orders too
         const response = await this.publicGetOrdersOpen (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        const market = this.market (symbol);
         return this.parseOrders (data, market);
     }
 
@@ -997,51 +869,6 @@ module.exports = class protondex extends Exchange {
         const transactions = this.safeValue (response, 'data', []);
         transactions.reverse (); // no timestamp but in reversed order
         return this.parseTransactions (transactions, currency, undefined, limit);
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name protondex#withdraw
-         * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the protondex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': this.safeStringLower (currency, 'id'),
-            'address': address,
-            'amount': amount,
-            // 'tag': 'string', // withdraw tag/memo
-        };
-        if (tag !== undefined) {
-            request['tag'] = tag;
-        }
-        const response = await this.privatePostAccountWithdraw (this.extend (request, params));
-        //
-        //     data: [
-        //         {
-        //             id: '25f6f144-3666-xxx-xxx-xxx',
-        //             amount: '0.01',
-        //             status: 'approval_pending',
-        //             fee: '0.0005',
-        //             currency_code: 'btc',
-        //             txid: null,
-        //             address: 'bc1xxx',
-        //             tag: null,
-        //             type: 'withdraw'
-        //         },
-        //     ]
-        //
-        const transaction = this.safeValue (response, 'data', []);
-        return this.parseTransaction (transaction, currency);
     }
 
     parseTransactionStatus (status) {
@@ -1149,12 +976,12 @@ module.exports = class protondex extends Exchange {
         return response;
     }
 
-    async fetchOHLCV (interval, symbol, from_time, to_time, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1W', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name protondex#fetchOhlcv
          * @description retrive ohlcv charts
-         * @param {int} interval duration of the input
+         * @param {int} timeframe duration of the input
          * @param {string} symbol unified market symbol
          * @param {timestamp} from_time start date and time
          * @param {timestamp} to_time end date and time
@@ -1165,14 +992,23 @@ module.exports = class protondex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'interval': interval,
-            'from': this.ymdhms (this.parseDate (from_time)),
-            'to': this.ymdhms (this.parseDate (to_time)),
-            'symbol': symbol,
+            'interval': timeframe,
+            'symbol': market['symbol'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        const currentTimestamp = this.milliseconds ();
+        const oneMonth = 30 * 24 * 60 * 60 * 1000;
+        if (params['from_time'] !== undefined) {
+            request['from'] = this.ymdhms (this.parseDate (params['from_time']));
+        } else {
+            const startTime = currentTimestamp - oneMonth;
+            request['from'] = this.ymdhms (startTime);
         }
+        if (params['to_time'] !== undefined) {
+            request['to'] = this.ymdhms (this.parseDate (params['to_time']));
+        } else {
+            request['to'] = this.ymdhms (currentTimestamp);
+        }
+        request['limit'] = (limit !== undefined) ? limit : 100;
         const response = await this.publicGetChartOhlcv (this.extend (request, params));
         //
         //   [
@@ -1192,50 +1028,459 @@ module.exports = class protondex extends Exchange {
         for (let i = 0; i < transResults.length; i++) {
             results.push (this.parseOHLCV (transResults[i], market));
         }
-        return results;
+        return transResults;
+    }
+
+    digestSuffixRipemd160 (data, suffix: string) {
+        const d = new Uint8Array (data.length + suffix.length);
+        for (let i = 0; i < data.length; ++i) {
+            d[i] = data[i];
+        }
+        for (let i = 0; i < suffix.length; ++i) {
+            const len = data.length + i;
+            d[len] = suffix.charCodeAt (i);
+        }
+        return ripemd160 (d);
+    }
+
+    keyToString (keyData, suffix: string, prefix: string) {
+        const digest = new Uint8Array (this.digestSuffixRipemd160 (keyData, suffix));
+        const whole = new Uint8Array (keyData.length + 4);
+        for (let i = 0; i < keyData.length; ++i) {
+            whole[i] = keyData[i];
+        }
+        for (let i = 0; i < 4; ++i) {
+            whole[i + keyData.length] = digest[i];
+        }
+        return prefix + this.binaryToBase58 (whole);
+    }
+
+    stringToKey (s: string, size: number, suffix: string) {
+        const whole = this.base58ToBinary (s);
+        const data = new Uint8Array (whole.buffer, 0, whole.length - 4);
+        const digest = new Uint8Array (this.digestSuffixRipemd160 (data, suffix));
+        const digestStatus = (digest[0] !== whole[(whole.length) - 4] || digest[1] !== whole[(whole.length) - 3]
+                             || digest[2] !== whole[(whole.length) - 2] || digest[3] !== whole[(whole.length) - 1]);
+        if (digestStatus) {
+            throw new Error ("checksum doesn't match");
+        }
+        return data;
+    }
+
+    fromElliptic (ellipticSig) {
+        (ellipticSig as any).recovery = ellipticSig.recovery || 0;
+        const r = numberToBytesBE (ellipticSig.r, 32);
+        const s = numberToBytesBE (ellipticSig.s, 32);
+        let eosioRecoveryParam = 0;
+        eosioRecoveryParam = ellipticSig.recovery + 27;
+        if (ellipticSig.recovery <= 3) {
+            eosioRecoveryParam += 4;
+        }
+        const initParams = new Uint8Array ([ eosioRecoveryParam ]);
+        const sigData = concatBytes (initParams, r, s);
+        return this.keyToString (sigData, 'K1', 'SIG_K1_');
+    }
+
+    getSignatures (transHex) {
+        let chainID = '384da888112027f0321850a169f737c33e53b388aad48b5adace4bab97f437e0';
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        if (sandboxMode) {
+            chainID = '71ee83bcf52142d61019d95f9cc5427ba6a0d7ff8accd9e2088ae2abeaf3d3dd';
+        }
+        const e = secp256k1 as CurveFn;
+        const signatures = [] as string[];
+        const initData = new Uint8Array (32);
+        const signBuf = concatBytes (hexToBytes (chainID), transHex, initData);
+        const digest = e.CURVE.hash (signBuf);
+        let arrayData = null;
+        if (this.secret.substr (0, 7) === 'PVT_K1_') {
+            arrayData = this.stringToKey (this.secret.substr (7), 32, 'K1');
+        } else {
+            const whole = this.base58ToBinary (this.secret);
+            const keyData = new Uint8Array (32);
+            for (let i = 0; i < 32; ++i) {
+                keyData[i] = whole[i + 1];
+            }
+            arrayData = keyData;
+        }
+        const rawSignature = e.sign (digest, arrayData);
+        const signature = this.fromElliptic (rawSignature);
+        signatures.push (signature);
+        return signatures;
+    }
+
+    setSandboxMode (enable) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
+    }
+
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name protondex#createOrder
+         * @description create a trade order
+         * @see https://api-docs.protondex.com/reference/orderscontroller_submitorder
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the protondex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        if (this.secret === undefined) {
+            throw new ArgumentsRequired ('createOrder call requires a secret to be set');
+        }
+        const market = this.market (symbol);
+        const marketid = parseInt (market.info.market_id);
+        const accountName = this.safeString (params, 'account');
+        const orderType = parseInt (type);
+        const orderSide = parseInt (side);
+        const orderFillType = this.safeValue (params, 'filltype');
+        const orderAmount = amount;
+        const triggerPrice = this.safeValue (params, 'triggerprice');
+        const referrerName = (params['referrer'] !== undefined) ? params['referrer'] : '';
+        const bidTokenPrecision = this.parseToInt (market.info.bid_token.precision);
+        const askTokenPrecision = this.parseToInt (market.info.ask_token.precision);
+        const bidTokenCode = market.info.bid_token.code.toString ();
+        const askTokenCode = market.info.ask_token.code.toString ();
+        const bidTokenContract = market.info.bid_token.contract.toString ();
+        const askTokenContract = market.info.ask_token.contract.toString ();
+        const quantityText = (orderSide === 2) ? (orderAmount.toFixed (bidTokenPrecision) + ' ' + bidTokenCode) : (orderAmount.toFixed (askTokenPrecision) + ' ' + askTokenCode);
+        const tokenContract = orderSide === 2 ? bidTokenContract : askTokenContract;
+        const bidMultiplier = (orderAmount * this.parseToInt (market.info.bid_token.multiplier));
+        const askMultiplier = (orderAmount * this.parseToInt (market.info.ask_token.multiplier));
+        const quantity = (orderSide === 2) ? bidMultiplier.toString () : askMultiplier.toString ();
+        const orderPrice = Number (price) * Number (Math.pow (10, askTokenPrecision).toFixed (0));
+        const auth = { 'actor': accountName, 'permission': 'active' };
+        const action1 = {
+            'account': tokenContract,
+            'name': 'transfer',
+            'data': {
+                'from': accountName,
+                'to': 'dex',
+                'quantity': quantityText,
+                'memo': '',
+            },
+            'authorization': [ auth ],
+        };
+        const action2 = {
+            'account': 'dex',
+            'name': 'placeorder',
+            'data': {
+                'market_id': marketid,
+                'account': accountName,
+                'order_type': orderType,
+                'order_side': orderSide,
+                'fill_type': orderFillType,
+                'bid_symbol': {
+                    'sym': bidTokenPrecision + ',' + bidTokenCode,
+                    'contract': bidTokenContract,
+                },
+                'ask_symbol': {
+                    'sym': askTokenPrecision + ',' + askTokenCode,
+                    'contract': askTokenContract,
+                },
+                'referrer': referrerName,
+                'quantity': quantity,
+                'price': orderPrice,
+                'trigger_price': triggerPrice,
+            },
+            'authorization': [ auth ],
+        };
+        const action3 = {
+            'account': 'dex',
+            'name': 'process',
+            'data': {
+                'q_size': 20,
+                'show_error_msg': 0,
+            },
+            'authorization': [ auth ],
+        };
+        const actions = [ action1, action2, action3 ];
+        const request = {
+            'transaction': { actions },
+        };
+        const orderDetails = [];
+        let retries = 5;
+        while (retries > 0) {
+            try {
+                const serResponse = await this.publicPostOrdersSerialize (this.extend (request));
+                const result = this.safeValue (serResponse, 'data', []);
+                const tx = hexToBytes (result['serialized_tx_hex']);
+                const signatures = this.getSignatures (tx);
+                const orderRequest = {
+                    'serialized_tx_hex': String (result['serialized_tx_hex']),
+                    'signatures': signatures,
+                };
+                const response = await this.publicPostOrdersSubmit (this.extend (orderRequest));
+                const data = this.safeValue (response, 'data', []);
+                // Response format
+                // {
+                //     trx_id: 'd6124ed37ba30f499ec3043c185d6e458c7f4a581e09a4f3cefe64c723426af0',
+                //     block_time: '2023-06-16T19:10:30.000Z',
+                //     orders: [
+                //         {
+                //             ordinal_order_id: '378b28d5164be48adc7c0c7c02a9803abc4109185f11cc6116864e94878ff5cc',
+                //             order_id: '3990837',
+                //             status: 'create'
+                //         }
+                //     ]
+                // }
+                orderDetails['ordinal_order_id'] = data.orders[0].ordinal_order_id;
+                orderDetails['order_id'] = data.orders[0].order_id;
+                orderDetails['status'] = data.orders[0].status;
+                orderDetails['block_time'] = data['block_time'];
+                orderDetails['symbol'] = symbol;
+                orderDetails['order_type'] = orderType;
+                orderDetails['order_side'] = orderSide;
+                orderDetails['price'] = orderPrice;
+                orderDetails['trigger_price'] = triggerPrice;
+                retries = 0;
+            } catch (e) {
+                if (this.last_json_response) {
+                    const message = this.safeString (this.last_json_response.error.details[0], 'message');
+                    if (message === 'is_canonical( c ): signature is not canonical') {
+                        --retries;
+                    } else {
+                        retries = 0;
+                    }
+                }
+                if (!retries) {
+                    throw e;
+                }
+            }
+        }
+        return this.parseOrder (orderDetails, market);
+    }
+
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name protondex#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the protondex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        if (this.secret === undefined) {
+            throw new ArgumentsRequired ('cancelOrder call requires a secret to be set');
+        }
+        const orderId = parseInt (id);
+        const accountName = this.safeString (params, 'account');
+        const auth = { 'actor': accountName, 'permission': 'active' };
+        const action1 = {
+            'account': 'dex',
+            'name': 'cancelorder',
+            'data': {
+                'account': accountName,
+                'order_id': orderId,
+            },
+            'authorization': [ auth ],
+        };
+        const action2 = {
+            'account': 'dex',
+            'name': 'withdrawall',
+            'data': {
+                'account': accountName,
+            },
+            'authorization': [ auth ],
+        };
+        const actions = [ action1, action2 ];
+        const request = {
+            'transaction': { actions },
+        };
+        let data = undefined;
+        let retries = 5;
+        while (retries > 0) {
+            try {
+                const serResponse = await this.publicPostOrdersSerialize (this.extend (request));
+                const result = this.safeValue (serResponse, 'data', []);
+                const tx = hexToBytes (result['serialized_tx_hex']);
+                const signatures = this.getSignatures (tx);
+                const orderRequest = {
+                    'serialized_tx_hex': String (result['serialized_tx_hex']),
+                    'signatures': signatures,
+                };
+                const response = await this.publicPostOrdersSubmit (this.extend (orderRequest));
+                data = this.safeValue (response, 'data', []);
+                retries = 0;
+            } catch (e) {
+                if (this.last_json_response) {
+                    const message = this.safeString (this.last_json_response.error.details[0], 'message');
+                    if (message === 'is_canonical( c ): signature is not canonical') {
+                        --retries;
+                    } else {
+                        retries = 0;
+                    }
+                }
+                if (!retries) {
+                    throw e;
+                }
+            }
+        }
+        return data;
+    }
+
+    async getorderIds (name: string, symbol: string) {
+        try {
+            const cancelList = [];
+            let i = 0;
+            while (i > 5) {
+                const ordersList = await this.fetchOpenOrders (symbol, 1, 100, { 'account': name, 'offset': 100 * i, 'ordinal_order_ids': '' });
+                if (!ordersList.length) {
+                    break;
+                }
+                for (let j = 0; j < ordersList.length; j++) {
+                    cancelList.push (ordersList[j]['id']);
+                }
+                ++i;
+            }
+            return cancelList;
+        } catch (e) {
+            throw new OrderNotFound (' calcelAllOrders() error: order not found');
+        }
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (this.secret === undefined) {
+            throw new ArgumentsRequired ('cancelOrder call requires a secret to be set');
+        }
+        const accountName = this.safeString (params, 'account');
+        const orderList = await this.getorderIds (accountName, market['symbol']);
+        if (!orderList.length) {
+            throw new OrderNotFound (' calcelAllOrders() error: no orders found');
+        }
+        const actions = [];
+        const auth = { 'actor': accountName, 'permission': 'active' };
+        for (let i = 0; i < orderList.length; i++) {
+            const action = {
+                'account': 'dex',
+                'name': 'cancelorder',
+                'data': {
+                    'account': accountName,
+                    'order_id': orderList[i],
+                },
+                'authorization': [ auth ],
+            };
+            actions.push (action);
+        }
+        const withdrawAction = {
+            'account': 'dex',
+            'name': 'withdrawall',
+            'data': {
+                'account': accountName,
+            },
+            'authorization': [ auth ],
+        };
+        actions.push (withdrawAction);
+        const request = {
+            'transaction': { actions },
+        };
+        let data = undefined;
+        let retries = 5;
+        while (retries > 0) {
+            try {
+                const serResponse = await this.publicPostOrdersSerialize (this.extend (request));
+                const result = this.safeValue (serResponse, 'data', []);
+                const tx = hexToBytes (result['serialized_tx_hex']);
+                const signatures = this.getSignatures (tx);
+                const orderRequest = {
+                    'serialized_tx_hex': String (result['serialized_tx_hex']),
+                    'signatures': signatures,
+                };
+                const response = await this.publicPostOrdersSubmit (this.extend (orderRequest));
+                data = this.safeValue (response, 'data', []);
+                retries = 0;
+            } catch (e) {
+                if (this.last_json_response) {
+                    const message = this.safeString (this.last_json_response.error.details[0], 'message');
+                    if (message === 'is_canonical( c ): signature is not canonical') {
+                        --retries;
+                    } else {
+                        retries = 0;
+                    }
+                }
+                if (!retries) {
+                    throw e;
+                }
+            }
+        }
+        return data;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api']['rest'];
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        const implodedPath = this.implodeParams (path, params);
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                }
+                headers = {
+                    'Content-Type': 'application/json',
+                };
+            } else if (Object.keys (query).length) {
                 request += '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
-            if (method === 'GET') {
+            const timestamp = this.nonce ().toString ();
+            let auth = method + "\n"; // eslint-disable-line quotes
+            url += '/' + implodedPath;
+            auth += '/' + implodedPath;
+            if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
+                auth += "\n"; // eslint-disable-line quotes
                 if (Object.keys (query).length) {
-                    request += '?' + this.urlencode (query);
+                    body = this.json (query);
+                    auth += 'requestBody=' + body + '&';
                 }
+                auth += 'signTimestamp=' + timestamp;
             } else {
-                body = this.json (query);
+                let sortedQuery = this.extend ({ 'signTimestamp': timestamp }, query);
+                sortedQuery = this.keysort (sortedQuery);
+                auth += "\n" + this.urlencode (sortedQuery); // eslint-disable-line quotes
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
             }
-            const seconds = this.seconds ().toString ();
-            let payload = [ seconds, method, request ].join ('|');
-            if (body) {
-                payload += '|' + body;
-            }
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             headers = {
-                'CF-API-KEY': this.apiKey,
-                'CF-API-TIMESTAMP': seconds,
-                'CF-API-SIGNATURE': signature,
                 'Content-Type': 'application/json',
+                'key': this.apiKey,
+                'signTimestamp': timestamp,
+                'signature': signature,
             };
         }
-        const url = this.urls['api']['rest'] + request;
+        url = url + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (code < 400) {
-            return;
+        if (!response) {
+            return; // fallback to default error handler
         }
-        const ErrorClass = this.safeValue ({
-            '401': AuthenticationError,
-            '429': RateLimitExceeded,
-        }, code, ExchangeError);
-        throw new ErrorClass (body);
+        const error = this.safeValue (response, 'error');
+        if (error !== undefined) {
+            const errorCode = this.safeString (error, 'code');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
-};
+}

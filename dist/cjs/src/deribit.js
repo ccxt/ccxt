@@ -548,6 +548,7 @@ class deribit extends deribit$1 {
         //         testnet: false
         //     }
         //
+        const parsedMarkets = {};
         const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
         const result = [];
         for (let i = 0; i < currenciesResult.length; i++) {
@@ -675,6 +676,11 @@ class deribit extends deribit$1 {
                         }
                     }
                 }
+                const parsedMarketValue = this.safeValue(parsedMarkets, symbol);
+                if (parsedMarketValue) {
+                    continue;
+                }
+                parsedMarkets[symbol] = true;
                 const minTradeAmount = this.safeNumber(market, 'min_trade_amount');
                 const tickSize = this.safeNumber(market, 'tick_size');
                 result.push({

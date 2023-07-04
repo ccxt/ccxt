@@ -1236,6 +1236,8 @@ export default class kraken extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the kraken api endpoint
+         * @param {bool} params.postOnly
+         * @param {bool} params.reduceOnly
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1421,11 +1423,12 @@ export default class kraken extends Exchange {
         if ((price === undefined) || Precise.stringEquals(price, '0')) {
             price = this.safeString(order, 'price', price);
         }
+        const flags = this.safeString(order, 'oflags', '');
+        const isPostOnly = flags.indexOf('post') > -1;
         const average = this.safeNumber(order, 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
-                const flags = order['oflags'];
                 const feeCost = this.safeString(order, 'fee');
                 fee = {
                     'cost': feeCost,
@@ -1459,7 +1462,7 @@ export default class kraken extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
-            'postOnly': undefined,
+            'postOnly': isPostOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1540,7 +1543,17 @@ export default class kraken extends Exchange {
         if (timeInForce !== undefined) {
             request['timeinforce'] = timeInForce;
         }
-        params = this.omit(params, ['price', 'stopPrice', 'price2', 'close', 'timeInForce']);
+        const isMarket = (type === 'market');
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, false, params);
+        if (postOnly) {
+            request['oflags'] = 'post';
+        }
+        const reduceOnly = this.safeValue(params, 'reduceOnly');
+        if (reduceOnly) {
+            request['reduce_only'] = true;
+        }
+        params = this.omit(params, ['price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly']);
         return [request, params];
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
