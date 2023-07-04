@@ -370,7 +370,7 @@ export default class testMainClass extends baseMainTestClass {
             if (errors.length) {
                 failedMsg = ' | Failed methods: ' + errors.join (', ');
             }
-            dump (this.addPadding ('[INFO:PUBLIC_TESTS_DONE]' +  market['type'] + failedMsg, 25), exchange.id);
+            dump (this.addPadding ('[INFO:PUBLIC_TESTS_DONE]' + market['type'] + failedMsg, 25), exchange.id);
         }
     }
 
