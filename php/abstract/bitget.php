@@ -40,6 +40,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function public_spot_get_market_spot_vip_level($params = array()) {
         return $this->request('market/spot-vip-level', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function public_spot_get_market_history_candles($params = array()) {
+        return $this->request('market/history-candles', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_mix_get_market_contracts($params = array()) {
         return $this->request('market/contracts', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -90,6 +93,15 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function public_mix_get_market_open_limit($params = array()) {
         return $this->request('market/open-limit', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_mix_get_market_history_candles($params = array()) {
+        return $this->request('market/history-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_mix_get_market_history_index_candles($params = array()) {
+        return $this->request('market/history-index-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_mix_get_market_history_mark_candles($params = array()) {
+        return $this->request('market/history-mark-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_margin_get_cross_public_interestrateandlimit($params = array()) {
         return $this->request('cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
@@ -706,6 +718,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function publicSpotGetMarketSpotVipLevel($params = array()) {
         return $this->request('market/spot-vip-level', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function publicSpotGetMarketHistoryCandles($params = array()) {
+        return $this->request('market/history-candles', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicMixGetMarketContracts($params = array()) {
         return $this->request('market/contracts', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -756,6 +771,15 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function publicMixGetMarketOpenLimit($params = array()) {
         return $this->request('market/open-limit', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMixGetMarketHistoryCandles($params = array()) {
+        return $this->request('market/history-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMixGetMarketHistoryIndexCandles($params = array()) {
+        return $this->request('market/history-index-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMixGetMarketHistoryMarkCandles($params = array()) {
+        return $this->request('market/history-mark-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicMarginGetCrossPublicInterestRateAndLimit($params = array()) {
         return $this->request('cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));

@@ -44,6 +44,7 @@ class coinbase extends Exchange {
                 'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -1403,19 +1404,51 @@ class coinbase extends Exchange {
         //         ...
         //     )
         //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "product_id" => "TRAC-EUR",
+        //         "bids" => array(
+        //             {
+        //                 "price" => "0.2384",
+        //                 "size" => "386.1"
+        //             }
+        //         ),
+        //         "asks" => array(
+        //             {
+        //                 "price" => "0.2406",
+        //                 "size" => "672"
+        //             }
+        //         ),
+        //         "time" => "2023-06-30T07:15:24.656044Z"
+        //     }
+        //
+        $bid = $this->safe_number($ticker, 'bid');
+        $ask = $this->safe_number($ticker, 'ask');
+        $bidVolume = null;
+        $askVolume = null;
+        if ((is_array($ticker) && array_key_exists('bids', $ticker))) {
+            $bids = $this->safe_value($ticker, 'bids', array());
+            $asks = $this->safe_value($ticker, 'asks', array());
+            $bid = $this->safe_number($bids[0], 'price');
+            $bidVolume = $this->safe_number($bids[0], 'size');
+            $ask = $this->safe_number($asks[0], 'price');
+            $askVolume = $this->safe_number($asks[0], 'size');
+        }
         $marketId = $this->safe_string($ticker, 'product_id');
         $last = $this->safe_number($ticker, 'price');
+        $datetime = $this->safe_string($ticker, 'time');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol($marketId, $market),
-            'timestamp' => null,
-            'datetime' => null,
-            'bid' => $this->safe_number($ticker, 'bid'),
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'bid' => $bid,
+            'ask' => $ask,
             'last' => $last,
             'high' => null,
             'low' => null,
-            'bidVolume' => null,
-            'askVolume' => null,
+            'bidVolume' => $bidVolume,
+            'askVolume' => $askVolume,
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -2725,6 +2758,44 @@ class coinbase extends Exchange {
         $time = $this->safe_string($data, 'time');
         $timestamp = $this->parse8601($time);
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'size');
+    }
+
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        // the 'product_ids' param isn't working properly and returns array("pricebooks":array()) when defined
+        $response = $this->v3PrivateGetBrokerageBestBidAsk ($params);
+        //
+        //     {
+        //         "pricebooks" => array(
+        //             {
+        //                 "product_id" => "TRAC-EUR",
+        //                 "bids" => array(
+        //                     {
+        //                         "price" => "0.2384",
+        //                         "size" => "386.1"
+        //                     }
+        //                 ),
+        //                 "asks" => array(
+        //                     array(
+        //                         "price" => "0.2406",
+        //                         "size" => "672"
+        //                     }
+        //                 ),
+        //                 "time" => "2023-06-30T07:15:24.656044Z"
+        //             ),
+        //         )
+        //     }
+        //
+        $tickers = $this->safe_value($response, 'pricebooks', array());
+        return $this->parse_tickers($tickers, $symbols);
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
