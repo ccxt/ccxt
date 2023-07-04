@@ -404,8 +404,7 @@
             "fetchTicker": "same",
             "fetchCurrencies": {
                 "withdraw": "not provided",
-                "deposit": "not provided",
-                "networks":"missing"
+                "deposit": "not provided"
             }
         }
     },
