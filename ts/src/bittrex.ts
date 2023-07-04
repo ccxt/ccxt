@@ -341,6 +341,10 @@ export default class bittrex extends Exchange {
                 'fetchWithdrawals': {
                     'status': 'ok',
                 },
+                // todo: add optionality
+                // 'fetchCurrencies': {
+                //     'depositWithdrawStatuses': false,
+                // },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
                 'subaccountId': undefined,
@@ -537,9 +541,12 @@ export default class bittrex extends Exchange {
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const currenciesPromise = this.publicGetCurrencies (params);
-        const statusesPromise = this.privateGetAccountPermissionsCurrencies (params);
-        const [ currencies, statuses ] = await Promise.all ([ currenciesPromise, statusesPromise ]);
+        const allPromises = [];
+        allPromises.push (this.publicGetCurrencies (params));
+        if (this.checkRequiredCredentials (false)) {
+            allPromises.push (this.privateGetAccountPermissionsCurrencies (params)); // fetchDepositWithdrawStatuses
+        }
+        const responses = await Promise.all (allPromises);
         //
         // currencies
         //
@@ -559,7 +566,7 @@ export default class bittrex extends Exchange {
         //         }
         //     ]
         //
-        // statuses
+        // statuses (only available if private keys are set)
         //
         //     [
         //      {
@@ -575,6 +582,8 @@ export default class bittrex extends Exchange {
         //       ..
         //     ]
         //
+        const currencies = this.safeValue (responses, 0, []);
+        const statuses = this.safeValue (responses, 1, []);
         const statusesIndexed = this.indexBy (statuses, 'symbol');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
