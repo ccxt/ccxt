@@ -12,6 +12,7 @@ interface Exchange {
     publicSpotGetMarketCandles(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketDepth(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketSpotVipLevel(params?: {}): Promise<implicitReturnType>;
+    publicSpotGetMarketHistoryCandles(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketContracts(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketDepth(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketTicker(params?: {}): Promise<implicitReturnType>;
@@ -29,6 +30,9 @@ interface Exchange {
     publicMixGetMarketSymbolLeverage(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketQueryPositionLever(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketOpenLimit(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketHistoryCandles(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketHistoryIndexCandles(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketHistoryMarkCandles(params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicInterestRateAndLimit(params?: {}): Promise<implicitReturnType>;
     publicMarginGetIsolatedPublicInterestRateAndLimit(params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicTierData(params?: {}): Promise<implicitReturnType>;
