@@ -1678,16 +1678,18 @@ export default class bitget extends Exchange {
         //
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId);
+        let amountString = this.safeString (transaction, 'amount');
         const timestamp = this.safeInteger (transaction, 'cTime');
         const networkId = this.safeString (transaction, 'chain');
         const currencyId = this.safeString (transaction, 'coin');
         const status = this.safeString (transaction, 'status');
         const tag = this.safeString (transaction, 'tag');
-        const feeCost = this.safeString (transaction, 'fee');
-        const feeCostAbs = Precise.stringAbs (feeCost);
+        const feeCostString = this.safeString (transaction, 'fee');
+        const feeCostAbsString = Precise.stringAbs (feeCostString);
         let fee = undefined;
-        if (feeCostAbs !== undefined) {
-            fee = { 'currency': code, 'cost': this.parseNumber (feeCostAbs) };
+        if (feeCostAbsString !== undefined) {
+            fee = { 'currency': code, 'cost': this.parseNumber (feeCostAbsString) };
+            amountString = Precise.stringSub (amountString, feeCostAbsString);
         }
         return {
             'id': this.safeString (transaction, 'id'),
@@ -1699,7 +1701,7 @@ export default class bitget extends Exchange {
             'addressFrom': undefined,
             'address': this.safeString (transaction, 'toAddress'),
             'addressTo': this.safeString (transaction, 'toAddress'),
-            'amount': this.safeNumber (transaction, 'amount'),
+            'amount': this.parseNumber (amountString),
             'type': this.safeString (transaction, 'type'),
             'currency': code,
             'status': this.parseTransactionStatus (status),
