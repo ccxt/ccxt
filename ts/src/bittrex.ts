@@ -275,7 +275,7 @@ export default class bittrex extends Exchange {
                     'IOST': 'IOST',
                     'LISK': 'LISK',
                     'OMNI': 'OMNI',
-                    'WAVES': [ 'WAVES_ASSET', 'WAVES' ],
+                    // 'WAVES': [ 'WAVES_ASSET', 'WAVES' ], todo: after unification
                     // 'ANTSHARES': 'ANTSHARES',
                     'ONTOLOGY': 'ONTOLOGY',
                     // 'CRYPTO_NOTE_PAYMENTID': 'CRYPTO_NOTE_PAYMENTID',
@@ -287,6 +287,47 @@ export default class bittrex extends Exchange {
                     'VELAS': 'VELAS',
                     'NEM': 'NEM',
                     'ZILLIQA': 'ZIL',
+                },
+                'networksById': {
+                    'ETH_CONTRACT': 'ERC20',
+                    // 'ETH': 'ETH', // ETC also has this id, so we can't reliable determine
+                    'EOS': 'EOS',
+                    'ADA': 'CARDANO',
+                    'BITTREXPOOLED': 'BITTREXPOOLED',
+                    'BITTREXMEMO': 'BITTREXMEMO',
+                    'BITTREXPINGPONG': 'BITTREXPINGPONG',
+                    'STELLAR': 'STELLAR',
+                    // 'NXT': 'NXT',
+                    // 'ARK': 'ARK',
+                    // 'BITCOIN20': 'BITCOIN20',
+                    'KLAYTN': 'KLAYTN',
+                    'BITCOIN': 'BITCOIN',
+                    // 'BITCOIN16': 'BITCOIN16',
+                    'BYTOM': 'BYTOM',
+                    // 'BITSHAREX': 'BITSHAREX',
+                    // 'Award': 'Award',
+                    'CORTEX': 'CORTEX',
+                    // 'ETHEREUMV2': 'ETHEREUMV2',
+                    // 'FIAT': 'FIAT',
+                    // 'BYTEBALL': 'BYTEBALL',
+                    // 'BITCOINEX': 'BITCOINEX',
+                    'STEEM': 'STEEM',
+                    'HDAC': 'HDAC',
+                    'IOST': 'IOST',
+                    'LISK': 'LISK',
+                    'OMNI': 'OMNI',
+                    // 'WAVES': [ 'WAVES_ASSET', 'WAVES' ], todo: after unification
+                    // 'ANTSHARES': 'ANTSHARES',
+                    'ONTOLOGY': 'ONTOLOGY',
+                    // 'CRYPTO_NOTE_PAYMENTID': 'CRYPTO_NOTE_PAYMENTID',
+                    'QRL': 'QRL',
+                    'SIA': 'SIACOIN',
+                    'STRATIS': 'STRATIS',
+                    'VERIBLOCK': 'VERIBLOCK',
+                    'VECHAIN': 'VECHAIN',
+                    'VELAS': 'VELAS',
+                    'NEM': 'NEM',
+                    'ZIL': 'ZILLIQA',
                 },
                 'fetchTicker': {
                     'method': 'publicGetMarketsMarketSymbolTicker', // publicGetMarketsMarketSymbolSummary
@@ -543,8 +584,8 @@ export default class bittrex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const precision = this.parseNumber ('1e-8'); // default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             const fee = this.safeNumber (currency, 'txFee'); // todo: redesign
-            const isActive = (this.safeString (currency, 'status') === 'ONLINE');
-            const networks = {};
+            const status = this.safeString (currency, 'status');
+            const isActive = (status === 'ONLINE');
             // currencies have only one network on this exchange
             const networkId = this.safeString (currency, 'coinType');
             const networkCode = this.networkIdToCode (networkId);
@@ -552,6 +593,8 @@ export default class bittrex extends Exchange {
             const withdraw = this.safeValue (withdrawData, 'blockchain');
             const depositData = this.safeValue (statusData, 'deposit', {});
             const deposit = this.safeValue (depositData, 'blockchain');
+            // exchange has one supported chain for any currency
+            const networks = {};
             networks[networkCode] = {
                 'info': currency,
                 'id': networkId,
@@ -561,7 +604,6 @@ export default class bittrex extends Exchange {
                 'withdraw': deposit,
                 'fee': fee,
                 'precision': precision,
-                // 'address': this.safeString (currency, 'baseAddress'),
                 'limits': {
                     'withdraw': {
                         'min': undefined,
@@ -579,18 +621,18 @@ export default class bittrex extends Exchange {
                 'info': currency,
                 'type': undefined,
                 'name': this.safeString (currency, 'name'),
-                'withdraw': withdraw,
-                'deposit': deposit,
                 'active': isActive,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'precision': precision,
                 'networks': networks,
                 'limits': {
-                    'withdraw': {
+                    'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'deposit': {
+                    'withdraw': {
                         'min': undefined,
                         'max': undefined,
                     },
