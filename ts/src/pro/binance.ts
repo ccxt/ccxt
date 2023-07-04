@@ -1395,7 +1395,7 @@ export default class binance extends binanceRest {
         client.resolve (this.balance[accountType], messageHash);
     }
 
-    checkIsSpot (method: string, symbol: string) {
+    checkIsSpot (method: string, symbol: string, params = {}) {
         /**
          * @method
          * @ignore
@@ -1404,7 +1404,12 @@ export default class binance extends binanceRest {
          * @param {string} symbol symbol or marketId of the market to be checked
          */
         if (symbol === undefined) {
-            return;
+            const type = this.safeString (params, 'type', 'spot');
+            const defaultType = this.safeString (this.options, 'defaultType', type);
+            if (defaultType === 'spot') {
+                return;
+            }
+            throw new BadRequest (this.id + ' ' + method + ' only supports spot markets');
         }
         const market = this.market (symbol);
         if (!market['spot']) {
@@ -1428,7 +1433,7 @@ export default class binance extends binanceRest {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        this.checkIsSpot ('createOrderWs', symbol);
+        this.checkIsSpot ('createOrderWs', symbol, params);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
@@ -1565,7 +1570,7 @@ export default class binance extends binanceRest {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        this.checkIsSpot ('editOrderWs', symbol);
+        this.checkIsSpot ('editOrderWs', symbol, params);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
@@ -1674,7 +1679,7 @@ export default class binance extends binanceRest {
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' cancelOrderWs requires a symbol');
         }
-        this.checkIsSpot ('cancelOrderWs', symbol);
+        this.checkIsSpot ('cancelOrderWs', symbol, params);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
@@ -1747,7 +1752,7 @@ export default class binance extends binanceRest {
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' cancelOrderWs requires a symbol');
         }
-        this.checkIsSpot ('fetchOrderWs', symbol);
+        this.checkIsSpot ('fetchOrderWs', symbol, params);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
@@ -1794,7 +1799,7 @@ export default class binance extends binanceRest {
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' fetchOrdersWs requires a symbol');
         }
-        this.checkIsSpot ('fetchOrdersWs', symbol);
+        this.checkIsSpot ('fetchOrdersWs', symbol, params);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
@@ -1828,7 +1833,7 @@ export default class binance extends binanceRest {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        this.checkIsSpot ('fetchOpenOrdersWs', symbol);
+        this.checkIsSpot ('fetchOpenOrdersWs', symbol, params);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
@@ -2149,7 +2154,7 @@ export default class binance extends binanceRest {
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' fetchMyTradesWs requires a symbol');
         }
-        this.checkIsSpot ('fetchMyTradesWs', symbol);
+        this.checkIsSpot ('fetchMyTradesWs', symbol, params);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
