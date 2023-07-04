@@ -267,16 +267,14 @@ export default class testMainClass extends baseMainTestClass {
             }
         } catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
-            const isPermissionDenied = (e instanceof PermissionDenied);
             // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-            // todo: changes are needed after .Features implementation
-            if (isPublic) {
-                if (isAuthError || isPermissionDenied) {
+            if (isPublic && isAuthError) {
+                if (this.info) {
                     dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodNameInTest, argsStringified);
-                    return;
                 }
+            } else {
+                throw e;
             }
-            throw e;
         }
     }
 
