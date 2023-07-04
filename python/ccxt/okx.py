@@ -170,7 +170,8 @@ class okx(Exchange, ImplicitAPI):
                 'referral': {
                     # old reflink 0% discount https://www.okx.com/join/1888677
                     # new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    'url': 'https://www.okx.com/activities/ccxt-trade-and-earn?chanelid=CCXT2023',
+                    # okx + ccxt campaign reflink with 20% discount https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023
+                    'url': 'https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023',
                     'discount': 0.2,
                 },
                 'test': {
