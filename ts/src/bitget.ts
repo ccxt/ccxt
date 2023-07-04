@@ -1681,7 +1681,6 @@ export default class bitget extends Exchange {
         let amountString = this.safeString (transaction, 'amount');
         const timestamp = this.safeInteger (transaction, 'cTime');
         const networkId = this.safeString (transaction, 'chain');
-        const currencyId = this.safeString (transaction, 'coin');
         const status = this.safeString (transaction, 'status');
         const tag = this.safeString (transaction, 'tag');
         const feeCostString = this.safeString (transaction, 'fee');
