@@ -1183,10 +1183,10 @@ export default class binance extends binanceRest {
          * @name binance#fetchBalanceWs
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
-         * @param {[string]|undefined} params.symbols unified market symbols, only used in isolated margin mode
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+         * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -1201,7 +1201,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'account.status',
-            'params': this.signParams (payload),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleBalanceWs,
@@ -1422,8 +1422,8 @@ export default class binance extends binanceRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {boolean} params.test test order, default false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1439,7 +1439,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.place',
-            'params': this.signParams (payload),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const test = this.safeValue (params, 'test', false);
         if (test) {
@@ -1560,8 +1560,8 @@ export default class binance extends binanceRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1576,7 +1576,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.cancelReplace',
-            'params': this.signParams (payload),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleEditOrderWs,
@@ -1665,9 +1665,9 @@ export default class binance extends binanceRest {
          * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
          * @description cancel multiple orders
          * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol, default is undefined
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {string|undefined} params.cancelRestrictions Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED.
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {string|undefined} [params.cancelRestrictions] Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED.
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1709,8 +1709,8 @@ export default class binance extends binanceRest {
          * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['ws'];
@@ -1725,7 +1725,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.cancel',
-            'params': this.signParams (payload),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrdersWs,
@@ -1766,7 +1766,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.status',
-            'params': this.signParams (payload),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrderWs,
@@ -1781,14 +1781,14 @@ export default class binance extends binanceRest {
          * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of order structures to retrieve
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {int} params.orderId order id to begin at
-         * @param {int} params.startTime earliest time in ms to retrieve orders for
-         * @param {int} params.endTime latest time in ms to retrieve orders for
-         * @param {int} params.limit the maximum number of order structures to retrieve
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int|undefined} [since] the earliest time in ms to fetch orders for
+         * @param {int|undefined} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {int} [params.orderId] order id to begin at
+         * @param {int} [params.startTime] earliest time in ms to retrieve orders for
+         * @param {int} [params.endTime] latest time in ms to retrieve orders for
+         * @param {int} [params.limit] the maximum number of order structures to retrieve
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -1807,7 +1807,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'allOrders',
-            'params': this.signParams (payload),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrdersWs,
@@ -1821,11 +1821,11 @@ export default class binance extends binanceRest {
          * @name binance#fetchOpenOrdersWs
          * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of open orders structures to retrieve
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
+         * @param {int|undefined} [limit] the maximum number of open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         this.checkIsSpot ('fetchOpenOrdersWs', symbol);
@@ -1841,7 +1841,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'openOrders.status',
-            'params': this.signParams (payload),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrdersWs,
@@ -2138,12 +2138,12 @@ export default class binance extends binanceRest {
          * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-trade-history-user_data
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {int} params.endTime the latest time in ms to fetch trades for
-         * @param {int} params.fromId first trade Id to fetch
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
+         * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {int} [params.endTime] the latest time in ms to fetch trades for
+         * @param {int} [params.fromId] first trade Id to fetch
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -2172,7 +2172,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'myTrades',
-            'params': this.signParams (payload),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleTradesWs,
