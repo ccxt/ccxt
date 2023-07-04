@@ -4691,14 +4691,6 @@ export default class huobi extends Exchange {
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        const offset = this.safeString (params, 'offset');
-        if (offset === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a string offset parameter for contract orders, open or close');
-        }
-        const stopPrice = this.safeString (params, 'stopPrice');
-        if (stopPrice !== undefined) {
-            throw new NotSupported (this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
-        }
         const market = this.market (symbol);
         const request = {
             'contract_code': market['id'],
