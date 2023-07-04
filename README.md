@@ -18,6 +18,9 @@ Current feature list:
 - an out of the box unified API that is extremely easy to integrate
 - works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1 and web browsers
 
+## Sponsored Promotion
+
+[![OKX + CCXT Exclusive Event: Trade And Earn](https://github.com/ccxt/ccxt/assets/1294454/6300ed05-6606-4432-b0c0-3bb32854af60https://www.okx.com/activities/ccxt-trade-and-earn?chanelid=CCXT2023)
 
 ## See Also
 
