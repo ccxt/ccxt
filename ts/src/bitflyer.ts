@@ -808,7 +808,7 @@ export default class bitflyer extends Exchange {
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
         //
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -846,7 +846,7 @@ export default class bitflyer extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -886,7 +886,7 @@ export default class bitflyer extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     parseDepositStatus (status) {
@@ -905,7 +905,7 @@ export default class bitflyer extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -941,29 +941,29 @@ export default class bitflyer extends Exchange {
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
         //
-        const id = this.safeString2 (transaction, 'id', 'message_id');
-        const address = this.safeString (transaction, 'address');
-        const currencyId = this.safeString (transaction, 'currency_code');
+        const id = this.safeString2 (depositWithdrawal, 'id', 'message_id');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const currencyId = this.safeString (depositWithdrawal, 'currency_code');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.parse8601 (this.safeString (transaction, 'event_date'));
-        const amount = this.safeNumber (transaction, 'amount');
-        const txId = this.safeString (transaction, 'tx_hash');
-        const rawStatus = this.safeString (transaction, 'status');
+        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'event_date'));
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const txId = this.safeString (depositWithdrawal, 'tx_hash');
+        const rawStatus = this.safeString (depositWithdrawal, 'status');
         let type = undefined;
         let status = undefined;
         let fee = undefined;
-        if ('fee' in transaction) {
+        if ('fee' in depositWithdrawal) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus (rawStatus);
-            const feeCost = this.safeNumber (transaction, 'fee');
-            const additionalFee = this.safeNumber (transaction, 'additional_fee');
+            const feeCost = this.safeNumber (depositWithdrawal, 'fee');
+            const additionalFee = this.safeNumber (depositWithdrawal, 'additional_fee');
             fee = { 'currency': code, 'cost': feeCost + additionalFee };
         } else {
             type = 'deposit';
             status = this.parseDepositStatus (rawStatus);
         }
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txId,
             'timestamp': timestamp,

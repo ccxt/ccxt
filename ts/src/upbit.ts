@@ -1190,7 +1190,7 @@ export default class upbit extends Exchange {
         //         ...,
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1235,7 +1235,7 @@ export default class upbit extends Exchange {
         //         ...,
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -1252,7 +1252,7 @@ export default class upbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -1283,24 +1283,24 @@ export default class upbit extends Exchange {
         //         "krw_amount": "80420.0"
         //     }
         //
-        const id = this.safeString (transaction, 'uuid');
-        const amount = this.safeNumber (transaction, 'amount');
+        const id = this.safeString (depositWithdrawal, 'uuid');
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
         const address = undefined; // not present in the data structure received from the exchange
         const tag = undefined; // not present in the data structure received from the exchange
-        const txid = this.safeString (transaction, 'txid');
-        const updatedRaw = this.safeString (transaction, 'done_at');
+        const txid = this.safeString (depositWithdrawal, 'txid');
+        const updatedRaw = this.safeString (depositWithdrawal, 'done_at');
         const updated = this.parse8601 (updatedRaw);
-        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at', updatedRaw));
-        let type = this.safeString (transaction, 'type');
+        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'created_at', updatedRaw));
+        let type = this.safeString (depositWithdrawal, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        const currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'state'));
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const status = this.parseTransactionStatus (this.safeStringLower (depositWithdrawal, 'state'));
+        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'currency': code,
             'amount': amount,
@@ -1774,7 +1774,7 @@ export default class upbit extends Exchange {
         //         "krw_amount": "80420.0"
         //     }
         //
-        return this.parseTransaction (response);
+        return this.parseDepositWithdrawal (response);
     }
 
     nonce () {

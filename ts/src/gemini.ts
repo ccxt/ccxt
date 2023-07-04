@@ -1547,7 +1547,7 @@ export default class gemini extends Exchange {
         if (result === 'error') {
             throw new ExchangeError (this.id + ' withdraw() failed: ' + this.json (response));
         }
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     nonce () {
@@ -1578,10 +1578,10 @@ export default class gemini extends Exchange {
             request['timestamp'] = since;
         }
         const response = await this.privatePostV1Transfers (this.extend (request, params));
-        return this.parseTransactions (response);
+        return this.parseDepositsWithdrawals (response);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // withdraw
         //
@@ -1600,15 +1600,15 @@ export default class gemini extends Exchange {
         //         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
         //     }
         //
-        const timestamp = this.safeInteger (transaction, 'timestampms');
-        const currencyId = this.safeString (transaction, 'currency');
+        const timestamp = this.safeInteger (depositWithdrawal, 'timestampms');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const address = this.safeString (transaction, 'destination');
-        const type = this.safeStringLower (transaction, 'type');
+        const address = this.safeString (depositWithdrawal, 'destination');
+        const type = this.safeStringLower (depositWithdrawal, 'type');
         // if status field is available, then it's complete
-        const statusRaw = this.safeString (transaction, 'status');
+        const statusRaw = this.safeString (depositWithdrawal, 'status');
         let fee = undefined;
-        const feeAmount = this.safeNumber (transaction, 'feeAmount');
+        const feeAmount = this.safeNumber (depositWithdrawal, 'feeAmount');
         if (feeAmount !== undefined) {
             fee = {
                 'cost': feeAmount,
@@ -1616,9 +1616,9 @@ export default class gemini extends Exchange {
             };
         }
         return {
-            'info': transaction,
-            'id': this.safeString2 (transaction, 'eid', 'withdrawalId'),
-            'txid': this.safeString (transaction, 'txHash'),
+            'info': depositWithdrawal,
+            'id': this.safeString2 (depositWithdrawal, 'eid', 'withdrawalId'),
+            'txid': this.safeString (depositWithdrawal, 'txHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
@@ -1629,7 +1629,7 @@ export default class gemini extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
-            'amount': this.safeNumber (transaction, 'amount'),
+            'amount': this.safeNumber (depositWithdrawal, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus (statusRaw),
             'updated': undefined,

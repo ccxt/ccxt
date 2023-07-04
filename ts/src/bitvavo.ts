@@ -1558,7 +1558,7 @@ export default class bitvavo extends Exchange {
         //         "amount": "1.5"
         //     }
         //
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1605,7 +1605,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseDepositsWithdrawals (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1650,7 +1650,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
+        return this.parseDepositsWithdrawals (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     parseTransactionStatus (status) {
@@ -1668,7 +1668,7 @@ export default class bitvavo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // withdraw
         //
@@ -1703,15 +1703,15 @@ export default class bitvavo extends Exchange {
         //     }
         //
         const id = undefined;
-        const timestamp = this.safeInteger (transaction, 'timestamp');
-        const currencyId = this.safeString (transaction, 'symbol');
+        const timestamp = this.safeInteger (depositWithdrawal, 'timestamp');
+        const currencyId = this.safeString (depositWithdrawal, 'symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.safeNumber (transaction, 'amount');
-        const address = this.safeString (transaction, 'address');
-        const txid = this.safeString (transaction, 'txId');
+        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const txid = this.safeString (depositWithdrawal, 'txId');
         let fee = undefined;
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1719,14 +1719,14 @@ export default class bitvavo extends Exchange {
             };
         }
         let type = undefined;
-        if (('success' in transaction) || ('address' in transaction)) {
+        if (('success' in depositWithdrawal) || ('address' in depositWithdrawal)) {
             type = 'withdrawal';
         } else {
             type = 'deposit';
         }
-        const tag = this.safeString (transaction, 'paymentId');
+        const tag = this.safeString (depositWithdrawal, 'paymentId');
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,

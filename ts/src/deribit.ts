@@ -2123,7 +2123,7 @@ export default class deribit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, params);
+        return this.parseDepositsWithdrawals (data, currency, since, limit, params);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2175,7 +2175,7 @@ export default class deribit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, params);
+        return this.parseDepositsWithdrawals (data, currency, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -2186,7 +2186,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchWithdrawals
         //
@@ -2216,13 +2216,13 @@ export default class deribit extends Exchange {
         //         "updated_timestamp": 1549295130159
         //     }
         //
-        const currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger2 (transaction, 'created_timestamp', 'received_timestamp');
-        const updated = this.safeInteger (transaction, 'updated_timestamp');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const address = this.safeString (transaction, 'address');
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const timestamp = this.safeInteger2 (depositWithdrawal, 'created_timestamp', 'received_timestamp');
+        const updated = this.safeInteger (depositWithdrawal, 'updated_timestamp');
+        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'state'));
+        const address = this.safeString (depositWithdrawal, 'address');
+        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
         let type = 'deposit';
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -2233,9 +2233,9 @@ export default class deribit extends Exchange {
             };
         }
         return {
-            'info': transaction,
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'transaction_id'),
+            'info': depositWithdrawal,
+            'id': this.safeString (depositWithdrawal, 'id'),
+            'txid': this.safeString (depositWithdrawal, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
@@ -2245,7 +2245,7 @@ export default class deribit extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': this.safeNumber (transaction, 'amount'),
+            'amount': this.safeNumber (depositWithdrawal, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,
@@ -2640,7 +2640,7 @@ export default class deribit extends Exchange {
             request['tfa'] = totp (this.twofa);
         }
         const response = await this.privateGetWithdraw (this.extend (request, params));
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     nonce () {

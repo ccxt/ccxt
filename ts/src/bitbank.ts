@@ -825,10 +825,10 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        return this.parseDepositWithdrawal (data, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // withdraw
         //
@@ -845,7 +845,7 @@ export default class bitbank extends Exchange {
         //         "requested_at": 0
         //     }
         //
-        const txid = this.safeString (transaction, 'txid');
+        const txid = this.safeString (depositWithdrawal, 'txid');
         currency = this.safeCurrency (undefined, currency);
         return {
             'id': txid,
@@ -866,7 +866,7 @@ export default class bitbank extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'fee': undefined,
-            'info': transaction,
+            'info': depositWithdrawal,
         };
     }
 

@@ -2516,10 +2516,10 @@ export default class wavesexchange extends Exchange {
         //         "amount": 0
         //     }
         //
-        return this.parseTransaction (result, currency);
+        return this.parseDepositWithdrawal (result, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // withdraw
         //
@@ -2552,7 +2552,7 @@ export default class wavesexchange extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'fee': undefined,
-            'info': transaction,
+            'info': depositWithdrawal,
         };
     }
 }

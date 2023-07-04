@@ -1334,7 +1334,7 @@ export default class bitopro extends Exchange {
         return this.safeString (states, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -1379,24 +1379,24 @@ export default class bitopro extends Exchange {
         //        "total": "10"
         //    }
         //
-        const currencyId = this.safeString (transaction, 'coin');
+        const currencyId = this.safeString (depositWithdrawal, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (transaction, 'timestamp');
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'message');
-        const status = this.safeString (transaction, 'status');
-        let networkId = this.safeString (transaction, 'protocol');
+        const timestamp = this.safeInteger (depositWithdrawal, 'timestamp');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const tag = this.safeString (depositWithdrawal, 'message');
+        const status = this.safeString (depositWithdrawal, 'status');
+        let networkId = this.safeString (depositWithdrawal, 'protocol');
         if (networkId === 'MAIN') {
             networkId = code;
         }
         return {
-            'info': transaction,
-            'id': this.safeString (transaction, 'serial'),
-            'txid': this.safeString (transaction, 'txid'),
+            'info': depositWithdrawal,
+            'id': this.safeString (depositWithdrawal, 'serial'),
+            'txid': this.safeString (depositWithdrawal, 'txid'),
             'type': undefined,
             'currency': code,
             'network': this.networkIdToCode (networkId),
-            'amount': this.safeNumber (transaction, 'total'),
+            'amount': this.safeNumber (depositWithdrawal, 'total'),
             'status': this.parseTransactionStatus (status),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1410,7 +1410,7 @@ export default class bitopro extends Exchange {
             'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': this.safeNumber (transaction, 'fee'),
+                'cost': this.safeNumber (depositWithdrawal, 'fee'),
                 'rate': undefined,
             },
         };
@@ -1465,7 +1465,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
+        return this.parseDepositsWithdrawals (result, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1516,7 +1516,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (result, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseDepositsWithdrawals (result, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
@@ -1556,7 +1556,7 @@ export default class bitopro extends Exchange {
         //         }
         //     }
         //
-        return this.parseTransaction (result, currency);
+        return this.parseDepositWithdrawal (result, currency);
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -1608,7 +1608,7 @@ export default class bitopro extends Exchange {
         //         }
         //     }
         //
-        return this.parseTransaction (result, currency);
+        return this.parseDepositWithdrawal (result, currency);
     }
 
     parseDepositWithdrawFee (fee, currency = undefined) {

@@ -4048,7 +4048,7 @@ export default class mexc extends Exchange {
         //     }
         // ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4105,10 +4105,10 @@ export default class mexc extends Exchange {
         //     }
         // ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -4149,26 +4149,26 @@ export default class mexc extends Exchange {
         //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString (depositWithdrawal, 'id');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
-        const timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
+        const timestamp = this.safeInteger2 (depositWithdrawal, 'insertTime', 'applyTime');
         let currencyId = undefined;
-        const currencyWithNetwork = this.safeString (transaction, 'coin');
+        const currencyWithNetwork = this.safeString (depositWithdrawal, 'coin');
         if (currencyWithNetwork !== undefined) {
             currencyId = currencyWithNetwork.split ('-')[0];
         }
         let network = undefined;
-        const rawNetwork = this.safeString (transaction, 'network');
+        const rawNetwork = this.safeString (depositWithdrawal, 'network');
         if (rawNetwork !== undefined) {
             network = this.safeNetwork (rawNetwork);
         }
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-        let amountString = this.safeString (transaction, 'amount');
-        const address = this.safeString (transaction, 'address');
-        const txid = this.safeString (transaction, 'txId');
+        const status = this.parseTransactionStatusByType (this.safeString (depositWithdrawal, 'status'), type);
+        let amountString = this.safeString (depositWithdrawal, 'amount');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const txid = this.safeString (depositWithdrawal, 'txId');
         let fee = undefined;
-        const feeCostString = this.safeString (transaction, 'transactionFee');
+        const feeCostString = this.safeString (depositWithdrawal, 'transactionFee');
         if (feeCostString !== undefined) {
             fee = {
                 'cost': this.parseNumber (feeCostString),
@@ -4180,7 +4180,7 @@ export default class mexc extends Exchange {
             amountString = Precise.stringSub (amountString, feeCostString);
         }
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -4189,7 +4189,7 @@ export default class mexc extends Exchange {
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
-            'tag': this.safeString (transaction, 'memo'),
+            'tag': this.safeString (depositWithdrawal, 'memo'),
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
@@ -4647,7 +4647,7 @@ export default class mexc extends Exchange {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"
         //     }
         //
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     async setPositionMode (hedged, symbol: string = undefined, params = {}) {

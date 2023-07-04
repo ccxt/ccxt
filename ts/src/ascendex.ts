@@ -2439,8 +2439,8 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const transactions = this.safeValue (data, 'data', []);
-        return this.parseTransactions (transactions, currency, since, limit);
+        const depositsWithdrawals = this.safeValue (data, 'data', []);
+        return this.parseDepositsWithdrawals (depositsWithdrawals, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -2453,7 +2453,7 @@ export default class ascendex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (transaction, currency = undefined) {
         //
         //     {
         //         requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",

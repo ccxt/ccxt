@@ -1551,8 +1551,8 @@ export default class bitstamp extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const transactions = this.filterByArray (response, 'type', [ '0', '1' ], false);
-        return this.parseTransactions (transactions, currency, since, limit);
+        const depositsWithdrawals = this.filterByArray (response, 'type', [ '0', '1' ], false);
+        return this.parseDepositsWithdrawals (depositsWithdrawals, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1598,10 +1598,10 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTransactions (response, undefined, since, limit);
+        return this.parseDepositsWithdrawals (response, undefined, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDepositsWithdrawals
         //
@@ -1641,19 +1641,19 @@ export default class bitstamp extends Exchange {
         //         "transaction_id": "001743B03B0C79BA166A064AC0142917B050347B4CB23BA2AB4B91B3C5608F4C"
         //     }
         //
-        const timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
-        const currencyId = this.getCurrencyIdFromTransaction (transaction);
+        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'datetime'));
+        const currencyId = this.getCurrencyIdFromTransaction (depositWithdrawal);
         const code = this.safeCurrencyCode (currencyId, currency);
-        const feeCost = this.safeString (transaction, 'fee');
+        const feeCost = this.safeString (depositWithdrawal, 'fee');
         let feeCurrency = undefined;
         let amount = undefined;
-        if ('amount' in transaction) {
-            amount = this.safeString (transaction, 'amount');
+        if ('amount' in depositWithdrawal) {
+            amount = this.safeString (depositWithdrawal, 'amount');
         } else if (currency !== undefined) {
-            amount = this.safeString (transaction, currency['id'], amount);
+            amount = this.safeString (depositWithdrawal, currency['id'], amount);
             feeCurrency = currency['code'];
         } else if ((code !== undefined) && (currencyId !== undefined)) {
-            amount = this.safeString (transaction, currencyId, amount);
+            amount = this.safeString (depositWithdrawal, currencyId, amount);
             feeCurrency = code;
         }
         if (amount !== undefined) {
@@ -1661,13 +1661,13 @@ export default class bitstamp extends Exchange {
             amount = Precise.stringAbs (amount);
         }
         let status = 'ok';
-        if ('status' in transaction) {
-            status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        if ('status' in depositWithdrawal) {
+            status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
         }
         let type = undefined;
-        if ('type' in transaction) {
+        if ('type' in depositWithdrawal) {
             // from fetchDepositsWithdrawals
-            const rawType = this.safeString (transaction, 'type');
+            const rawType = this.safeString (depositWithdrawal, 'type');
             if (rawType === '0') {
                 type = 'deposit';
             } else if (rawType === '1') {
@@ -1678,7 +1678,7 @@ export default class bitstamp extends Exchange {
             type = 'withdrawal';
         }
         let tag = undefined;
-        let address = this.safeString (transaction, 'address');
+        let address = this.safeString (depositWithdrawal, 'address');
         if (address !== undefined) {
             // dt (destination tag) is embedded into the address field
             const addressParts = address.split ('?dt=');
@@ -1701,9 +1701,9 @@ export default class bitstamp extends Exchange {
             };
         }
         return {
-            'info': transaction,
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'transaction_id'),
+            'info': depositWithdrawal,
+            'id': this.safeString (depositWithdrawal, 'id'),
+            'txid': this.safeString (depositWithdrawal, 'transaction_id'),
             'type': type,
             'currency': code,
             'network': undefined,
@@ -1890,7 +1890,7 @@ export default class bitstamp extends Exchange {
                 'fee': parsedTrade['fee'],
             };
         } else {
-            const parsedTransaction = this.parseTransaction (item, currency);
+            const parsedTransaction = this.parseDepositWithdrawal (item, currency);
             let direction = undefined;
             if ('amount' in item) {
                 const amount = this.safeString (item, 'amount');
@@ -2064,7 +2064,7 @@ export default class bitstamp extends Exchange {
             request['account_currency'] = currency['id'];
         }
         const response = await this[method] (this.extend (request, params));
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     nonce () {

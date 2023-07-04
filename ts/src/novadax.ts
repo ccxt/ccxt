@@ -1218,7 +1218,7 @@ export default class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     async fetchAccounts (params = {}) {
@@ -1344,7 +1344,7 @@ export default class novadax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseDepositsWithdrawals (data, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -1363,7 +1363,7 @@ export default class novadax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // withdraw
         //
@@ -1389,25 +1389,25 @@ export default class novadax extends Exchange {
         //         "updatedAt": 1601371273000
         //     }
         //
-        const id = this.safeString2 (transaction, 'id', 'data');
-        let type = this.safeString (transaction, 'type');
+        const id = this.safeString2 (depositWithdrawal, 'id', 'data');
+        let type = this.safeString (depositWithdrawal, 'type');
         if (type === 'COIN_IN') {
             type = 'deposit';
         } else if (type === 'COIN_OUT') {
             type = 'withdraw';
         }
-        const amount = this.safeNumber (transaction, 'amount');
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'addressTag');
-        const txid = this.safeString (transaction, 'txHash');
-        const timestamp = this.safeInteger (transaction, 'createdAt');
-        const updated = this.safeInteger (transaction, 'updatedAt');
-        const currencyId = this.safeString (transaction, 'currency');
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const tag = this.safeString (depositWithdrawal, 'addressTag');
+        const txid = this.safeString (depositWithdrawal, 'txHash');
+        const timestamp = this.safeInteger (depositWithdrawal, 'createdAt');
+        const updated = this.safeInteger (depositWithdrawal, 'updatedAt');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const network = this.safeString (transaction, 'chain');
+        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'state'));
+        const network = this.safeString (depositWithdrawal, 'chain');
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'currency': code,
             'amount': amount,

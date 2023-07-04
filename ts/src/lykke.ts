@@ -1129,7 +1129,7 @@ export default class lykke extends Exchange {
         };
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
@@ -1151,23 +1151,23 @@ export default class lykke extends Exchange {
         let fee = undefined;
         let type = undefined;
         let timestamp = undefined;
-        if (typeof transaction === 'string') {
-            id = transaction;
+        if (typeof depositWithdrawal === 'string') {
+            id = depositWithdrawal;
         } else {
-            id = this.safeString (transaction, 'operationId');
-            assetId = this.safeString (transaction, 'assetId');
+            id = this.safeString (depositWithdrawal, 'operationId');
+            assetId = this.safeString (depositWithdrawal, 'assetId');
             code = this.safeCurrencyCode (assetId, currency);
-            amount = this.safeNumber (transaction, 'totalVolume');
-            type = this.safeString (transaction, 'type');
-            timestamp = this.safeInteger (transaction, 'timestamp');
-            const feeCost = this.safeNumber (transaction, 'fee');
+            amount = this.safeNumber (depositWithdrawal, 'totalVolume');
+            type = this.safeString (depositWithdrawal, 'type');
+            timestamp = this.safeInteger (depositWithdrawal, 'timestamp');
+            const feeCost = this.safeNumber (depositWithdrawal, 'fee');
             fee = {
                 'currency': code,
                 'cost': feeCost,
             };
         }
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': undefined,
             'timestamp': timestamp,
@@ -1228,7 +1228,7 @@ export default class lykke extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        return this.parseTransactions (payload, currency, since, limit);
+        return this.parseDepositsWithdrawals (payload, currency, since, limit);
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -1259,7 +1259,7 @@ export default class lykke extends Exchange {
         //
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
         //
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

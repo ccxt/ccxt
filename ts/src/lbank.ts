@@ -765,10 +765,10 @@ export default class lbank extends Exchange {
         //         'fee':0.001
         //     }
         //
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // withdraw
         //
@@ -780,7 +780,7 @@ export default class lbank extends Exchange {
         //
         currency = this.safeCurrency (undefined, currency);
         return {
-            'id': this.safeString2 (transaction, 'id', 'withdrawId'),
+            'id': this.safeString2 (depositWithdrawal, 'id', 'withdrawId'),
             'txid': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -798,7 +798,7 @@ export default class lbank extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'fee': undefined,
-            'info': transaction,
+            'info': depositWithdrawal,
         };
     }
 

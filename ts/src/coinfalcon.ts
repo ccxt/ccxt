@@ -809,9 +809,9 @@ export default class coinfalcon extends Exchange {
         //         },
         //     ]
         //
-        const transactions = this.safeValue (response, 'data', []);
-        transactions.reverse (); // no timestamp but in reversed order
-        return this.parseTransactions (transactions, currency, undefined, limit);
+        const deposits = this.safeValue (response, 'data', []);
+        deposits.reverse (); // no timestamp but in reversed order
+        return this.parseDepositsWithdrawals (deposits, currency, undefined, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -857,9 +857,9 @@ export default class coinfalcon extends Exchange {
         //         },
         //     ]
         //
-        const transactions = this.safeValue (response, 'data', []);
-        transactions.reverse (); // no timestamp but in reversed order
-        return this.parseTransactions (transactions, currency, undefined, limit);
+        const depositsWithdrawals = this.safeValue (response, 'data', []);
+        depositsWithdrawals.reverse (); // no timestamp but in reversed order
+        return this.parseDepositsWithdrawals (depositsWithdrawals, currency, undefined, limit);
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -903,8 +903,8 @@ export default class coinfalcon extends Exchange {
         //         },
         //     ]
         //
-        const transaction = this.safeValue (response, 'data', []);
-        return this.parseTransaction (transaction, currency);
+        const depositWithdrawal = this.safeValue (response, 'data', []);
+        return this.parseDepositWithdrawal (depositWithdrawal, currency);
     }
 
     parseTransactionStatus (status) {
@@ -916,7 +916,7 @@ export default class coinfalcon extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchWithdrawals, withdraw
         //
@@ -945,26 +945,26 @@ export default class coinfalcon extends Exchange {
         //         type: 'deposit'
         //     },
         //
-        const id = this.safeString (transaction, 'id');
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'tag');
-        const txid = this.safeString (transaction, 'txid');
-        const currencyId = this.safeString (transaction, 'currency_code');
+        const id = this.safeString (depositWithdrawal, 'id');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const tag = this.safeString (depositWithdrawal, 'tag');
+        const txid = this.safeString (depositWithdrawal, 'txid');
+        const currencyId = this.safeString (depositWithdrawal, 'currency_code');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let type = this.safeString (transaction, 'type');
+        let type = this.safeString (depositWithdrawal, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amountString = this.safeString (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
+        const amountString = this.safeString (depositWithdrawal, 'amount');
         const amount = this.parseNumber (amountString);
-        const feeCostString = this.safeString (transaction, 'fee');
+        const feeCostString = this.safeString (depositWithdrawal, 'fee');
         let feeCost = 0;
         if (feeCostString !== undefined) {
             feeCost = this.parseNumber (feeCostString);
         }
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txid,
             'timestamp': undefined,

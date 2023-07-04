@@ -810,7 +810,7 @@ export default class blockchaincom extends Exchange {
         return this.safeString (states, state, state);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // deposit
         //
@@ -838,27 +838,27 @@ export default class blockchaincom extends Exchange {
         //
         let type = undefined;
         let id = undefined;
-        const amount = this.safeNumber (transaction, 'amount');
-        const timestamp = this.safeInteger (transaction, 'timestamp');
-        const currencyId = this.safeString (transaction, 'currency');
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const timestamp = this.safeInteger (depositWithdrawal, 'timestamp');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const state = this.safeString (transaction, 'state');
-        if ('depositId' in transaction) {
+        const state = this.safeString (depositWithdrawal, 'state');
+        if ('depositId' in depositWithdrawal) {
             type = 'deposit';
-            id = this.safeString (transaction, 'depositId');
-        } else if ('withdrawalId' in transaction) {
+            id = this.safeString (depositWithdrawal, 'depositId');
+        } else if ('withdrawalId' in depositWithdrawal) {
             type = 'withdrawal';
-            id = this.safeString (transaction, 'withdrawalId');
+            id = this.safeString (depositWithdrawal, 'withdrawalId');
         }
-        const feeCost = (type === 'withdrawal') ? this.safeNumber (transaction, 'fee') : undefined;
+        const feeCost = (type === 'withdrawal') ? this.safeNumber (depositWithdrawal, 'fee') : undefined;
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const address = this.safeString (transaction, 'address');
-        const txid = this.safeString (transaction, 'txhash');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const txid = this.safeString (depositWithdrawal, 'txhash');
         const result = {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -956,7 +956,7 @@ export default class blockchaincom extends Exchange {
         //         timestamp: "1634218452595"
         //     },
         //
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -983,7 +983,7 @@ export default class blockchaincom extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.privateGetWithdrawals (this.extend (request, params));
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
@@ -1001,7 +1001,7 @@ export default class blockchaincom extends Exchange {
             'withdrawalId': id,
         };
         const response = await this.privateGetWithdrawalsWithdrawalId (this.extend (request, params));
-        return this.parseTransaction (response);
+        return this.parseDepositWithdrawal (response);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1028,7 +1028,7 @@ export default class blockchaincom extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.privateGetDeposits (this.extend (request, params));
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     async fetchDeposit (id: string, code: string = undefined, params = {}) {
@@ -1047,7 +1047,7 @@ export default class blockchaincom extends Exchange {
             'depositId': depositId,
         };
         const deposit = await this.privateGetDepositsDepositId (this.extend (request, params));
-        return this.parseTransaction (deposit);
+        return this.parseDepositWithdrawal (deposit);
     }
 
     async fetchBalance (params = {}) {

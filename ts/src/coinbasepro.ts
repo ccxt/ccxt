@@ -1374,7 +1374,7 @@ export default class coinbasepro extends Exchange {
         if (!response) {
             throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         }
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     parseLedgerEntryType (type) {
@@ -1611,7 +1611,7 @@ export default class coinbasepro extends Exchange {
                 response[i]['currency'] = code;
             }
         }
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1658,7 +1658,7 @@ export default class coinbasepro extends Exchange {
         }
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // privateGetTransfers
         //
@@ -1689,14 +1689,14 @@ export default class coinbasepro extends Exchange {
         //        }
         //    ]
         //
-        const details = this.safeValue (transaction, 'details', {});
-        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
-        const currencyId = this.safeString (transaction, 'currency');
+        const details = this.safeValue (depositWithdrawal, 'details', {});
+        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'created_at'));
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let amount = this.safeNumber (transaction, 'amount');
-        let type = this.safeString (transaction, 'type');
+        let amount = this.safeNumber (depositWithdrawal, 'amount');
+        let type = this.safeString (depositWithdrawal, 'type');
         let address = this.safeString (details, 'crypto_address');
-        address = this.safeString (transaction, 'crypto_address', address);
+        address = this.safeString (depositWithdrawal, 'crypto_address', address);
         const fee = {
             'currency': undefined,
             'cost': undefined,
@@ -1716,14 +1716,14 @@ export default class coinbasepro extends Exchange {
         }
         const networkId = this.safeString (details, 'network');
         return {
-            'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'info': depositWithdrawal,
+            'id': this.safeString (depositWithdrawal, 'id'),
             'txid': this.safeString (details, 'crypto_transaction_hash'),
             'type': type,
             'currency': code,
             'network': this.networkIdToCode (networkId),
             'amount': amount,
-            'status': this.parseTransactionStatus (transaction),
+            'status': this.parseTransactionStatus (depositWithdrawal),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
@@ -1732,7 +1732,7 @@ export default class coinbasepro extends Exchange {
             'tag': this.safeString (details, 'destination_tag'),
             'tagFrom': undefined,
             'tagTo': undefined,
-            'updated': this.parse8601 (this.safeString (transaction, 'processed_at')),
+            'updated': this.parse8601 (this.safeString (depositWithdrawal, 'processed_at')),
             'comment': undefined,
             'fee': fee,
         };

@@ -1639,7 +1639,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -1691,19 +1691,19 @@ export default class bigone extends Exchange {
         //         "asset_symbol":"XRP"
         //     }
         //
-        const currencyId = this.safeString (transaction, 'asset_symbol');
+        const currencyId = this.safeString (depositWithdrawal, 'asset_symbol');
         const code = this.safeCurrencyCode (currencyId);
-        const id = this.safeInteger (transaction, 'id');
-        const amount = this.safeNumber (transaction, 'amount');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const timestamp = this.parse8601 (this.safeString (transaction, 'inserted_at'));
-        const updated = this.parse8601 (this.safeString2 (transaction, 'updated_at', 'completed_at'));
-        const txid = this.safeString (transaction, 'txid');
-        const address = this.safeString (transaction, 'target_address');
-        const tag = this.safeString (transaction, 'memo');
-        const type = ('customer_id' in transaction) ? 'deposit' : 'withdrawal';
+        const id = this.safeInteger (depositWithdrawal, 'id');
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'state'));
+        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'inserted_at'));
+        const updated = this.parse8601 (this.safeString2 (depositWithdrawal, 'updated_at', 'completed_at'));
+        const txid = this.safeString (depositWithdrawal, 'txid');
+        const address = this.safeString (depositWithdrawal, 'target_address');
+        const tag = this.safeString (depositWithdrawal, 'memo');
+        const type = ('customer_id' in depositWithdrawal) ? 'deposit' : 'withdrawal';
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -1773,7 +1773,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const deposits = this.safeValue (response, 'data', []);
-        return this.parseTransactions (deposits, currency, since, limit);
+        return this.parseDepositsWithdrawals (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1825,7 +1825,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const withdrawals = this.safeValue (response, 'data', []);
-        return this.parseTransactions (withdrawals, currency, since, limit);
+        return this.parseDepositsWithdrawals (withdrawals, currency, since, limit);
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
@@ -1954,7 +1954,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        return this.parseDepositWithdrawal (data, currency);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

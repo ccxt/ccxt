@@ -1781,10 +1781,10 @@ export default class whitebit extends Exchange {
         //
         //     []
         //
-        return this.extend ({ 'id': uniqueId }, this.parseTransaction (response, currency));
+        return this.extend ({ 'id': uniqueId }, this.parseDepositWithdrawal (response, currency));
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         //     {
         //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
@@ -1815,21 +1815,21 @@ export default class whitebit extends Exchange {
         //     }
         //
         currency = this.safeCurrency (undefined, currency);
-        const address = this.safeString (transaction, 'address');
-        const timestamp = this.safeTimestamp (transaction, 'createdAt');
-        const currencyId = this.safeString (transaction, 'ticker');
-        const status = this.safeString (transaction, 'status');
-        const method = this.safeString (transaction, 'method');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const timestamp = this.safeTimestamp (depositWithdrawal, 'createdAt');
+        const currencyId = this.safeString (depositWithdrawal, 'ticker');
+        const status = this.safeString (depositWithdrawal, 'status');
+        const method = this.safeString (depositWithdrawal, 'method');
         return {
-            'id': this.safeString (transaction, 'uniqueId'),
-            'txid': this.safeString (transaction, 'transactionHash'),
+            'id': this.safeString (depositWithdrawal, 'uniqueId'),
+            'txid': this.safeString (depositWithdrawal, 'transactionHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.safeString (transaction, 'network'),
+            'network': this.safeString (depositWithdrawal, 'network'),
             'addressFrom': (method === '1') ? address : undefined,
             'address': address,
             'addressTo': (method === '2') ? address : undefined,
-            'amount': this.safeNumber (transaction, 'amount'),
+            'amount': this.safeNumber (depositWithdrawal, 'amount'),
             'type': (method === '1') ? 'deposit' : 'withdrawal',
             'currency': this.safeCurrencyCode (currencyId, currency),
             'status': this.parseTransactionStatus (status),
@@ -1837,12 +1837,12 @@ export default class whitebit extends Exchange {
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
-            'comment': this.safeString (transaction, 'description'),
+            'comment': this.safeString (depositWithdrawal, 'description'),
             'fee': {
-                'cost': this.safeNumber (transaction, 'fee'),
+                'cost': this.safeNumber (depositWithdrawal, 'fee'),
                 'currency': this.safeCurrencyCode (currencyId, currency),
             },
-            'info': transaction,
+            'info': depositWithdrawal,
         };
     }
 
@@ -1930,7 +1930,7 @@ export default class whitebit extends Exchange {
         //
         const records = this.safeValue (response, 'records', []);
         const first = this.safeValue (records, 0, {});
-        return this.parseTransaction (first, currency);
+        return this.parseDepositWithdrawal (first, currency);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1997,7 +1997,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeValue (response, 'records', []);
-        return this.parseTransactions (records, currency, since, limit);
+        return this.parseDepositsWithdrawals (records, currency, since, limit);
     }
 
     async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

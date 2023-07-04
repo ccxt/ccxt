@@ -1453,10 +1453,10 @@ export default class bitfinex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // crypto
         //
@@ -1500,31 +1500,31 @@ export default class bitfinex extends Exchange {
         //         "withdrawal_id": 586829
         //     }
         //
-        const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
-        const currencyId = this.safeString (transaction, 'currency');
+        const timestamp = this.safeTimestamp (depositWithdrawal, 'timestamp_created');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let feeCost = this.safeString (transaction, 'fee');
+        let feeCost = this.safeString (depositWithdrawal, 'fee');
         if (feeCost !== undefined) {
             feeCost = Precise.stringAbs (feeCost);
         }
         return {
-            'info': transaction,
-            'id': this.safeString2 (transaction, 'id', 'withdrawal_id'),
-            'txid': this.safeString (transaction, 'txid'),
-            'type': this.safeStringLower (transaction, 'type'), // DEPOSIT or WITHDRAWAL,
+            'info': depositWithdrawal,
+            'id': this.safeString2 (depositWithdrawal, 'id', 'withdrawal_id'),
+            'txid': this.safeString (depositWithdrawal, 'txid'),
+            'type': this.safeStringLower (depositWithdrawal, 'type'), // DEPOSIT or WITHDRAWAL,
             'currency': code,
             'network': undefined,
-            'amount': this.safeNumber (transaction, 'amount'),
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'amount': this.safeNumber (depositWithdrawal, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': this.safeString (transaction, 'address'), // todo: this is actually the tag for XRP transfers (the address is missing)
+            'address': this.safeString (depositWithdrawal, 'address'), // todo: this is actually the tag for XRP transfers (the address is missing)
             'addressFrom': undefined,
             'addressTo': undefined,
-            'tag': this.safeString (transaction, 'description'),
+            'tag': this.safeString (depositWithdrawal, 'description'),
             'tagFrom': undefined,
             'tagTo': undefined,
-            'updated': this.safeTimestamp (transaction, 'timestamp'),
+            'updated': this.safeTimestamp (depositWithdrawal, 'timestamp'),
             'comment': undefined,
             'fee': {
                 'currency': code,
@@ -1592,7 +1592,7 @@ export default class bitfinex extends Exchange {
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
         }
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {

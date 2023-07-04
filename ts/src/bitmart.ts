@@ -2290,7 +2290,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const transaction = this.parseTransaction (data, currency);
+        const transaction = this.parseDepositWithdrawal (data, currency);
         return this.extend (transaction, {
             'code': code,
             'address': address,
@@ -2352,7 +2352,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const records = this.safeValue (data, 'records', []);
-        return this.parseTransactions (records, currency, since, limit);
+        return this.parseDepositsWithdrawals (records, currency, since, limit);
     }
 
     async fetchDeposit (id: string, code: string = undefined, params = {}) {
@@ -2394,7 +2394,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const record = this.safeValue (data, 'record', {});
-        return this.parseTransaction (record);
+        return this.parseDepositWithdrawal (record);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2450,7 +2450,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const record = this.safeValue (data, 'record', {});
-        return this.parseTransaction (record);
+        return this.parseDepositWithdrawal (record);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2479,7 +2479,7 @@ export default class bitmart extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // withdraw
         //
@@ -2504,8 +2504,8 @@ export default class bitmart extends Exchange {
         //     }
         //
         let id = undefined;
-        const withdrawId = this.safeString (transaction, 'withdraw_id');
-        const depositId = this.safeString (transaction, 'deposit_id');
+        const withdrawId = this.safeString (depositWithdrawal, 'withdraw_id');
+        const depositId = this.safeString (depositWithdrawal, 'deposit_id');
         let type = undefined;
         if ((withdrawId !== undefined) && (withdrawId !== '')) {
             type = 'withdraw';
@@ -2514,12 +2514,12 @@ export default class bitmart extends Exchange {
             type = 'deposit';
             id = depositId;
         }
-        const amount = this.safeNumber (transaction, 'arrival_amount');
-        const timestamp = this.safeInteger (transaction, 'apply_time');
-        const currencyId = this.safeString (transaction, 'currency');
+        const amount = this.safeNumber (depositWithdrawal, 'arrival_amount');
+        const timestamp = this.safeInteger (depositWithdrawal, 'apply_time');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
+        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -2527,11 +2527,11 @@ export default class bitmart extends Exchange {
                 'currency': code,
             };
         }
-        const txid = this.safeString (transaction, 'tx_id');
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'address_memo');
+        const txid = this.safeString (depositWithdrawal, 'tx_id');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const tag = this.safeString (depositWithdrawal, 'address_memo');
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'currency': code,
             'amount': amount,

@@ -1239,7 +1239,7 @@ export default class bitso extends Exchange {
         //
         const transactions = this.safeValue (response, 'payload', []);
         const first = this.safeValue (transactions, 0, {});
-        return this.parseTransaction (first);
+        return this.parseDepositWithdrawal (first);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1282,8 +1282,8 @@ export default class bitso extends Exchange {
         //         }]
         //     }
         //
-        const transactions = this.safeValue (response, 'payload', []);
-        return this.parseTransactions (transactions, currency, since, limit, params);
+        const deposits = this.safeValue (response, 'payload', []);
+        return this.parseDepositsWithdrawals (deposits, currency, since, limit, params);
     }
 
     async fetchDepositAddress (code: string, params = {}) {
@@ -1607,7 +1607,7 @@ export default class bitso extends Exchange {
         //
         const payload = this.safeValue (response, 'payload', []);
         const first = this.safeValue (payload, 0);
-        return this.parseTransaction (first, currency);
+        return this.parseDepositWithdrawal (first, currency);
     }
 
     safeNetwork (networkId) {
@@ -1624,7 +1624,7 @@ export default class bitso extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // deposit
         //     {
@@ -1661,17 +1661,17 @@ export default class bitso extends Exchange {
         //         }
         //     }
         //
-        const currencyId = this.safeString2 (transaction, 'currency', 'asset');
+        const currencyId = this.safeString2 (depositWithdrawal, 'currency', 'asset');
         currency = this.safeCurrency (currencyId, currency);
-        const details = this.safeValue (transaction, 'details', {});
-        const datetime = this.safeString (transaction, 'created_at');
+        const details = this.safeValue (depositWithdrawal, 'details', {});
+        const datetime = this.safeString (depositWithdrawal, 'created_at');
         const withdrawalAddress = this.safeString (details, 'withdrawal_address');
         const receivingAddress = this.safeString (details, 'receiving_address');
-        const networkId = this.safeString2 (transaction, 'network', 'method');
-        const status = this.safeString (transaction, 'status');
-        const withdrawId = this.safeString (transaction, 'wid');
+        const networkId = this.safeString2 (depositWithdrawal, 'network', 'method');
+        const status = this.safeString (depositWithdrawal, 'status');
+        const withdrawId = this.safeString (depositWithdrawal, 'wid');
         return {
-            'id': this.safeString2 (transaction, 'wid', 'fid'),
+            'id': this.safeString2 (depositWithdrawal, 'wid', 'fid'),
             'txid': this.safeString (details, 'tx_hash'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
@@ -1679,7 +1679,7 @@ export default class bitso extends Exchange {
             'addressFrom': receivingAddress,
             'address': (withdrawalAddress !== undefined) ? withdrawalAddress : receivingAddress,
             'addressTo': withdrawalAddress,
-            'amount': this.safeString (transaction, 'amount'),
+            'amount': this.safeString (depositWithdrawal, 'amount'),
             'type': (withdrawId === undefined) ? 'deposit' : 'withdrawal',
             'currency': this.safeCurrencyCode (currencyId, currency),
             'status': this.parseTransactionStatus (status),
@@ -1689,7 +1689,7 @@ export default class bitso extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'fee': undefined,
-            'info': transaction,
+            'info': depositWithdrawal,
         };
     }
 

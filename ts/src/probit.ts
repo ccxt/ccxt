@@ -1456,7 +1456,7 @@ export default class probit extends Exchange {
         }
         const response = await this.privatePostWithdrawal (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        return this.parseTransaction (data, currency);
+        return this.parseDepositWithdrawal (data, currency);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1545,21 +1545,21 @@ export default class probit extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseDepositsWithdrawals (data, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
-        const id = this.safeString (transaction, 'id');
-        const amount = this.safeNumber (transaction, 'amount');
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'destination_tag');
-        const txid = this.safeString (transaction, 'hash');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
-        const type = this.safeString (transaction, 'type');
-        const currencyId = this.safeString (transaction, 'currency_id');
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+        const id = this.safeString (depositWithdrawal, 'id');
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const tag = this.safeString (depositWithdrawal, 'destination_tag');
+        const txid = this.safeString (depositWithdrawal, 'hash');
+        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'time'));
+        const type = this.safeString (depositWithdrawal, 'type');
+        const currencyId = this.safeString (depositWithdrawal, 'currency_id');
         const code = this.safeCurrencyCode (currencyId);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
+        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
         let fee = undefined;
         if (feeCost !== undefined && feeCost !== 0) {
             fee = {
@@ -1585,7 +1585,7 @@ export default class probit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'updated': undefined,
             'fee': fee,
-            'info': transaction,
+            'info': depositWithdrawal,
         };
     }
 

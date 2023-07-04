@@ -1586,7 +1586,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
@@ -2871,12 +2871,12 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTransactions (transactions, currency: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        transactions = this.toArray (transactions);
+    parseDepositsWithdrawals (depositsWithdrawals, currency: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        depositsWithdrawals = this.toArray (depositsWithdrawals);
         let result = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = this.extend (this.parseTransaction (transactions[i], currency), params);
-            result.push (transaction);
+        for (let i = 0; i < depositsWithdrawals.length; i++) {
+            const depositWithdrawal = this.extend (this.parseDepositWithdrawal (depositsWithdrawals[i], currency), params);
+            result.push (depositWithdrawal);
         }
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;

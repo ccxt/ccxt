@@ -1673,7 +1673,7 @@ export default class exmo extends Exchange {
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostWithdrawCrypt (this.extend (request, params));
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     parseTransactionStatus (status) {
@@ -1687,7 +1687,7 @@ export default class exmo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDepositsWithdrawals
         //
@@ -1739,25 +1739,25 @@ export default class exmo extends Exchange {
         //        "task_id": 11775077
         //    }
         //
-        const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
-        let amount = this.safeString (transaction, 'amount');
+        const timestamp = this.safeTimestamp2 (depositWithdrawal, 'dt', 'created');
+        let amount = this.safeString (depositWithdrawal, 'amount');
         if (amount !== undefined) {
             amount = Precise.stringAbs (amount);
         }
-        let txid = this.safeString (transaction, 'txid');
+        let txid = this.safeString (depositWithdrawal, 'txid');
         if (txid === undefined) {
-            const extra = this.safeValue (transaction, 'extra', {});
+            const extra = this.safeValue (depositWithdrawal, 'extra', {});
             const extraTxid = this.safeString (extra, 'txid');
             if (extraTxid !== '') {
                 txid = extraTxid;
             }
         }
-        const type = this.safeString (transaction, 'type');
-        const currencyId = this.safeString2 (transaction, 'curr', 'currency');
+        const type = this.safeString (depositWithdrawal, 'type');
+        const currencyId = this.safeString2 (depositWithdrawal, 'curr', 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let address = undefined;
         let comment = undefined;
-        const account = this.safeString (transaction, 'account');
+        const account = this.safeString (depositWithdrawal, 'account');
         if (type === 'deposit') {
             comment = account;
         } else if (type === 'withdrawal') {
@@ -1779,14 +1779,14 @@ export default class exmo extends Exchange {
         // fixed funding fees only (for now)
         if (!this.fees['transaction']['percentage']) {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
-            let feeCost = this.safeString (transaction, 'commission');
+            let feeCost = this.safeString (depositWithdrawal, 'commission');
             if (feeCost === undefined) {
                 const transactionFees = this.safeValue (this.options, 'transactionFees', {});
                 const codeFees = this.safeValue (transactionFees, code, {});
                 feeCost = this.safeString (codeFees, key);
             }
             // users don't pay for cashbacks, no fees for that
-            const provider = this.safeString (transaction, 'provider');
+            const provider = this.safeString (depositWithdrawal, 'provider');
             if (provider === 'cashback') {
                 feeCost = '0';
             }
@@ -1800,14 +1800,14 @@ export default class exmo extends Exchange {
             }
         }
         return {
-            'info': transaction,
-            'id': this.safeString2 (transaction, 'order_id', 'task_id'),
+            'info': depositWithdrawal,
+            'id': this.safeString2 (depositWithdrawal, 'order_id', 'task_id'),
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': this.safeString (transaction, 'provider'),
+            'network': this.safeString (depositWithdrawal, 'provider'),
             'amount': amount,
-            'status': this.parseTransactionStatus (this.safeStringLower (transaction, 'status')),
+            'status': this.parseTransactionStatus (this.safeStringLower (depositWithdrawal, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
@@ -1816,7 +1816,7 @@ export default class exmo extends Exchange {
             'tag': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
-            'updated': this.safeTimestamp (transaction, 'updated'),
+            'updated': this.safeTimestamp (depositWithdrawal, 'updated'),
             'comment': comment,
             'fee': fee,
         };
@@ -1873,7 +1873,7 @@ export default class exmo extends Exchange {
         //       ],
         //     }
         //
-        return this.parseTransactions (response['history'], currency, since, limit);
+        return this.parseDepositsWithdrawals (response['history'], currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1927,7 +1927,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        return this.parseTransactions (items, currency, since, limit);
+        return this.parseDepositsWithdrawals (items, currency, since, limit);
     }
 
     async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
@@ -1979,7 +1979,7 @@ export default class exmo extends Exchange {
         //
         const items = this.safeValue (response, 'items', []);
         const first = this.safeValue (items, 0, {});
-        return this.parseTransaction (first, currency);
+        return this.parseDepositWithdrawal (first, currency);
     }
 
     async fetchDeposit (id = undefined, code: string = undefined, params = {}) {
@@ -2031,7 +2031,7 @@ export default class exmo extends Exchange {
         //
         const items = this.safeValue (response, 'items', []);
         const first = this.safeValue (items, 0, {});
-        return this.parseTransaction (first, currency);
+        return this.parseDepositWithdrawal (first, currency);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2085,7 +2085,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        return this.parseTransactions (items, currency, since, limit);
+        return this.parseDepositsWithdrawals (items, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

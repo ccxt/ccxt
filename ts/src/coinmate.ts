@@ -418,7 +418,7 @@ export default class coinmate extends Exchange {
         }
         const response = await this.privatePostTransferHistory (this.extend (request, params));
         const items = response['data'];
-        return this.parseTransactions (items, undefined, since, limit);
+        return this.parseDepositsWithdrawals (items, undefined, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -434,7 +434,7 @@ export default class coinmate extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // deposits
         //
@@ -475,30 +475,30 @@ export default class coinmate extends Exchange {
         //         "id": 2132583,
         //     }
         //
-        const timestamp = this.safeInteger (transaction, 'timestamp');
-        const currencyId = this.safeString (transaction, 'amountCurrency');
+        const timestamp = this.safeInteger (depositWithdrawal, 'timestamp');
+        const currencyId = this.safeString (depositWithdrawal, 'amountCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
         return {
-            'info': transaction,
-            'id': this.safeString2 (transaction, 'transactionId', 'id'),
-            'txid': this.safeString (transaction, 'txid'),
-            'type': this.safeStringLower (transaction, 'transferType'),
+            'info': depositWithdrawal,
+            'id': this.safeString2 (depositWithdrawal, 'transactionId', 'id'),
+            'txid': this.safeString (depositWithdrawal, 'txid'),
+            'type': this.safeStringLower (depositWithdrawal, 'transferType'),
             'currency': code,
-            'network': this.safeString (transaction, 'walletType'),
-            'amount': this.safeNumber (transaction, 'amount'),
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'transferStatus')),
+            'network': this.safeString (depositWithdrawal, 'walletType'),
+            'amount': this.safeNumber (depositWithdrawal, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (depositWithdrawal, 'transferStatus')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': this.safeString (transaction, 'destination'),
+            'address': this.safeString (depositWithdrawal, 'destination'),
             'addressFrom': undefined,
             'addressTo': undefined,
-            'tag': this.safeString (transaction, 'destinationTag'),
+            'tag': this.safeString (depositWithdrawal, 'destinationTag'),
             'tagFrom': undefined,
             'tagTo': undefined,
             'updated': undefined,
             'comment': undefined,
             'fee': {
-                'cost': this.safeNumber (transaction, 'fee'),
+                'cost': this.safeNumber (depositWithdrawal, 'fee'),
                 'currency': code,
                 'rate': undefined,
             },
@@ -546,7 +546,7 @@ export default class coinmate extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const transaction = this.parseTransaction (data, currency);
+        const transaction = this.parseDepositWithdrawal (data, currency);
         const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transaction['amount'] = amount;

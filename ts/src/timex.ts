@@ -373,7 +373,7 @@ export default class timex extends Exchange {
         //     ]
         //
         const currency = this.safeCurrency (code);
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -409,7 +409,7 @@ export default class timex extends Exchange {
         //     ]
         //
         const currency = this.safeCurrency (code);
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     getCurrencyByAddress (address) {
@@ -425,7 +425,7 @@ export default class timex extends Exchange {
         return undefined;
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         //     {
         //         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -436,24 +436,24 @@ export default class timex extends Exchange {
         //         "value": "100"
         //     }
         //
-        const datetime = this.safeString (transaction, 'timestamp');
-        const currencyAddresss = this.safeString (transaction, 'token', '');
+        const datetime = this.safeString (depositWithdrawal, 'timestamp');
+        const currencyAddresss = this.safeString (depositWithdrawal, 'token', '');
         currency = this.getCurrencyByAddress (currencyAddresss);
         return {
-            'info': transaction,
-            'id': this.safeString (transaction, 'transferHash'),
-            'txid': this.safeString (transaction, 'txid'),
+            'info': depositWithdrawal,
+            'id': this.safeString (depositWithdrawal, 'transferHash'),
+            'txid': this.safeString (depositWithdrawal, 'txid'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'network': undefined,
             'address': undefined,
-            'addressTo': this.safeString (transaction, 'to'),
-            'addressFrom': this.safeString (transaction, 'from'),
+            'addressTo': this.safeString (depositWithdrawal, 'to'),
+            'addressFrom': this.safeString (depositWithdrawal, 'from'),
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': undefined,
-            'amount': this.safeNumber (transaction, 'value'),
+            'amount': this.safeNumber (depositWithdrawal, 'value'),
             'currency': this.safeCurrencyCode (undefined, currency),
             'status': 'ok',
             'updated': undefined,

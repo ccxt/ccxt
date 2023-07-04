@@ -2187,7 +2187,7 @@ export default class kucoinfutures extends kucoin {
         //     }
         //
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
+        return this.parseDepositsWithdrawals (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2243,7 +2243,7 @@ export default class kucoinfutures extends kucoin {
         //     }
         //
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseDepositsWithdrawals (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchMarketLeverageTiers (symbol: string, params = {}) {

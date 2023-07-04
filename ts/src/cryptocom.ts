@@ -1385,7 +1385,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        return this.parseTransaction (result, currency);
+        return this.parseDepositWithdrawal (result, currency);
     }
 
     async fetchDepositAddressesByNetwork (code: string, params = {}) {
@@ -1530,7 +1530,7 @@ export default class cryptocom extends Exchange {
         // }
         const data = this.safeValue (response, 'result', {});
         const depositList = this.safeValue (data, 'deposit_list', []);
-        return this.parseTransactions (depositList, currency, since, limit);
+        return this.parseDepositsWithdrawals (depositList, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1584,7 +1584,7 @@ export default class cryptocom extends Exchange {
         //
         const data = this.safeValue (response, 'result', {});
         const withdrawalList = this.safeValue (data, 'withdrawal_list', []);
-        return this.parseTransactions (withdrawalList, currency, since, limit);
+        return this.parseDepositsWithdrawals (withdrawalList, currency, since, limit);
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
@@ -2029,7 +2029,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -2071,31 +2071,31 @@ export default class cryptocom extends Exchange {
         //     }
         //
         let type = undefined;
-        const rawStatus = this.safeString (transaction, 'status');
+        const rawStatus = this.safeString (depositWithdrawal, 'status');
         let status = undefined;
-        if ('client_wid' in transaction) {
+        if ('client_wid' in depositWithdrawal) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus (rawStatus);
         } else {
             type = 'deposit';
             status = this.parseDepositStatus (rawStatus);
         }
-        const id = this.safeString (transaction, 'id');
-        const addressString = this.safeString (transaction, 'address');
+        const id = this.safeString (depositWithdrawal, 'id');
+        const addressString = this.safeString (depositWithdrawal, 'address');
         const [ address, tag ] = this.parseAddress (addressString);
-        const currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (transaction, 'create_time');
-        const amount = this.safeNumber (transaction, 'amount');
-        const txId = this.safeString (transaction, 'txid');
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const timestamp = this.safeInteger (depositWithdrawal, 'create_time');
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const txId = this.safeString (depositWithdrawal, 'txid');
+        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const updated = this.safeInteger (transaction, 'update_time');
+        const updated = this.safeInteger (depositWithdrawal, 'update_time');
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txId,
             'timestamp': timestamp,

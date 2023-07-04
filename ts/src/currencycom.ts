@@ -1613,10 +1613,10 @@ export default class currencycom extends Exchange {
         //        },
         //    ]
         //
-        return this.parseTransactions (response, currency, since, limit, params);
+        return this.parseDepositsWithdrawals (response, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         //    {
         //        "id": "616769213",
@@ -1631,10 +1631,10 @@ export default class currencycom extends Exchange {
         //        "commission": "0.14", // this property only exists in withdrawal
         //    }
         //
-        const timestamp = this.safeInteger (transaction, 'timestamp');
-        const currencyId = this.safeString (transaction, 'currency');
+        const timestamp = this.safeInteger (depositWithdrawal, 'timestamp');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const feeCost = this.safeString (transaction, 'commission');
+        const feeCost = this.safeString (depositWithdrawal, 'commission');
         const fee = {
             'currency': undefined,
             'cost': undefined,
@@ -1645,14 +1645,14 @@ export default class currencycom extends Exchange {
             fee['cost'] = feeCost;
         }
         const result = {
-            'info': transaction,
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'blockchainTransactionHash'),
-            'type': this.parseTransactionType (this.safeString (transaction, 'type')),
+            'info': depositWithdrawal,
+            'id': this.safeString (depositWithdrawal, 'id'),
+            'txid': this.safeString (depositWithdrawal, 'blockchainTransactionHash'),
+            'type': this.parseTransactionType (this.safeString (depositWithdrawal, 'type')),
             'currency': code,
             'network': undefined,
-            'amount': this.safeNumber (transaction, 'amount'),
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'state')),
+            'amount': this.safeNumber (depositWithdrawal, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (depositWithdrawal, 'state')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,

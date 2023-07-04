@@ -1563,7 +1563,7 @@ export default class coinsph extends Exchange {
         }
         params = this.omit (params, 'network');
         const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, params));
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     async deposit (code: string, amount, address, tag = undefined, params = {}) {
@@ -1593,7 +1593,7 @@ export default class coinsph extends Exchange {
             request['depositOrderId'] = tag;
         }
         const response = await this.privatePostOpenapiV1CapitalDepositApply (this.extend (request, params));
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1651,7 +1651,7 @@ export default class coinsph extends Exchange {
         //     }
         // ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1715,10 +1715,10 @@ export default class coinsph extends Exchange {
         //     }
         // ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseDepositsWithdrawals (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDeposits
         //     {
@@ -1755,42 +1755,42 @@ export default class coinsph extends Exchange {
         //     }
         //
         // todo: this is in progress
-        const id = this.safeString (transaction, 'id');
-        const address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'addressTag');
+        const id = this.safeString (depositWithdrawal, 'id');
+        const address = this.safeString (depositWithdrawal, 'address');
+        let tag = this.safeString (depositWithdrawal, 'addressTag');
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;
             }
         }
-        const txid = this.safeString (transaction, 'txId');
-        const currencyId = this.safeString (transaction, 'coin');
+        const txid = this.safeString (depositWithdrawal, 'txId');
+        const currencyId = this.safeString (depositWithdrawal, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
-        timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
+        timestamp = this.safeInteger2 (depositWithdrawal, 'insertTime', 'applyTime');
         const updated = undefined;
         let type = undefined;
-        const withdrawOrderId = this.safeString (transaction, 'withdrawOrderId');
-        const depositOrderId = this.safeString (transaction, 'depositOrderId');
+        const withdrawOrderId = this.safeString (depositWithdrawal, 'withdrawOrderId');
+        const depositOrderId = this.safeString (depositWithdrawal, 'depositOrderId');
         if (withdrawOrderId !== undefined) {
             type = 'withdrawal';
         } else if (depositOrderId !== undefined) {
             type = 'deposit';
         }
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.safeNumber (transaction, 'amount');
-        const feeCost = this.safeNumber (transaction, 'transactionFee');
+        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const feeCost = this.safeNumber (depositWithdrawal, 'transactionFee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let internal = this.safeInteger (transaction, 'transferType') as any;
+        let internal = this.safeInteger (depositWithdrawal, 'transferType') as any;
         if (internal !== undefined) {
             internal = internal ? true : false;
         }
-        const network = this.safeString (transaction, 'network');
+        const network = this.safeString (depositWithdrawal, 'network');
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,

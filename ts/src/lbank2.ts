@@ -1723,7 +1723,7 @@ export default class lbank2 extends Exchange {
         return this.safeString (this.safeValue (statuses, type, {}), status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDeposits (private)
         //
@@ -1753,19 +1753,19 @@ export default class lbank2 extends Exchange {
         //          "status":"4"
         //      }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString (depositWithdrawal, 'id');
         let type = undefined;
         if (id === undefined) {
             type = 'deposit';
         } else {
             type = 'withdrawal';
         }
-        const txid = this.safeString (transaction, 'txId');
-        const timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
+        const txid = this.safeString (depositWithdrawal, 'txId');
+        const timestamp = this.safeInteger2 (depositWithdrawal, 'insertTime', 'applyTime');
         const networks = this.safeValue (this.options, 'inverse-networks', {});
-        const networkId = this.safeString (transaction, 'networkName');
+        const networkId = this.safeString (depositWithdrawal, 'networkName');
         const network = this.safeString (networks, networkId, networkId);
-        const address = this.safeString (transaction, 'address');
+        const address = this.safeString (depositWithdrawal, 'address');
         let addressFrom = undefined;
         let addressTo = undefined;
         if (type === 'deposit') {
@@ -1773,12 +1773,12 @@ export default class lbank2 extends Exchange {
         } else {
             addressTo = address;
         }
-        const amount = this.safeNumber (transaction, 'amount');
-        const currencyId = this.safeString2 (transaction, 'coin', 'coid');
+        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const currencyId = this.safeString2 (depositWithdrawal, 'coin', 'coid');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'), type);
+        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'), type);
         let fee = undefined;
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1786,7 +1786,7 @@ export default class lbank2 extends Exchange {
             };
         }
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -1859,7 +1859,7 @@ export default class lbank2 extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const deposits = this.safeValue (data, 'depositOrders', []);
-        return this.parseTransactions (deposits, currency, since, limit);
+        return this.parseDepositsWithdrawals (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1915,8 +1915,8 @@ export default class lbank2 extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        const withdraws = this.safeValue (data, 'withdraws', []);
-        return this.parseTransactions (withdraws, currency, since, limit);
+        const withdrawals = this.safeValue (data, 'withdraws', []);
+        return this.parseDepositsWithdrawals (withdrawals, currency, since, limit);
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {

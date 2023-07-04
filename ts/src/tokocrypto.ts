@@ -2074,7 +2074,7 @@ export default class tokocrypto extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const deposits = this.safeValue (data, 'list', []);
-        return this.parseTransactions (deposits, currency, since, limit);
+        return this.parseDepositsWithdrawals (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2132,7 +2132,7 @@ export default class tokocrypto extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const withdrawals = this.safeValue (data, 'list', []);
-        return this.parseTransactions (withdrawals, currency, since, limit);
+        return this.parseDepositsWithdrawals (withdrawals, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -2155,7 +2155,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -2200,23 +2200,23 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1571745049095
         //     }
         //
-        const address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        const address = this.safeString (depositWithdrawal, 'address');
+        let tag = this.safeString (depositWithdrawal, 'addressTag'); // set but unused
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;
             }
         }
-        let txid = this.safeString (transaction, 'txId');
+        let txid = this.safeString (depositWithdrawal, 'txId');
         if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
             txid = txid.slice (18);
         }
-        const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
+        const currencyId = this.safeString2 (depositWithdrawal, 'coin', 'fiatCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
-        const insertTime = this.safeInteger (transaction, 'insertTime');
-        const createTime = this.safeInteger2 (transaction, 'createTime', 'timestamp');
-        let type = this.safeString (transaction, 'type');
+        const insertTime = this.safeInteger (depositWithdrawal, 'insertTime');
+        const createTime = this.safeInteger2 (depositWithdrawal, 'createTime', 'timestamp');
+        let type = this.safeString (depositWithdrawal, 'type');
         if (type === undefined) {
             if ((insertTime !== undefined) && (createTime === undefined)) {
                 type = 'deposit';
@@ -2226,7 +2226,7 @@ export default class tokocrypto extends Exchange {
                 timestamp = createTime;
             }
         }
-        const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
+        const feeCost = this.safeNumber2 (depositWithdrawal, 'transactionFee', 'totalFee');
         const fee = {
             'currency': undefined,
             'cost': undefined,
@@ -2236,26 +2236,26 @@ export default class tokocrypto extends Exchange {
             fee['currency'] = code;
             fee['cost'] = feeCost;
         }
-        const internalRaw = this.safeInteger (transaction, 'transferType');
+        const internalRaw = this.safeInteger (depositWithdrawal, 'transferType');
         let internal = false;
         if (internalRaw !== undefined) {
             internal = true;
         }
-        let id = this.safeString (transaction, 'id');
+        let id = this.safeString (depositWithdrawal, 'id');
         if (id === undefined) {
-            const data = this.safeValue (transaction, 'data', {});
+            const data = this.safeValue (depositWithdrawal, 'data', {});
             id = this.safeString (data, 'withdrawId');
             type = 'withdrawal';
         }
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': this.safeString (transaction, 'network'),
-            'amount': this.safeNumber (transaction, 'amount'),
-            'status': this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type),
+            'network': this.safeString (depositWithdrawal, 'network'),
+            'amount': this.safeNumber (depositWithdrawal, 'amount'),
+            'status': this.parseTransactionStatusByType (this.safeString (depositWithdrawal, 'status'), type),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
@@ -2264,7 +2264,7 @@ export default class tokocrypto extends Exchange {
             'tag': tag,
             'tagFrom': undefined,
             'tagTo': tag,
-            'updated': this.safeInteger2 (transaction, 'successTime', 'updateTime'),
+            'updated': this.safeInteger2 (depositWithdrawal, 'successTime', 'updateTime'),
             'comment': undefined,
             'internal': internal,
             'fee': fee,
@@ -2315,7 +2315,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1571745049095
         //     }
         //
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

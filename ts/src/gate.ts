@@ -3248,7 +3248,7 @@ export default class gate extends Exchange {
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
         const response = await this.privateWalletGetDeposits (this.extend (request, params));
-        return this.parseTransactions (response, currency);
+        return this.parseDepositsWithdrawals (response, currency);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3278,7 +3278,7 @@ export default class gate extends Exchange {
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
-        return this.parseTransactions (response, currency);
+        return this.parseDepositsWithdrawals (response, currency);
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -3324,7 +3324,7 @@ export default class gate extends Exchange {
         //        "memo": null
         //    }
         //
-        return this.parseTransaction (response, currency);
+        return this.parseDepositWithdrawal (response, currency);
     }
 
     parseTransactionStatus (status) {
@@ -3347,7 +3347,7 @@ export default class gate extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
         //
         // deposits
         //
@@ -3372,9 +3372,9 @@ export default class gate extends Exchange {
         //        "memo": null
         //    }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString (depositWithdrawal, 'id');
         let type = undefined;
-        let amountString = this.safeString (transaction, 'amount');
+        let amountString = this.safeString (depositWithdrawal, 'amount');
         if (id !== undefined) {
             if (id[0] === 'b') {
                 // GateCode handling
@@ -3384,20 +3384,20 @@ export default class gate extends Exchange {
                 type = this.parseTransactionType (id[0]);
             }
         }
-        const feeCostString = this.safeString (transaction, 'fee');
+        const feeCostString = this.safeString (depositWithdrawal, 'fee');
         if (type === 'withdrawal') {
             amountString = Precise.stringSub (amountString, feeCostString);
         }
-        const currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (depositWithdrawal, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const txid = this.safeString (transaction, 'txid');
-        const rawStatus = this.safeString (transaction, 'status');
+        const txid = this.safeString (depositWithdrawal, 'txid');
+        const rawStatus = this.safeString (depositWithdrawal, 'status');
         const status = this.parseTransactionStatus (rawStatus);
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'memo');
-        const timestamp = this.safeTimestamp (transaction, 'timestamp');
+        const address = this.safeString (depositWithdrawal, 'address');
+        const tag = this.safeString (depositWithdrawal, 'memo');
+        const timestamp = this.safeTimestamp (depositWithdrawal, 'timestamp');
         return {
-            'info': transaction,
+            'info': depositWithdrawal,
             'id': id,
             'txid': txid,
             'currency': code,
