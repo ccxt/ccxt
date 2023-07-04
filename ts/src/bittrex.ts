@@ -2188,7 +2188,7 @@ export default class bittrex extends Exchange {
             'currency': code,
             'address': address,
             'tag': this.safeString (response, 'cryptoAddressTag'),
-            'network': undefined,
+            'network': undefined, // networks are not provided in response. however, user can assume that it would be the same as the only supported networkCode, which is inside `currency->networks` object
             'info': response,
         };
     }
@@ -2284,6 +2284,7 @@ export default class bittrex extends Exchange {
             'currencySymbol': currency['id'],
             'quantity': amount,
             'cryptoAddress': address,
+            // network parameter is not supported by this exchange. however, user can assume that it would be the same as the only supported networkCode, which is inside `currency->networks` object
         };
         if (tag !== undefined) {
             request['cryptoAddressTag'] = tag;
