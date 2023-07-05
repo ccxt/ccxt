@@ -6303,12 +6303,13 @@ export default class bybit extends Exchange {
         //
         const address = this.safeString (depositAddress, 'addressDeposit');
         const code = this.safeString (currency, 'code');
+        const chain = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': this.safeString (depositAddress, 'tagDeposit'),
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain'), code),
+            'network': this.networkIdToCode (chain, code),
             'info': depositAddress,
         };
     }
