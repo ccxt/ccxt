@@ -2458,24 +2458,6 @@ export default class ascendex extends Exchange {
         };
     }
 
-    safeNetwork (networkId) {
-        const networksById = {
-            'TRC20': 'TRC20',
-            'ERC20': 'ERC20',
-            'GO20': 'GO20',
-            'BEP2': 'BEP2',
-            'BEP20 (BSC)': 'BEP20',
-            'Bitcoin': 'BTC',
-            'Bitcoin ABC': 'BCH',
-            'Litecoin': 'LTC',
-            'Matic Network': 'MATIC',
-            'Solana': 'SOL',
-            'xDai': 'STAKE',
-            'Akash': 'AKT',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
@@ -2487,62 +2469,41 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const chainName = this.safeString (params, 'chainName');
-        params = this.omit (params, 'chainName');
         const request = {
             'asset': currency['id'],
         };
-        const response = await this.v1PrivateGetWalletDepositAddress (this.extend (request, params));
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['blockchain'] = this.networkCodeToId (networkCode);
+        }
+        const response = await this.v1PrivateGetWalletDepositAddress (this.extend (request, paramsOmitted));
         //
-        //     {
-        //         "code":0,
-        //         "data":{
-        //             "asset":"USDT",
-        //             "assetName":"Tether",
-        //             "address":[
-        //                 {
-        //                     "address":"1N22odLHXnLPCjC8kwBJPTayarr9RtPod6",
-        //                     "destTag":"",
-        //                     "tagType":"",
-        //                     "tagId":"",
-        //                     "chainName":"Omni",
-        //                     "numConfirmations":3,
-        //                     "withdrawalFee":4.7,
-        //                     "nativeScale":4,
-        //                     "tips":[]
-        //                 },
-        //                 {
-        //                     "address":"0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        //                     "destTag":"",
-        //                     "tagType":"",
-        //                     "tagId":"",
-        //                     "chainName":"ERC20",
-        //                     "numConfirmations":20,
-        //                     "withdrawalFee":1.0,
-        //                     "nativeScale":4,
-        //                     "tips":[]
-        //                 }
-        //             ]
-        //         }
-        //     }
+        //    {
+        //        "code": "0",
+        //        "data": {
+        //            "asset": "USDT",
+        //            "assetName": "Tether",
+        //            "address": [
+        //                {
+        //                    "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55712",
+        //                    "destTag": "",
+        //                    "blockchain": "ERC20"
+        //                },
+        //                {
+        //                    "address": "TXHUYdv22KkP2dpc2ERSaecUHZepLoD9Qr",
+        //                    "destTag": "",
+        //                    "blockchain": "TRC20"
+        //                },
+        //            ]
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const addresses = this.safeValue (data, 'address', []);
-        const numAddresses = addresses.length;
-        let address = undefined;
-        if (numAddresses > 1) {
-            const addressesByChainName = this.indexBy (addresses, 'chainName');
-            if (chainName === undefined) {
-                const chainNames = Object.keys (addressesByChainName);
-                const chains = chainNames.join (', ');
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
-            }
-            address = this.safeValue (addressesByChainName, chainName, {});
-        } else {
-            // first address
-            address = this.safeValue (addresses, 0, {});
-        }
-        const result = this.parseDepositAddress (address, currency);
+        const chains = this.safeValue (data, 'address', []);
+        const chainsIndexedById = this.indexBy (chains, 'blockchain');
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
+        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const result = this.parseDepositAddress (addressObject, currency);
         return this.extend (result, {
             'info': response,
         });
