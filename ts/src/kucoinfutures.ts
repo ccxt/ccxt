@@ -2341,7 +2341,6 @@ export default class kucoinfutures extends kucoin {
         if (limit !== undefined) {
             request['maxCount'] = limit;
         }
-        // @ts-ignore
         const response = await this.webExchangeGetContractSymbolFundingRates (this.extend (request, params));
         //
         //    {
