@@ -5109,16 +5109,18 @@ export default class mexc extends Exchange {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': this.safeNumber (networkEntry, 'withdrawFee'),
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode === undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': this.safeNumber (networkEntry, 'withdrawFee'),
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return this.assignDefaultDepositWithdrawFees (result);
     }
