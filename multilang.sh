@@ -120,7 +120,7 @@ done
 shift $((OPTIND - 1))
 
 # if there are any unparsed options then print usage and exit
-if grep -q -Ee "^-[^0-9]" <<< "$@"; then
+if grep -q -Ee "\s-[^0-9]" <<< "$@"; then
   usage
 fi
 
