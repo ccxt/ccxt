@@ -2979,13 +2979,12 @@ export default class kucoin extends Exchange {
             }
         }
         const tag = this.safeString (transaction, 'memo');
-        const network = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
+            'network': this.networkIdToCode (this.safeString (transaction, 'chain')),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
