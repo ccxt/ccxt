@@ -912,6 +912,9 @@
     "kucoin": {
         "skipWs": true,
         "skipMethods":{
+            "fetchCurrencies": {
+                "networks": "not yet implemented"
+            },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
             },
