@@ -89,7 +89,7 @@ class bitget extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'transfer' => true,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -143,6 +143,7 @@ class bitget extends Exchange {
                             'market/candles' => 1,
                             'market/depth' => 1,
                             'market/spot-vip-level' => 2,
+                            'market/history-candles' => 1,
                         ),
                     ),
                     'mix' => array(
@@ -164,6 +165,9 @@ class bitget extends Exchange {
                             'market/symbol-leverage' => 1,
                             'market/queryPositionLever' => 1,
                             'market/open-limit' => 1,
+                            'market/history-candles' => 1,
+                            'market/history-index-candles' => 1,
+                            'market/history-mark-candles' => 1,
                         ),
                     ),
                     'margin' => array(
@@ -1645,37 +1649,48 @@ class bitget extends Exchange {
         //         "amount" => "19.44800000",
         //         "status" => "success",
         //         "toAddress" => "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
-        //         "fee" => null,
+        //         "fee" => "-3.06388160",
         //         "chain" => "TRC20",
         //         "confirm" => null,
+        //         "tag" => null,
         //         "cTime" => "1656407912259",
         //         "uTime" => "1656407940148"
         //     }
         //
+        $currencyId = $this->safe_string($transaction, 'coin');
+        $code = $this->safe_currency_code($currencyId);
+        $amountString = $this->safe_string($transaction, 'amount');
         $timestamp = $this->safe_integer($transaction, 'cTime');
         $networkId = $this->safe_string($transaction, 'chain');
-        $currencyId = $this->safe_string($transaction, 'coin');
         $status = $this->safe_string($transaction, 'status');
+        $tag = $this->safe_string($transaction, 'tag');
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        $feeCostAbsString = Precise::string_abs($feeCostString);
+        $fee = null;
+        if ($feeCostAbsString !== null) {
+            $fee = array( 'currency' => $code, 'cost' => $this->parse_number($feeCostAbsString) );
+            $amountString = Precise::string_sub($amountString, $feeCostAbsString);
+        }
         return array(
             'id' => $this->safe_string($transaction, 'id'),
             'info' => $transaction,
             'txid' => $this->safe_string($transaction, 'txId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $networkId,
+            'network' => $this->network_id_to_code($networkId),
             'addressFrom' => null,
             'address' => $this->safe_string($transaction, 'toAddress'),
             'addressTo' => $this->safe_string($transaction, 'toAddress'),
-            'amount' => $this->safe_number($transaction, 'amount'),
+            'amount' => $this->parse_number($amountString),
             'type' => $this->safe_string($transaction, 'type'),
-            'currency' => $this->safe_currency_code($currencyId),
+            'currency' => $code,
             'status' => $this->parse_transaction_status($status),
-            'updated' => $this->safe_number($transaction, 'uTime'),
+            'updated' => $this->safe_integer($transaction, 'uTime'),
             'tagFrom' => null,
-            'tag' => null,
-            'tagTo' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
             'comment' => null,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 

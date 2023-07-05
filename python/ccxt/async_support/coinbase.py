@@ -61,6 +61,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -1374,19 +1375,50 @@ class coinbase(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
+        # fetchBidsAsks
+        #
+        #     {
+        #         "product_id": "TRAC-EUR",
+        #         "bids": [
+        #             {
+        #                 "price": "0.2384",
+        #                 "size": "386.1"
+        #             }
+        #         ],
+        #         "asks": [
+        #             {
+        #                 "price": "0.2406",
+        #                 "size": "672"
+        #             }
+        #         ],
+        #         "time": "2023-06-30T07:15:24.656044Z"
+        #     }
+        #
+        bid = self.safe_number(ticker, 'bid')
+        ask = self.safe_number(ticker, 'ask')
+        bidVolume = None
+        askVolume = None
+        if ('bids' in ticker):
+            bids = self.safe_value(ticker, 'bids', [])
+            asks = self.safe_value(ticker, 'asks', [])
+            bid = self.safe_number(bids[0], 'price')
+            bidVolume = self.safe_number(bids[0], 'size')
+            ask = self.safe_number(asks[0], 'price')
+            askVolume = self.safe_number(asks[0], 'size')
         marketId = self.safe_string(ticker, 'product_id')
         last = self.safe_number(ticker, 'price')
+        datetime = self.safe_string(ticker, 'time')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market),
-            'timestamp': None,
-            'datetime': None,
-            'bid': self.safe_number(ticker, 'bid'),
-            'ask': self.safe_number(ticker, 'ask'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'bid': bid,
+            'ask': ask,
             'last': last,
             'high': None,
             'low': None,
-            'bidVolume': None,
-            'askVolume': None,
+            'bidVolume': bidVolume,
+            'askVolume': askVolume,
             'vwap': None,
             'open': None,
             'close': last,
@@ -2615,6 +2647,43 @@ class coinbase(Exchange, ImplicitAPI):
         time = self.safe_string(data, 'time')
         timestamp = self.parse8601(time)
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'size')
+
+    async def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        # the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
+        response = await self.v3PrivateGetBrokerageBestBidAsk(params)
+        #
+        #     {
+        #         "pricebooks": [
+        #             {
+        #                 "product_id": "TRAC-EUR",
+        #                 "bids": [
+        #                     {
+        #                         "price": "0.2384",
+        #                         "size": "386.1"
+        #                     }
+        #                 ],
+        #                 "asks": [
+        #                     {
+        #                         "price": "0.2406",
+        #                         "size": "672"
+        #                     }
+        #                 ],
+        #                 "time": "2023-06-30T07:15:24.656044Z"
+        #             },
+        #         ]
+        #     }
+        #
+        tickers = self.safe_value(response, 'pricebooks', [])
+        return self.parse_tickers(tickers, symbols)
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]

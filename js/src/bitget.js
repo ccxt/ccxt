@@ -95,7 +95,7 @@ export default class bitget extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -149,6 +149,7 @@ export default class bitget extends Exchange {
                             'market/candles': 1,
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
+                            'market/history-candles': 1,
                         },
                     },
                     'mix': {
@@ -170,6 +171,9 @@ export default class bitget extends Exchange {
                             'market/symbol-leverage': 1,
                             'market/queryPositionLever': 1,
                             'market/open-limit': 1,
+                            'market/history-candles': 1,
+                            'market/history-index-candles': 1,
+                            'market/history-mark-candles': 1,
                         },
                     },
                     'margin': {
@@ -1656,37 +1660,48 @@ export default class bitget extends Exchange {
         //         "amount": "19.44800000",
         //         "status": "success",
         //         "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
-        //         "fee": null,
+        //         "fee": "-3.06388160",
         //         "chain": "TRC20",
         //         "confirm": null,
+        //         "tag": null,
         //         "cTime": "1656407912259",
         //         "uTime": "1656407940148"
         //     }
         //
+        const currencyId = this.safeString(transaction, 'coin');
+        const code = this.safeCurrencyCode(currencyId);
+        let amountString = this.safeString(transaction, 'amount');
         const timestamp = this.safeInteger(transaction, 'cTime');
         const networkId = this.safeString(transaction, 'chain');
-        const currencyId = this.safeString(transaction, 'coin');
         const status = this.safeString(transaction, 'status');
+        const tag = this.safeString(transaction, 'tag');
+        const feeCostString = this.safeString(transaction, 'fee');
+        const feeCostAbsString = Precise.stringAbs(feeCostString);
+        let fee = undefined;
+        if (feeCostAbsString !== undefined) {
+            fee = { 'currency': code, 'cost': this.parseNumber(feeCostAbsString) };
+            amountString = Precise.stringSub(amountString, feeCostAbsString);
+        }
         return {
             'id': this.safeString(transaction, 'id'),
             'info': transaction,
             'txid': this.safeString(transaction, 'txId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': networkId,
+            'network': this.networkIdToCode(networkId),
             'addressFrom': undefined,
             'address': this.safeString(transaction, 'toAddress'),
             'addressTo': this.safeString(transaction, 'toAddress'),
-            'amount': this.safeNumber(transaction, 'amount'),
+            'amount': this.parseNumber(amountString),
             'type': this.safeString(transaction, 'type'),
-            'currency': this.safeCurrencyCode(currencyId),
+            'currency': code,
             'status': this.parseTransactionStatus(status),
-            'updated': this.safeNumber(transaction, 'uTime'),
+            'updated': this.safeInteger(transaction, 'uTime'),
             'tagFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
+            'tag': tag,
+            'tagTo': tag,
             'comment': undefined,
-            'fee': undefined,
+            'fee': fee,
         };
     }
     parseTransactionStatus(status) {

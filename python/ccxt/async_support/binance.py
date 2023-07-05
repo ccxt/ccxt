@@ -1347,11 +1347,15 @@ class binance(Exchange, ImplicitAPI):
                     'Order would immediately match and take.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Order would immediately match and take."}
                     'Account has insufficient balance for requested action.': InsufficientFunds,
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
+                    'This account may not place or cancel orders.': ExchangeNotAvailable,
                     "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
                     'This action is disabled on self account.': AccountSuspended,  # {"code":-2011,"msg":"This action is disabled on self account."}
+                    'Limit orders require GTC for self phase.': BadRequest,
+                    'This order type is not hasattr(self, possible) trading phase.': BadRequest,
                     'This type of sub-account exceeds the maximum number limit': BadRequest,  # {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
+                    'This symbol is restricted for self account.': PermissionDenied,
                     'This symbol is not permitted for self account.': PermissionDenied,  # {"code":-2010,"msg":"This symbol is not permitted for self account."}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
@@ -3583,89 +3587,6 @@ class binance(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
         response = None
         if market['spot']:
-            initialUppercaseType = type.upper()
-            uppercaseType = initialUppercaseType
-            postOnly = self.is_post_only(initialUppercaseType == 'MARKET', initialUppercaseType == 'LIMIT_MAKER', params)
-            if postOnly:
-                uppercaseType = 'LIMIT_MAKER'
-            request['type'] = uppercaseType
-            stopPrice = self.safe_number(params, 'stopPrice')
-            if stopPrice is not None:
-                if uppercaseType == 'MARKET':
-                    uppercaseType = 'STOP_LOSS'
-                elif uppercaseType == 'LIMIT':
-                    uppercaseType = 'STOP_LOSS_LIMIT'
-            validOrderTypes = self.safe_value(market['info'], 'orderTypes')
-            if not self.in_array(uppercaseType, validOrderTypes):
-                if initialUppercaseType != uppercaseType:
-                    raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
-                else:
-                    raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
-            if clientOrderId is None:
-                broker = self.safe_value(self.options, 'broker')
-                if broker is not None:
-                    brokerId = self.safe_string(broker, 'spot')
-                    if brokerId is not None:
-                        request['newClientOrderId'] = brokerId + self.uuid22()
-            else:
-                request['newClientOrderId'] = clientOrderId
-            request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-            timeInForceIsRequired = False
-            priceIsRequired = False
-            stopPriceIsRequired = False
-            quantityIsRequired = False
-            if uppercaseType == 'MARKET':
-                quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
-                if quoteOrderQty:
-                    quoteOrderQtyNew = self.safe_value_2(params, 'quoteOrderQty', 'cost')
-                    precision = market['precision']['price']
-                    if quoteOrderQtyNew is not None:
-                        request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
-                    elif price is not None:
-                        amountString = self.number_to_string(amount)
-                        priceString = self.number_to_string(price)
-                        quoteOrderQuantity = Precise.string_mul(amountString, priceString)
-                        request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQuantity, TRUNCATE, precision, self.precisionMode)
-                    else:
-                        quantityIsRequired = True
-                else:
-                    quantityIsRequired = True
-            elif uppercaseType == 'LIMIT':
-                priceIsRequired = True
-                timeInForceIsRequired = True
-                quantityIsRequired = True
-            elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
-                stopPriceIsRequired = True
-                quantityIsRequired = True
-            elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
-                quantityIsRequired = True
-                stopPriceIsRequired = True
-                priceIsRequired = True
-                timeInForceIsRequired = True
-            elif uppercaseType == 'LIMIT_MAKER':
-                priceIsRequired = True
-                quantityIsRequired = True
-            if quantityIsRequired:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
-            if priceIsRequired:
-                if price is None:
-                    raise InvalidOrder(self.id + ' editOrder() requires a price argument for a ' + type + ' order')
-                request['price'] = self.price_to_precision(symbol, price)
-            if timeInForceIsRequired:
-                request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-            if stopPriceIsRequired:
-                if stopPrice is None:
-                    raise InvalidOrder(self.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order')
-                else:
-                    request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            request['cancelReplaceMode'] = 'STOP_ON_FAILURE'  # If the cancel request fails, the new order placement will not be attempted.
-            cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
-            if cancelId is None:
-                request['cancelOrderId'] = id  # user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
-            # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
-            if self.safe_string(params, 'timeInForce') == 'PO':
-                params = self.omit(params, ['timeInForce'])
-            params = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
             response = await self.privatePostOrderCancelReplace(self.extend(request, params))
         else:
             request['orderId'] = id
@@ -3720,6 +3641,111 @@ class binance(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'newOrderResponse')
         return self.parse_order(data, market)
+
+    def edit_spot_order_request(self, id: str, symbol, type, side, amount, price=None, params={}):
+        """
+         * @ignore
+        helper function to build request for editSpotOrder
+        :param str id: order id to be edited
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
+        :returns dict: request to be sent to the exchange
+        """
+        market = self.market(symbol)
+        clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
+        request = {
+            'symbol': market['id'],
+            'side': side.upper(),
+        }
+        initialUppercaseType = type.upper()
+        uppercaseType = initialUppercaseType
+        postOnly = self.is_post_only(initialUppercaseType == 'MARKET', initialUppercaseType == 'LIMIT_MAKER', params)
+        if postOnly:
+            uppercaseType = 'LIMIT_MAKER'
+        request['type'] = uppercaseType
+        stopPrice = self.safe_number(params, 'stopPrice')
+        if stopPrice is not None:
+            if uppercaseType == 'MARKET':
+                uppercaseType = 'STOP_LOSS'
+            elif uppercaseType == 'LIMIT':
+                uppercaseType = 'STOP_LOSS_LIMIT'
+        validOrderTypes = self.safe_value(market['info'], 'orderTypes')
+        if not self.in_array(uppercaseType, validOrderTypes):
+            if initialUppercaseType != uppercaseType:
+                raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+            else:
+                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+        if clientOrderId is None:
+            broker = self.safe_value(self.options, 'broker')
+            if broker is not None:
+                brokerId = self.safe_string(broker, 'spot')
+                if brokerId is not None:
+                    request['newClientOrderId'] = brokerId + self.uuid22()
+        else:
+            request['newClientOrderId'] = clientOrderId
+        request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        timeInForceIsRequired = False
+        priceIsRequired = False
+        stopPriceIsRequired = False
+        quantityIsRequired = False
+        if uppercaseType == 'MARKET':
+            quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
+            if quoteOrderQty:
+                quoteOrderQtyNew = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+                precision = market['precision']['price']
+                if quoteOrderQtyNew is not None:
+                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
+                elif price is not None:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    quoteOrderQuantity = Precise.string_mul(amountString, priceString)
+                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQuantity, TRUNCATE, precision, self.precisionMode)
+                else:
+                    quantityIsRequired = True
+            else:
+                quantityIsRequired = True
+        elif uppercaseType == 'LIMIT':
+            priceIsRequired = True
+            timeInForceIsRequired = True
+            quantityIsRequired = True
+        elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
+            stopPriceIsRequired = True
+            quantityIsRequired = True
+        elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+            quantityIsRequired = True
+            stopPriceIsRequired = True
+            priceIsRequired = True
+            timeInForceIsRequired = True
+        elif uppercaseType == 'LIMIT_MAKER':
+            priceIsRequired = True
+            quantityIsRequired = True
+        if quantityIsRequired:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
+        if priceIsRequired:
+            if price is None:
+                raise InvalidOrder(self.id + ' editOrder() requires a price argument for a ' + type + ' order')
+            request['price'] = self.price_to_precision(symbol, price)
+        if timeInForceIsRequired:
+            request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+        if stopPriceIsRequired:
+            if stopPrice is None:
+                raise InvalidOrder(self.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order')
+            else:
+                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+        request['cancelReplaceMode'] = 'STOP_ON_FAILURE'  # If the cancel request fails, the new order placement will not be attempted.
+        cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
+        if cancelId is None:
+            request['cancelOrderId'] = id  # user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+        # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
+        if self.safe_string(params, 'timeInForce') == 'PO':
+            params = self.omit(params, ['timeInForce'])
+        params = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
+        return self.extend(request, params)
 
     async def edit_contract_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
@@ -4079,6 +4105,40 @@ class binance(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         marketType = self.safe_string(params, 'type', market['type'])
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        method = 'privatePostOrder'
+        if market['linear']:
+            method = 'fapiPrivatePostOrder'
+        elif market['inverse']:
+            method = 'dapiPrivatePostOrder'
+        elif marketType == 'margin' or marginMode is not None:
+            method = 'sapiPostMarginOrder'
+        if market['option']:
+            method = 'eapiPrivatePostOrder'
+        # support for testing orders
+        if market['spot'] or marketType == 'margin':
+            test = self.safe_value(query, 'test', False)
+            if test:
+                method += 'Test'
+        response = await getattr(self, method)(request)
+        return self.parse_order(response, market)
+
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+         * @ignore
+        helper function to build request
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
+        :returns dict: request to be sent to the exchange
+        """
+        market = self.market(symbol)
+        marketType = self.safe_string(params, 'type', market['type'])
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         initialUppercaseType = type.upper()
         isMarketOrder = initialUppercaseType == 'MARKET'
@@ -4096,25 +4156,15 @@ class binance(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'side': side.upper(),
         }
-        method = 'privatePostOrder'
-        if market['linear']:
-            method = 'fapiPrivatePostOrder'
-        elif market['inverse']:
-            method = 'dapiPrivatePostOrder'
-        elif marketType == 'margin' or marginMode is not None:
-            method = 'sapiPostMarginOrder'
+        if market['spot'] or marketType == 'margin':
+            # only supported for spot/margin api(all margin markets are spot markets)
+            if postOnly:
+                type = 'LIMIT_MAKER'
+        if marketType == 'margin' or marginMode is not None:
             reduceOnly = self.safe_value(params, 'reduceOnly')
             if reduceOnly:
                 request['sideEffectType'] = 'AUTO_REPAY'
                 params = self.omit(params, 'reduceOnly')
-        if market['spot'] or marketType == 'margin':
-            # support for testing orders
-            test = self.safe_value(query, 'test', False)
-            if test:
-                method += 'Test'
-            # only supported for spot/margin api(all margin markets are spot markets)
-            if postOnly:
-                type = 'LIMIT_MAKER'
         uppercaseType = type.upper()
         stopPrice = None
         if isStopLoss:
@@ -4149,7 +4199,6 @@ class binance(Exchange, ImplicitAPI):
         if market['option']:
             if type == 'market':
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
-            method = 'eapiPrivatePostOrder'
         else:
             validOrderTypes = self.safe_value(market['info'], 'orderTypes')
             if not self.in_array(uppercaseType, validOrderTypes):
@@ -4257,8 +4306,7 @@ class binance(Exchange, ImplicitAPI):
         if self.safe_string(params, 'timeInForce') == 'PO':
             params = self.omit(params, ['timeInForce'])
         requestParams = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
-        response = await getattr(self, method)(self.extend(request, requestParams))
-        return self.parse_order(response, market)
+        return self.extend(request, requestParams)
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

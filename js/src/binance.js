@@ -1324,11 +1324,15 @@ export default class binance extends Exchange {
                     'Order would immediately match and take.': OrderImmediatelyFillable,
                     'Account has insufficient balance for requested action.': InsufficientFunds,
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
+                    'This account may not place or cancel orders.': ExchangeNotAvailable,
                     "You don't have permission.": PermissionDenied,
                     'Market is closed.': ExchangeNotAvailable,
                     'Too many requests. Please try again later.': DDoSProtection,
                     'This action is disabled on this account.': AccountSuspended,
+                    'Limit orders require GTC for this phase.': BadRequest,
+                    'This order type is not possible in this trading phase.': BadRequest,
                     'This type of sub-account exceeds the maximum number limit': BadRequest,
+                    'This symbol is restricted for this account.': PermissionDenied,
                     'This symbol is not permitted for this account.': PermissionDenied,
                     '-1000': ExchangeNotAvailable,
                     '-1001': ExchangeNotAvailable,
@@ -3733,119 +3737,6 @@ export default class binance extends Exchange {
         const clientOrderId = this.safeStringN(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId']);
         let response = undefined;
         if (market['spot']) {
-            const initialUppercaseType = type.toUpperCase();
-            let uppercaseType = initialUppercaseType;
-            const postOnly = this.isPostOnly(initialUppercaseType === 'MARKET', initialUppercaseType === 'LIMIT_MAKER', params);
-            if (postOnly) {
-                uppercaseType = 'LIMIT_MAKER';
-            }
-            request['type'] = uppercaseType;
-            const stopPrice = this.safeNumber(params, 'stopPrice');
-            if (stopPrice !== undefined) {
-                if (uppercaseType === 'MARKET') {
-                    uppercaseType = 'STOP_LOSS';
-                }
-                else if (uppercaseType === 'LIMIT') {
-                    uppercaseType = 'STOP_LOSS_LIMIT';
-                }
-            }
-            const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
-            if (!this.inArray(uppercaseType, validOrderTypes)) {
-                if (initialUppercaseType !== uppercaseType) {
-                    throw new InvalidOrder(this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
-                }
-                else {
-                    throw new InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
-                }
-            }
-            if (clientOrderId === undefined) {
-                const broker = this.safeValue(this.options, 'broker');
-                if (broker !== undefined) {
-                    const brokerId = this.safeString(broker, 'spot');
-                    if (brokerId !== undefined) {
-                        request['newClientOrderId'] = brokerId + this.uuid22();
-                    }
-                }
-            }
-            else {
-                request['newClientOrderId'] = clientOrderId;
-            }
-            request['newOrderRespType'] = this.safeValue(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-            let timeInForceIsRequired = false;
-            let priceIsRequired = false;
-            let stopPriceIsRequired = false;
-            let quantityIsRequired = false;
-            if (uppercaseType === 'MARKET') {
-                const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
-                if (quoteOrderQty) {
-                    const quoteOrderQtyNew = this.safeValue2(params, 'quoteOrderQty', 'cost');
-                    const precision = market['precision']['price'];
-                    if (quoteOrderQtyNew !== undefined) {
-                        request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
-                    }
-                    else if (price !== undefined) {
-                        const amountString = this.numberToString(amount);
-                        const priceString = this.numberToString(price);
-                        const quoteOrderQuantity = Precise.stringMul(amountString, priceString);
-                        request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
-                    }
-                    else {
-                        quantityIsRequired = true;
-                    }
-                }
-                else {
-                    quantityIsRequired = true;
-                }
-            }
-            else if (uppercaseType === 'LIMIT') {
-                priceIsRequired = true;
-                timeInForceIsRequired = true;
-                quantityIsRequired = true;
-            }
-            else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-                stopPriceIsRequired = true;
-                quantityIsRequired = true;
-            }
-            else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                quantityIsRequired = true;
-                stopPriceIsRequired = true;
-                priceIsRequired = true;
-                timeInForceIsRequired = true;
-            }
-            else if (uppercaseType === 'LIMIT_MAKER') {
-                priceIsRequired = true;
-                quantityIsRequired = true;
-            }
-            if (quantityIsRequired) {
-                request['quantity'] = this.amountToPrecision(symbol, amount);
-            }
-            if (priceIsRequired) {
-                if (price === undefined) {
-                    throw new InvalidOrder(this.id + ' editOrder() requires a price argument for a ' + type + ' order');
-                }
-                request['price'] = this.priceToPrecision(symbol, price);
-            }
-            if (timeInForceIsRequired) {
-                request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-            }
-            if (stopPriceIsRequired) {
-                if (stopPrice === undefined) {
-                    throw new InvalidOrder(this.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order');
-                }
-                else {
-                    request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
-                }
-            }
-            request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel request fails, the new order placement will not be attempted.
-            const cancelId = this.safeString2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
-            if (cancelId === undefined) {
-                request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
-            }
-            // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-            if (this.safeString(params, 'timeInForce') === 'PO') {
-                params = this.omit(params, ['timeInForce']);
-            }
-            params = this.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly']);
             response = await this.privatePostOrderCancelReplace(this.extend(request, params));
         }
         else {
@@ -3907,10 +3798,147 @@ export default class binance extends Exchange {
         const data = this.safeValue(response, 'newOrderResponse');
         return this.parseOrder(data, market);
     }
+    editSpotOrderRequest(id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name binance#editSpotOrderRequest
+         * @description helper function to build request for editSpotOrder
+         * @param {string} id order id to be edited
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
+         * @returns {object} request to be sent to the exchange
+         */
+        const market = this.market(symbol);
+        const clientOrderId = this.safeStringN(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId']);
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase(),
+        };
+        const initialUppercaseType = type.toUpperCase();
+        let uppercaseType = initialUppercaseType;
+        const postOnly = this.isPostOnly(initialUppercaseType === 'MARKET', initialUppercaseType === 'LIMIT_MAKER', params);
+        if (postOnly) {
+            uppercaseType = 'LIMIT_MAKER';
+        }
+        request['type'] = uppercaseType;
+        const stopPrice = this.safeNumber(params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            if (uppercaseType === 'MARKET') {
+                uppercaseType = 'STOP_LOSS';
+            }
+            else if (uppercaseType === 'LIMIT') {
+                uppercaseType = 'STOP_LOSS_LIMIT';
+            }
+        }
+        const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+        if (!this.inArray(uppercaseType, validOrderTypes)) {
+            if (initialUppercaseType !== uppercaseType) {
+                throw new InvalidOrder(this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+            }
+            else {
+                throw new InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+            }
+        }
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue(this.options, 'broker');
+            if (broker !== undefined) {
+                const brokerId = this.safeString(broker, 'spot');
+                if (brokerId !== undefined) {
+                    request['newClientOrderId'] = brokerId + this.uuid22();
+                }
+            }
+        }
+        else {
+            request['newClientOrderId'] = clientOrderId;
+        }
+        request['newOrderRespType'] = this.safeValue(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        let timeInForceIsRequired = false;
+        let priceIsRequired = false;
+        let stopPriceIsRequired = false;
+        let quantityIsRequired = false;
+        if (uppercaseType === 'MARKET') {
+            const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
+            if (quoteOrderQty) {
+                const quoteOrderQtyNew = this.safeValue2(params, 'quoteOrderQty', 'cost');
+                const precision = market['precision']['price'];
+                if (quoteOrderQtyNew !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                }
+                else if (price !== undefined) {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const quoteOrderQuantity = Precise.stringMul(amountString, priceString);
+                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+                }
+                else {
+                    quantityIsRequired = true;
+                }
+            }
+            else {
+                quantityIsRequired = true;
+            }
+        }
+        else if (uppercaseType === 'LIMIT') {
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+            quantityIsRequired = true;
+        }
+        else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+            stopPriceIsRequired = true;
+            quantityIsRequired = true;
+        }
+        else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            quantityIsRequired = true;
+            stopPriceIsRequired = true;
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        }
+        else if (uppercaseType === 'LIMIT_MAKER') {
+            priceIsRequired = true;
+            quantityIsRequired = true;
+        }
+        if (quantityIsRequired) {
+            request['quantity'] = this.amountToPrecision(symbol, amount);
+        }
+        if (priceIsRequired) {
+            if (price === undefined) {
+                throw new InvalidOrder(this.id + ' editOrder() requires a price argument for a ' + type + ' order');
+            }
+            request['price'] = this.priceToPrecision(symbol, price);
+        }
+        if (timeInForceIsRequired) {
+            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (stopPriceIsRequired) {
+            if (stopPrice === undefined) {
+                throw new InvalidOrder(this.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order');
+            }
+            else {
+                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            }
+        }
+        request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel request fails, the new order placement will not be attempted.
+        const cancelId = this.safeString2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
+        if (cancelId === undefined) {
+            request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+        }
+        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+        if (this.safeString(params, 'timeInForce') === 'PO') {
+            params = this.omit(params, ['timeInForce']);
+        }
+        params = this.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly']);
+        return this.extend(request, params);
+    }
     async editContractOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name binance#editOrder
+         * @name binance#editContractOrder
          * @description edit a trade order
          * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
@@ -4285,6 +4313,48 @@ export default class binance extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketType = this.safeString(params, 'type', market['type']);
+        const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
+        let method = 'privatePostOrder';
+        if (market['linear']) {
+            method = 'fapiPrivatePostOrder';
+        }
+        else if (market['inverse']) {
+            method = 'dapiPrivatePostOrder';
+        }
+        else if (marketType === 'margin' || marginMode !== undefined) {
+            method = 'sapiPostMarginOrder';
+        }
+        if (market['option']) {
+            method = 'eapiPrivatePostOrder';
+        }
+        // support for testing orders
+        if (market['spot'] || marketType === 'margin') {
+            const test = this.safeValue(query, 'test', false);
+            if (test) {
+                method += 'Test';
+            }
+        }
+        const response = await this[method](request);
+        return this.parseOrder(response, market);
+    }
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name binance#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
+         * @returns {object} request to be sent to the exchange
+         */
+        const market = this.market(symbol);
+        const marketType = this.safeString(params, 'type', market['type']);
         const clientOrderId = this.safeString2(params, 'newClientOrderId', 'clientOrderId');
         const initialUppercaseType = type.toUpperCase();
         const isMarketOrder = initialUppercaseType === 'MARKET';
@@ -4302,30 +4372,17 @@ export default class binance extends Exchange {
             'symbol': market['id'],
             'side': side.toUpperCase(),
         };
-        let method = 'privatePostOrder';
-        if (market['linear']) {
-            method = 'fapiPrivatePostOrder';
+        if (market['spot'] || marketType === 'margin') {
+            // only supported for spot/margin api (all margin markets are spot markets)
+            if (postOnly) {
+                type = 'LIMIT_MAKER';
+            }
         }
-        else if (market['inverse']) {
-            method = 'dapiPrivatePostOrder';
-        }
-        else if (marketType === 'margin' || marginMode !== undefined) {
-            method = 'sapiPostMarginOrder';
+        if (marketType === 'margin' || marginMode !== undefined) {
             const reduceOnly = this.safeValue(params, 'reduceOnly');
             if (reduceOnly) {
                 request['sideEffectType'] = 'AUTO_REPAY';
                 params = this.omit(params, 'reduceOnly');
-            }
-        }
-        if (market['spot'] || marketType === 'margin') {
-            // support for testing orders
-            const test = this.safeValue(query, 'test', false);
-            if (test) {
-                method += 'Test';
-            }
-            // only supported for spot/margin api (all margin markets are spot markets)
-            if (postOnly) {
-                type = 'LIMIT_MAKER';
             }
         }
         let uppercaseType = type.toUpperCase();
@@ -4376,7 +4433,6 @@ export default class binance extends Exchange {
             if (type === 'market') {
                 throw new InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
-            method = 'eapiPrivatePostOrder';
         }
         else {
             const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
@@ -4519,8 +4575,7 @@ export default class binance extends Exchange {
             params = this.omit(params, ['timeInForce']);
         }
         const requestParams = this.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly']);
-        const response = await this[method](this.extend(request, requestParams));
-        return this.parseOrder(response, market);
+        return this.extend(request, requestParams);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

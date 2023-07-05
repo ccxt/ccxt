@@ -262,11 +262,9 @@ class bitvavo extends Exchange {
             ),
             'options' => array(
                 'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
-                'fetchCurrencies' => array(
-                    'expires' => 1000, // 1 second
-                ),
                 'networks' => array(
                     'ERC20' => 'ETH',
+                    'ETH' => 'ETH',
                     'TRC20' => 'TRX',
                 ),
                 'networksById' => array(
@@ -324,7 +322,7 @@ class bitvavo extends Exchange {
              * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetMarkets ($params));
-            $currencies = Async\await($this->fetch_currencies_from_cache($params));
+            $currencies = $this->currencies;
             $currenciesById = $this->index_by($currencies, 'symbol');
             //
             //     array(
@@ -403,25 +401,6 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies_from_cache($params = array ()) {
-        return Async\async(function () use ($params) {
-            // this method is $now redundant
-            // currencies are $now fetched before markets
-            $options = $this->safe_value($this->options, 'fetchCurrencies', array());
-            $timestamp = $this->safe_integer($options, 'timestamp');
-            $expires = $this->safe_integer($options, 'expires', 1000);
-            $now = $this->milliseconds();
-            if (($timestamp === null) || (($now - $timestamp) > $expires)) {
-                $response = Async\await($this->publicGetAssets ($params));
-                $this->options['fetchCurrencies'] = array_merge($options, array(
-                    'response' => $response,
-                    'timestamp' => $now,
-                ));
-            }
-            return $this->safe_value($this->options['fetchCurrencies'], 'response');
-        }) ();
-    }
-
     public function fetch_currencies($params = array ()) {
         return Async\async(function () use ($params) {
             /**
@@ -429,21 +408,37 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->fetch_currencies_from_cache($params));
+            $response = Async\await($this->publicGetAssets ($params));
             //
             //     array(
-            //         array(
-            //             "symbol":"ADA",
-            //             "name":"Cardano",
-            //             "decimals":6,
-            //             "depositFee":"0",
-            //             "depositConfirmations":15,
-            //             "depositStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
-            //             "withdrawalFee":"0.2",
-            //             "withdrawalMinAmount":"0.2",
-            //             "withdrawalStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
-            //             "networks" => array( "Mainnet" ), // "ETH", "NEO", "ONT", "SEPA", "VET"
-            //             "message":"",
+            //         {
+            //             "symbol" => "USDT",
+            //             "displayTicker" => "USDT",
+            //             "name" => "Tether",
+            //             "slug" => "tether",
+            //             "popularity" => -1,
+            //             "decimals" => 6,
+            //             "depositFee" => "0",
+            //             "depositConfirmations" => 64,
+            //             "depositStatus" => "OK",
+            //             "withdrawalFee" => "3.2",
+            //             "withdrawalMinAmount" => "3.2",
+            //             "withdrawalStatus" => "OK",
+            //             "networks" => array(
+            //               "ETH"
+            //             ),
+            //             "light" => {
+            //               "color" => "#009393",
+            //               "icon" => array( "hash" => "4ad7c699", "svg" => "https://...", "webp16" => "https://...", "webp32" => "https://...", "webp64" => "https://...", "webp128" => "https://...", "webp256" => "https://...", "png16" => "https://...", "png32" => "https://...", "png64" => "https://...", "png128" => "https://...", "png256" => "https://..."
+            //               }
+            //             ),
+            //             "dark" => array(
+            //               "color" => "#009393",
+            //               "icon" => array( "hash" => "4ad7c699", "svg" => "https://...", "webp16" => "https://...", "webp32" => "https://...", "webp64" => "https://...", "webp128" => "https://...", "webp256" => "https://...", "png16" => "https://...", "png32" => "https://...", "png64" => "https://...", "png128" => "https://...", "png256" => "https://..."
+            //               }
+            //             ),
+            //             "visibility" => "PUBLIC",
+            //             "message" => ""
             //         ),
             //     )
             //
@@ -452,29 +447,59 @@ class bitvavo extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'symbol');
                 $code = $this->safe_currency_code($id);
-                $depositStatus = $this->safe_value($currency, 'depositStatus');
-                $deposit = ($depositStatus === 'OK');
-                $withdrawalStatus = $this->safe_value($currency, 'withdrawalStatus');
-                $withdrawal = ($withdrawalStatus === 'OK');
+                $networks = array();
+                $networksArray = $this->safe_value($currency, 'networks', array());
+                $networksLength = count($networksArray);
+                $isOneNetwork = ($networksLength === 1);
+                $deposit = ($this->safe_value($currency, 'depositStatus') === 'OK');
+                $withdrawal = ($this->safe_value($currency, 'withdrawalStatus') === 'OK');
                 $active = $deposit && $withdrawal;
-                $name = $this->safe_string($currency, 'name');
+                $withdrawFee = $this->safe_number($currency, 'withdrawalFee');
+                $precision = $this->safe_number($currency, 'decimals', 8);
+                $minWithdraw = $this->safe_number($currency, 'withdrawalMinAmount');
+                // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside $networks
+                if ($isOneNetwork) {
+                    $networkId = $networksArray[0];
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'info' => $currency,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => $active,
+                        'deposit' => $deposit,
+                        'withdraw' => $withdrawal,
+                        'fee' => $withdrawFee,
+                        'precision' => $precision,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $minWithdraw,
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
                 $result[$code] = array(
-                    'id' => $id,
                     'info' => $currency,
+                    'id' => $id,
                     'code' => $code,
-                    'name' => $name,
+                    'name' => $this->safe_string($currency, 'name'),
                     'active' => $active,
                     'deposit' => $deposit,
                     'withdraw' => $withdrawal,
-                    'fee' => $this->safe_number($currency, 'withdrawalFee'),
-                    'precision' => $this->safe_integer($currency, 'decimals', 8),
+                    'networks' => $networks,
+                    'fee' => $withdrawFee,
+                    'precision' => $precision,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                         'withdraw' => array(
-                            'min' => $this->safe_number($currency, 'withdrawalMinAmount'),
+                            'min' => $minWithdraw,
                             'max' => null,
                         ),
                     ),

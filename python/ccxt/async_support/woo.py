@@ -168,7 +168,6 @@ class woo(Exchange, ImplicitAPI):
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
-                            'client/info': 60,
                             'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
