@@ -4562,8 +4562,6 @@ export default class huobi extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const options = this.safeValue (this.options, market['type'], {});
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const accountId = await this.fetchAccountIdByType (market['type'], marginMode, symbol);
@@ -4581,10 +4579,12 @@ export default class huobi extends Exchange {
         };
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
+        const options = this.safeValue (this.options, market['type'], {});
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
         if (stopPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for a stop order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
             }
         } else {
             const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
