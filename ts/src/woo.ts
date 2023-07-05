@@ -83,7 +83,7 @@ export default class woo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'emulated'
+                'fetchTransactions': 'emulated',
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,

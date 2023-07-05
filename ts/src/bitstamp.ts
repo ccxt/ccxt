@@ -78,7 +78,7 @@ export default class bitstamp extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
-                'emulated'
+                'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,

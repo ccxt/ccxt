@@ -67,7 +67,7 @@ export default class btcmarkets extends Exchange {
                 'fetchTicker': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'emulated'
+                'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,

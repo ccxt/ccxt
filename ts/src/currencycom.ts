@@ -97,7 +97,7 @@ export default class currencycom extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
-                'emulated'
+                'fetchTransactions': 'emulated',
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,

@@ -64,7 +64,7 @@ export default class coinmate extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'emulated'
+                'fetchTransactions': 'emulated',
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,

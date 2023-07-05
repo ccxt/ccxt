@@ -76,7 +76,7 @@ export default class hitbtc extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'emulated'
+                'fetchTransactions': 'emulated',
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,

@@ -54,7 +54,7 @@ export default class latoken extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'emulated'
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'transfer': true,

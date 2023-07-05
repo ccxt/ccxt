@@ -62,7 +62,7 @@ export default class bitfinex2 extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
-                'emulated'
+                'fetchTransactions': 'emulated',
                 'withdraw': true,
             },
             'timeframes': {
