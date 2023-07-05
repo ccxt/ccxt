@@ -4199,18 +4199,8 @@ export default class mexc extends Exchange {
             // 'endTime': this.milliseconds (),
             // 'limit': limit, // default 1000, maximum 1000
         };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
-            // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
-            // due to that I'm applying the network parameter directly so the user can control it on its side
-            const rawNetwork = this.safeString (params, 'network');
-            if (rawNetwork !== undefined) {
-                params = this.omit (params, 'network');
-                request['coin'] += '-' + rawNetwork;
-            }
-        }
+        const currency = this.currency (code);
+        request['coin'] = currency['id'];
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -4346,11 +4336,6 @@ export default class mexc extends Exchange {
         if (currencyWithNetwork !== undefined) {
             currencyId = currencyWithNetwork.split ('-')[0];
         }
-        let network = undefined;
-        const rawNetwork = this.safeString (transaction, 'network');
-        if (rawNetwork !== undefined) {
-            network = this.safeNetwork (rawNetwork);
-        }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amountString = this.safeString (transaction, 'amount');
@@ -4374,7 +4359,7 @@ export default class mexc extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
+            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -5040,8 +5025,7 @@ export default class mexc extends Exchange {
         const result = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
-            const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.safeString (this.options['networks'], networkId, networkId);
+            const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'network'));
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
             result[networkCode] = fee;
         }
