@@ -1689,18 +1689,25 @@ export default class kucoin extends Exchange {
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
-        const address = this.safeString (depositAddress, 'address');
-        const code = currency['id'];
-        if (code !== 'NIM') {
-            // contains spaces
-            this.checkAddress (address);
+        let address = this.safeString (depositAddress, 'address');
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        if (address !== undefined) {
+            address = address.replace ('bitcoincash:', '');
+        }
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['id'];
+            if (code !== 'NIM') {
+                // contains spaces
+                this.checkAddress (address);
+            }
         }
         return {
             'info': depositAddress,
             'currency': code,
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
-            'network': this.safeString (depositAddress, 'chain'),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain')),
         };
     }
 
@@ -1738,35 +1745,13 @@ export default class kucoin extends Exchange {
         //     }
         //
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const data = this.safeValue (response, 'data', []);
-        return this.parseDepositAddressesByNetwork (data, currency);
+        const chains = this.safeValue (response, 'data', []);
+        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
+            'currency': currency['id'],
+        });
+        return this.indexBy (parsed, 'network');
     }
 
-    parseDepositAddressesByNetwork (depositAddresses, currency = undefined) {
-        //
-        //     [
-        //         {
-        //             "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
-        //             "memo": "",
-        //             "chain": "BTC-Segwit",
-        //             "contractAddress": ""
-        //         },
-        //         ...
-        //     ]
-        //
-        const result = [];
-        for (let i = 0; i < depositAddresses.length; i++) {
-            const entry = depositAddresses[i];
-            result.push ({
-                'info': entry,
-                'currency': this.safeCurrencyCode (currency['id'], currency),
-                'network': this.safeString (entry, 'chain'),
-                'address': this.safeString (entry, 'address'),
-                'tag': this.safeString (entry, 'memo'),
-            });
-        }
-        return result;
-    }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
@@ -2871,20 +2856,16 @@ export default class kucoin extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            network = network.toLowerCase ();
-            request['chain'] = network;
-            params = this.omit (params, 'network');
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode);
         }
-        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        const includeFee = this.safeValue (withdrawOptions, 'includeFee', false);
+        let includeFee = undefined;
+        [ includeFee, params ] = this.handleOptionAndParams (params, 'withdraw', 'includeFee', false);
         if (includeFee) {
             request['feeDeductType'] = 'INTERNAL';
         }
-        const response = await this.privatePostWithdrawals (this.extend (request, params));
+        const response = await this.privatePostWithdrawals (this.extend (request, paramsOmited));
         //
         // https://github.com/ccxt/ccxt/issues/5558
         //
