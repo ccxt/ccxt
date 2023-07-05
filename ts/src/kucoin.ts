@@ -1675,7 +1675,6 @@ export default class kucoin extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
