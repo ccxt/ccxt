@@ -264,11 +264,9 @@ export default class bitvavo extends Exchange {
             },
             'options': {
                 'BITVAVO-ACCESS-WINDOW': 10000,
-                'fetchCurrencies': {
-                    'expires': 1000, // 1 second
-                },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
                 },
                 'networksById': {
@@ -322,7 +320,7 @@ export default class bitvavo extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets(params);
-        const currencies = await this.fetchCurrenciesFromCache(params);
+        const currencies = this.currencies;
         const currenciesById = this.indexBy(currencies, 'symbol');
         //
         //     [
@@ -399,22 +397,6 @@ export default class bitvavo extends Exchange {
         }
         return result;
     }
-    async fetchCurrenciesFromCache(params = {}) {
-        // this method is now redundant
-        // currencies are now fetched before markets
-        const options = this.safeValue(this.options, 'fetchCurrencies', {});
-        const timestamp = this.safeInteger(options, 'timestamp');
-        const expires = this.safeInteger(options, 'expires', 1000);
-        const now = this.milliseconds();
-        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response = await this.publicGetAssets(params);
-            this.options['fetchCurrencies'] = this.extend(options, {
-                'response': response,
-                'timestamp': now,
-            });
-        }
-        return this.safeValue(this.options['fetchCurrencies'], 'response');
-    }
     async fetchCurrencies(params = {}) {
         /**
          * @method
@@ -423,21 +405,37 @@ export default class bitvavo extends Exchange {
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.fetchCurrenciesFromCache(params);
+        const response = await this.publicGetAssets(params);
         //
         //     [
         //         {
-        //             "symbol":"ADA",
-        //             "name":"Cardano",
-        //             "decimals":6,
-        //             "depositFee":"0",
-        //             "depositConfirmations":15,
-        //             "depositStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
-        //             "withdrawalFee":"0.2",
-        //             "withdrawalMinAmount":"0.2",
-        //             "withdrawalStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
-        //             "networks": [ "Mainnet" ], // "ETH", "NEO", "ONT", "SEPA", "VET"
-        //             "message":"",
+        //             "symbol": "USDT",
+        //             "displayTicker": "USDT",
+        //             "name": "Tether",
+        //             "slug": "tether",
+        //             "popularity": -1,
+        //             "decimals": 6,
+        //             "depositFee": "0",
+        //             "depositConfirmations": 64,
+        //             "depositStatus": "OK",
+        //             "withdrawalFee": "3.2",
+        //             "withdrawalMinAmount": "3.2",
+        //             "withdrawalStatus": "OK",
+        //             "networks": [
+        //               "ETH"
+        //             ],
+        //             "light": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        //               }
+        //             },
+        //             "dark": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        //               }
+        //             },
+        //             "visibility": "PUBLIC",
+        //             "message": ""
         //         },
         //     ]
         //
@@ -446,29 +444,59 @@ export default class bitvavo extends Exchange {
             const currency = response[i];
             const id = this.safeString(currency, 'symbol');
             const code = this.safeCurrencyCode(id);
-            const depositStatus = this.safeValue(currency, 'depositStatus');
-            const deposit = (depositStatus === 'OK');
-            const withdrawalStatus = this.safeValue(currency, 'withdrawalStatus');
-            const withdrawal = (withdrawalStatus === 'OK');
+            const networks = {};
+            const networksArray = this.safeValue(currency, 'networks', []);
+            const networksLength = networksArray.length;
+            const isOneNetwork = (networksLength === 1);
+            const deposit = (this.safeValue(currency, 'depositStatus') === 'OK');
+            const withdrawal = (this.safeValue(currency, 'withdrawalStatus') === 'OK');
             const active = deposit && withdrawal;
-            const name = this.safeString(currency, 'name');
+            const withdrawFee = this.safeNumber(currency, 'withdrawalFee');
+            const precision = this.safeNumber(currency, 'decimals', 8);
+            const minWithdraw = this.safeNumber(currency, 'withdrawalMinAmount');
+            // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
+            if (isOneNetwork) {
+                const networkId = networksArray[0];
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdrawal,
+                    'fee': withdrawFee,
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': minWithdraw,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
             result[code] = {
-                'id': id,
                 'info': currency,
+                'id': id,
                 'code': code,
-                'name': name,
+                'name': this.safeString(currency, 'name'),
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdrawal,
-                'fee': this.safeNumber(currency, 'withdrawalFee'),
-                'precision': this.safeInteger(currency, 'decimals', 8),
+                'networks': networks,
+                'fee': withdrawFee,
+                'precision': precision,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'withdraw': {
-                        'min': this.safeNumber(currency, 'withdrawalMinAmount'),
+                        'min': minWithdraw,
                         'max': undefined,
                     },
                 },
