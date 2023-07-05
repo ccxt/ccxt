@@ -116,7 +116,7 @@ class bitget(Exchange, ImplicitAPI):
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'transfer': True,
-                'withdraw': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1639,37 +1639,47 @@ class bitget(Exchange, ImplicitAPI):
         #         "amount": "19.44800000",
         #         "status": "success",
         #         "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
-        #         "fee": null,
+        #         "fee": "-3.06388160",
         #         "chain": "TRC20",
         #         "confirm": null,
+        #         "tag": null,
         #         "cTime": "1656407912259",
         #         "uTime": "1656407940148"
         #     }
         #
+        currencyId = self.safe_string(transaction, 'coin')
+        code = self.safe_currency_code(currencyId)
+        amountString = self.safe_string(transaction, 'amount')
         timestamp = self.safe_integer(transaction, 'cTime')
         networkId = self.safe_string(transaction, 'chain')
-        currencyId = self.safe_string(transaction, 'coin')
         status = self.safe_string(transaction, 'status')
+        tag = self.safe_string(transaction, 'tag')
+        feeCostString = self.safe_string(transaction, 'fee')
+        feeCostAbsString = Precise.string_abs(feeCostString)
+        fee = None
+        if feeCostAbsString is not None:
+            fee = {'currency': code, 'cost': self.parse_number(feeCostAbsString)}
+            amountString = Precise.string_sub(amountString, feeCostAbsString)
         return {
             'id': self.safe_string(transaction, 'id'),
             'info': transaction,
             'txid': self.safe_string(transaction, 'txId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': networkId,
+            'network': self.network_id_to_code(networkId),
             'addressFrom': None,
             'address': self.safe_string(transaction, 'toAddress'),
             'addressTo': self.safe_string(transaction, 'toAddress'),
-            'amount': self.safe_number(transaction, 'amount'),
+            'amount': self.parse_number(amountString),
             'type': self.safe_string(transaction, 'type'),
-            'currency': self.safe_currency_code(currencyId),
+            'currency': code,
             'status': self.parse_transaction_status(status),
-            'updated': self.safe_number(transaction, 'uTime'),
+            'updated': self.safe_integer(transaction, 'uTime'),
             'tagFrom': None,
-            'tag': None,
-            'tagTo': None,
+            'tag': tag,
+            'tagTo': tag,
             'comment': None,
-            'fee': None,
+            'fee': fee,
         }
 
     def parse_transaction_status(self, status):
