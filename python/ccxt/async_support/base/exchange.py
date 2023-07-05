@@ -650,6 +650,9 @@ class Exchange(BaseExchange):
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchTrades() is not supported yet')
 
+    async def fetch_trades_ws(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchTradesWs() is not supported yet')
+
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
@@ -2027,6 +2030,9 @@ class Exchange(BaseExchange):
     async def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetchBalance() is not supported yet')
 
+    async def fetch_balance_ws(self, params={}):
+        raise NotSupported(self.id + ' fetchBalanceWs() is not supported yet')
+
     def parse_balance(self, response):
         raise NotSupported(self.id + ' parseBalance() is not supported yet')
 
@@ -2223,6 +2229,9 @@ class Exchange(BaseExchange):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
+    async def fetch_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderWs() is not supported yet')
+
     async def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
         # TODO: TypeScript: change method signature by replacing
         # Promise<string> with Promise<Order['status']>.
@@ -2250,8 +2259,8 @@ class Exchange(BaseExchange):
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
-    async def cancel_all_order_ws(self, symbol: Optional[str] = None, params={}):
-        raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
+    async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')
 
     async def cancel_unified_order(self, order, params={}):
         return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
@@ -2268,11 +2277,17 @@ class Exchange(BaseExchange):
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
+    async def fetch_open_orders_ws(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOpenOrdersWs() is not supported yet')
+
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
+
+    async def fetch_my_trades_ws(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchMyTradesWs() is not supported yet')
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
