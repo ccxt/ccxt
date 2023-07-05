@@ -28,8 +28,7 @@ const findByExtensionSync = (dir, ext) => {
 
 // Get all files to read js docs
 const inputFiles = findByExtensionSync('js/src', 'js')
-// const proInputFiles = findByExtensionSync('js/src/pro', 'js');
-// const files = [ ...inputFiles, ...proInputFiles ]
+const proInputFiles = findByExtensionSync('js/src/pro', 'js');
 const partials = './wiki/partials/'
 const partial = fs.readdirSync (partials).map (file => partials + file)
 const outputFile = './wiki/spec.md'
@@ -38,6 +37,19 @@ const helper = './wiki/helpers.cjs'
 console.log ('📰 loading js docs...')
 let templateData = await Promise.all(inputFiles.map (file => jsdoc2md.getTemplateData({ files: file })));
 templateData = templateData.filter (x => x.length > 0)
+// TODO: handle alias exchanges
+
+let proTemplateData = await Promise.all(proInputFiles.map (file => jsdoc2md.getTemplateData({ files: file })));
+proTemplateData = proTemplateData.filter (x => x.length > 0)
+
+// assign pro classes to REST template data
+proTemplateData.forEach((proData) => {
+  const classArray = templateData.find ((template) => template[0].id === proData[0]?.memberof);
+  if (classArray) {
+    const classArray = templateData.find ((template) => template[0].id === proData[0]?.memberof);
+    classArray.push(...proData);
+  }
+})
 
 console.log ('📰 rendering docs for each exchange...')
 const template = fs.readFileSync ('./wiki/spec.hbs', 'utf8')
