@@ -1114,11 +1114,11 @@ export default class bybit extends Exchange {
                 },
                 'networks': {
                     'BTC': 'BTC',
-                    'BEP20': 'BSC',
                     'ETH': 'ETH',
                     'ERC20': 'ETH',
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BEP20': 'BSC',
                     'ACALA': 'ACA',
                     'CARDANO': 'ADA',
                     'ALGORAND': 'ALGO',
