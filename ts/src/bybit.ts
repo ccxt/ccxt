@@ -1192,6 +1192,8 @@ export default class bybit extends Exchange {
                     'ZKSYNC': 'ZKSYNC',
                 },
                 'networksById': {
+                    'ETH': 'ETH',
+                    'ERC20': 'ETH',
                     'ACA': 'ACALA',
                     'ADA': 'CARDANO',
                     'ALGO': 'ALGORAND',
@@ -1215,7 +1217,6 @@ export default class bybit extends Exchange {
                     'EGLD': 'ELROND',
                     'EOS': 'EOS',
                     'ETC': 'ETC',
-                    'ETH': 'ERC20',
                     'ETHF': 'ETHF',
                     'ETHW': 'ETHW',
                     'FIL': 'FILECOIN',
@@ -6301,15 +6302,13 @@ export default class bybit extends Exchange {
         //     }
         //
         const address = this.safeString (depositAddress, 'addressDeposit');
-        const tag = this.safeString (depositAddress, 'tagDeposit');
         const code = this.safeString (currency, 'code');
-        const chain = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
-            'network': chain,
+            'tag': this.safeString (depositAddress, 'tagDeposit'),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain'), code),
             'info': depositAddress,
         };
     }
@@ -6375,41 +6374,11 @@ export default class bybit extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
         const currency = this.currency (code);
-        const request = {
-            'coin': currency['id'],
-        };
-        if (networkId !== undefined) {
-            request['chainType'] = networkId;
-        }
-        const response = await this.privateGetV5AssetDepositQueryAddress (this.extend (request, query));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "success",
-        //         "result": {
-        //             "coin": "USDT",
-        //             "chains": [
-        //                 {
-        //                     "chainType": "ERC20",
-        //                     "addressDeposit": "0xd9e1cd77afa0e50b452a62fbb68a3340602286c3",
-        //                     "tagDeposit": "",
-        //                     "chain": "ETH"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672192792860
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const chains = this.safeValue (result, 'chains', []);
-        const chainsIndexedById = this.indexBy (chains, 'chain');
-        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
-        return this.parseDepositAddress (addressObject, currency);
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
+        return indexedAddresses[selectedNetworkCode];
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
