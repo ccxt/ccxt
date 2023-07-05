@@ -102,6 +102,7 @@ export default class kucoin extends Exchange {
                     'private': 'https://api.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
@@ -310,6 +311,11 @@ export default class kucoin extends Exchange {
                         'stopOrders': 1.3953,
                     },
                 },
+                'webExchange': {
+                    'get': {
+                        'currency/currency/chain-info': 1, // this is temporary from webApi
+                    },
+                },
             },
             'timeframes': {
                 '1m': '1min',
@@ -439,6 +445,10 @@ export default class kucoin extends Exchange {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'fetchCurrencies': {
+                    'webApiEnable': true, // fetches from WEB
+                    'webApiRetries': 5,
+                },
                 'fetchMarkets': {
                     'fetchTickersFees': true,
                 },
@@ -749,11 +759,11 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://docs.kucoin.com/#get-currencies
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        const promises = [];
+        promises.push (this.publicGetCurrencies (params));
         //
         //     {
         //         "currency": "OMG",
@@ -769,7 +779,48 @@ export default class kucoin extends Exchange {
         //         "isDebitEnabled": false
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        promises.push (this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true));
+        //
+        //    {
+        //        "success": true,
+        //        "code": "200",
+        //        "msg": "success",
+        //        "retry": false,
+        //        "data": [
+        //            {
+        //                "withdrawMinFee": "0.0005",
+        //                "chainName": "BTC",
+        //                "preDepositTipEnabled": "false",
+        //                "chain": "btc",
+        //                "isChainEnabled": "true",
+        //                "withdrawDisabledTip": "",
+        //                "walletPrecision": "8",
+        //                "chainFullName": "Bitcoin",
+        //                "orgAddress": "",
+        //                "isDepositEnabled": "true",
+        //                "withdrawMinSize": "0.001",
+        //                "depositDisabledTip": "",
+        //                "userAddressName": "",
+        //                "txUrl": "https://blockchain.info/tx/{txId}",
+        //                "preWithdrawTipEnabled": "false",
+        //                "withdrawFeeRate": "0",
+        //                "confirmationCount": "2",
+        //                "currency": "BTC",
+        //                "depositMinSize": "0.00005",
+        //                "isWithdrawEnabled": "true",
+        //                "preDepositTip": "",
+        //                "preWithdrawTip": "",
+        //                "status": "enabled"
+        //            },
+        //        ]
+        //    }
+        //
+        const responses = await Promise.all (promises);
+        const responseCurrencies = responses[0];
+        const responseChains = responses[1];
+        const data = this.safeValue (responseCurrencies, 'data', []);
+        const chainsData = this.safeValue (responseChains, 'data', []);
+        const currencyChains = this.groupBy (chainsData, 'currency');
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -780,6 +831,40 @@ export default class kucoin extends Exchange {
             const isDepositEnabled = this.safeValue (entry, 'isDepositEnabled', false);
             const fee = this.safeNumber (entry, 'withdrawalMinFee');
             const active = (isWithdrawEnabled && isDepositEnabled);
+            const networks = {};
+            const chains = this.safeValue (currencyChains, id, []);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const chainId = this.safeString (chain, 'chain');
+                const networkCode = this.networkIdToCode (chainId);
+                const chainName = this.safeString (chain, 'chainFullName');
+                const chainWithdrawEnabled = this.safeValue (chain, 'isWithdrawEnabled', false);
+                const chainDepositEnabled = this.safeValue (chain, 'isDepositEnabled', false);
+                const status = this.safeString (chain, 'status');
+                const chainEnabled = this.safeValue (chain, 'isChainEnabled', false);
+                const chainActive = chainEnabled && (status === 'enabled') && (chainWithdrawEnabled && chainDepositEnabled);
+                const chainWithdrawFee = this.safeNumber (chain, 'withdrawMinFee');
+                const chainPrecision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'walletPrecision')));
+                const chainNetwork = {
+                    'id': chainId,
+                    'name': chainName,
+                    'code': networkCode,
+                    'active': chainActive,
+                    'fee': chainWithdrawFee,
+                    'precision': chainPrecision,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdrawMinSize'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'depositMinSize'),
+                            'max': undefined,
+                        },
+                    },
+                };
+                networks[networkCode] = chainNetwork;
+            }
             result[code] = {
                 'id': id,
                 'name': name,
@@ -791,7 +876,7 @@ export default class kucoin extends Exchange {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
-                'networks': {},
+                'networks': networks,
             };
         }
         return result;
@@ -3798,7 +3883,7 @@ export default class kucoin extends Exchange {
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
-        if (api === 'webFront') {
+        if (api === 'webExchange') {
             endpoint = '/' + this.implodeParams (path, params);
         }
         const query = this.omit (params, this.extractParams (path));
