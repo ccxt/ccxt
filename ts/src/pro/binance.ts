@@ -1833,8 +1833,9 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredSymbol ('fetchOpenOrdersWs', symbol);
         await this.loadMarkets ();
-        this.checkIsSpot ('fetchOpenOrdersWs', symbol, params);
+        this.checkIsSpot ('fetchOpenOrdersWs', symbol);
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
