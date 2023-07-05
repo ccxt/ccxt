@@ -32,7 +32,7 @@ export default class binance extends binanceRest {
                 'fetchOrderWs': true,
                 'fetchOrdersWs': true,
                 'fetchBalanceWs': true,
-                'fetchTradesWs': true,
+                'fetchMyTradesWs': true,
             },
             'urls': {
                 'test': {
@@ -1817,7 +1817,8 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleOrdersWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        const orders = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1851,7 +1852,8 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleOrdersWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        const orders = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2182,7 +2184,8 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleTradesWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        const trades = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     handleTradesWs (client: Client, message) {
