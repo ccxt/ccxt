@@ -272,19 +272,170 @@ export default class ascendex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
                 'networks': {
-                    'BSC': 'BEP20 (BSC)',
-                    'ARB': 'arbitrum',
-                    'SOL': 'Solana',
-                    'AVAX': 'avalanche C chain',
+                    'BTC': 'Bitcoin',
+                    'ETH': 'ERC20',
+                    'ERC20': 'ERC20',
+                    'TRX': 'TRC20',
+                    'TRC20': 'TRC20',
+                    'BEP20': 'BEP20 (BSC)',
+                    'GATHER': 'Gather',
+                    'LTO': 'LTONetwork',
+                    'PLCULTIMA': 'PLC-Ultima',
+                    'BAND': 'BandProtocol',
+                    'SOLANA': 'Solana',
+                    'RIZON': 'rizon',
+                    'BSV': 'Bitcoin SV',
+                    'BCHA': 'Bitcoin Cash ABC',
+                    'GNOSIS': 'Gnosis',
+                    'BEP2': 'BEP2',
+                    'RADIX': 'Radix DLT',
+                    'KAVA': 'kava',
+                    'FANTOM': 'fantom',
+                    'POLYGON': 'Matic network',
+                    'AVALANCHE_C': 'avalanche C chain',
+                    'DOGECOING': 'dogechain',
+                    'ULTRA': 'ultra',
+                    'ZEROCASH': 'Zerocash',
+                    'LTC': 'Litecoin',
+                    'AKASH': 'Akash',
+                    'DASH': 'Dash',
+                    'ECASH': 'eCash',
+                    'OPTIMISM': 'Optimism',
+                    'RAVENCOIN': 'Raven',
+                    'DIVI': 'Divi',
+                    'STAFI': 'Stafi',
+                    'EMONEY': 'e-Money',
+                    'VECHAIN': 'vechain',
+                    'GO20': 'GO20',
+                    'POLKADEX': 'Polkadex',
+                    'FUSE': 'Fuse',
+                    'PERSISTENCE': 'Persistence',
+                    'NEM': 'XEM',
+                    'ETC': 'Ethereum Classic',
+                    'IOST': 'Iost chain',
+                    'ERC777': 'ERC777',
                     'OMNI': 'Omni',
+                    'ARBITRUM': 'arbitrum',
+                    'FILECOIN': 'Filecoin',
+                    'TERNOA': 'Ternoa',
+                    'THORCHAIN': 'Thorchain',
+                    'APTOS': 'Aptos',
+                    'BITCOINABC': 'Bitcoin ABC',
+                    'HERMEZ': 'hermez',
+                    'CONCORDIUM': 'Concordium',
+                    'ETHW': 'ETHPoW',
+                    'SIFCHAIN': 'sifchain',
+                    'ELROND': 'Elrond eGold',
+                    // 'BCH-SLP': 'BCH-SLP',
+                    'OSMOSIS': 'osmosis',
+                    'HPB': 'HPB',
+                    'FIOProtocol': 'FIOProtocol',
+                    'SENTINEL': 'sentinel',
+                    'RIPPLE': 'Ripple',
+                    'CUDOS': 'Cudos',
+                    // 'NEO N3': 'NEO N3',
+                    'HATHOR': 'Hathor',
+                    'CARDANO': 'Cardano',
+                    'TEZOS': 'Tezos',
+                    'POLKADOT': 'polkadot',
+                    'NERVOS': 'nervos',
+                    'CASPER': 'casper',
+                    // 'bitclout': 'bitclout',
+                    'ONTOLOGY': 'Ontology',
+                    'ALGORAND': 'Algorand',
+                    'NIMIQ': 'Nimiq',
+                    'RSK': 'RSK Smart Bitcoin',
+                    'ZILLIQA': 'Zilliqa',
+                    'STELLAR': 'Stellar',
+                    'QTUM': 'Qtum',
+                    'COSMOS': 'ATOM',
+                    'ONELEDGER': 'oneledger',
+                    'EOS': 'EOS',
+                    'HARMONY': 'Harmony',
+                    'NEAR': 'Near',
                 },
                 'networksById': {
-                    'BEP20 (BSC)': 'BSC',
-                    'arbitrum': 'ARB',
-                    'Solana': 'SOL',
-                    'avalanche C chain': 'AVAX',
+                    'Bitcoin': 'BTC',
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'BEP20 (BSC)': 'BEP20',
+                    'Gather': 'GATHER',
+                    'LTONetwork': 'LTO',
+                    'PLC-Ultima': 'PLCULTIMA',
+                    'BandProtocol': 'BAND',
+                    'Solana': 'SOLANA',
+                    'rizon': 'RIZON',
+                    'Bitcoin SV': 'BSV',
+                    'Bitcoin Cash ABC': 'BCHA',
+                    'Gnosis': 'GNOSIS',
+                    'BEP2': 'BEP2',
+                    'Radix DLT': 'RADIX',
+                    'kava': 'KAVA',
+                    'fantom': 'FANTOM',
+                    'Matic network': 'POLYGON',
+                    'avalanche C chain': 'AVALANCHE_C',
+                    'dogechain': 'DOGECOING',
+                    'ultra': 'ULTRA',
+                    'Zerocash': 'ZEROCASH',
+                    'Litecoin': 'LTC',
+                    'Akash': 'AKASH',
+                    'Dash': 'DASH',
+                    'eCash': 'ECASH',
+                    'Optimism': 'OPTIMISM',
+                    'Raven': 'RAVENCOIN',
+                    'Divi': 'DIVI',
+                    'Stafi': 'STAFI',
+                    'e-Money': 'EMONEY',
+                    'vechain': 'VECHAIN',
+                    'GO20': 'GO20',
+                    'Polkadex': 'POLKADEX',
+                    'Fuse': 'FUSE',
+                    'Persistence': 'PERSISTENCE',
+                    'XEM': 'NEM',
+                    'Ethereum Classic': 'ETC',
+                    'Iost chain': 'IOST',
+                    'ERC777': 'ERC777',
                     'Omni': 'OMNI',
+                    'arbitrum': 'ARBITRUM',
+                    'Filecoin': 'FILECOIN',
+                    'Ternoa': 'TERNOA',
+                    'Thorchain': 'THORCHAIN',
+                    'Aptos': 'APTOS',
+                    'Bitcoin ABC': 'BITCOINABC',
+                    'hermez': 'HERMEZ',
+                    'Concordium': 'CONCORDIUM',
+                    'ETHPoW': 'ETHW',
+                    'sifchain': 'SIFCHAIN',
+                    'Elrond eGold': 'ELROND',
+                    'osmosis': 'OSMOSIS',
+                    'HPB': 'HPB',
+                    'FIOProtocol': 'FIOProtocol',
+                    'sentinel': 'SENTINEL',
+                    'Ripple': 'RIPPLE',
+                    'Cudos': 'CUDOS',
+                    'Hathor': 'HATHOR',
+                    'Cardano': 'CARDANO',
+                    'Tezos': 'TEZOS',
+                    'polkadot': 'POLKADOT',
+                    'nervos': 'NERVOS',
+                    'casper': 'CASPER',
+                    'Ontology': 'ONTOLOGY',
+                    'Algorand': 'ALGORAND',
+                    'Nimiq': 'NIMIQ',
+                    'RSK Smart Bitcoin': 'RSK',
+                    'Zilliqa': 'ZILLIQA',
+                    'Stellar': 'STELLAR',
+                    'Qtum': 'QTUM',
+                    'ATOM': 'COSMOS',
+                    'oneledger': 'ONELEDGER',
+                    'EOS': 'EOS',
+                    'Harmony': 'HARMONY',
+                    'Near': 'NEAR',
                 },
             },
             'exceptions': {
@@ -305,7 +456,7 @@ export default class ascendex extends Exchange {
                     '100005': BadRequest, // INVALID_WS_REQUEST_DATA Websocket request contains invalid field or argument
                     '100006': BadRequest, // INVALID_ARGUMENT The arugment is invalid
                     '100007': BadRequest, // ENCRYPTION_ERROR Something wrong with data encryption
-                    '100008': BadSymbol, // SYMBOL_ERROR Symbol does not exist or not valid for the request
+                    '100008': BadSymbol, // SYMBOL_ERROR Symbol does not exist or not valid for the request | {"code":100008,"message":"Invalid blockchain.","reason":"SYMBOL_ERROR"}
                     '100009': AuthenticationError, // AUTHORIZATION_NEEDED Authorization is require for the API access or request
                     '100010': BadRequest, // INVALID_OPERATION The action is invalid or not allowed for the account
                     '100011': BadRequest, // INVALID_TIMESTAMP Not a valid timestamp
@@ -352,7 +503,9 @@ export default class ascendex extends Exchange {
                     '510001': ExchangeError, // SERVER_ERROR Something wrong with server.
                     '900001': ExchangeError, // HUMAN_CHALLENGE Human change do not pass
                 },
-                'broad': {},
+                'broad': {
+                    'Invalid blockchain.': BadRequest, // {"code":100008,"message":"Invalid blockchain.","reason":"SYMBOL_ERROR"}
+                },
             },
             'commonCurrencies': {
                 'BOND': 'BONDED',
@@ -379,24 +532,47 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const assets = await this.v1PublicGetAssets (params);
-        //
+        const promises = [];
+        promises.push (this.v2PublicGetAssets (params));
+        // .
         //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode" : "LTCBULL",
-        //                 "assetName" : "3X Long LTC Token",
-        //                 "precisionScale" : 9,
-        //                 "nativeScale" : 4,
-        //                 "withdrawalFee" : "0.2",
-        //                 "minWithdrawalAmt" : "1.0",
-        //                 "status" : "Normal"
-        //             },
-        //         ]
-        //     }
+        //         "code": 0,
+        //         "data": [
+        //           {
+        //             "assetCode": "GTH",
+        //             "assetName": "Gather",
+        //             "precisionScale": 8,
+        //             "nativeScale": 3,
+        //             "blockChain": [
+        //               {
+        //                 "chainName": "BEP20 (BSC)",
+        //                 "withdrawFee": "200.0",
+        //                 "allowDeposit": true,
+        //                 "allowWithdraw": true,
+        //                 "minDepositAmt": "0.0",
+        //                 "minWithdrawal": "400.0",
+        //                 "numConfirmations": 20
+        //               },
+        //           },
+        //           {
+        //             "assetCode": "CHR5S",
+        //             "assetName": "5X Short CHR Token",
+        //             "precisionScale": 8,
+        //             "nativeScale": 2,
+        //             "blockChain": [
+        //               {
+        //                 "chainName": "ERC20",
+        //                 "withdrawFee": "2.0",
+        //                 "allowDeposit": false,
+        //                 "allowWithdraw": false,
+        //                 "minDepositAmt": "0.0",
+        //                 "minWithdrawal": "4.0",
+        //                 "numConfirmations": 12
+        //               }
+        //             ]
+        //           },
         //
-        const margin = await this.v1PublicGetMarginAssets (params);
+        promises.push (this.v1PublicGetMarginAssets (params));
         //
         //     {
         //         "code":0,
@@ -416,7 +592,9 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash = await this.v1PublicGetCashAssets (params);
+        const results = await Promise.all (promises);
+        const assets = results[0];
+        const margin = results[1];
         //
         //     {
         //         "code":0,
@@ -435,38 +613,68 @@ export default class ascendex extends Exchange {
         //
         const assetsData = this.safeValue (assets, 'data', []);
         const marginData = this.safeValue (margin, 'data', []);
-        const cashData = this.safeValue (cash, 'data', []);
         const assetsById = this.indexBy (assetsData, 'assetCode');
         const marginById = this.indexBy (marginData, 'assetCode');
-        const cashById = this.indexBy (cashData, 'assetCode');
-        const dataById = this.deepExtend (assetsById, marginById, cashById);
-        const ids = Object.keys (dataById);
+        const ids = Object.keys (assetsById);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const currency = dataById[id];
+            const currency = assetsById[id];
             const code = this.safeCurrencyCode (id);
-            const scale = this.safeString2 (currency, 'precisionScale', 'nativeScale');
-            const precision = this.parseNumber (this.parsePrecision (scale));
-            const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
-            const status = this.safeString2 (currency, 'status', 'statusCode');
-            const active = (status === 'Normal');
-            const marginInside = ('borrowAssetCode' in currency);
+            // precisionScale is the ticksize, while nativeScale is the precision for asset withdraw/deposit
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'nativeScale')));
+            const chains = this.safeValue (currency, 'blockChain', []);
+            const networks = {};
+            let depositAllowed = undefined;
+            let withdrawAllowed = undefined;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'chainName');
+                const networkCode = this.networkIdToCode (networkId);
+                const deposit = this.safeValue (chain, 'allowDeposit');
+                const withdraw = this.safeValue (chain, 'allowWithdraw');
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'minDepositAmt'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWithdrawal'),
+                            'max': undefined,
+                        },
+                    },
+                };
+                if (deposit) {
+                    depositAllowed = true;
+                }
+                if (withdraw) {
+                    withdrawAllowed = true;
+                }
+            }
+            const margin = id in marginById;
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': marginInside,
+                'margin': margin,
                 'name': this.safeString (currency, 'assetName'),
-                'active': active,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': fee,
+                'deposit': depositAllowed,
+                'withdraw': withdrawAllowed,
+                'active': depositAllowed || withdrawAllowed,
+                'fee': undefined,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': precision,
+                        'min': this.safeNumber (currency, 'precisionScale'),
                         'max': undefined,
                     },
                     'withdraw': {
