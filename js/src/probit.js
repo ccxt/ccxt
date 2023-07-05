@@ -48,6 +48,7 @@ export default class probit extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1479,7 +1480,9 @@ export default class probit extends Exchange {
         /**
          * @method
          * @name probit#fetchTransactions
-         * @description fetch all transactions made to an account
+         * @deprecated
+         * @description use fetchDepositsWithdrawals instead
+         * @see https://docs-en.probit.com/reference/transferpayment
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transactions for
          * @param {int} [limit] the maximum number of transaction structures to retrieve
