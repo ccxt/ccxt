@@ -154,7 +154,7 @@ export default class idex extends Exchange {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
-                'supportedBlochchains': [ 'MATIC' ],
+                'supportedBlockchains': [ 'MATIC' ],
             },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -753,7 +753,7 @@ export default class idex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'exchangeDecimals')));
             const networks = {};
-            const supportedChains = this.safeValue (this.options, 'supportedBlochchains', []);
+            const supportedChains = this.safeValue (this.options, 'supportedBlockchains', []);
             const length = supportedChains.length;
             // commonly they have only one chain
             if (length === 1) {
