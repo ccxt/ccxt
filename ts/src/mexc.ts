@@ -4110,21 +4110,14 @@ export default class mexc extends Exchange {
         }
         params = this.omit (params, 'network');
         const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
-        const result = [];
+        const result = {};
         for (let i = 0; i < response.length; i++) {
             const depositAddress = response[i];
-            const coin = this.safeString (depositAddress, 'coin');
-            const currencyInner = this.currency (coin);
-            const networkIdInner = this.safeString (depositAddress, 'network');
-            const network = this.safeNetwork (networkIdInner);
-            const address = this.safeString (depositAddress, 'address', undefined);
-            const tag = this.safeString2 (depositAddress, 'tag', 'memo', undefined);
-            result.push ({
-                'currency': currencyInner['id'],
-                'network': network,
-                'address': address,
-                'tag': tag,
-            });
+            const depositEntry = this.parseDepositAddress (depositAddress, currency);
+            const networkCode = depositEntry['network'];
+            if (networkCode !== undefined) {
+                result[networkCode] = depositEntry;
+            }
         }
         return result;
     }
@@ -4170,33 +4163,20 @@ export default class mexc extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
-        if (rawNetwork !== undefined) {
-            for (let i = 0; i < response.length; i++) {
-                const depositAddress = response[i];
-                const network = this.safeStringUpper (depositAddress, 'network');
-                if (rawNetwork === network) {
-                    return depositAddress;
-                }
-            }
-        }
-        const result = this.safeValue (response, 0);
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', consider creating one using the MEXC platform');
-        }
-        return result;
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, indexedAddresses);
+        return indexedAddresses[selectedNetworkCode];
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
