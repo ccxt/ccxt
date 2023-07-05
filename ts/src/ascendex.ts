@@ -659,13 +659,12 @@ export default class ascendex extends Exchange {
                     withdrawAllowed = true;
                 }
             }
-            const margin = id in marginById;
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': margin,
+                'margin': (id in marginById),
                 'name': this.safeString (currency, 'assetName'),
                 'deposit': depositAllowed,
                 'withdraw': withdrawAllowed,
