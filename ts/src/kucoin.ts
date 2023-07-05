@@ -102,6 +102,7 @@ export default class kucoin extends Exchange {
                     'private': 'https://api.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
+                    'webExchange': 'https://api.kucoin.com',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
@@ -135,7 +136,6 @@ export default class kucoin extends Exchange {
                         'market/stats': 1,
                         'currencies': 1,
                         'currencies/{currency}': 1,
-                        'currency/currency/chain-info': 1, // this is temporary from _api
                         'prices': 1,
                         'mark-price/{symbol}/current': 1,
                         'margin/config': 1,
@@ -1058,8 +1058,7 @@ export default class kucoin extends Exchange {
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const promises = [];
-        promises.push (this.publicGetCurrencies (params));
+        const response = await this.publicGetCurrencies (params);
         //
         //     {
         //         "currency": "OMG",
@@ -1075,48 +1074,7 @@ export default class kucoin extends Exchange {
         //         "isDebitEnabled": false
         //     }
         //
-        promises.push (this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetUcV2Assets', true));
-        //
-        //    {
-        //        "success": true,
-        //        "code": "200",
-        //        "msg": "success",
-        //        "retry": false,
-        //        "data": [
-        //            {
-        //                "withdrawMinFee": "0.0005",
-        //                "chainName": "BTC",
-        //                "preDepositTipEnabled": "false",
-        //                "chain": "btc",
-        //                "isChainEnabled": "true",
-        //                "withdrawDisabledTip": "",
-        //                "walletPrecision": "8",
-        //                "chainFullName": "Bitcoin",
-        //                "orgAddress": "",
-        //                "isDepositEnabled": "true",
-        //                "withdrawMinSize": "0.001",
-        //                "depositDisabledTip": "",
-        //                "userAddressName": "",
-        //                "txUrl": "https://blockchain.info/tx/{txId}",
-        //                "preWithdrawTipEnabled": "false",
-        //                "withdrawFeeRate": "0",
-        //                "confirmationCount": "2",
-        //                "currency": "BTC",
-        //                "depositMinSize": "0.00005",
-        //                "isWithdrawEnabled": "true",
-        //                "preDepositTip": "",
-        //                "preWithdrawTip": "",
-        //                "status": "enabled"
-        //            },
-        //        ]
-        //    }
-        //
-        const responses = await Promise.all (promises);
-        const responseCurrencies = responses[0];
-        const responseChains = responses[1];
-        const data = this.safeValue (responseCurrencies, 'data', []);
-        const chainsData = this.safeValue (responseChains, 'data', []);
-        const currencyChains = this.groupBy (chainsData, 'currency');
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -1127,40 +1085,6 @@ export default class kucoin extends Exchange {
             const isDepositEnabled = this.safeValue (entry, 'isDepositEnabled', false);
             const fee = this.safeNumber (entry, 'withdrawalMinFee');
             const active = (isWithdrawEnabled && isDepositEnabled);
-            const networks = {};
-            const chains = this.safeValue (currencyChains, id, []);
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const chainId = this.safeString (chain, 'chain');
-                const networkCode = this.networkIdToCode (chainId);
-                const chainName = this.safeString (chain, 'chainFullName');
-                const chainWithdrawEnabled = this.safeValue (chain, 'isWithdrawEnabled', false);
-                const chainDepositEnabled = this.safeValue (chain, 'isDepositEnabled', false);
-                const status = this.safeString (chain, 'status');
-                const chainEnabled = this.safeValue (chain, 'isChainEnabled', false);
-                const chainActive = chainEnabled && (status === 'enabled') && (chainWithdrawEnabled && chainDepositEnabled);
-                const chainWithdrawFee = this.safeNumber (chain, 'withdrawMinFee');
-                const chainPrecision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'walletPrecision')));
-                const chainNetwork = {
-                    'id': chainId,
-                    'name': chainName,
-                    'code': networkCode,
-                    'active': chainActive,
-                    'fee': chainWithdrawFee,
-                    'precision': chainPrecision,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (chain, 'withdrawMinSize'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (chain, 'depositMinSize'),
-                            'max': undefined,
-                        },
-                    },
-                };
-                networks[networkCode] = chainNetwork;
-            }
             result[code] = {
                 'id': id,
                 'name': name,
@@ -1172,7 +1096,6 @@ export default class kucoin extends Exchange {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
-                'networks': networks,
             };
         }
         return result;
