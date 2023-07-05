@@ -2362,7 +2362,7 @@ export default class binance extends binanceRest {
         const id = this.safeString (message, 'id');
         let rejected = false;
         const error = this.safeValue (message, 'error', {});
-        const code = this.safeString (error, 'code');
+        const code = this.safeInteger (error, 'code');
         const msg = this.safeString (error, 'msg');
         try {
             this.handleErrors (code, msg, client.url, undefined, undefined, this.json (error), error, undefined, undefined);
