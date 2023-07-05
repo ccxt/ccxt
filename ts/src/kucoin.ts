@@ -1644,36 +1644,16 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper2 (params, 'chain', 'network');
-        network = this.safeStringLower (networks, network, network);
-        if (network !== undefined) {
-            network = network.toLowerCase ();
-            request['chain'] = network;
-            params = this.omit (params, [ 'chain', 'network' ]);
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode);
         }
-        const response = await this.privatePostDepositAddresses (this.extend (request, params));
+        const response = await this.privatePostDepositAddresses (this.extend (request, paramsOmited));
         // {"code":"260000","msg":"Deposit address already exists."}
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
-        let address = this.safeString (data, 'address');
-        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        if (address !== undefined) {
-            address = address.replace ('bitcoincash:', '');
-        }
-        const tag = this.safeString (data, 'memo');
-        if (code !== 'NIM') {
-            // contains spaces
-            this.checkAddress (address);
-        }
-        return {
-            'info': response,
-            'currency': code,
-            'network': this.safeString (data, 'chain'),
-            'address': address,
-            'tag': tag,
-        };
+        return this.parseDepositAddress (data, currency);
     }
 
     async fetchDepositAddress (code: string, params = {}) {
@@ -1694,18 +1674,13 @@ export default class kucoin extends Exchange {
             // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             // 'chain': 'ERC20', // optional
         };
-        // same as for withdraw
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper2 (params, 'chain', 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            network = network.toLowerCase ();
-            request['chain'] = network;
-            params = this.omit (params, [ 'chain', 'network' ]);
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode);
         }
         const version = this.options['versions']['private']['GET']['deposit-addresses'];
         this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
-        const response = await this.privateGetDepositAddresses (this.extend (request, params));
+        const response = await this.privateGetDepositAddresses (this.extend (request, paramsOmited));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
