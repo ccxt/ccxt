@@ -34,17 +34,17 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.5';
+$version = '4.0.8';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.5';
+    const VERSION = '4.0.8';
 
     public $browser;
     public $marketsLoading = null;
     public $reloadingMarkets = null;
     public $tokenBucket;
-    public $throttle;
+    public $throttler;
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -60,7 +60,7 @@ class Exchange extends \ccxt\Exchange {
     public function __construct($options = array()) {
         parent::__construct($options);
         $this->set_request_browser();
-        $this->throttle = new Throttle($this->tokenBucket);
+        $this->throttler = new Throttler($this->tokenBucket);
     }
 
     public function set_request_browser($connector_options = array()) {
@@ -233,7 +233,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function throttle($cost = null) {
         // stub so the async throttler gets called instead of the sync throttler
-        return call_user_func($this->throttle, $cost);
+        return call_user_func($this->throttler, $cost);
     }
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(

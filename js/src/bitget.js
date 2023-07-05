@@ -149,6 +149,7 @@ export default class bitget extends Exchange {
                             'market/candles': 1,
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
+                            'market/history-candles': 1,
                         },
                     },
                     'mix': {
@@ -170,6 +171,9 @@ export default class bitget extends Exchange {
                             'market/symbol-leverage': 1,
                             'market/queryPositionLever': 1,
                             'market/open-limit': 1,
+                            'market/history-candles': 1,
+                            'market/history-index-candles': 1,
+                            'market/history-mark-candles': 1,
                         },
                     },
                     'margin': {
