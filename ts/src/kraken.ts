@@ -2033,7 +2033,7 @@ export default class kraken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -2092,30 +2092,30 @@ export default class kraken extends Exchange {
         //         "refid": "AGBSO6T-UFMTTQ-I7KGS6"
         //     }
         //
-        const id = this.safeString (depositWithdrawal, 'refid');
-        const txid = this.safeString (depositWithdrawal, 'txid');
-        const timestamp = this.safeTimestamp (depositWithdrawal, 'time');
-        const currencyId = this.safeString (depositWithdrawal, 'asset');
+        const id = this.safeString (transaction, 'refid');
+        const txid = this.safeString (transaction, 'txid');
+        const timestamp = this.safeTimestamp (transaction, 'time');
+        const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const address = this.safeString (depositWithdrawal, 'info');
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
-        let status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
-        const statusProp = this.safeString (depositWithdrawal, 'status-prop');
+        const address = this.safeString (transaction, 'info');
+        const amount = this.safeNumber (transaction, 'amount');
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const statusProp = this.safeString (transaction, 'status-prop');
         const isOnHoldDeposit = statusProp === 'on-hold';
         const isCancellationRequest = statusProp === 'cancel-pending';
         const isOnHoldWithdrawal = statusProp === 'onhold';
         if (isOnHoldDeposit || isCancellationRequest || isOnHoldWithdrawal) {
             status = 'pending';
         }
-        const type = this.safeString (depositWithdrawal, 'type'); // injected from the outside
-        let feeCost = this.safeNumber (depositWithdrawal, 'fee');
+        const type = this.safeString (transaction, 'type'); // injected from the outside
+        let feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost === undefined) {
             if (type === 'deposit') {
                 feeCost = 0;
             }
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
@@ -2142,7 +2142,7 @@ export default class kraken extends Exchange {
     parseTransactionsByType (type, transactions, code: string = undefined, since: Int = undefined, limit: Int = undefined) {
         const result = [];
         for (let i = 0; i < transactions.length; i++) {
-            const transaction = this.parseDepositWithdrawal (this.extend ({
+            const transaction = this.parseTransaction (this.extend ({
                 'type': type,
             }, transactions[i]));
             result.push (transaction);
@@ -2410,7 +2410,7 @@ export default class kraken extends Exchange {
             //     }
             //
             const result = this.safeValue (response, 'result', {});
-            return this.parseDepositWithdrawal (result, currency);
+            return this.parseTransaction (result, currency);
         }
         throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }

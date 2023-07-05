@@ -991,7 +991,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1019,7 +1019,7 @@ export default class bitbns extends Exchange {
         //     ...
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -1042,7 +1042,7 @@ export default class bitbns extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -1065,11 +1065,11 @@ export default class bitbns extends Exchange {
         //
         //     ...
         //
-        const currencyId = this.safeString (depositWithdrawal, 'unit');
+        const currencyId = this.safeString (transaction, 'unit');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.parse8601 (this.safeString2 (depositWithdrawal, 'date', 'timestamp'));
-        let type = this.safeString (depositWithdrawal, 'type');
-        const expTime = this.safeString (depositWithdrawal, 'expTime', '');
+        const timestamp = this.parse8601 (this.safeString2 (transaction, 'date', 'timestamp'));
+        let type = this.safeString (transaction, 'type');
+        const expTime = this.safeString (transaction, 'expTime', '');
         let status = undefined;
         if (type !== undefined) {
             if (type.indexOf ('deposit') >= 0) {
@@ -1080,14 +1080,14 @@ export default class bitbns extends Exchange {
             }
         }
         // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
-        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': undefined,
             'txid': undefined,
             'timestamp': timestamp,

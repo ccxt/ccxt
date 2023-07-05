@@ -5231,7 +5231,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
-        return this.parseDepositsWithdrawals (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -5350,7 +5350,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'withdrawal';
         }
-        return this.parseDepositsWithdrawals (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -5390,7 +5390,7 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -5455,49 +5455,49 @@ export default class binance extends Exchange {
         //
         //    { id: '9a67628b16ba4988ae20d329333f16bc' }
         //
-        const id = this.safeString2 (depositWithdrawal, 'id', 'orderNo');
-        const address = this.safeString (depositWithdrawal, 'address');
-        let tag = this.safeString (depositWithdrawal, 'addressTag'); // set but unused
+        const id = this.safeString2 (transaction, 'id', 'orderNo');
+        const address = this.safeString (transaction, 'address');
+        let tag = this.safeString (transaction, 'addressTag'); // set but unused
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;
             }
         }
-        let txid = this.safeString (depositWithdrawal, 'txId');
+        let txid = this.safeString (transaction, 'txId');
         if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
             txid = txid.slice (18);
         }
-        const currencyId = this.safeString2 (depositWithdrawal, 'coin', 'fiatCurrency');
+        const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
         let code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
-        timestamp = this.safeInteger2 (depositWithdrawal, 'insertTime', 'createTime');
+        timestamp = this.safeInteger2 (transaction, 'insertTime', 'createTime');
         if (timestamp === undefined) {
-            timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'applyTime'));
+            timestamp = this.parse8601 (this.safeString (transaction, 'applyTime'));
         }
-        const updated = this.safeInteger2 (depositWithdrawal, 'successTime', 'updateTime');
-        let type = this.safeString (depositWithdrawal, 'type');
+        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
+        let type = this.safeString (transaction, 'type');
         if (type === undefined) {
-            const txType = this.safeString (depositWithdrawal, 'transactionType');
+            const txType = this.safeString (transaction, 'transactionType');
             if (txType !== undefined) {
                 type = (txType === '0') ? 'deposit' : 'withdrawal';
             }
             const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
             code = this.safeString (legalMoneyCurrenciesById, code, code);
         }
-        const status = this.parseTransactionStatusByType (this.safeString (depositWithdrawal, 'status'), type);
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
-        const feeCost = this.safeNumber2 (depositWithdrawal, 'transactionFee', 'totalFee');
+        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let internal = this.safeInteger (depositWithdrawal, 'transferType');
+        let internal = this.safeInteger (transaction, 'transferType');
         if (internal !== undefined) {
             internal = internal ? true : false as any;
         }
-        const network = this.safeString (depositWithdrawal, 'network');
+        const network = this.safeString (transaction, 'network');
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -6113,7 +6113,7 @@ export default class binance extends Exchange {
         }
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     parseTradingFee (fee, market = undefined) {

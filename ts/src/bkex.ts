@@ -1183,7 +1183,7 @@ export default class bkex extends Exchange {
         for (let i = 0; i < dataInner.length; i++) {
             dataInner[i]['transactType'] = 'deposit';
         }
-        return this.parseDepositsWithdrawals (dataInner, currency, since, limit, params);
+        return this.parseTransactions (dataInner, currency, since, limit, params);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1234,10 +1234,10 @@ export default class bkex extends Exchange {
         for (let i = 0; i < dataInner.length; i++) {
             dataInner[i]['transactType'] = 'withdrawal';
         }
-        return this.parseDepositsWithdrawals (dataInner, currency, since, limit, params);
+        return this.parseTransactions (dataInner, currency, since, limit, params);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -1252,16 +1252,16 @@ export default class bkex extends Exchange {
         //   "volume": 0.073
         // }
         //
-        const id = this.safeString (depositWithdrawal, 'id');
-        const amount = this.safeNumber (depositWithdrawal, 'volume');
-        const addressTo = this.safeValue (depositWithdrawal, 'toAddress', {});
-        const addressFrom = this.safeString (depositWithdrawal, 'fromAddress');
-        const txid = this.safeString (depositWithdrawal, 'hash');
-        const type = this.safeString (depositWithdrawal, 'transactType');
-        const timestamp = this.safeInteger (depositWithdrawal, 'createTime');
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const id = this.safeString (transaction, 'id');
+        const amount = this.safeNumber (transaction, 'volume');
+        const addressTo = this.safeValue (transaction, 'toAddress', {});
+        const addressFrom = this.safeString (transaction, 'fromAddress');
+        const txid = this.safeString (transaction, 'hash');
+        const type = this.safeString (transaction, 'transactType');
+        const timestamp = this.safeInteger (transaction, 'createTime');
+        const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'id': id,
             'currency': code,
@@ -1283,7 +1283,7 @@ export default class bkex extends Exchange {
                 'currency': code,
                 'cost': undefined,
             },
-            'info': depositWithdrawal,
+            'info': transaction,
         };
     }
 

@@ -690,10 +690,10 @@ export default class mercado extends Exchange {
         //
         const responseData = this.safeValue (response, 'response_data', {});
         const withdrawal = this.safeValue (responseData, 'withdrawal');
-        return this.parseDepositWithdrawal (withdrawal, currency);
+        return this.parseTransaction (withdrawal, currency);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         //     {
         //         "id": 1,
@@ -709,7 +709,7 @@ export default class mercado extends Exchange {
         //
         currency = this.safeCurrency (undefined, currency);
         return {
-            'id': this.safeString (depositWithdrawal, 'id'),
+            'id': this.safeString (transaction, 'id'),
             'txid': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -727,7 +727,7 @@ export default class mercado extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'fee': undefined,
-            'info': depositWithdrawal,
+            'info': transaction,
         };
     }
 

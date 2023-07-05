@@ -2547,7 +2547,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseDepositWithdrawal (data, currency);
+        return this.parseTransaction (data, currency);
     }
 
     parseTransactionStatus (status) {
@@ -2560,7 +2560,7 @@ export default class kucoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -2603,11 +2603,11 @@ export default class kucoin extends Exchange {
         //         "withdrawalId":  "5bffb63303aa675e8bbe18f9"
         //     }
         //
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let address = this.safeString (depositWithdrawal, 'address');
-        const amount = this.safeString (depositWithdrawal, 'amount');
-        let txid = this.safeString (depositWithdrawal, 'walletTxId');
+        let address = this.safeString (transaction, 'address');
+        const amount = this.safeString (transaction, 'amount');
+        let txid = this.safeString (transaction, 'walletTxId');
         if (txid !== undefined) {
             const txidParts = txid.split ('@');
             const numTxidParts = txidParts.length;
@@ -2621,9 +2621,9 @@ export default class kucoin extends Exchange {
             txid = txidParts[0];
         }
         let type = (txid === undefined) ? 'withdrawal' : 'deposit';
-        const rawStatus = this.safeString (depositWithdrawal, 'status');
+        const rawStatus = this.safeString (transaction, 'status');
         let fee = undefined;
-        const feeCost = this.safeString (depositWithdrawal, 'fee');
+        const feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             let rate = undefined;
             if (amount !== undefined) {
@@ -2635,12 +2635,12 @@ export default class kucoin extends Exchange {
                 'currency': code,
             };
         }
-        let timestamp = this.safeInteger2 (depositWithdrawal, 'createdAt', 'createAt');
-        let updated = this.safeInteger (depositWithdrawal, 'updatedAt');
-        const isV1 = !('createdAt' in depositWithdrawal);
+        let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
+        let updated = this.safeInteger (transaction, 'updatedAt');
+        const isV1 = !('createdAt' in transaction);
         // if it's a v1 structure
         if (isV1) {
-            type = ('address' in depositWithdrawal) ? 'withdrawal' : 'deposit';
+            type = ('address' in transaction) ? 'withdrawal' : 'deposit';
             if (timestamp !== undefined) {
                 timestamp = timestamp * 1000;
             }
@@ -2648,11 +2648,11 @@ export default class kucoin extends Exchange {
                 updated = updated * 1000;
             }
         }
-        const tag = this.safeString (depositWithdrawal, 'memo');
-        const network = this.safeString (depositWithdrawal, 'chain');
+        const tag = this.safeString (transaction, 'memo');
+        const network = this.safeString (transaction, 'chain');
         return {
-            'info': depositWithdrawal,
-            'id': this.safeString2 (depositWithdrawal, 'id', 'withdrawalId'),
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': network,
@@ -2667,7 +2667,7 @@ export default class kucoin extends Exchange {
             'txid': txid,
             'type': type,
             'status': this.parseTransactionStatus (rawStatus),
-            'comment': this.safeString (depositWithdrawal, 'remark'),
+            'comment': this.safeString (transaction, 'remark'),
             'fee': fee,
             'updated': updated,
         };
@@ -2744,7 +2744,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const responseData = response['data']['items'];
-        return this.parseDepositsWithdrawals (responseData, currency, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2819,7 +2819,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const responseData = response['data']['items'];
-        return this.parseDepositsWithdrawals (responseData, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     parseBalanceHelper (entry) {

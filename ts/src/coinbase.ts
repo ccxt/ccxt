@@ -612,7 +612,7 @@ export default class coinbase extends Exchange {
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const response = await this[method] (this.extend (request, query));
-        return this.parseDepositsWithdrawals (response['data'], undefined, since, limit);
+        return this.parseTransactions (response['data'], undefined, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -654,7 +654,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, market = undefined) {
+    parseTransaction (transaction, market = undefined) {
         //
         // fiat deposit
         //
@@ -718,12 +718,12 @@ export default class coinbase extends Exchange {
         //         "next_step": null
         //     }
         //
-        const subtotalObject = this.safeValue (depositWithdrawal, 'subtotal', {});
-        const feeObject = this.safeValue (depositWithdrawal, 'fee', {});
-        const id = this.safeString (depositWithdrawal, 'id');
-        const timestamp = this.parse8601 (this.safeValue (depositWithdrawal, 'created_at'));
-        const updated = this.parse8601 (this.safeValue (depositWithdrawal, 'updated_at'));
-        const type = this.safeString (depositWithdrawal, 'resource');
+        const subtotalObject = this.safeValue (transaction, 'subtotal', {});
+        const feeObject = this.safeValue (transaction, 'fee', {});
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.parse8601 (this.safeValue (transaction, 'created_at'));
+        const updated = this.parse8601 (this.safeValue (transaction, 'updated_at'));
+        const type = this.safeString (transaction, 'resource');
         const amount = this.safeNumber (subtotalObject, 'amount');
         const currencyId = this.safeString (subtotalObject, 'currency');
         const currency = this.safeCurrencyCode (currencyId);
@@ -734,13 +734,13 @@ export default class coinbase extends Exchange {
             'cost': feeCost,
             'currency': feeCurrency,
         };
-        let status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         if (status === undefined) {
-            const committed = this.safeValue (depositWithdrawal, 'committed');
+            const committed = this.safeValue (transaction, 'committed');
             status = committed ? 'ok' : 'pending';
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': id,
             'timestamp': timestamp,

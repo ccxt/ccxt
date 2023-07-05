@@ -6327,7 +6327,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const data = this.addPaginationCursorToResult (response);
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -6402,7 +6402,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const data = this.addPaginationCursorToResult (response);
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -6430,7 +6430,7 @@ export default class bybit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchWithdrawals
         //
@@ -6471,13 +6471,13 @@ export default class bybit extends Exchange {
         //         "id": "9377266"
         //     }
         //
-        const currencyId = this.safeString (depositWithdrawal, 'coin');
+        const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger2 (depositWithdrawal, 'createTime', 'successAt');
-        const updated = this.safeInteger (depositWithdrawal, 'updateTime');
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
-        const feeCost = this.safeNumber2 (depositWithdrawal, 'depositFee', 'withdrawFee', 0);
-        const type = ('depositFee' in depositWithdrawal) ? 'deposit' : 'withdrawal';
+        const timestamp = this.safeInteger2 (transaction, 'createTime', 'successAt');
+        const updated = this.safeInteger (transaction, 'updateTime');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const feeCost = this.safeNumber2 (transaction, 'depositFee', 'withdrawFee', 0);
+        const type = ('depositFee' in transaction) ? 'deposit' : 'withdrawal';
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -6485,22 +6485,22 @@ export default class bybit extends Exchange {
                 'currency': code,
             };
         }
-        const toAddress = this.safeString (depositWithdrawal, 'toAddress');
+        const toAddress = this.safeString (transaction, 'toAddress');
         return {
-            'info': depositWithdrawal,
-            'id': this.safeString2 (depositWithdrawal, 'id', 'withdrawId'),
-            'txid': this.safeString (depositWithdrawal, 'txID'),
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'id', 'withdrawId'),
+            'txid': this.safeString (transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (this.safeString (depositWithdrawal, 'chain')),
+            'network': this.networkIdToCode (this.safeString (transaction, 'chain')),
             'address': undefined,
             'addressTo': toAddress,
             'addressFrom': undefined,
-            'tag': this.safeString (depositWithdrawal, 'tag'),
+            'tag': this.safeString (transaction, 'tag'),
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': this.safeNumber (depositWithdrawal, 'amount'),
+            'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,
@@ -6813,7 +6813,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseDepositWithdrawal (result, currency);
+        return this.parseTransaction (result, currency);
     }
 
     async fetchPosition (symbol: string, params = {}) {

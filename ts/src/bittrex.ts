@@ -1395,7 +1395,7 @@ export default class bittrex extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.privateGetDepositsByTxIdTxId (this.extend (request, params));
-        const transactions = this.parseDepositsWithdrawals (response, currency, undefined, undefined);
+        const transactions = this.parseTransactions (response, currency, undefined, undefined);
         return this.safeValue (transactions, 0);
     }
 
@@ -1441,8 +1441,8 @@ export default class bittrex extends Exchange {
         const response = await this[method] (this.extend (request, params));
         // we cannot filter by `since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
-        // return this.parseDepositsWithdrawals (response, currency, since, limit);
-        return this.parseDepositsWithdrawals (response, currency, undefined, limit);
+        // return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response, currency, undefined, limit);
     }
 
     async fetchPendingDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1482,7 +1482,7 @@ export default class bittrex extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.privateGetWithdrawalsByTxIdTxId (this.extend (request, params));
-        const transactions = this.parseDepositsWithdrawals (response, currency, undefined, undefined);
+        const transactions = this.parseTransactions (response, currency, undefined, undefined);
         return this.safeValue (transactions, 0);
     }
 
@@ -1526,7 +1526,7 @@ export default class bittrex extends Exchange {
         }
         params = this.omit (params, 'status');
         const response = await this[method] (this.extend (request, params));
-        return this.parseDepositsWithdrawals (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchPendingWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1547,7 +1547,7 @@ export default class bittrex extends Exchange {
         return this.fetchWithdrawals (code, since, limit, this.extend (params, { 'status': 'pending' }));
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -1591,23 +1591,23 @@ export default class bittrex extends Exchange {
         //         "clientWithdrawalId": "string (uuid)"
         //     }
         //
-        const id = this.safeString2 (depositWithdrawal, 'id', 'clientWithdrawalId');
-        const amount = this.safeNumber (depositWithdrawal, 'quantity');
-        const address = this.safeString (depositWithdrawal, 'cryptoAddress');
+        const id = this.safeString2 (transaction, 'id', 'clientWithdrawalId');
+        const amount = this.safeNumber (transaction, 'quantity');
+        const address = this.safeString (transaction, 'cryptoAddress');
         let addressTo = undefined;
         let addressFrom = undefined;
-        const isDeposit = this.safeString (depositWithdrawal, 'source') === 'BLOCKCHAIN';
+        const isDeposit = this.safeString (transaction, 'source') === 'BLOCKCHAIN';
         if (isDeposit) {
             addressFrom = address;
         } else {
             addressTo = address;
         }
-        const txid = this.safeString (depositWithdrawal, 'txId');
-        const updated = this.parse8601 (this.safeString (depositWithdrawal, 'updatedAt'));
-        const opened = this.parse8601 (this.safeString (depositWithdrawal, 'createdAt'));
+        const txid = this.safeString (transaction, 'txId');
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
+        const opened = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const timestamp = opened ? opened : updated;
         const type = (opened === undefined) ? 'deposit' : 'withdrawal';
-        const currencyId = this.safeString (depositWithdrawal, 'currencySymbol');
+        const currencyId = this.safeString (transaction, 'currencySymbol');
         const code = this.safeCurrencyCode (currencyId, currency);
         let status = 'pending';
         if (type === 'deposit') {
@@ -1623,7 +1623,7 @@ export default class bittrex extends Exchange {
             //
             status = 'ok';
         } else {
-            const responseStatus = this.safeString (depositWithdrawal, 'status');
+            const responseStatus = this.safeString (transaction, 'status');
             if (responseStatus === 'ERROR_INVALID_ADDRESS') {
                 status = 'failed';
             } else if (responseStatus === 'CANCELLED') {
@@ -1636,7 +1636,7 @@ export default class bittrex extends Exchange {
                 status = 'ok';
             }
         }
-        let feeCost = this.safeNumber (depositWithdrawal, 'txCost');
+        let feeCost = this.safeNumber (transaction, 'txCost');
         if (feeCost === undefined) {
             if (type === 'deposit') {
                 // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
@@ -1644,7 +1644,7 @@ export default class bittrex extends Exchange {
             }
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
@@ -2164,7 +2164,7 @@ export default class bittrex extends Exchange {
         //         "clientWithdrawalId": "string (uuid)"
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'v3', method = 'GET', params = {}, headers = undefined, body = undefined) {

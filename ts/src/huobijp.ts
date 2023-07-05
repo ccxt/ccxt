@@ -1658,7 +1658,7 @@ export default class huobijp extends Exchange {
         }
         const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        return this.parseDepositsWithdrawals (response['data'], currency, since, limit);
+        return this.parseTransactions (response['data'], currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1692,10 +1692,10 @@ export default class huobijp extends Exchange {
         }
         const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        return this.parseDepositsWithdrawals (response['data'], currency, since, limit);
+        return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -1738,34 +1738,34 @@ export default class huobijp extends Exchange {
         //         "data": "99562054"
         //     }
         //
-        const timestamp = this.safeInteger (depositWithdrawal, 'created-at');
-        const code = this.safeCurrencyCode (this.safeString (depositWithdrawal, 'currency'));
-        let type = this.safeString (depositWithdrawal, 'type');
+        const timestamp = this.safeInteger (transaction, 'created-at');
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
+        let type = this.safeString (transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        let feeCost = this.safeString (depositWithdrawal, 'fee');
+        let feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             feeCost = Precise.stringAbs (feeCost);
         }
         return {
-            'info': depositWithdrawal,
-            'id': this.safeString2 (depositWithdrawal, 'id', 'data'),
-            'txid': this.safeString (depositWithdrawal, 'tx-hash'),
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'id', 'data'),
+            'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.safeStringUpper (depositWithdrawal, 'chain'),
-            'address': this.safeString (depositWithdrawal, 'address'),
+            'network': this.safeStringUpper (transaction, 'chain'),
+            'address': this.safeString (transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': this.safeString (depositWithdrawal, 'address-tag'),
+            'tag': this.safeString (transaction, 'address-tag'),
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': this.safeNumber (depositWithdrawal, 'amount'),
+            'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
-            'status': this.parseTransactionStatus (this.safeString (depositWithdrawal, 'state')),
-            'updated': this.safeInteger (depositWithdrawal, 'updated-at'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'state')),
+            'updated': this.safeInteger (transaction, 'updated-at'),
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),
@@ -1841,7 +1841,7 @@ export default class huobijp extends Exchange {
         //         "data": "99562054"
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

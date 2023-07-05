@@ -476,7 +476,7 @@ export default class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositsWithdrawals (response, currency, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -509,10 +509,10 @@ export default class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositsWithdrawals (response, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         //  deposit
         //      {
@@ -531,12 +531,12 @@ export default class btcalpha extends Exchange {
         //          "status": 20
         //      }
         //
-        const timestamp = this.safeTimestamp (depositWithdrawal, 'timestamp');
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
-        const statusId = this.safeString (depositWithdrawal, 'status');
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
+        const currencyId = this.safeString (transaction, 'currency');
+        const statusId = this.safeString (transaction, 'status');
         return {
-            'id': this.safeString (depositWithdrawal, 'id'),
-            'info': depositWithdrawal,
+            'id': this.safeString (transaction, 'id'),
+            'info': transaction,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
@@ -547,7 +547,7 @@ export default class btcalpha extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeNumber (depositWithdrawal, 'amount'),
+            'amount': this.safeNumber (transaction, 'amount'),
             'txid': undefined,
             'type': undefined,
             'status': this.parseTransactionStatus (statusId),

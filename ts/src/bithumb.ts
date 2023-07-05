@@ -991,10 +991,10 @@ export default class bithumb extends Exchange {
         //
         // { "status" : "0000"}
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -1020,7 +1020,7 @@ export default class bithumb extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'fee': undefined,
-            'info': depositWithdrawal,
+            'info': transaction,
         };
     }
 

@@ -76,7 +76,7 @@ export default class hitbtc extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchTransactions': 'emulated',
+                'emulated'
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -858,10 +858,10 @@ export default class hitbtc extends Exchange {
             request['startTime'] = since;
         }
         const response = await this.privateGetAccountTransactions (this.extend (request, params));
-        return this.parseDepositsWithdrawals (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // transactions
         //
@@ -895,28 +895,28 @@ export default class hitbtc extends Exchange {
         //         "id": "d2ce578f-647d-4fa0-b1aa-4a27e5ee597b"
         //     }
         //
-        const id = this.safeString (depositWithdrawal, 'id');
-        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'createdAt'));
-        const updated = this.parse8601 (this.safeString (depositWithdrawal, 'updatedAt'));
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
+        const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
-        const address = this.safeString (depositWithdrawal, 'address');
-        const txid = this.safeString (depositWithdrawal, 'hash');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeNumber (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
+        const txid = this.safeString (transaction, 'hash');
         const fee = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
         };
-        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee['cost'] = feeCost;
             fee['currency'] = code;
         }
-        const type = this.parseTransactionType (this.safeString (depositWithdrawal, 'type'));
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'type': type,
@@ -1491,7 +1491,7 @@ export default class hitbtc extends Exchange {
         //         "id": "d2ce578f-647d-4fa0-b1aa-4a27e5ee597b"
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {

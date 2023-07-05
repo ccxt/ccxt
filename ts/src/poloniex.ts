@@ -63,7 +63,7 @@ export default class poloniex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': 'emulated',
+                'emulated'
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
@@ -1808,7 +1808,7 @@ export default class poloniex extends Exchange {
         //         withdrawalNumber: 13449869
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     async fetchTransactionsHelper (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1915,8 +1915,8 @@ export default class poloniex extends Exchange {
         }
         const withdrawals = this.safeValue (response, 'withdrawals', []);
         const deposits = this.safeValue (response, 'deposits', []);
-        const withdrawalTransactions = this.parseDepositsWithdrawals (withdrawals, currency, since, limit);
-        const depositTransactions = this.parseDepositsWithdrawals (deposits, currency, since, limit);
+        const withdrawalTransactions = this.parseTransactions (withdrawals, currency, since, limit);
+        const depositTransactions = this.parseTransactions (deposits, currency, since, limit);
         const transactions = this.arrayConcat (depositTransactions, withdrawalTransactions);
         return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
@@ -1939,7 +1939,7 @@ export default class poloniex extends Exchange {
             currency = this.currency (code);
         }
         const withdrawals = this.safeValue (response, 'withdrawals', []);
-        const transactions = this.parseDepositsWithdrawals (withdrawals, currency, since, limit);
+        const transactions = this.parseTransactions (withdrawals, currency, since, limit);
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
@@ -2088,7 +2088,7 @@ export default class poloniex extends Exchange {
             currency = this.currency (code);
         }
         const deposits = this.safeValue (response, 'deposits', []);
-        const transactions = this.parseDepositsWithdrawals (deposits, currency, since, limit);
+        const transactions = this.parseTransactions (deposits, currency, since, limit);
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
@@ -2106,7 +2106,7 @@ export default class poloniex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // deposits
         //
@@ -2142,23 +2142,23 @@ export default class poloniex extends Exchange {
         //         "withdrawalRequestsId": 33485231
         //     }
         //
-        const timestamp = this.safeTimestamp (depositWithdrawal, 'timestamp');
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
+        const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        let status = this.safeString (depositWithdrawal, 'status', 'pending');
+        let status = this.safeString (transaction, 'status', 'pending');
         status = this.parseTransactionStatus (status);
-        const txid = this.safeString (depositWithdrawal, 'txid');
-        const type = ('withdrawalRequestsId' in depositWithdrawal) ? 'withdrawal' : 'deposit';
-        const id = this.safeString2 (depositWithdrawal, 'withdrawalRequestsId', 'depositNumber');
-        const address = this.safeString (depositWithdrawal, 'address');
-        const tag = this.safeString (depositWithdrawal, 'paymentID');
-        let amountString = this.safeString (depositWithdrawal, 'amount');
-        const feeCostString = this.safeString (depositWithdrawal, 'fee');
+        const txid = this.safeString (transaction, 'txid');
+        const type = ('withdrawalRequestsId' in transaction) ? 'withdrawal' : 'deposit';
+        const id = this.safeString2 (transaction, 'withdrawalRequestsId', 'depositNumber');
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'paymentID');
+        let amountString = this.safeString (transaction, 'amount');
+        const feeCostString = this.safeString (transaction, 'fee');
         if (type === 'withdrawal') {
             amountString = Precise.stringSub (amountString, feeCostString);
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'currency': code,
             'amount': this.parseNumber (amountString),

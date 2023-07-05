@@ -82,7 +82,7 @@ export default class ascendex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
-                'fetchTransactions': 'emulated',
+                'emulated'
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -2439,8 +2439,8 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const depositsWithdrawals = this.safeValue (data, 'data', []);
-        return this.parseDepositsWithdrawals (depositsWithdrawals, currency, since, limit);
+        const transactions = this.safeValue (data, 'data', []);
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -2453,7 +2453,7 @@ export default class ascendex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         //     {
         //         requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",

@@ -62,7 +62,7 @@ export default class bitfinex2 extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
-                'fetchTransactions': 'emulated',
+                'emulated'
                 'withdraw': true,
             },
             'timeframes': {
@@ -2011,7 +2011,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -2063,7 +2063,7 @@ export default class bitfinex2 extends Exchange {
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
-        const transactionLength = depositWithdrawal.length;
+        const transactionLength = transaction.length;
         let timestamp = undefined;
         let updated = undefined;
         let code = undefined;
@@ -2078,8 +2078,8 @@ export default class bitfinex2 extends Exchange {
         let network = undefined;
         let comment = undefined;
         if (transactionLength === 8) {
-            const data = this.safeValue (depositWithdrawal, 4, []);
-            timestamp = this.safeInteger (depositWithdrawal, 0);
+            const data = this.safeValue (transaction, 4, []);
+            timestamp = this.safeInteger (transaction, 0);
             if (currency !== undefined) {
                 code = currency['code'];
             }
@@ -2097,15 +2097,15 @@ export default class bitfinex2 extends Exchange {
             tag = this.safeString (data, 3);
             type = 'withdrawal';
         } else if (transactionLength === 22) {
-            id = this.safeString (depositWithdrawal, 0);
-            const currencyId = this.safeString (depositWithdrawal, 1);
+            id = this.safeString (transaction, 0);
+            const currencyId = this.safeString (transaction, 1);
             code = this.safeCurrencyCode (currencyId, currency);
-            const networkId = this.safeString (depositWithdrawal, 2);
+            const networkId = this.safeString (transaction, 2);
             network = this.safeNetwork (networkId);
-            timestamp = this.safeInteger (depositWithdrawal, 5);
-            updated = this.safeInteger (depositWithdrawal, 6);
-            status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 9));
-            const signedAmount = this.safeString (depositWithdrawal, 12);
+            timestamp = this.safeInteger (transaction, 5);
+            updated = this.safeInteger (transaction, 6);
+            status = this.parseTransactionStatus (this.safeString (transaction, 9));
+            const signedAmount = this.safeString (transaction, 12);
             amount = Precise.stringAbs (signedAmount);
             if (signedAmount !== undefined) {
                 if (Precise.stringLt (signedAmount, '0')) {
@@ -2114,16 +2114,16 @@ export default class bitfinex2 extends Exchange {
                     type = 'deposit';
                 }
             }
-            feeCost = this.safeString (depositWithdrawal, 13);
+            feeCost = this.safeString (transaction, 13);
             if (feeCost !== undefined) {
                 feeCost = Precise.stringAbs (feeCost);
             }
-            addressTo = this.safeString (depositWithdrawal, 16);
-            txid = this.safeString (depositWithdrawal, 20);
-            comment = this.safeString (depositWithdrawal, 21);
+            addressTo = this.safeString (transaction, 16);
+            txid = this.safeString (transaction, 20);
+            comment = this.safeString (transaction, 21);
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'type': type,
@@ -2316,7 +2316,7 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseDepositsWithdrawals (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -2403,7 +2403,7 @@ export default class bitfinex2 extends Exchange {
         if (text !== 'success') {
             this.throwBroadlyMatchedException (this.exceptions['broad'], text, text);
         }
-        const transaction = this.parseDepositWithdrawal (response, currency);
+        const transaction = this.parseTransaction (response, currency);
         return this.extend (transaction, {
             'address': address,
         });

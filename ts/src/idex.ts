@@ -1391,7 +1391,7 @@ export default class idex extends Exchange {
         //         txId: null
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     async cancelAllOrders (symbol: string = undefined, params = {}) {
@@ -1505,7 +1505,7 @@ export default class idex extends Exchange {
             'depositId': id,
         };
         const response = await this.privateGetDeposits (this.extend (request, params));
-        return this.parseDepositWithdrawal (response, code);
+        return this.parseTransaction (response, code);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1558,7 +1558,7 @@ export default class idex extends Exchange {
             'withdrawalId': id,
         };
         const response = await this.privateGetWithdrawals (this.extend (request, params));
-        return this.parseDepositWithdrawal (response, code);
+        return this.parseTransaction (response, code);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1609,7 +1609,7 @@ export default class idex extends Exchange {
         const method = params['method'];
         params = this.omit (params, 'method');
         const response = await this[method] (this.extend (request, params));
-        return this.parseDepositsWithdrawals (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -1619,7 +1619,7 @@ export default class idex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -1659,29 +1659,29 @@ export default class idex extends Exchange {
         //     }
         //
         let type = undefined;
-        if ('depositId' in depositWithdrawal) {
+        if ('depositId' in transaction) {
             type = 'deposit';
-        } else if (('withdrawId' in depositWithdrawal) || ('withdrawalId' in depositWithdrawal)) {
+        } else if (('withdrawId' in transaction) || ('withdrawalId' in transaction)) {
             type = 'withdrawal';
         }
-        let id = this.safeString2 (depositWithdrawal, 'depositId', 'withdrawId');
-        id = this.safeString (depositWithdrawal, 'withdrawalId', id);
-        const code = this.safeCurrencyCode (this.safeString (depositWithdrawal, 'asset'), currency);
-        const amount = this.safeNumber (depositWithdrawal, 'quantity');
-        const txid = this.safeString (depositWithdrawal, 'txId');
-        const timestamp = this.safeInteger2 (depositWithdrawal, 'txTime', 'time');
+        let id = this.safeString2 (transaction, 'depositId', 'withdrawId');
+        id = this.safeString (transaction, 'withdrawalId', id);
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
+        const amount = this.safeNumber (transaction, 'quantity');
+        const txid = this.safeString (transaction, 'txId');
+        const timestamp = this.safeInteger2 (transaction, 'txTime', 'time');
         let fee = undefined;
-        if ('fee' in depositWithdrawal) {
+        if ('fee' in transaction) {
             fee = {
-                'cost': this.safeNumber (depositWithdrawal, 'fee'),
+                'cost': this.safeNumber (transaction, 'fee'),
                 'currency': 'ETH',
             };
         }
-        const rawStatus = this.safeString (depositWithdrawal, 'txStatus');
+        const rawStatus = this.safeString (transaction, 'txStatus');
         const status = this.parseTransactionStatus (rawStatus);
-        const updated = this.safeInteger (depositWithdrawal, 'confirmationTime');
+        const updated = this.safeInteger (transaction, 'confirmationTime');
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,

@@ -2714,7 +2714,7 @@ export default class okcoin extends Exchange {
         //         "result":true
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2738,7 +2738,7 @@ export default class okcoin extends Exchange {
             method += 'Currency';
         }
         const response = await this[method] (this.extend (request, params));
-        return this.parseDepositsWithdrawals (response, currency, since, limit, params);
+        return this.parseTransactions (response, currency, since, limit, params);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2762,7 +2762,7 @@ export default class okcoin extends Exchange {
             method += 'Currency';
         }
         const response = await this[method] (this.extend (request, params));
-        return this.parseDepositsWithdrawals (response, currency, since, limit, params);
+        return this.parseTransactions (response, currency, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -2803,7 +2803,7 @@ export default class okcoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -2845,32 +2845,32 @@ export default class okcoin extends Exchange {
         let type = undefined;
         let id = undefined;
         let address = undefined;
-        const withdrawalId = this.safeString (depositWithdrawal, 'withdrawal_id');
-        const addressFrom = this.safeString (depositWithdrawal, 'from');
-        const addressTo = this.safeString (depositWithdrawal, 'to');
-        const tagTo = this.safeString (depositWithdrawal, 'tag');
+        const withdrawalId = this.safeString (transaction, 'withdrawal_id');
+        const addressFrom = this.safeString (transaction, 'from');
+        const addressTo = this.safeString (transaction, 'to');
+        const tagTo = this.safeString (transaction, 'tag');
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
             address = addressTo;
         } else {
             // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-            id = this.safeString2 (depositWithdrawal, 'payment_id', 'deposit_id');
+            id = this.safeString2 (transaction, 'payment_id', 'deposit_id');
             type = 'deposit';
             address = addressTo;
         }
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
-        const txid = this.safeString (depositWithdrawal, 'txid');
-        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'timestamp'));
+        const amount = this.safeNumber (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const txid = this.safeString (transaction, 'txid');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
         let feeCost = undefined;
         if (type === 'deposit') {
             feeCost = 0;
         } else {
             if (currencyId !== undefined) {
-                const feeWithCurrencyId = this.safeString (depositWithdrawal, 'fee');
+                const feeWithCurrencyId = this.safeString (transaction, 'fee');
                 if (feeWithCurrencyId !== undefined) {
                     // https://github.com/ccxt/ccxt/pull/5748
                     const lowercaseCurrencyId = currencyId.toLowerCase ();
@@ -2881,7 +2881,7 @@ export default class okcoin extends Exchange {
         }
         // todo parse tags
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,

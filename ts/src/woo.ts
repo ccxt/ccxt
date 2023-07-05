@@ -83,7 +83,7 @@ export default class woo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': 'emulated',
+                'emulated'
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -1871,39 +1871,39 @@ export default class woo extends Exchange {
         //         "success":true
         //     }
         //
-        return this.parseDepositsWithdrawals (rows, currency, since, limit, params);
+        return this.parseTransactions (rows, currency, since, limit, params);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         // example in fetchLedger
-        const networkizedCode = this.safeString (depositWithdrawal, 'token');
+        const networkizedCode = this.safeString (transaction, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
-        let movementDirection = this.safeStringLower (depositWithdrawal, 'token_side');
+        let movementDirection = this.safeStringLower (transaction, 'token_side');
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        const fee = this.parseTokenAndFeeTemp (depositWithdrawal, 'fee_token', 'fee_amount');
-        const addressTo = this.safeString (depositWithdrawal, 'target_address');
-        const addressFrom = this.safeString (depositWithdrawal, 'source_address');
-        const timestamp = this.safeTimestamp (depositWithdrawal, 'created_time');
+        const fee = this.parseTokenAndFeeTemp (transaction, 'fee_token', 'fee_amount');
+        const addressTo = this.safeString (transaction, 'target_address');
+        const addressFrom = this.safeString (transaction, 'source_address');
+        const timestamp = this.safeTimestamp (transaction, 'created_time');
         return {
-            'info': depositWithdrawal,
-            'id': this.safeString2 (depositWithdrawal, 'id', 'withdraw_id'),
-            'txid': this.safeString (depositWithdrawal, 'tx_id'),
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'id', 'withdraw_id'),
+            'txid': this.safeString (transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'tag': this.safeString (depositWithdrawal, 'extra'),
+            'tag': this.safeString (transaction, 'extra'),
             'tagFrom': undefined,
             'tagTo': undefined,
             'type': movementDirection,
-            'amount': this.safeNumber (depositWithdrawal, 'amount'),
+            'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
-            'status': this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status')),
-            'updated': this.safeTimestamp (depositWithdrawal, 'updated_time'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': this.safeTimestamp (transaction, 'updated_time'),
             'comment': undefined,
             'fee': fee,
         };
@@ -2090,7 +2090,7 @@ export default class woo extends Exchange {
         //         "withdraw_id": "20200119145703654"
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {

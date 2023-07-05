@@ -1168,7 +1168,7 @@ export default class bitpanda extends Exchange {
         //     }
         //
         const depositHistory = this.safeValue (response, 'deposit_history', []);
-        return this.parseDepositsWithdrawals (depositHistory, currency, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (depositHistory, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1234,7 +1234,7 @@ export default class bitpanda extends Exchange {
         //     }
         //
         const withdrawalHistory = this.safeValue (response, 'withdrawal_history', []);
-        return this.parseDepositsWithdrawals (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -1295,10 +1295,10 @@ export default class bitpanda extends Exchange {
         //         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits, fetchWithdrawals
         //
@@ -1335,18 +1335,18 @@ export default class bitpanda extends Exchange {
         //         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
         //     }
         //
-        const id = this.safeString (depositWithdrawal, 'transaction_id');
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
-        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'time'));
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const id = this.safeString (transaction, 'transaction_id');
+        const amount = this.safeNumber (transaction, 'amount');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
+        const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const status = 'ok'; // the exchange returns cleared transactions only
-        const feeCost = this.safeNumber2 (depositWithdrawal, 'fee_amount', 'fee');
+        const feeCost = this.safeNumber2 (transaction, 'fee_amount', 'fee');
         let fee = undefined;
-        const addressTo = this.safeString (depositWithdrawal, 'recipient');
-        const tagTo = this.safeString (depositWithdrawal, 'destination_tag');
+        const addressTo = this.safeString (transaction, 'recipient');
+        const tagTo = this.safeString (transaction, 'destination_tag');
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (depositWithdrawal, 'fee_currency', currencyId);
+            const feeCurrencyId = this.safeString (transaction, 'fee_currency', currencyId);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
@@ -1354,7 +1354,7 @@ export default class bitpanda extends Exchange {
             };
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'currency': currency['code'],
             'amount': amount,
@@ -1368,7 +1368,7 @@ export default class bitpanda extends Exchange {
             'status': status,
             'type': undefined,
             'updated': undefined,
-            'txid': this.safeString (depositWithdrawal, 'blockchain_transaction_id'),
+            'txid': this.safeString (transaction, 'blockchain_transaction_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,

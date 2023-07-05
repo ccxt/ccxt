@@ -1654,7 +1654,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1704,7 +1704,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseDepositsWithdrawals (data, currency);
+        return this.parseTransactions (data, currency);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -1723,7 +1723,7 @@ export default class bitrue extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -1784,10 +1784,10 @@ export default class bitrue extends Exchange {
         //         "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         //     }
         //
-        const id = this.safeString2 (depositWithdrawal, 'id', 'withdrawId');
-        const tagType = this.safeString (depositWithdrawal, 'tagType');
-        let addressTo = this.safeString (depositWithdrawal, 'addressTo');
-        let addressFrom = this.safeString (depositWithdrawal, 'addressFrom');
+        const id = this.safeString2 (transaction, 'id', 'withdrawId');
+        const tagType = this.safeString (transaction, 'tagType');
+        let addressTo = this.safeString (transaction, 'addressTo');
+        let addressFrom = this.safeString (transaction, 'addressFrom');
         let tagTo = undefined;
         let tagFrom = undefined;
         if (tagType !== undefined) {
@@ -1802,16 +1802,16 @@ export default class bitrue extends Exchange {
                 tagFrom = this.safeString (parts, 1);
             }
         }
-        const txid = this.safeString (depositWithdrawal, 'txid');
-        const timestamp = this.safeInteger (depositWithdrawal, 'createdAt');
-        const updated = this.safeInteger (depositWithdrawal, 'updatedAt');
-        const payAmount = ('payAmount' in depositWithdrawal);
-        const ctime = ('ctime' in depositWithdrawal);
+        const txid = this.safeString (transaction, 'txid');
+        const timestamp = this.safeInteger (transaction, 'createdAt');
+        const updated = this.safeInteger (transaction, 'updatedAt');
+        const payAmount = ('payAmount' in transaction);
+        const ctime = ('ctime' in transaction);
         const type = (payAmount || ctime) ? 'withdrawal' : 'deposit';
-        const status = this.parseTransactionStatusByType (this.safeString (depositWithdrawal, 'status'), type);
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
+        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        const amount = this.safeNumber (transaction, 'amount');
         let network = undefined;
-        let currencyId = this.safeString2 (depositWithdrawal, 'symbol', 'coin');
+        let currencyId = this.safeString2 (transaction, 'symbol', 'coin');
         if (currencyId !== undefined) {
             const parts = currencyId.split ('_');
             currencyId = this.safeString (parts, 0);
@@ -1821,13 +1821,13 @@ export default class bitrue extends Exchange {
             }
         }
         const code = this.safeCurrencyCode (currencyId, currency);
-        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -1907,7 +1907,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseDepositWithdrawal (data, currency);
+        return this.parseTransaction (data, currency);
     }
 
     parseDepositWithdrawFee (fee, currency = undefined) {

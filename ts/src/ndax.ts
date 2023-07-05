@@ -2061,9 +2061,9 @@ export default class ndax extends Exchange {
         //    ]"
         //
         if (typeof response === 'string') {
-            return this.parseDepositsWithdrawals (JSON.parse (response), currency, since, limit);
+            return this.parseTransactions (JSON.parse (response), currency, since, limit);
         }
-        return this.parseDepositsWithdrawals (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2116,7 +2116,7 @@ export default class ndax extends Exchange {
         //         },
         //     ]
         //
-        return this.parseDepositsWithdrawals (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -2168,7 +2168,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -2220,31 +2220,31 @@ export default class ndax extends Exchange {
         //     }
         //
         let id = undefined;
-        const currencyId = this.safeString (depositWithdrawal, 'ProductId');
+        const currencyId = this.safeString (transaction, 'ProductId');
         const code = this.safeCurrencyCode (currencyId, currency);
         let type = undefined;
-        if ('DepositId' in depositWithdrawal) {
-            id = this.safeString (depositWithdrawal, 'DepositId');
+        if ('DepositId' in transaction) {
+            id = this.safeString (transaction, 'DepositId');
             type = 'deposit';
-        } else if ('WithdrawId' in depositWithdrawal) {
-            id = this.safeString (depositWithdrawal, 'WithdrawId');
+        } else if ('WithdrawId' in transaction) {
+            id = this.safeString (transaction, 'WithdrawId');
             type = 'withdrawal';
         }
-        const templateForm = this.parseJson (this.safeValue2 (depositWithdrawal, 'TemplateForm', 'DepositInfo'));
-        let updated = this.safeInteger (depositWithdrawal, 'LastUpdateTimeStamp');
+        const templateForm = this.parseJson (this.safeValue2 (transaction, 'TemplateForm', 'DepositInfo'));
+        let updated = this.safeInteger (transaction, 'LastUpdateTimeStamp');
         if (templateForm !== undefined) {
             updated = this.safeInteger (templateForm, 'LastUpdated', updated);
         }
         const address = this.safeString2 (templateForm, 'ExternalAddress', 'ToAddress');
         const timestamp = this.safeInteger (templateForm, 'TimeSubmitted');
-        const feeCost = this.safeNumber (depositWithdrawal, 'FeeAmount');
-        const transactionStatus = this.safeString (depositWithdrawal, 'TicketStatus');
+        const feeCost = this.safeNumber (transaction, 'FeeAmount');
+        const transactionStatus = this.safeString (transaction, 'TicketStatus');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': this.safeString2 (templateForm, 'TxId', 'TXId'),
             'timestamp': timestamp,
@@ -2256,7 +2256,7 @@ export default class ndax extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': this.safeNumber (depositWithdrawal, 'Amount'),
+            'amount': this.safeNumber (transaction, 'Amount'),
             'currency': code,
             'status': this.parseTransactionStatusByType (transactionStatus, type),
             'updated': updated,
@@ -2357,7 +2357,7 @@ export default class ndax extends Exchange {
             'Payload': this.json (withdrawPayload),
         };
         const response = await this.privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {

@@ -77,7 +77,7 @@ export default class hitbtc3 extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTransactions': 'emulated',
+                'emulated'
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
@@ -1064,7 +1064,7 @@ export default class hitbtc3 extends Exchange {
         //       }
         //     ]
         //
-        return this.parseDepositsWithdrawals (response, currency, since, limit, params);
+        return this.parseTransactions (response, currency, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -1084,7 +1084,7 @@ export default class hitbtc3 extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // transaction
         //
@@ -1116,12 +1116,12 @@ export default class hitbtc3 extends Exchange {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        const id = this.safeString (depositWithdrawal, 'id');
-        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'created_at'));
-        const updated = this.parse8601 (this.safeString (depositWithdrawal, 'updated_at'));
-        const type = this.parseTransactionType (this.safeString (depositWithdrawal, 'type'));
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
-        const native = this.safeValue (depositWithdrawal, 'native', {});
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const native = this.safeValue (transaction, 'native', {});
         const currencyId = this.safeString (native, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const txhash = this.safeString (native, 'hash');
@@ -1143,7 +1143,7 @@ export default class hitbtc3 extends Exchange {
             fee['cost'] = feeCost;
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txhash,
             'type': type,
@@ -2138,7 +2138,7 @@ export default class hitbtc3 extends Exchange {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

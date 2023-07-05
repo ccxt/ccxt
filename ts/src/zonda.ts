@@ -1751,10 +1751,10 @@ export default class zonda extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseDepositWithdrawal (data, currency);
+        return this.parseTransaction (data, currency);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -1764,7 +1764,7 @@ export default class zonda extends Exchange {
         //
         currency = this.safeCurrency (undefined, currency);
         return {
-            'id': this.safeString (depositWithdrawal, 'id'),
+            'id': this.safeString (transaction, 'id'),
             'txid': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1782,7 +1782,7 @@ export default class zonda extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'fee': undefined,
-            'info': depositWithdrawal,
+            'info': transaction,
         };
     }
 

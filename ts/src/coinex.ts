@@ -3784,8 +3784,8 @@ export default class coinex extends Exchange {
         //         "message": "Ok"
         //     }
         //
-        const depositWithdrawal = this.safeValue (response, 'data', {});
-        return this.parseDepositWithdrawal (depositWithdrawal, currency);
+        const transaction = this.safeValue (response, 'data', {});
+        return this.parseTransaction (transaction, currency);
     }
 
     parseTransactionStatus (status) {
@@ -3867,7 +3867,7 @@ export default class coinex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
@@ -3921,28 +3921,28 @@ export default class coinex extends Exchange {
         //        "tx_id": "a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9"
         //    }
         //
-        const id = this.safeString2 (depositWithdrawal, 'coin_withdraw_id', 'coin_deposit_id');
-        const address = this.safeString (depositWithdrawal, 'coin_address');
-        let tag = this.safeString (depositWithdrawal, 'remark'); // set but unused
+        const id = this.safeString2 (transaction, 'coin_withdraw_id', 'coin_deposit_id');
+        const address = this.safeString (transaction, 'coin_address');
+        let tag = this.safeString (transaction, 'remark'); // set but unused
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;
             }
         }
-        let txid = this.safeValue (depositWithdrawal, 'tx_id');
+        let txid = this.safeValue (transaction, 'tx_id');
         if (txid !== undefined) {
             if (txid.length < 1) {
                 txid = undefined;
             }
         }
-        const currencyId = this.safeString (depositWithdrawal, 'coin_type');
+        const currencyId = this.safeString (transaction, 'coin_type');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeTimestamp (depositWithdrawal, 'create_time');
-        const type = ('coin_withdraw_id' in depositWithdrawal) ? 'withdrawal' : 'deposit';
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
-        const networkId = this.safeString (depositWithdrawal, 'smart_contract_name');
-        const amount = this.safeNumber (depositWithdrawal, 'actual_amount');
-        let feeCost = this.safeString (depositWithdrawal, 'tx_fee');
+        const timestamp = this.safeTimestamp (transaction, 'create_time');
+        const type = ('coin_withdraw_id' in transaction) ? 'withdrawal' : 'deposit';
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const networkId = this.safeString (transaction, 'smart_contract_name');
+        const amount = this.safeNumber (transaction, 'actual_amount');
+        let feeCost = this.safeString (transaction, 'tx_fee');
         let addressTo = undefined;
         let addressFrom = undefined;
         if (type === 'deposit') {
@@ -3956,7 +3956,7 @@ export default class coinex extends Exchange {
             'currency': code,
         };
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -4237,7 +4237,7 @@ export default class coinex extends Exchange {
         if (!Array.isArray (data)) {
             data = this.safeValue (data, 'data', []);
         }
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4304,7 +4304,7 @@ export default class coinex extends Exchange {
         if (!Array.isArray (data)) {
             data = this.safeValue (data, 'data', []);
         }
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseBorrowRate (info, currency = undefined) {

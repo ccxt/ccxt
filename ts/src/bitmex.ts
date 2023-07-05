@@ -1231,8 +1231,8 @@ export default class bitmex extends Exchange {
             request['count'] = limit;
         }
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
-        const depositsWithdrawals = this.filterByArray (response, 'transactType', [ 'Withdrawal', 'Deposit' ], false);
-        return this.parseDepositsWithdrawals (depositsWithdrawals, currency, since, limit);
+        const transactions = this.filterByArray (response, 'transactType', [ 'Withdrawal', 'Deposit' ], false);
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -1244,7 +1244,7 @@ export default class bitmex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         //    {
         //        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
@@ -1264,40 +1264,40 @@ export default class bitmex extends Exchange {
         //        'timestamp': '2019-01-02T13:00:00.000Z'
         //    }
         //
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
         // For withdrawals, transactTime is submission, timestamp is processed
-        const transactTime = this.parse8601 (this.safeString (depositWithdrawal, 'transactTime'));
-        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'timestamp'));
-        const type = this.safeStringLower (depositWithdrawal, 'transactType');
+        const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
+        const type = this.safeStringLower (transaction, 'transactType');
         // Deposits have no from address or to address, withdrawals have both
         let address = undefined;
         let addressFrom = undefined;
         let addressTo = undefined;
         if (type === 'withdrawal') {
-            address = this.safeString (depositWithdrawal, 'address');
-            addressFrom = this.safeString (depositWithdrawal, 'tx');
+            address = this.safeString (transaction, 'address');
+            addressFrom = this.safeString (transaction, 'tx');
             addressTo = address;
         } else if (type === 'deposit') {
-            addressTo = this.safeString (depositWithdrawal, 'address');
-            addressFrom = this.safeString (depositWithdrawal, 'tx');
+            addressTo = this.safeString (transaction, 'address');
+            addressFrom = this.safeString (transaction, 'tx');
         }
-        const amountString = this.safeString (depositWithdrawal, 'amount');
+        const amountString = this.safeString (transaction, 'amount');
         const amount = this.convertToRealAmount (currency['code'], amountString);
-        const feeCostString = this.safeString (depositWithdrawal, 'fee');
+        const feeCostString = this.safeString (transaction, 'fee');
         const feeCost = this.convertToRealAmount (currency['code'], feeCostString);
-        let status = this.safeString (depositWithdrawal, 'transactStatus');
+        let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
         return {
-            'info': depositWithdrawal,
-            'id': this.safeString (depositWithdrawal, 'transactID'),
-            'txid': this.safeString (depositWithdrawal, 'tx'),
+            'info': transaction,
+            'id': this.safeString (transaction, 'transactID'),
+            'txid': this.safeString (transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': this.safeString (depositWithdrawal, 'network'),
+            'network': this.safeString (transaction, 'network'),
             'amount': amount,
             'status': status,
             'timestamp': transactTime,
@@ -2291,7 +2291,7 @@ export default class bitmex extends Exchange {
         //         "timestamp": "2022-12-16T07:37:06.500Z",
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     async fetchFundingRates (symbols: string[] = undefined, params = {}) {

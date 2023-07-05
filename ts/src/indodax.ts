@@ -76,7 +76,7 @@ export default class indodax extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
                 'fetchTransactionFees': false,
-                'fetchTransactions': 'emulated',
+                'emulated'
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -880,26 +880,26 @@ export default class indodax extends Exchange {
         const data = this.safeValue (response, 'return', {});
         const withdraw = this.safeValue (data, 'withdraw', {});
         const deposit = this.safeValue (data, 'deposit', {});
-        let depositsWithdrawals = [];
+        let transactions = [];
         let currency = undefined;
         if (code === undefined) {
             let keys = Object.keys (withdraw);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                depositsWithdrawals = this.arrayConcat (depositsWithdrawals, withdraw[key]);
+                transactions = this.arrayConcat (transactions, withdraw[key]);
             }
             keys = Object.keys (deposit);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                depositsWithdrawals = this.arrayConcat (depositsWithdrawals, deposit[key]);
+                transactions = this.arrayConcat (transactions, deposit[key]);
             }
         } else {
             currency = this.currency (code);
             const withdraws = this.safeValue (withdraw, currency['id'], []);
             const deposits = this.safeValue (deposit, currency['id'], []);
-            depositsWithdrawals = this.arrayConcat (withdraws, deposits);
+            transactions = this.arrayConcat (withdraws, deposits);
         }
-        return this.parseDepositsWithdrawals (depositsWithdrawals, currency, since, limit);
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -950,10 +950,10 @@ export default class indodax extends Exchange {
         //         "withdraw_memo": "123123"
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -995,10 +995,10 @@ export default class indodax extends Exchange {
         //         "deposit_id": "3602369",
         //         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
         //     },
-        const status = this.safeString (depositWithdrawal, 'status');
-        const timestamp = this.safeTimestamp2 (depositWithdrawal, 'success_time', 'submit_time');
-        const depositId = this.safeString (depositWithdrawal, 'deposit_id');
-        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
+        const status = this.safeString (transaction, 'status');
+        const timestamp = this.safeTimestamp2 (transaction, 'success_time', 'submit_time');
+        const depositId = this.safeString (transaction, 'deposit_id');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -1008,15 +1008,15 @@ export default class indodax extends Exchange {
             };
         }
         return {
-            'id': this.safeString2 (depositWithdrawal, 'withdraw_id', 'deposit_id'),
-            'txid': this.safeString2 (depositWithdrawal, 'txid', 'tx'),
+            'id': this.safeString2 (transaction, 'withdraw_id', 'deposit_id'),
+            'txid': this.safeString2 (transaction, 'txid', 'tx'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'addressFrom': undefined,
-            'address': this.safeString (depositWithdrawal, 'withdraw_address'),
+            'address': this.safeString (transaction, 'withdraw_address'),
             'addressTo': undefined,
-            'amount': this.safeNumberN (depositWithdrawal, [ 'amount', 'withdraw_amount', 'deposit_amount' ]),
+            'amount': this.safeNumberN (transaction, [ 'amount', 'withdraw_amount', 'deposit_amount' ]),
             'type': (depositId === undefined) ? 'withdraw' : 'deposit',
             'currency': this.safeCurrencyCode (undefined, currency),
             'status': this.parseTransactionStatus (status),
@@ -1024,9 +1024,9 @@ export default class indodax extends Exchange {
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
-            'comment': this.safeString (depositWithdrawal, 'withdraw_memo'),
+            'comment': this.safeString (transaction, 'withdraw_memo'),
             'fee': fee,
-            'info': depositWithdrawal,
+            'info': transaction,
         };
     }
 

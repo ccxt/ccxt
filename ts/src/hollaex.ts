@@ -1471,7 +1471,7 @@ export default class hollaex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
@@ -1518,8 +1518,8 @@ export default class hollaex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const depositWithdrawal = this.safeValue (data, 0, {});
-        return this.parseDepositWithdrawal (depositWithdrawal, currency);
+        const transaction = this.safeValue (data, 0, {});
+        return this.parseTransaction (transaction, currency);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1579,10 +1579,10 @@ export default class hollaex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchWithdrawals, fetchDeposits
         //
@@ -1614,13 +1614,13 @@ export default class hollaex extends Exchange {
         //         fee_coin: 'xht'
         //     }
         //
-        const id = this.safeString (depositWithdrawal, 'id');
-        const txid = this.safeString (depositWithdrawal, 'transaction_id');
-        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'created_at'));
-        const updated = this.parse8601 (this.safeString (depositWithdrawal, 'updated_at'));
-        const type = this.safeString (depositWithdrawal, 'type');
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
-        let address = this.safeString (depositWithdrawal, 'address');
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (transaction, 'transaction_id');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
+        const type = this.safeString (transaction, 'type');
+        const amount = this.safeNumber (transaction, 'amount');
+        let address = this.safeString (transaction, 'address');
         let addressTo = undefined;
         const addressFrom = undefined;
         let tag = undefined;
@@ -1633,11 +1633,11 @@ export default class hollaex extends Exchange {
             addressTo = address;
             tagTo = tag;
         }
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
-        let status = this.safeValue (depositWithdrawal, 'status');
-        const dismissed = this.safeValue (depositWithdrawal, 'dismissed');
-        const rejected = this.safeValue (depositWithdrawal, 'rejected');
+        let status = this.safeValue (transaction, 'status');
+        const dismissed = this.safeValue (transaction, 'dismissed');
+        const rejected = this.safeValue (transaction, 'rejected');
         if (status) {
             status = 'ok';
         } else if (dismissed) {
@@ -1647,9 +1647,9 @@ export default class hollaex extends Exchange {
         } else {
             status = 'pending';
         }
-        const feeCurrencyId = this.safeString (depositWithdrawal, 'fee_coin');
+        const feeCurrencyId = this.safeString (transaction, 'fee_coin');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId, currency);
-        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -1658,7 +1658,7 @@ export default class hollaex extends Exchange {
             };
         }
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -1722,7 +1722,7 @@ export default class hollaex extends Exchange {
         //         fee_coin: 'xht'
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     normalizeNumberIfNeeded (number) {

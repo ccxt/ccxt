@@ -2568,7 +2568,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositsWithdrawals (data, currency, since, limit, { 'type': type });
+        return this.parseTransactions (data, currency, since, limit, { 'type': type });
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2611,7 +2611,7 @@ export default class digifinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -2636,24 +2636,24 @@ export default class digifinex extends Exchange {
         //         "finished_date": "2020-04-20 13:23:00"
         //     }
         //
-        const id = this.safeString2 (depositWithdrawal, 'id', 'withdraw_id');
-        const address = this.safeString (depositWithdrawal, 'address');
-        const tag = this.safeString (depositWithdrawal, 'memo');
-        const txid = this.safeString (depositWithdrawal, 'hash');
-        const currencyId = this.safeStringUpper (depositWithdrawal, 'currency');
+        const id = this.safeString2 (transaction, 'id', 'withdraw_id');
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'memo');
+        const txid = this.safeString (transaction, 'hash');
+        const currencyId = this.safeStringUpper (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'created_date'));
-        const updated = this.parse8601 (this.safeString (depositWithdrawal, 'finished_date'));
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'state'));
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
-        const feeCost = this.safeNumber (depositWithdrawal, 'fee');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_date'));
+        const updated = this.parse8601 (this.safeString (transaction, 'finished_date'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const network = this.safeString (depositWithdrawal, 'chain');
+        const network = this.safeString (transaction, 'chain');
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -2787,7 +2787,7 @@ export default class digifinex extends Exchange {
         //         "withdraw_id": 700
         //     }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

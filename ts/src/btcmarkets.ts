@@ -67,7 +67,7 @@ export default class btcmarkets extends Exchange {
                 'fetchTicker': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactions': 'emulated',
+                'emulated'
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -187,7 +187,7 @@ export default class btcmarkets extends Exchange {
             currency = this.currency (code);
         }
         const response = await this[method] (this.extend (request, params));
-        return this.parseDepositsWithdrawals (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -251,7 +251,7 @@ export default class btcmarkets extends Exchange {
         return this.safeString (statuses, type, type);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         //    {
         //         "id": "6500230339",
@@ -297,13 +297,13 @@ export default class btcmarkets extends Exchange {
         //         "lastUpdate": "2017-07-31T08:50:01.290000Z"
         //     }
         //
-        const timestamp = this.parse8601 (this.safeString (depositWithdrawal, 'creationTime'));
-        const lastUpdate = this.parse8601 (this.safeString (depositWithdrawal, 'lastUpdate'));
-        let type = this.parseTransactionType (this.safeStringLower (depositWithdrawal, 'type'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'creationTime'));
+        const lastUpdate = this.parse8601 (this.safeString (transaction, 'lastUpdate'));
+        let type = this.parseTransactionType (this.safeStringLower (transaction, 'type'));
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        const cryptoPaymentDetail = this.safeValue (depositWithdrawal, 'paymentDetail', {});
+        const cryptoPaymentDetail = this.safeValue (transaction, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let address = this.safeString (cryptoPaymentDetail, 'address');
         let tag = undefined;
@@ -319,16 +319,16 @@ export default class btcmarkets extends Exchange {
         const tagTo = tag;
         const addressFrom = undefined;
         const tagFrom = undefined;
-        const fee = this.safeNumber (depositWithdrawal, 'fee');
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
-        const currencyId = this.safeString (depositWithdrawal, 'assetName');
+        const fee = this.safeNumber (transaction, 'fee');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
-        let amount = this.safeNumber (depositWithdrawal, 'amount');
+        let amount = this.safeNumber (transaction, 'amount');
         if (fee) {
             amount -= fee;
         }
         return {
-            'id': this.safeString (depositWithdrawal, 'id'),
+            'id': this.safeString (transaction, 'id'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -350,7 +350,7 @@ export default class btcmarkets extends Exchange {
                 'cost': fee,
                 'rate': undefined,
             },
-            'info': depositWithdrawal,
+            'info': transaction,
         };
     }
 
@@ -1191,7 +1191,7 @@ export default class btcmarkets extends Exchange {
         //          }
         //      }
         //
-        return this.parseDepositWithdrawal (response, currency);
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {

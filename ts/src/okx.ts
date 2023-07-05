@@ -4123,8 +4123,8 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const depositWithdrawal = this.safeValue (data, 0);
-        return this.parseDepositWithdrawal (depositWithdrawal, currency);
+        const transaction = this.safeValue (data, 0);
+        return this.parseTransaction (transaction, currency);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4198,7 +4198,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositsWithdrawals (data, currency, since, limit, params);
+        return this.parseTransactions (data, currency, since, limit, params);
     }
 
     async fetchDeposit (id: string, code: string = undefined, params = {}) {
@@ -4224,7 +4224,7 @@ export default class okx extends Exchange {
         const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const deposit = this.safeValue (data, 0, {});
-        return this.parseDepositWithdrawal (deposit, currency);
+        return this.parseTransaction (deposit, currency);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4290,7 +4290,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositsWithdrawals (data, currency, since, limit, params);
+        return this.parseTransactions (data, currency, since, limit, params);
     }
 
     async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
@@ -4337,7 +4337,7 @@ export default class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const withdrawal = this.safeValue (data, 0, {});
-        return this.parseDepositWithdrawal (withdrawal);
+        return this.parseTransaction (withdrawal);
     }
 
     parseTransactionStatus (status) {
@@ -4378,7 +4378,7 @@ export default class okx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -4420,35 +4420,35 @@ export default class okx extends Exchange {
         //
         let type = undefined;
         let id = undefined;
-        const withdrawalId = this.safeString (depositWithdrawal, 'wdId');
-        const addressFrom = this.safeString (depositWithdrawal, 'from');
-        const addressTo = this.safeString (depositWithdrawal, 'to');
+        const withdrawalId = this.safeString (transaction, 'wdId');
+        const addressFrom = this.safeString (transaction, 'from');
+        const addressTo = this.safeString (transaction, 'to');
         const address = addressTo;
-        let tagTo = this.safeString2 (depositWithdrawal, 'tag', 'memo');
-        tagTo = this.safeString2 (depositWithdrawal, 'pmtId', tagTo);
+        let tagTo = this.safeString2 (transaction, 'tag', 'memo');
+        tagTo = this.safeString2 (transaction, 'pmtId', tagTo);
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
         } else {
             // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-            id = this.safeString (depositWithdrawal, 'depId');
+            id = this.safeString (transaction, 'depId');
             type = 'deposit';
         }
-        const currencyId = this.safeString (depositWithdrawal, 'ccy');
+        const currencyId = this.safeString (transaction, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeNumber (depositWithdrawal, 'amt');
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'state'));
-        const txid = this.safeString (depositWithdrawal, 'txId');
-        const timestamp = this.safeInteger (depositWithdrawal, 'ts');
+        const amount = this.safeNumber (transaction, 'amt');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const txid = this.safeString (transaction, 'txId');
+        const timestamp = this.safeInteger (transaction, 'ts');
         let feeCost = undefined;
         if (type === 'deposit') {
             feeCost = 0;
         } else {
-            feeCost = this.safeNumber (depositWithdrawal, 'fee');
+            feeCost = this.safeNumber (transaction, 'fee');
         }
         // todo parse tags
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,

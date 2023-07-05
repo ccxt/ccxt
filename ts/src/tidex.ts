@@ -936,10 +936,10 @@ export default class tidex extends Exchange {
         //
         const result = this.safeValue (response, 'return', {});
         const withdrawInfo = this.safeValue (result, 'withdraw_info', {});
-        return this.parseDepositWithdrawal (withdrawInfo, currency);
+        return this.parseTransaction (withdrawInfo, currency);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         //     {
         //         "id":1111,
@@ -960,7 +960,7 @@ export default class tidex extends Exchange {
         //
         currency = this.safeCurrency (undefined, currency);
         return {
-            'id': this.safeString (depositWithdrawal, 'id'),
+            'id': this.safeString (transaction, 'id'),
             'txid': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -978,7 +978,7 @@ export default class tidex extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'fee': undefined,
-            'info': depositWithdrawal,
+            'info': transaction,
         };
     }
 

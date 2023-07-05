@@ -54,7 +54,7 @@ export default class latoken extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchTransactions': 'emulated',
+                'emulated'
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'transfer': true,
@@ -1338,10 +1338,10 @@ export default class latoken extends Exchange {
             currency = this.currency (code);
         }
         const content = this.safeValue (response, 'content', []);
-        return this.parseDepositsWithdrawals (content, currency, since, limit);
+        return this.parseTransactions (content, currency, since, limit);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         //     {
         //         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
@@ -1360,29 +1360,29 @@ export default class latoken extends Exchange {
         //         "requiresCode":false
         //     }
         //
-        const id = this.safeString (depositWithdrawal, 'id');
-        const timestamp = this.safeInteger (depositWithdrawal, 'timestamp');
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
-        const amount = this.safeNumber (depositWithdrawal, 'amount');
-        const addressFrom = this.safeString (depositWithdrawal, 'senderAddress');
-        const addressTo = this.safeString (depositWithdrawal, 'recipientAddress');
-        const txid = this.safeString (depositWithdrawal, 'transactionHash');
-        const tagTo = this.safeString (depositWithdrawal, 'memo');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeNumber (transaction, 'amount');
+        const addressFrom = this.safeString (transaction, 'senderAddress');
+        const addressTo = this.safeString (transaction, 'recipientAddress');
+        const txid = this.safeString (transaction, 'transactionHash');
+        const tagTo = this.safeString (transaction, 'memo');
         const fee = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
         };
-        const feeCost = this.safeNumber (depositWithdrawal, 'transactionFee');
+        const feeCost = this.safeNumber (transaction, 'transactionFee');
         if (feeCost !== undefined) {
             fee['cost'] = feeCost;
             fee['currency'] = code;
         }
-        const type = this.parseTransactionType (this.safeString (depositWithdrawal, 'type'));
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,

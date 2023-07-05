@@ -3164,7 +3164,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3205,7 +3205,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseDepositsWithdrawals (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -3216,7 +3216,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -3252,16 +3252,16 @@ export default class phemex extends Exchange {
         //         "withdrawStatus: ""
         //     }
         //
-        const id = this.safeString (depositWithdrawal, 'id');
-        const address = this.safeString (depositWithdrawal, 'address');
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
         const tag = undefined;
-        const txid = this.safeString (depositWithdrawal, 'txHash');
-        const currencyId = this.safeString (depositWithdrawal, 'currency');
+        const txid = this.safeString (transaction, 'txHash');
+        const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
-        const timestamp = this.safeInteger2 (depositWithdrawal, 'createdAt', 'submitedAt');
-        let type = this.safeStringLower (depositWithdrawal, 'type');
-        const feeCost = this.parseNumber (this.fromEn (this.safeString (depositWithdrawal, 'feeEv'), currency['valueScale']));
+        const timestamp = this.safeInteger2 (transaction, 'createdAt', 'submitedAt');
+        let type = this.safeStringLower (transaction, 'type');
+        const feeCost = this.parseNumber (this.fromEn (this.safeString (transaction, 'feeEv'), currency['valueScale']));
         let fee = undefined;
         if (feeCost !== undefined) {
             type = 'withdrawal';
@@ -3270,10 +3270,10 @@ export default class phemex extends Exchange {
                 'currency': code,
             };
         }
-        const status = this.parseTransactionStatus (this.safeString (depositWithdrawal, 'status'));
-        const amount = this.parseNumber (this.fromEn (this.safeString (depositWithdrawal, 'amountEv'), currency['valueScale']));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.parseNumber (this.fromEn (this.safeString (transaction, 'amountEv'), currency['valueScale']));
         return {
-            'info': depositWithdrawal,
+            'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,

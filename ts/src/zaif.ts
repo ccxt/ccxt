@@ -657,10 +657,10 @@ export default class zaif extends Exchange {
         //     }
         //
         const returnData = this.safeValue (result, 'return');
-        return this.parseDepositWithdrawal (returnData, currency);
+        return this.parseTransaction (returnData, currency);
     }
 
-    parseDepositWithdrawal (depositWithdrawal, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         //     {
         //         "id": 23634,
@@ -676,7 +676,7 @@ export default class zaif extends Exchange {
         //
         currency = this.safeCurrency (undefined, currency);
         let fee = undefined;
-        const feeCost = this.safeValue (depositWithdrawal, 'fee');
+        const feeCost = this.safeValue (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -684,8 +684,8 @@ export default class zaif extends Exchange {
             };
         }
         return {
-            'id': this.safeString (depositWithdrawal, 'id'),
-            'txid': this.safeString (depositWithdrawal, 'txid'),
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
             'timestamp': undefined,
             'datetime': undefined,
             'network': undefined,
@@ -702,7 +702,7 @@ export default class zaif extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'fee': fee,
-            'info': depositWithdrawal,
+            'info': transaction,
         };
     }
 
