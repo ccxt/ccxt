@@ -4076,24 +4076,14 @@ export default class mexc extends Exchange {
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
-        //
-        //     {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
-        //     {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
-        //     {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
-        //     {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
-        //     {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
-        //
-        //
+        const coin = this.safeString (depositAddress, 'coin');
         const address = this.safeString (depositAddress, 'address');
-        const code = this.safeCurrencyCode (undefined, currency);
-        const networkId = this.safeString (depositAddress, 'chain');
-        const network = this.safeNetwork (networkId);
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': this.safeCurrencyCode (coin, currency),
             'address': address,
-            'tag': undefined,
-            'network': network,
+            'tag': this.safeString2 (depositAddress, 'tag', 'memo'),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'network')),
             'info': depositAddress,
         };
     }
