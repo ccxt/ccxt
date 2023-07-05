@@ -197,6 +197,7 @@ class novadax extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://doc.novadax.com/en-US/#get-current-system-time
          * @param {array} [$params] extra parameters specific to the novadax api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -214,6 +215,7 @@ class novadax extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves $data on all markets for novadax
+         * @see https://doc.novadax.com/en-US/#get-all-supported-trading-symbol
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing $market $data
          */
@@ -351,6 +353,7 @@ class novadax extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://doc.novadax.com/en-US/#get-latest-ticker-for-specific-pair
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the novadax api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -386,6 +389,7 @@ class novadax extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://doc.novadax.com/en-US/#get-latest-tickers-for-all-trading-pairs
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the novadax api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -426,6 +430,7 @@ class novadax extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         * @see https://doc.novadax.com/en-US/#get-$market-depth
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the novadax api endpoint
@@ -546,6 +551,7 @@ class novadax extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://doc.novadax.com/en-US/#get-recent-trades
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -579,6 +585,7 @@ class novadax extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://doc.novadax.com/en-US/#get-kline-$data
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -678,6 +685,7 @@ class novadax extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://doc.novadax.com/en-US/#get-account-balance
          * @param {array} [$params] extra parameters specific to the novadax api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
@@ -703,6 +711,7 @@ class novadax extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://doc.novadax.com/en-US/#order-introduction
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -795,6 +804,7 @@ class novadax extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         * @see https://doc.novadax.com/en-US/#cancel-an-order
          * @param {string} $id order $id
          * @param {string} $symbol not used by novadax cancelOrder ()
          * @param {array} [$params] extra parameters specific to the novadax api endpoint
@@ -821,6 +831,7 @@ class novadax extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         * @see https://doc.novadax.com/en-US/#get-order-details
          * @param {string} $symbol not used by novadax fetchOrder
          * @param {array} [$params] extra parameters specific to the novadax api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -858,6 +869,7 @@ class novadax extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple orders made by the user
+         * @see https://doc.novadax.com/en-US/#get-order-history
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
@@ -916,6 +928,7 @@ class novadax extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
+         * @see https://doc.novadax.com/en-US/#get-order-history
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -931,6 +944,7 @@ class novadax extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
+         * @see https://doc.novadax.com/en-US/#get-order-history
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
@@ -946,6 +960,7 @@ class novadax extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
+         * @see https://doc.novadax.com/en-US/#get-order-match-details
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -1078,6 +1093,7 @@ class novadax extends Exchange {
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
+         * @see https://doc.novadax.com/en-US/#get-sub-account-$transfer
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -1153,6 +1169,7 @@ class novadax extends Exchange {
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
+         * @see https://doc.novadax.com/en-US/#send-cryptocurrencies
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -1185,6 +1202,7 @@ class novadax extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
+         * @see https://doc.novadax.com/en-US/#get-sub-$account-list
          * @param {array} [$params] extra parameters specific to the novadax api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account $type
          */
@@ -1222,6 +1240,7 @@ class novadax extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
+         * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -1237,6 +1256,7 @@ class novadax extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
+         * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -1253,6 +1273,7 @@ class novadax extends Exchange {
         /**
          * @deprecated
          * use fetchDepositsWithdrawals instead
+         * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
          * @param {string} $code unified $currency $code for the $currency of the transactions, default is null
          * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
          * @param {int} [$limit] max number of transactions to return, default is null
@@ -1390,6 +1411,7 @@ class novadax extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://doc.novadax.com/en-US/#get-order-history
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve

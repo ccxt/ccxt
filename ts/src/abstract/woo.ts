@@ -31,7 +31,6 @@ interface Exchange {
     v1PrivateGetClientTradeTid (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetOrderOidTrades (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetClientTrades (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientInfo (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetAssetDeposit (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetAssetHistory (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetSubAccountAll (params?: {}): Promise<implicitReturnType>;
