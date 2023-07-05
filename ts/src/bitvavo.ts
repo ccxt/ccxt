@@ -451,7 +451,8 @@ export default class bitvavo extends Exchange {
             const code = this.safeCurrencyCode (id);
             const networks = {};
             const networksArray = this.safeValue (currency, 'networks', []);
-            const isOneNetwork = (networksArray.length === 1);
+            const networksLength = networksArray.length;
+            const isOneNetwork = (networksLength === 1);
             const deposit = (this.safeValue (currency, 'depositStatus') === 'OK');
             const withdrawal = (this.safeValue (currency, 'withdrawalStatus') === 'OK');
             const active = deposit && withdrawal;
