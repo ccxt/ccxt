@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.okex import okex
+from ccxt.abstract.okex5 import ImplicitAPI
 
 
-class okex5(okex):
+class okex5(okex, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(okex5, self).describe(), {

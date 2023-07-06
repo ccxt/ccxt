@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\ndax as Exchange;
 
 class ndax extends Exchange {
 
@@ -261,7 +262,7 @@ class ndax extends Exchange {
     public function sign_in($params = array ()) {
         /**
          * sign in, must be called prior to using other authenticated methods
-         * @param {array} $params extra parameters specific to the ndax api endpoint
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
          * @return $response from exchange
          */
         $this->check_required_credentials();
@@ -293,9 +294,9 @@ class ndax extends Exchange {
             }
             $this->options['pending2faToken'] = $pending2faToken;
             $request = array(
-                'Code' => $this->oath(),
+                'Code' => $this->totp($this->twofa),
             );
-            $response = $this->publicGetAuthenticate2FA (array_merge($request, $params));
+            $responseInner = $this->publicGetAuthenticate2FA (array_merge($request, $params));
             //
             //     {
             //         "Authenticated" => true,
@@ -303,9 +304,9 @@ class ndax extends Exchange {
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            $sessionToken = $this->safe_string($response, 'SessionToken');
+            $sessionToken = $this->safe_string($responseInner, 'SessionToken');
             $this->options['sessionToken'] = $sessionToken;
-            return $response;
+            return $responseInner;
         }
         return $response;
     }
@@ -313,7 +314,7 @@ class ndax extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {array} $params extra parameters specific to the ndax api endpoint
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
          * @return {array} an associative dictionary of currencies
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
@@ -367,6 +368,7 @@ class ndax extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;
@@ -375,8 +377,8 @@ class ndax extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for ndax
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing $market data
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $request = array(
@@ -530,13 +532,13 @@ class ndax extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -640,12 +642,12 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -712,15 +714,15 @@ class ndax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -728,7 +730,7 @@ class ndax extends Exchange {
         $request = array(
             'omsId' => $omsId,
             'InstrumentId' => $market['id'],
-            'Interval' => $this->timeframes[$timeframe],
+            'Interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->milliseconds();
@@ -924,14 +926,14 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -957,8 +959,8 @@ class ndax extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
         if (!$this->login) {
             throw new AuthenticationError($this->id . ' fetchAccounts() requires exchange.login email credential');
@@ -1010,7 +1012,7 @@ class ndax extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the ndax api endpoint
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
@@ -1133,14 +1135,14 @@ class ndax extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|null} $code unified $currency $code, default is null
-         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         * @param {string} $code unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1288,16 +1290,16 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1312,7 +1314,7 @@ class ndax extends Exchange {
             'InstrumentId' => intval($market['id']),
             'omsId' => $omsId,
             'AccountId' => $accountId,
-            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening $price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             // 'ClientOrderId' => $clientOrderId, // defaults to 0
             // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
             // If order B executes, then order A created by this call is canceled.
@@ -1344,7 +1346,7 @@ class ndax extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
         $this->load_accounts();
@@ -1359,7 +1361,7 @@ class ndax extends Exchange {
             'InstrumentId' => intval($market['id']),
             'omsId' => $omsId,
             'AccountId' => $accountId,
-            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening $price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             // 'ClientOrderId' => $clientOrderId, // defaults to 0
             // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
             // If order B executes, then order A created by this call is canceled.
@@ -1392,14 +1394,14 @@ class ndax extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1426,7 +1428,7 @@ class ndax extends Exchange {
             $request['InstrumentId'] = $market['id'];
         }
         if ($since !== null) {
-            $request['StartTimeStamp'] = intval($since / 1000);
+            $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
         }
         if ($limit !== null) {
             $request['Depth'] = $limit;
@@ -1478,12 +1480,12 @@ class ndax extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
-         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1511,13 +1513,13 @@ class ndax extends Exchange {
         return $response;
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
-         * @param {string|null} $symbol unified $symbol of the $market the $order was made in
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1548,14 +1550,14 @@ class ndax extends Exchange {
         ));
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1625,14 +1627,14 @@ class ndax extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1659,7 +1661,7 @@ class ndax extends Exchange {
             $request['InstrumentId'] = $market['id'];
         }
         if ($since !== null) {
-            $request['StartTimeStamp'] = intval($since / 1000);
+            $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
         }
         if ($limit !== null) {
             $request['Depth'] = $limit;
@@ -1718,12 +1720,12 @@ class ndax extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @param {string|null} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1792,15 +1794,15 @@ class ndax extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
          * @param {string} $id order $id
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades to retrieve
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of $trades to retrieve
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1813,7 +1815,7 @@ class ndax extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array(
-            'OMSId' => intval($omsId),
+            'OMSId' => $this->parse_to_int($omsId),
             // 'AccountId' => $accountId,
             'OrderId' => intval($id),
         );
@@ -1873,12 +1875,12 @@ class ndax extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1945,12 +1947,12 @@ class ndax extends Exchange {
         );
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit address
          * @param {string} $code unified currency $code of the currency for the deposit address
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $request = array(
             'GenerateNewKey' => true,
@@ -1958,14 +1960,15 @@ class ndax extends Exchange {
         return $this->fetch_deposit_address($code, array_merge($request, $params));
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @see https://apidoc.ndax.io/#getdeposits
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] not used by ndax fetchDeposits
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1983,37 +1986,47 @@ class ndax extends Exchange {
         );
         $response = $this->privateGetGetDeposits (array_merge($request, $params));
         //
-        //     array(
-        //         array(
-        //             "OMSId":1,
-        //             "DepositId":44,
-        //             "AccountId":449,
-        //             "SubAccountId":0,
-        //             "ProductId":4,
-        //             "Amount":200.00000000000000000000000000,
-        //             "LastUpdateTimeStamp":637431291261187806,
-        //             "ProductType":"CryptoCurrency",
-        //             "TicketStatus":"FullyProcessed",
-        //             "DepositInfo":"array()",
-        //             "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //             "TicketNumber":71,
-        //             "NotionalProductId":13,
-        //             "NotionalValue":200.00000000000000000000000000,
-        //             "FeeAmount":0.0000000000000000000000000000,
-        //         ),
-        //     )
+        //    "array(
+        //        array(
+        //            "OMSId" => 1,
+        //            "DepositId" => 44,
+        //            "AccountId" => 449,
+        //            "SubAccountId" => 0,
+        //            "ProductId" => 4,
+        //            "Amount" => 200.00000000000000000000000000,
+        //            "LastUpdateTimeStamp" => 637431291261187806,
+        //            "ProductType" => "CryptoCurrency",
+        //            "TicketStatus" => "FullyProcessed",
+        //            "DepositInfo" => "array(
+        //                "AccountProviderId":42,
+        //                "AccountProviderName":"USDT_BSC",
+        //                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        //                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        //                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        //            ),",
+        //            "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //            "TicketNumber" => 71,
+        //            "NotionalProductId" => 13,
+        //            "NotionalValue" => 200.00000000000000000000000000,
+        //            "FeeAmount" => 0.0000000000000000000000000000,
+        //        ),
+        //        ...
+        //    )"
         //
+        if (gettype($response) === 'string') {
+            return $this->parse_transactions(json_decode($response, $as_associative_array = true), $currency, $since, $limit);
+        }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -2098,7 +2111,7 @@ class ndax extends Exchange {
                 'LimitsRejected' => 'rejected', // withdrawal does not meet limits for fiat or crypto asset
                 'Submitted' => 'pending', // withdrawal sent to Account Provider; awaiting blockchain confirmation
                 'Confirmed' => 'pending', // Account Provider confirms that withdrawal is on the blockchain
-                'ManuallyConfirmed' => 'pending', // admin has sent withdrawal via wallet or admin function directly; marks ticket as FullyProcessed; debits account
+                'ManuallyConfirmed' => 'pending', // admin has sent withdrawal via wallet or admin function directly; marks ticket; debits account
                 'Confirmed2Fa' => 'pending', // user has confirmed withdraw via 2-factor authentication.
             ),
         );
@@ -2110,22 +2123,28 @@ class ndax extends Exchange {
         //
         // fetchDeposits
         //
-        //     {
-        //         "OMSId":1,
-        //         "DepositId":44,
-        //         "AccountId":449,
-        //         "SubAccountId":0,
-        //         "ProductId":4,
-        //         "Amount":200.00000000000000000000000000,
-        //         "LastUpdateTimeStamp":637431291261187806,
-        //         "ProductType":"CryptoCurrency",
-        //         "TicketStatus":"FullyProcessed",
-        //         "DepositInfo":"array()",
-        //         "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //         "TicketNumber":71,
-        //         "NotionalProductId":13,
-        //         "NotionalValue":200.00000000000000000000000000,
-        //         "FeeAmount":0.0000000000000000000000000000,
+        //    {
+        //        "OMSId" => 1,
+        //        "DepositId" => 44,
+        //        "AccountId" => 449,
+        //        "SubAccountId" => 0,
+        //        "ProductId" => 4,
+        //        "Amount" => 200.00000000000000000000000000,
+        //        "LastUpdateTimeStamp" => 637431291261187806,
+        //        "ProductType" => "CryptoCurrency",
+        //        "TicketStatus" => "FullyProcessed",
+        //        "DepositInfo" => "array(
+        //            "AccountProviderId":42,
+        //            "AccountProviderName":"USDT_BSC",
+        //            "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        //            "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        //            "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        //        )",
+        //        "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //        "TicketNumber" => 71,
+        //        "NotionalProductId" => 13,
+        //        "NotionalValue" => 200.00000000000000000000000000,
+        //        "FeeAmount" => 0.0000000000000000000000000000,
         //     }
         //
         // fetchWithdrawals
@@ -2152,10 +2171,8 @@ class ndax extends Exchange {
         //     }
         //
         $id = null;
-        $txid = null;
         $currencyId = $this->safe_string($transaction, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = null;
         $type = null;
         if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
             $id = $this->safe_string($transaction, 'DepositId');
@@ -2164,20 +2181,15 @@ class ndax extends Exchange {
             $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
-        $templateFormString = $this->safe_string($transaction, 'TemplateForm');
-        $address = null;
+        $templateForm = $this->parse_json($this->safe_value_2($transaction, 'TemplateForm', 'DepositInfo'));
         $updated = $this->safe_integer($transaction, 'LastUpdateTimeStamp');
-        if ($templateFormString !== null) {
-            $templateForm = json_decode($templateFormString, $as_associative_array = true);
-            $address = $this->safe_string($templateForm, 'ExternalAddress');
-            $txid = $this->safe_string($templateForm, 'TxId');
-            $timestamp = $this->safe_integer($templateForm, 'TimeSubmitted');
+        if ($templateForm !== null) {
             $updated = $this->safe_integer($templateForm, 'LastUpdated', $updated);
         }
-        $addressTo = $address;
-        $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'TicketStatus'), $type);
-        $amount = $this->safe_number($transaction, 'Amount');
+        $address = $this->safe_string_2($templateForm, 'ExternalAddress', 'ToAddress');
+        $timestamp = $this->safe_integer($templateForm, 'TimeSubmitted');
         $feeCost = $this->safe_number($transaction, 'FeeAmount');
+        $transactionStatus = $this->safe_string($transaction, 'TicketStatus');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
@@ -2185,33 +2197,33 @@ class ndax extends Exchange {
         return array(
             'info' => $transaction,
             'id' => $id,
-            'txid' => $txid,
+            'txid' => $this->safe_string_2($templateForm, 'TxId', 'TXId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'address' => $address,
-            'addressTo' => $addressTo,
-            'addressFrom' => null,
+            'addressTo' => $address,
+            'addressFrom' => $this->safe_string($templateForm, 'FromAddress'),
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->safe_number($transaction, 'Amount'),
             'currency' => $code,
-            'status' => $status,
+            'status' => $this->parse_transaction_status_by_type($transactionStatus, $type),
             'updated' => $updated,
             'fee' => $fee,
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the ndax api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the ndax api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // this method required login, password and twofa key
@@ -2290,7 +2302,7 @@ class ndax extends Exchange {
         );
         $withdrawRequest = array(
             'TfaType' => 'Google',
-            'TFaCode' => $this->oath(),
+            'TFaCode' => $this->totp($this->twofa),
             'Payload' => $this->json($withdrawPayload),
         );
         $response = $this->privatePostCreateWithdrawTicket ($this->deep_extend($withdrawRequest, $params));
@@ -2309,7 +2321,7 @@ class ndax extends Exchange {
                 $auth = $this->login . ':' . $this->password;
                 $auth64 = base64_encode($auth);
                 $headers = array(
-                    'Authorization' => 'Basic ' . $this->decode($auth64),
+                    'Authorization' => 'Basic ' . $auth64,
                     // 'Content-Type' => 'application/json',
                 );
             } elseif ($path === 'Authenticate2FA') {
@@ -2331,7 +2343,7 @@ class ndax extends Exchange {
             if ($sessionToken === null) {
                 $nonce = (string) $this->nonce();
                 $auth = $nonce . $this->uid . $this->apiKey;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $headers = array(
                     'Nonce' => $nonce,
                     'APIKey' => $this->apiKey,
@@ -2360,7 +2372,7 @@ class ndax extends Exchange {
             throw new AuthenticationError($this->id . ' ' . $body);
         }
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101)
@@ -2373,5 +2385,6 @@ class ndax extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }
