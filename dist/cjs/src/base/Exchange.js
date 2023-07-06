@@ -345,9 +345,13 @@ class Exchange {
                 'createStopMarketOrder': undefined,
                 'createOrderWs': undefined,
                 'editOrderWs': undefined,
+                'fetchOpenOrdersWs': undefined,
+                'fetchOrderWs': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrdersWs': undefined,
                 'cancelAllOrdersWs': undefined,
+                'fetchTradesWs': undefined,
+                'fetchBalanceWs': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -982,8 +986,8 @@ class Exchange {
                     }
                 }
             }).catch((e) => {
-                delete (client.subscriptions[subscribeHash]);
-                throw e;
+                delete client.subscriptions[subscribeHash];
+                future.reject(e);
             });
         }
         return future;
@@ -1277,6 +1281,9 @@ class Exchange {
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTrades() is not supported yet');
+    }
+    async fetchTradesWs(symbol, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTradesWs() is not supported yet');
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTrades() is not supported yet');
@@ -2879,6 +2886,9 @@ class Exchange {
     async fetchBalance(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchBalance() is not supported yet');
     }
+    async fetchBalanceWs(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchBalanceWs() is not supported yet');
+    }
     parseBalance(response) {
         throw new errors.NotSupported(this.id + ' parseBalance() is not supported yet');
     }
@@ -3108,6 +3118,9 @@ class Exchange {
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrder() is not supported yet');
     }
+    async fetchOrderWs(id, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrderWs() is not supported yet');
+    }
     async fetchOrderStatus(id, symbol = undefined, params = {}) {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
@@ -3135,8 +3148,8 @@ class Exchange {
     async cancelAllOrders(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
-    async cancelAllOrderWs(symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    async cancelAllOrdersWs(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelAllOrdersWs() is not supported yet');
     }
     async cancelUnifiedOrder(order, params = {}) {
         return this.cancelOrder(this.safeValue(order, 'id'), this.safeValue(order, 'symbol'), params);
@@ -3153,11 +3166,17 @@ class Exchange {
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
+    async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOpenOrdersWs() is not supported yet');
+    }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchMyTrades() is not supported yet');
+    }
+    async fetchMyTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMyTradesWs() is not supported yet');
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchMyTrades() is not supported yet');

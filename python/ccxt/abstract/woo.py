@@ -24,7 +24,6 @@ class ImplicitAPI:
     v1_private_get_client_trade_tid = v1PrivateGetClientTradeTid = Entry('client/trade/{tid}', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_get_order_oid_trades = v1PrivateGetOrderOidTrades = Entry('order/{oid}/trades', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_get_client_trades = v1PrivateGetClientTrades = Entry('client/trades', ['v1', 'private'], 'GET', {'cost': 1})
-    v1_private_get_client_info = v1PrivateGetClientInfo = Entry('client/info', ['v1', 'private'], 'GET', {'cost': 60})
     v1_private_get_asset_deposit = v1PrivateGetAssetDeposit = Entry('asset/deposit', ['v1', 'private'], 'GET', {'cost': 10})
     v1_private_get_asset_history = v1PrivateGetAssetHistory = Entry('asset/history', ['v1', 'private'], 'GET', {'cost': 60})
     v1_private_get_sub_account_all = v1PrivateGetSubAccountAll = Entry('sub_account/all', ['v1', 'private'], 'GET', {'cost': 60})
