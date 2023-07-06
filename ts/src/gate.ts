@@ -1921,7 +1921,7 @@ export default class gate extends Exchange {
             // if it's first time of the currency loop
             if (!(code in result)) {
                 result[code] = this.safeCurrencyStructure ({
-                    'info': entry,
+                    'info': [],
                     'id': currencyName,
                     'lowerCaseId': currencyName.toLowerCase (),
                     'code': code,
@@ -1961,16 +1961,10 @@ export default class gate extends Exchange {
                 };
                 // if a network property is true set the corresponding currency property to true
                 // a currency is withdrawable in general if it is withdrawable through at least one of the networks
-                if (active) {
-                    result[code]['active'] = active;
-                }
-                if (depositEnabled) {
-                    result[code]['deposit'] = depositEnabled;
-                }
-                if (withdrawEnabled) {
-                    result[code]['withdraw'] = withdrawEnabled;
-                }
-                result[code]['info'][networkId] = entry; // add this entry in the info property as well
+                result[code]['active'] = active ? active : result[code]['active'];
+                result[code]['deposit'] = depositEnabled ? depositEnabled : result[code]['deposit'];
+                result[code]['withdraw'] = withdrawEnabled ? withdrawEnabled : result[code]['withdraw'];
+                result[code]['info'].push (entry); // add this entry in the currency info too
             }
         }
         return result;
