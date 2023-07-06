@@ -1428,7 +1428,7 @@ export default class binance extends Exchange {
                     'explorer.zcha.in': 'ZEC',
                     'explorer.zensystem.io': 'ZEN',
                 },
-                'networksById': {
+                'networksByImpliedNames': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
                     'bscscan.com': 'BSC',
@@ -6185,6 +6185,7 @@ export default class binance extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (depositAddress, 'address');
         const url = this.safeString (depositAddress, 'url');
+        let networkCode = undefined;
         let impliedNetwork = undefined;
         if (url !== undefined) {
             const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
@@ -6205,6 +6206,8 @@ export default class binance extends Exchange {
                 const conversion = this.safeValue (impliedNetworks, code, {});
                 impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
             }
+            const networkCodesByImpliedNetworks = this.safeValue (this.options, 'networksByImpliedNames', {});
+            networkCode = this.safeString (networkCodesByImpliedNetworks, impliedNetwork, impliedNetwork);
         }
         let tag = this.safeString (depositAddress, 'tag', '');
         if (tag.length === 0) {
@@ -6215,7 +6218,7 @@ export default class binance extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode (impliedNetwork),
+            'network': networkCode,
             'info': depositAddress,
         };
     }
