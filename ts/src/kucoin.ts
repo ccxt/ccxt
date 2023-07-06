@@ -1169,7 +1169,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode);
+            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -1201,7 +1201,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode);
+            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         //
@@ -1572,7 +1572,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode);
+            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
         }
         const response = await this.privatePostDepositAddresses (this.extend (request, params));
         // {"code":"260000","msg":"Deposit address already exists."}
@@ -1603,7 +1603,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode);
+            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
         }
         const version = this.options['versions']['private']['GET']['deposit-addresses'];
         this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
@@ -2785,7 +2785,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode);
+            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
         }
         let includeFee = undefined;
         [ includeFee, params ] = this.handleOptionAndParams (params, 'withdraw', 'includeFee', false);
