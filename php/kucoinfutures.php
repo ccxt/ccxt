@@ -94,7 +94,7 @@ class kucoinfutures extends kucoin {
                     'private' => 'https://openapi-v2.kucoin.com',
                     'futuresPrivate' => 'https://api-futures.kucoin.com',
                     'futuresPublic' => 'https://api-futures.kucoin.com',
-                    'webFront' => 'https://futures.kucoin.com/_api/web-front',
+                    'webExchange' => 'https://futures.kucoin.com/_api/web-front',
                 ),
                 'test' => array(
                     'public' => 'https://openapi-sandbox.kucoin.com',
@@ -177,7 +177,7 @@ class kucoinfutures extends kucoin {
                         'sub/api-key' => 1,
                     ),
                 ),
-                'webFront' => array(
+                'webExchange' => array(
                     'get' => array(
                         'contract/{symbol}/funding-rates' => 1,
                     ),
@@ -2288,7 +2288,7 @@ class kucoinfutures extends kucoin {
         if ($limit !== null) {
             $request['maxCount'] = $limit;
         }
-        $response = $this->webFrontGetContractSymbolFundingRates (array_merge($request, $params));
+        $response = $this->webExchangeGetContractSymbolFundingRates (array_merge($request, $params));
         //
         //    {
         //        success => true,
@@ -2315,7 +2315,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function parse_funding_rate_history($info, $market = null) {
-        $timestamp = $this->safe_number($info, 'timePoint');
+        $timestamp = $this->safe_integer($info, 'timePoint');
         $marketId = $this->safe_string($info, 'symbol');
         return array(
             'info' => $info,

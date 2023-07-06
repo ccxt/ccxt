@@ -13,6 +13,7 @@ use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 
 class kucoin extends Exchange {
 
@@ -103,13 +104,14 @@ class kucoin extends Exchange {
                     'private' => 'https://api.kucoin.com',
                     'futuresPrivate' => 'https://api-futures.kucoin.com',
                     'futuresPublic' => 'https://api-futures.kucoin.com',
-                    'webExchange' => 'https://api.kucoin.com',
+                    'webExchange' => 'https://kucoin.com/_api',
                 ),
                 'test' => array(
                     'public' => 'https://openapi-sandbox.kucoin.com',
                     'private' => 'https://openapi-sandbox.kucoin.com',
                     'futuresPrivate' => 'https://api-sandbox-futures.kucoin.com',
                     'futuresPublic' => 'https://api-sandbox-futures.kucoin.com',
+                    'webExchange' => 'https://kucoin.com/_api',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -312,6 +314,11 @@ class kucoin extends Exchange {
                         'stopOrders' => 1.3953,
                     ),
                 ),
+                'webExchange' => array(
+                    'get' => array(
+                        'currency/currency/chain-info' => 1, // this is temporary from webApi
+                    ),
+                ),
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -441,6 +448,10 @@ class kucoin extends Exchange {
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
+                'fetchCurrencies' => array(
+                    'webApiEnable' => true, // fetches from WEB
+                    'webApiRetries' => 5,
+                ),
                 'fetchMarkets' => array(
                     'fetchTickersFees' => true,
                 ),
@@ -1058,7 +1069,8 @@ class kucoin extends Exchange {
              * @param {array} $params extra parameters specific to the kucoin api endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetCurrencies ($params));
+            $promises = array();
+            $promises[] = $this->publicGetCurrencies ($params);
             //
             //     {
             //         "currency" => "OMG",
@@ -1074,7 +1086,48 @@ class kucoin extends Exchange {
             //         "isDebitEnabled" => false
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $promises[] = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true);
+            //
+            //    {
+            //        "success" => true,
+            //        "code" => "200",
+            //        "msg" => "success",
+            //        "retry" => false,
+            //        "data" => array(
+            //            array(
+            //                "withdrawMinFee" => "0.0005",
+            //                "chainName" => "BTC",
+            //                "preDepositTipEnabled" => "false",
+            //                "chain" => "btc",
+            //                "isChainEnabled" => "true",
+            //                "withdrawDisabledTip" => "",
+            //                "walletPrecision" => "8",
+            //                "chainFullName" => "Bitcoin",
+            //                "orgAddress" => "",
+            //                "isDepositEnabled" => "true",
+            //                "withdrawMinSize" => "0.001",
+            //                "depositDisabledTip" => "",
+            //                "userAddressName" => "",
+            //                "txUrl" => "https://blockchain.info/tx/{txId}",
+            //                "preWithdrawTipEnabled" => "false",
+            //                "withdrawFeeRate" => "0",
+            //                "confirmationCount" => "2",
+            //                "currency" => "BTC",
+            //                "depositMinSize" => "0.00005",
+            //                "isWithdrawEnabled" => "true",
+            //                "preDepositTip" => "",
+            //                "preWithdrawTip" => "",
+            //                "status" => "enabled"
+            //            ),
+            //        )
+            //    }
+            //
+            $responses = Async\await(Promise\all($promises));
+            $responseCurrencies = $responses[0];
+            $responseChains = $responses[1];
+            $data = $this->safe_value($responseCurrencies, 'data', array());
+            $chainsData = $this->safe_value($responseChains, 'data', array());
+            $currencyChains = $this->group_by($chainsData, 'currency');
             $result = array();
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
@@ -1085,6 +1138,37 @@ class kucoin extends Exchange {
                 $isDepositEnabled = $this->safe_value($entry, 'isDepositEnabled', false);
                 $fee = $this->safe_number($entry, 'withdrawalMinFee');
                 $active = ($isWithdrawEnabled && $isDepositEnabled);
+                $networks = array();
+                $chains = $this->safe_value($currencyChains, $id, array());
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $chainId = $this->safe_string($chain, 'chain');
+                    $isChainEnabled = $this->safe_string($chain, 'isChainEnabled'); // better than 'status'
+                    if ($isChainEnabled === 'true') {
+                        $networkCode = $this->network_id_to_code($chainId);
+                        $chainWithdrawEnabled = $this->safe_value($chain, 'isWithdrawEnabled', false);
+                        $chainDepositEnabled = $this->safe_value($chain, 'isDepositEnabled', false);
+                        $networks[$networkCode] = array(
+                            'info' => $chain,
+                            'id' => $chainId,
+                            'name' => $this->safe_string_2($chain, 'chainFullName', 'chainName'),
+                            'code' => $networkCode,
+                            'active' => $chainWithdrawEnabled && $chainDepositEnabled,
+                            'fee' => $this->safe_number($chain, 'withdrawMinFee'),
+                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'walletPrecision'))),
+                            'limits' => array(
+                                'withdraw' => array(
+                                    'min' => $this->safe_number($chain, 'withdrawMinSize'),
+                                    'max' => null,
+                                ),
+                                'deposit' => array(
+                                    'min' => $this->safe_number($chain, 'depositMinSize'),
+                                    'max' => null,
+                                ),
+                            ),
+                        );
+                    }
+                }
                 $result[$code] = array(
                     'id' => $id,
                     'name' => $name,
@@ -1096,6 +1180,7 @@ class kucoin extends Exchange {
                     'withdraw' => $isWithdrawEnabled,
                     'fee' => $fee,
                     'limits' => $this->limits,
+                    'networks' => $networks,
                 );
             }
             return $result;
@@ -1611,7 +1696,10 @@ class kucoin extends Exchange {
             // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
             // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
             $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_value($response, 'data');
+            if ($data === null) {
+                throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty $response, you might try to run createDepositAddress() first and try again');
+            }
             return $this->parse_deposit_address($data, $currency);
         }) ();
     }
@@ -4055,7 +4143,7 @@ class kucoin extends Exchange {
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $params = $this->omit($params, 'version');
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
-        if ($api === 'webFront') {
+        if ($api === 'webExchange') {
             $endpoint = '/' . $this->implode_params($path, $params);
         }
         $query = $this->omit($params, $this->extract_params($path));

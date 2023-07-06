@@ -120,13 +120,14 @@ class kucoin(Exchange, ImplicitAPI):
                     'private': 'https://api.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
-                    'webExchange': 'https://api.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
                     'private': 'https://openapi-sandbox.kucoin.com',
                     'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
                     'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -329,6 +330,11 @@ class kucoin(Exchange, ImplicitAPI):
                         'stopOrders': 1.3953,
                     },
                 },
+                'webExchange': {
+                    'get': {
+                        'currency/currency/chain-info': 1,  # self is temporary from webApi
+                    },
+                },
             },
             'timeframes': {
                 '1m': '1min',
@@ -458,6 +464,10 @@ class kucoin(Exchange, ImplicitAPI):
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'fetchCurrencies': {
+                    'webApiEnable': True,  # fetches from WEB
+                    'webApiRetries': 5,
+                },
                 'fetchMarkets': {
                     'fetchTickersFees': True,
                 },
@@ -1061,7 +1071,8 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the kucoin api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.publicGetCurrencies(params)
+        promises = []
+        promises.append(self.publicGetCurrencies(params))
         #
         #     {
         #         "currency": "OMG",
@@ -1077,7 +1088,48 @@ class kucoin(Exchange, ImplicitAPI):
         #         "isDebitEnabled": False
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        promises.append(self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', True))
+        #
+        #    {
+        #        "success": True,
+        #        "code": "200",
+        #        "msg": "success",
+        #        "retry": False,
+        #        "data": [
+        #            {
+        #                "withdrawMinFee": "0.0005",
+        #                "chainName": "BTC",
+        #                "preDepositTipEnabled": "false",
+        #                "chain": "btc",
+        #                "isChainEnabled": "true",
+        #                "withdrawDisabledTip": "",
+        #                "walletPrecision": "8",
+        #                "chainFullName": "Bitcoin",
+        #                "orgAddress": "",
+        #                "isDepositEnabled": "true",
+        #                "withdrawMinSize": "0.001",
+        #                "depositDisabledTip": "",
+        #                "userAddressName": "",
+        #                "txUrl": "https://blockchain.info/tx/{txId}",
+        #                "preWithdrawTipEnabled": "false",
+        #                "withdrawFeeRate": "0",
+        #                "confirmationCount": "2",
+        #                "currency": "BTC",
+        #                "depositMinSize": "0.00005",
+        #                "isWithdrawEnabled": "true",
+        #                "preDepositTip": "",
+        #                "preWithdrawTip": "",
+        #                "status": "enabled"
+        #            },
+        #        ]
+        #    }
+        #
+        responses = promises
+        responseCurrencies = responses[0]
+        responseChains = responses[1]
+        data = self.safe_value(responseCurrencies, 'data', [])
+        chainsData = self.safe_value(responseChains, 'data', [])
+        currencyChains = self.group_by(chainsData, 'currency')
         result = {}
         for i in range(0, len(data)):
             entry = data[i]
@@ -1088,6 +1140,35 @@ class kucoin(Exchange, ImplicitAPI):
             isDepositEnabled = self.safe_value(entry, 'isDepositEnabled', False)
             fee = self.safe_number(entry, 'withdrawalMinFee')
             active = (isWithdrawEnabled and isDepositEnabled)
+            networks = {}
+            chains = self.safe_value(currencyChains, id, [])
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                chainId = self.safe_string(chain, 'chain')
+                isChainEnabled = self.safe_string(chain, 'isChainEnabled')  # better than 'status'
+                if isChainEnabled == 'true':
+                    networkCode = self.network_id_to_code(chainId)
+                    chainWithdrawEnabled = self.safe_value(chain, 'isWithdrawEnabled', False)
+                    chainDepositEnabled = self.safe_value(chain, 'isDepositEnabled', False)
+                    networks[networkCode] = {
+                        'info': chain,
+                        'id': chainId,
+                        'name': self.safe_string_2(chain, 'chainFullName', 'chainName'),
+                        'code': networkCode,
+                        'active': chainWithdrawEnabled and chainDepositEnabled,
+                        'fee': self.safe_number(chain, 'withdrawMinFee'),
+                        'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'walletPrecision'))),
+                        'limits': {
+                            'withdraw': {
+                                'min': self.safe_number(chain, 'withdrawMinSize'),
+                                'max': None,
+                            },
+                            'deposit': {
+                                'min': self.safe_number(chain, 'depositMinSize'),
+                                'max': None,
+                            },
+                        },
+                    }
             result[code] = {
                 'id': id,
                 'name': name,
@@ -1099,6 +1180,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': self.limits,
+                'networks': networks,
             }
         return result
 
@@ -1572,7 +1654,9 @@ class kucoin(Exchange, ImplicitAPI):
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         self.options['versions']['private']['GET']['deposit-addresses'] = version
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_value(response, 'data')
+        if data is None:
+            raise ExchangeError(self.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again')
         return self.parse_deposit_address(data, currency)
 
     def parse_deposit_address(self, depositAddress, currency=None):
@@ -3812,7 +3896,7 @@ class kucoin(Exchange, ImplicitAPI):
         version = self.safe_string(params, 'version', defaultVersion)
         params = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
-        if api == 'webFront':
+        if api == 'webExchange':
             endpoint = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''

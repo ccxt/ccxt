@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.11';
+$version = '4.0.12';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.11';
+    const VERSION = '4.0.12';
 
     public $browser;
     public $marketsLoading = null;
@@ -386,7 +386,8 @@ class Exchange extends \ccxt\Exchange {
             $result = [ ];
             for ($i = 0; $i < count($parsedArray); $i++) {
                 $entry = $parsedArray[$i];
-                if ((is_array($entry) && array_key_exists($key, $entry)) && ($entry[$key] >= $since)) {
+                $value = $this->safe_value($entry, $key);
+                if ($value && ($value >= $since)) {
                     $result[] = $entry;
                 }
             }
@@ -409,7 +410,8 @@ class Exchange extends \ccxt\Exchange {
                 $entry = $parsedArray[$i];
                 $entryFiledEqualValue = $entry[$field] === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
-                $entryKeyGESince = (is_array($entry) && array_key_exists($key, $entry)) && $since && ($entry[$key] >= $since);
+                $entryKeyValue = $this->safe_value($entry, $key);
+                $entryKeyGESince = ($entryKeyValue) && $since && ($entryKeyValue >= $since);
                 $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;

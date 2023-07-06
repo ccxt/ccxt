@@ -111,7 +111,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     'private': 'https://openapi-v2.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
-                    'webFront': 'https://futures.kucoin.com/_api/web-front',
+                    'webExchange': 'https://futures.kucoin.com/_api/web-front',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
@@ -194,7 +194,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'sub/api-key': 1,
                     },
                 },
-                'webFront': {
+                'webExchange': {
                     'get': {
                         'contract/{symbol}/funding-rates': 1,
                     },
@@ -2211,7 +2211,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         }
         if limit is not None:
             request['maxCount'] = limit
-        response = await self.webFrontGetContractSymbolFundingRates(self.extend(request, params))
+        response = await self.webExchangeGetContractSymbolFundingRates(self.extend(request, params))
         #
         #    {
         #        success: True,
@@ -2237,7 +2237,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         return self.parse_funding_rate_histories(dataList, market, since, limit)
 
     def parse_funding_rate_history(self, info, market=None):
-        timestamp = self.safe_number(info, 'timePoint')
+        timestamp = self.safe_integer(info, 'timePoint')
         marketId = self.safe_string(info, 'symbol')
         return {
             'info': info,
