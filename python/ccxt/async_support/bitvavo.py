@@ -281,11 +281,9 @@ class bitvavo(Exchange, ImplicitAPI):
             },
             'options': {
                 'BITVAVO-ACCESS-WINDOW': 10000,  # default 10 sec
-                'fetchCurrencies': {
-                    'expires': 1000,  # 1 second
-                },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
                 },
                 'networksById': {
@@ -335,7 +333,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetMarkets(params)
-        currencies = await self.fetch_currencies_from_cache(params)
+        currencies = self.currencies
         currenciesById = self.index_by(currencies, 'symbol')
         #
         #     [
@@ -411,42 +409,43 @@ class bitvavo(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_currencies_from_cache(self, params={}):
-        # self method is now redundant
-        # currencies are now fetched before markets
-        options = self.safe_value(self.options, 'fetchCurrencies', {})
-        timestamp = self.safe_integer(options, 'timestamp')
-        expires = self.safe_integer(options, 'expires', 1000)
-        now = self.milliseconds()
-        if (timestamp is None) or ((now - timestamp) > expires):
-            response = await self.publicGetAssets(params)
-            self.options['fetchCurrencies'] = self.extend(options, {
-                'response': response,
-                'timestamp': now,
-            })
-        return self.safe_value(self.options['fetchCurrencies'], 'response')
-
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = await self.fetch_currencies_from_cache(params)
+        response = await self.publicGetAssets(params)
         #
         #     [
         #         {
-        #             "symbol":"ADA",
-        #             "name":"Cardano",
-        #             "decimals":6,
-        #             "depositFee":"0",
-        #             "depositConfirmations":15,
-        #             "depositStatus":"OK",  # "OK", "MAINTENANCE", "DELISTED"
-        #             "withdrawalFee":"0.2",
-        #             "withdrawalMinAmount":"0.2",
-        #             "withdrawalStatus":"OK",  # "OK", "MAINTENANCE", "DELISTED"
-        #             "networks": ["Mainnet"],  # "ETH", "NEO", "ONT", "SEPA", "VET"
-        #             "message":"",
+        #             "symbol": "USDT",
+        #             "displayTicker": "USDT",
+        #             "name": "Tether",
+        #             "slug": "tether",
+        #             "popularity": -1,
+        #             "decimals": 6,
+        #             "depositFee": "0",
+        #             "depositConfirmations": 64,
+        #             "depositStatus": "OK",
+        #             "withdrawalFee": "3.2",
+        #             "withdrawalMinAmount": "3.2",
+        #             "withdrawalStatus": "OK",
+        #             "networks": [
+        #               "ETH"
+        #             ],
+        #             "light": {
+        #               "color": "#009393",
+        #               "icon": {"hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        #               }
+        #             },
+        #             "dark": {
+        #               "color": "#009393",
+        #               "icon": {"hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        #               }
+        #             },
+        #             "visibility": "PUBLIC",
+        #             "message": ""
         #         },
         #     ]
         #
@@ -455,29 +454,58 @@ class bitvavo(Exchange, ImplicitAPI):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            depositStatus = self.safe_value(currency, 'depositStatus')
-            deposit = (depositStatus == 'OK')
-            withdrawalStatus = self.safe_value(currency, 'withdrawalStatus')
-            withdrawal = (withdrawalStatus == 'OK')
+            networks = {}
+            networksArray = self.safe_value(currency, 'networks', [])
+            networksLength = len(networksArray)
+            isOneNetwork = (networksLength == 1)
+            deposit = (self.safe_value(currency, 'depositStatus') == 'OK')
+            withdrawal = (self.safe_value(currency, 'withdrawalStatus') == 'OK')
             active = deposit and withdrawal
-            name = self.safe_string(currency, 'name')
+            withdrawFee = self.safe_number(currency, 'withdrawalFee')
+            precision = self.safe_number(currency, 'decimals', 8)
+            minWithdraw = self.safe_number(currency, 'withdrawalMinAmount')
+            # absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
+            if isOneNetwork:
+                networkId = networksArray[0]
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdrawal,
+                    'fee': withdrawFee,
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': minWithdraw,
+                            'max': None,
+                        },
+                    },
+                }
             result[code] = {
-                'id': id,
                 'info': currency,
+                'id': id,
                 'code': code,
-                'name': name,
+                'name': self.safe_string(currency, 'name'),
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdrawal,
-                'fee': self.safe_number(currency, 'withdrawalFee'),
-                'precision': self.safe_integer(currency, 'decimals', 8),
+                'networks': networks,
+                'fee': withdrawFee,
+                'precision': precision,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'withdrawalMinAmount'),
+                        'min': minWithdraw,
                         'max': None,
                     },
                 },

@@ -73,9 +73,6 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v1_private_get_client_trades($params = array()) {
         return $this->request('client/trades', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function v1_private_get_client_info($params = array()) {
-        return $this->request('client/info', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
-    }
     public function v1_private_get_asset_deposit($params = array()) {
         return $this->request('asset/deposit', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 10));
     }
@@ -255,9 +252,6 @@ abstract class woo extends \ccxt\async\Exchange {
     }
     public function v1PrivateGetClientTrades($params = array()) {
         return $this->request('client/trades', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function v1PrivateGetClientInfo($params = array()) {
-        return $this->request('client/info', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
     }
     public function v1PrivateGetAssetDeposit($params = array()) {
         return $this->request('asset/deposit', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 10));
