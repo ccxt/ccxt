@@ -1959,13 +1959,13 @@ export default class gate extends Exchange {
                     'fee': undefined,
                     'precision': this.options['currencyPrecision'],
                 };
-                // if a network property is true set the corresponding currency property to true
-                // a currency is withdrawable in general if it is withdrawable through at least one of the networks
-                result[code]['active'] = (active || result[code]['active'] === undefined) ? active : result[code]['active'];
-                result[code]['deposit'] = (depositEnabled || result[code]['deposit'] === undefined) ? depositEnabled : result[code]['deposit'];
-                result[code]['withdraw'] = (withdrawEnabled || result[code]['withdraw'] === undefined) ? withdrawEnabled : result[code]['withdraw'];
-                result[code]['info'].push (entry); // add this entry in the currency info too
             }
+            // if a network property is true set the corresponding currency property to true
+            // a currency is withdrawable in general if it is withdrawable through at least one of the networks
+            result[code]['active'] = (active || result[code]['active'] === undefined) ? active : result[code]['active'];
+            result[code]['deposit'] = (depositEnabled || result[code]['deposit'] === undefined) ? depositEnabled : result[code]['deposit'];
+            result[code]['withdraw'] = (withdrawEnabled || result[code]['withdraw'] === undefined) ? withdrawEnabled : result[code]['withdraw'];
+            result[code]['info'].push (entry); // add this entry in the currency info too
         }
         return result;
     }
