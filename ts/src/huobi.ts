@@ -930,16 +930,18 @@ export default class huobi extends Exchange {
                 },
                 'networks': {
                     // by displaynames
-                    'ALGORAND': 'ALGO', // todo: after unification// 'ALGORAND': [ 'ALGO', 'ALGOUSDC' ],
+                    'ALGORAND': 'ALGO',
+                    // todo: after unification// 'ALGORAND': [ 'ALGO', 'ALGOUSDC' ],
                     'ALGO': 'ALGO',
-                    'BEP20': 'BEP20', // todo: after unification // 'BEP20': [ 'BEP20', 'BEP20BNB' ], // 'BEP20BNB' is exceptionary for BNB
+                    'BEP20': 'BEP20',
+                    // todo: after unification // 'BEP20': [ 'BEP20', 'BEP20BNB' ], // 'BEP20BNB' is exceptionary for BNB
                     'BSC': 'BEP20',
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
                     // 'ERC20ETH' is used by houbi only for ETH coin, not 'ERC20' // todo: after unification
-                    'AVALANCHE_C': 'AVAXCCHAIN',
                     'AVALANCHE': 'AVAXCCHAIN',
                     'AVAX': 'AVAXCCHAIN',
+                    'AVALANCHE_C': 'AVAXCCHAIN',
                     'HRC20': 'HECO',
                     'HECO': 'HECO',
                     // 'HT': 'HECO', // HT is not acceptable networkcode for unification
@@ -950,11 +952,13 @@ export default class huobi extends Exchange {
                     'BITCOIN': 'BTC',
                     'ARBITRUM': 'ARB',
                     'ARB': 'ARB',
-                    'SOLANA': 'SOL', // todo: after unification // 'SOLANA': [ 'SOLANA', 'SOL', 'SOLUSDC' ], // Some tokens has SOLANA as network-names and some has 'SOL' (SOLUSDC is exception)
+                    'SOLANA': 'SOL',
+                    // todo: after unification // 'SOLANA': [ 'SOLANA', 'SOL', 'SOLUSDC' ], // Some tokens has SOLANA as network-names and some has 'SOL' (SOLUSDC is exception)
                     'SOL': 'SOL',
                     'SPL': 'SOL',
                     'PRC20': 'PRC20',
-                    'POLYGON': 'PRC20', // todo: after unification // 'POLYGON': [ 'POLYGON', 'PRC20', 'MATIC' ],
+                    'POLYGON': 'PRC20',
+                    // todo: after unification // 'POLYGON': [ 'POLYGON', 'PRC20', 'MATIC' ],
                     'MATIC': 'PRC20',
                     // The below list is made up by huobi's common network names, instead of currency-specific chain ids
                     'ACALA': 'ACA',
