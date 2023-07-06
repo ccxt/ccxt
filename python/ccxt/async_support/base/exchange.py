@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.10'
+__version__ = '4.0.11'
 
 # -----------------------------------------------------------------------------
 
@@ -596,7 +596,7 @@ class Exchange(BaseExchange):
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
-                if entry[key] >= since:
+                if (key in entry) and (entry[key] >= since):
                     result.append(entry)
         if tail:
             return result[-limit:]
@@ -614,7 +614,7 @@ class Exchange(BaseExchange):
                 entry = parsedArray[i]
                 entryFiledEqualValue = entry[field] == value
                 firstCondition = entryFiledEqualValue if valueIsDefined else True
-                entryKeyGESince = entry[key] and since and (entry[key] >= since)
+                entryKeyGESince = (key in entry) and since and (entry[key] >= since)
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
