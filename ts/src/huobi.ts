@@ -930,13 +930,14 @@ export default class huobi extends Exchange {
                 },
                 'networks': {
                     // by displaynames
+                    'ALGORAND': 'ALGO', // todo: after unification// 'ALGORAND': [ 'ALGO', 'ALGOUSDC' ],
                     'ALGO': 'ALGO',
-                    'ALGORAND': 'ALGO',
-                    'BEP20': 'BEP20',
+                    'BEP20': 'BEP20', // todo: after unification // 'BEP20': [ 'BEP20', 'BEP20BNB' ], // 'BEP20BNB' is exceptionary for BNB
                     'BSC': 'BEP20',
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
                     // 'ERC20ETH' is used by houbi only for ETH coin, not 'ERC20' // todo: after unification
+                    'AVALANCHE_C': 'AVAXCCHAIN',
                     'AVALANCHE': 'AVAXCCHAIN',
                     'AVAX': 'AVAXCCHAIN',
                     'HRC20': 'HECO',
@@ -949,23 +950,21 @@ export default class huobi extends Exchange {
                     'BITCOIN': 'BTC',
                     'ARBITRUM': 'ARB',
                     'ARB': 'ARB',
-                    'SOLANA': 'SOL',
+                    'SOLANA': 'SOL', // todo: after unification // 'SOLANA': [ 'SOLANA', 'SOL', 'SOLUSDC' ], // Some tokens has SOLANA as network-names and some has 'SOL' (SOLUSDC is exception)
                     'SOL': 'SOL',
                     'SPL': 'SOL',
                     'PRC20': 'PRC20',
-                    'POLYGON': 'PRC20',
+                    'POLYGON': 'PRC20', // todo: after unification // 'POLYGON': [ 'POLYGON', 'PRC20', 'MATIC' ],
                     'MATIC': 'PRC20',
                     // The below list is made up by huobi's common network names, instead of currency-specific chain ids
                     'ACALA': 'ACA',
                     'AETERNITY': 'AE',
-                    // 'ALGORAND': [ 'ALGO', 'ALGOUSDC' ], // todo: after unification
                     'AKASH': 'AKT',
                     'ARBITRUM_ONE': 'ARB',
                     'ARWEAVE': 'AR',
                     'ASTAR': 'ASTR',
                     'APTOS': 'APT',
                     'BAND': 'BAND',
-                    // 'BEP20': [ 'BEP20', 'BEP20BNB' ], // 'BEP20BNB' is exceptionary for BNB  // todo: after unification
                     'BSV': 'BSV',
                     'BCH': 'BCC', // exception: 'HBCH' for  huobi bch
                     'BITCOINDIAMOND': 'BCD',
@@ -1049,7 +1048,6 @@ export default class huobi extends Exchange {
                     'POCKET': 'POKT',
                     'HARMONY': 'ONE',
                     'OASYS': 'OAS',
-                    // 'SOLANA': [ 'SOLANA', 'SOL', 'SOLUSDC' ], // Some tokens has SOLANA as network-names and some has 'SOL' (SOLUSDC is exception)  // todo: after unification
                     'NULS': 'NULS',
                     'NODLE': 'NODL',
                     'NEWTON': 'NEWTON',
@@ -1058,7 +1056,6 @@ export default class huobi extends Exchange {
                     'MOONRIVER': 'MOVR',
                     // 'MOONBEAM': [ 'GLMR', 'MOONBEAM' ], // todo: after unification
                     'MINA': 'MINA',
-                    // 'POLYGON': [ 'POLYGON', 'PRC20', 'MATIC' ], // todo: after unification
                     'MASS': 'MASS',
                     'LISK': 'LSK',
                     'LINE': 'LINK', // this is not chainlink, but LINE BLOCKCHAIN for LINK
@@ -1124,15 +1121,15 @@ export default class huobi extends Exchange {
                 },
                 'networksById': {
                     'ALGO': 'ALGORAND',
-                    'BEP20': 'BSC',
-                    'ERC20': 'ETH',
-                    'AVAXCCHAIN': 'AVAX',
-                    'HECO': 'HECO',
-                    'TRC20': 'TRX',
-                    'BTC': 'BITCOIN',
-                    'ARB': 'ARBITRUM_ONE',
-                    'SOL': 'SPL',
-                    'PRC20': 'MATIC',
+                    'BEP20': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'AVAXCCHAIN': 'AVALANCHE_C',
+                    'HECO': 'HRC20',
+                    'TRC20': 'TRC20',
+                    'BTC': 'BTC',
+                    'ARB': 'ARBITRUM',
+                    'SOL': 'SOLANA',
+                    'PRC20': 'POLYGON',
                     'ACA': 'ACALA',
                     'AE': 'AETERNITY',
                     'AKT': 'AKASH',
