@@ -109,6 +109,7 @@ export default class kucoin extends Exchange {
                     'private': 'https://openapi-sandbox.kucoin.com',
                     'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
                     'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
