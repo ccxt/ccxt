@@ -5876,7 +5876,7 @@ export default class binance extends Exchange {
         }
         const useUnified = this.safeValue (this.options, 'useUnifiedNetworkCodes', false);
         const networkId = this.safeString (transaction, 'network');
-        const networkCode = (useUnified ? this.networkIdToCode (networkId) : networkId);
+        const networkCode = useUnified ? this.networkIdToCode (networkId) : networkId;
         return {
             'info': transaction,
             'id': id,
