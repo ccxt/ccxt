@@ -987,7 +987,7 @@ class Exchange {
                 }
             }).catch((e) => {
                 delete client.subscriptions[subscribeHash];
-                throw e;
+                future.reject(e);
             });
         }
         return future;
