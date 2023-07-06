@@ -184,6 +184,7 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
                             'private/get-accounts': 10 / 3,
+                            'private/get-withdrawal-history': 10 / 3,
                         },
                     },
                 },
@@ -1444,10 +1445,12 @@ class cryptocom(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -1461,28 +1464,33 @@ class cryptocom(Exchange, ImplicitAPI):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.v2PrivatePostPrivateGetWithdrawalHistory(self.extend(request, params))
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_ts'] = until
+        response = self.v1PrivatePostPrivateGetWithdrawalHistory(self.extend(request, params))
         #
         #     {
-        #       id: 1640704829096,
-        #       method: 'private/get-withdrawal-history',
-        #       code: 0,
-        #       result: {
-        #         withdrawal_list: [
-        #           {
-        #             currency: 'DOGE',
-        #             client_wid: '',
-        #             fee: 50,
-        #             create_time: 1640425168000,
-        #             id: '3180557',
-        #             update_time: 1640425168000,
-        #             amount: 1102.64092,
-        #             address: 'DDrGGqmp5Ddo1QH9tUvDfoL4u4rqys5975',
-        #             status: '5',
-        #             txid: 'ce23e9e21b6c38eef953070a05110e6dca2fd2bcc76d3381000547b9ff5290b2/0'
-        #           }
-        #         ]
-        #       }
+        #         "id": 1688613879534,
+        #         "method": "private/get-withdrawal-history",
+        #         "code": 0,
+        #         "result": {
+        #             "withdrawal_list": [
+        #                 {
+        #                     "currency": "BTC",
+        #                     "client_wid": "",
+        #                     "fee": 0.0005,
+        #                     "create_time": 1688613850000,
+        #                     "id": "5275977",
+        #                     "update_time": 1688613850000,
+        #                     "amount": 0.0005,
+        #                     "address": "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+        #                     "status": "1",
+        #                     "txid": "",
+        #                     "network_id": "BTC"
+        #                 }
+        #             ]
+        #         }
         #     }
         #
         data = self.safe_value(response, 'result', {})
@@ -1921,15 +1929,17 @@ class cryptocom(Exchange, ImplicitAPI):
         # fetchWithdrawals
         #
         #     {
-        #         "currency": "XRP",
-        #         "client_wid": "my_withdrawal_002",
-        #         "fee": 1.0,
-        #         "create_time": 1607063412000,
-        #         "id": "2220",
-        #         "update_time": 1607063460000,
-        #         "amount": 100,
-        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        #         "status": "1"
+        #         "currency": "BTC",
+        #         "client_wid": "",
+        #         "fee": 0.0005,
+        #         "create_time": 1688613850000,
+        #         "id": "5775977",
+        #         "update_time": 1688613850000,
+        #         "amount": 0.0005,
+        #         "address": "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+        #         "status": "1",
+        #         "txid": "",
+        #         "network_id": "BTC"
         #     }
         #
         # withdraw
@@ -1953,23 +1963,19 @@ class cryptocom(Exchange, ImplicitAPI):
         else:
             type = 'deposit'
             status = self.parse_deposit_status(rawStatus)
-        id = self.safe_string(transaction, 'id')
         addressString = self.safe_string(transaction, 'address')
         address, tag = self.parse_address(addressString)
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_integer(transaction, 'create_time')
-        amount = self.safe_number(transaction, 'amount')
-        txId = self.safe_string(transaction, 'txid')
         feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        updated = self.safe_integer(transaction, 'update_time')
         return {
             'info': transaction,
-            'id': id,
-            'txid': txId,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'network': None,
@@ -1980,10 +1986,10 @@ class cryptocom(Exchange, ImplicitAPI):
             'tagTo': tag,
             'tagFrom': None,
             'type': type,
-            'amount': amount,
+            'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': self.safe_integer(transaction, 'update_time'),
             'internal': None,
             'fee': fee,
         }

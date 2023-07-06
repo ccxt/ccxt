@@ -35,6 +35,7 @@ class ImplicitAPI:
     v1_private_post_private_get_currency_networks = v1PrivatePostPrivateGetCurrencyNetworks = Entry('private/get-currency-networks', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_deposit_address = v1PrivatePostPrivateGetDepositAddress = Entry('private/get-deposit-address', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_accounts = v1PrivatePostPrivateGetAccounts = Entry('private/get-accounts', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
+    v1_private_post_private_get_withdrawal_history = v1PrivatePostPrivateGetWithdrawalHistory = Entry('private/get-withdrawal-history', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v2_public_get_public_auth = v2PublicGetPublicAuth = Entry('public/auth', ['v2', 'public'], 'GET', {'cost': 1})
     v2_public_get_public_get_instruments = v2PublicGetPublicGetInstruments = Entry('public/get-instruments', ['v2', 'public'], 'GET', {'cost': 1})
     v2_public_get_public_get_book = v2PublicGetPublicGetBook = Entry('public/get-book', ['v2', 'public'], 'GET', {'cost': 1})
