@@ -536,7 +536,7 @@ export default class gate extends Exchange {
                 'networks': {
                     'ALGORAND': 'ALGO',
                     'ARBITRUM_NOVA': 'ARBNOVA',
-                    // 'ARBITRUM_ONE': 'ARB', // ? ARBEVM // todo
+                    // 'ARBITRUM_ONE': 'ARB', // todo: ARB-vs-ARBEVM needs clarification
                     'AVALANCHE_C': 'AVAX_C',
                     'BEP20': 'BSC',
                     'CHILIZ': 'CHZ',
@@ -544,11 +544,11 @@ export default class gate extends Exchange {
                     'ERC20': 'ETH',
                     'GATECHAIN': 'GTEVM',
                     'HRC20': 'HT',
-                    'KUSAMA': 'KSM', // KSMSM is different
+                    'KUSAMA': 'KSMSM', // KSMSM is different
                     'NEAR': 'NEAR',
                     'OKC': 'OKT',
                     'OPTIMISM': 'OPETH',
-                    // 'POLKADOT': 'DOT', // DOTSM ? // todo
+                    // 'POLKADOT': 'DOT', // todo: DOT-vs-DOTSM needs clarification
                     'POLYGON': 'MATIC',
                     'SOLANA': 'SOL',
                     'TRC20': 'TRX',
