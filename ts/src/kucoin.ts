@@ -1151,7 +1151,7 @@ export default class kucoin extends Exchange {
         return result;
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchTransactionFee (code: string, params = {}) {
         /**
          * @method
          * @name kucoin#fetchTransactionFee
@@ -1166,11 +1166,12 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode);
         }
-        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, paramsOmited));
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const withdrawFees = {};
         withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
@@ -1197,11 +1198,12 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode);
         }
-        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, paramsOmited));
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1567,11 +1569,12 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode);
         }
-        const response = await this.privatePostDepositAddresses (this.extend (request, paramsOmited));
+        const response = await this.privatePostDepositAddresses (this.extend (request, params));
         // {"code":"260000","msg":"Deposit address already exists."}
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -1597,13 +1600,14 @@ export default class kucoin extends Exchange {
             // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             // 'chain': 'ERC20', // optional
         };
-        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode);
         }
         const version = this.options['versions']['private']['GET']['deposit-addresses'];
         this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
-        const response = await this.privateGetDepositAddresses (this.extend (request, paramsOmited));
+        const response = await this.privateGetDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
@@ -2778,7 +2782,8 @@ export default class kucoin extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode);
         }
@@ -2787,7 +2792,7 @@ export default class kucoin extends Exchange {
         if (includeFee) {
             request['feeDeductType'] = 'INTERNAL';
         }
-        const response = await this.privatePostWithdrawals (this.extend (request, paramsOmited));
+        const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
         // https://github.com/ccxt/ccxt/issues/5558
         //
