@@ -2019,10 +2019,17 @@ export default class binance extends Exchange {
                     //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
                     // }
                     let decimalPlaces = undefined;
-                    const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
-                    const isZero = Precise.stringEq (precisionTick, '0');
-                    // FIAT, LEVERAGED (UP/DOWN) TOKENS or some abandonded coin versions might provide "0" (zero) string for precision : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731 so, we skip those occasions
-                    if (!isZero) {
+                    let precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
+                    // FIAT, ETF (LEVERAGED UP/DOWN TOKENS), some STAKING or some abandonded coin versions might provide "0" (zero) string value for ticksize: https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731 so, we skip those occasions
+                    // fix '0' string value and RDNT > ARBITRUM
+                    if (Precise.stringEq (precisionTick, '0')) {
+                        if (networkId === 'ARBITRUM') {
+                            precisionTick = '0.00000001'; // confirmed from UI, it doesn't let beyond 8 decimal places
+                        } else {
+                            precisionTick = undefined;
+                        }
+                    }
+                    if (precisionTick !== undefined) {
                         decimalPlaces = this.numberToString (this.precisionFromString (precisionTick));
                         maxDecimalPlaces = (maxDecimalPlaces === undefined) ? decimalPlaces : Precise.stringMax (maxDecimalPlaces, decimalPlaces);
                     }
