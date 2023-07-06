@@ -1,5 +1,9 @@
 import Exchange from './abstract/idex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class idex
+ * @extends Exchange
+ */
 export default class idex extends Exchange {
     describe(): any;
     priceToPrecision(symbol: any, price: any): any;

@@ -17,9 +17,11 @@
         }
     },
     "alpaca": {
+        "skip": true,
         "skipWs": true
     },
     "ascendex": {
+        "skip": "03/06: 502 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -308,9 +310,15 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "fetchTickers": {
+            "fetchTicker": {
+                "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027",
                 "baseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152",
                 "quoteVolume": "quoteVolume >= baseVolume * low <<< bitstamp fetchTickers"
+            },
+            "fetchTickers": {
+                "bid": "same",
+                "baseVolume": "same",
+                "quoteVolume": "same"
             }
         }
     },
@@ -322,10 +330,14 @@
                 "precision":"not provided",
                 "active": "not provided"
             },
-            "fetchCurrencies":{
-            },
             "fetchOrderBook": "bid/ask might be 0",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": "same",
+            "fetchTicker": {
+                "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027"
+            },
+            "fetchTickers": {
+                "bid": "same"
+            }
         }
     },
     "bl3p": {
@@ -494,6 +506,10 @@
     },
     "bigone": {
         "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            },
             "fetchTickers": {
                 "bid": "broken bid-ask",
                 "ask": "broken bid-ask"
@@ -787,6 +803,7 @@
         }
     },
     "huobijp": {
+        "skip": "29/06 fetchMarkets returns empty array",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {

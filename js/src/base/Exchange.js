@@ -18,6 +18,9 @@ import { createFuture } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import totp from './functions/totp.js';
 // ----------------------------------------------------------------------------
+/**
+ * @class Exchange
+ */
 export default class Exchange {
     constructor(userConfig = {}) {
         this.api = undefined;
@@ -335,9 +338,13 @@ export default class Exchange {
                 'createStopMarketOrder': undefined,
                 'createOrderWs': undefined,
                 'editOrderWs': undefined,
+                'fetchOpenOrdersWs': undefined,
+                'fetchOrderWs': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrdersWs': undefined,
                 'cancelAllOrdersWs': undefined,
+                'fetchTradesWs': undefined,
+                'fetchBalanceWs': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -969,11 +976,10 @@ export default class Exchange {
                     else {
                         client.send(message)
                             .catch((e) => { throw e; });
-                        ;
                     }
                 }
             }).catch((e) => {
-                delete (client.subscriptions[subscribeHash]);
+                delete client.subscriptions[subscribeHash];
                 throw e;
             });
         }
@@ -1270,6 +1276,9 @@ export default class Exchange {
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTrades() is not supported yet');
+    }
+    async fetchTradesWs(symbol, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchTradesWs() is not supported yet');
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchTrades() is not supported yet');
@@ -2331,8 +2340,8 @@ export default class Exchange {
          * @name exchange#networkCodeToId
          * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
-         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
-         * @returns {[string|undefined]} exchange-specific network id
+         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @returns {string|undefined} exchange-specific network id
          */
         const networkIdsByCodes = this.safeValue(this.options, 'networks', {});
         let networkId = this.safeString(networkIdsByCodes, networkCode);
@@ -2374,8 +2383,8 @@ export default class Exchange {
          * @name exchange#networkIdToCode
          * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
          * @param {string} networkId unified network code
-         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
-         * @returns {[string|undefined]} unified network code
+         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @returns {string|undefined} unified network code
          */
         const networkCodesByIds = this.safeValue(this.options, 'networksById', {});
         let networkCode = this.safeString(networkCodesByIds, networkId, networkId);
@@ -2872,6 +2881,9 @@ export default class Exchange {
     async fetchBalance(params = {}) {
         throw new NotSupported(this.id + ' fetchBalance() is not supported yet');
     }
+    async fetchBalanceWs(params = {}) {
+        throw new NotSupported(this.id + ' fetchBalanceWs() is not supported yet');
+    }
     parseBalance(response) {
         throw new NotSupported(this.id + ' parseBalance() is not supported yet');
     }
@@ -3034,8 +3046,8 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         return this.handleOptionAndParams(params, methodName, 'marginMode', defaultValue);
     }
@@ -3101,6 +3113,9 @@ export default class Exchange {
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrder() is not supported yet');
     }
+    async fetchOrderWs(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOrderWs() is not supported yet');
+    }
     async fetchOrderStatus(id, symbol = undefined, params = {}) {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
@@ -3128,8 +3143,8 @@ export default class Exchange {
     async cancelAllOrders(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
-    async cancelAllOrderWs(symbol = undefined, params = {}) {
-        throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    async cancelAllOrdersWs(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelAllOrdersWs() is not supported yet');
     }
     async cancelUnifiedOrder(order, params = {}) {
         return this.cancelOrder(this.safeValue(order, 'id'), this.safeValue(order, 'symbol'), params);
@@ -3146,11 +3161,17 @@ export default class Exchange {
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
+    async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOpenOrdersWs() is not supported yet');
+    }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMyTrades() is not supported yet');
+    }
+    async fetchMyTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchMyTradesWs() is not supported yet');
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchMyTrades() is not supported yet');
@@ -3548,7 +3569,7 @@ export default class Exchange {
          * @method
          * @param {string} type Order type
          * @param {boolean} exchangeSpecificParam exchange specific postOnly
-         * @param {object} params exchange specific params
+         * @param {object} [params] exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
@@ -3579,8 +3600,8 @@ export default class Exchange {
          * @method
          * @param {string} type Order type
          * @param {boolean} exchangeSpecificBoolean exchange specific postOnly
-         * @param {object} params exchange specific params
-         * @returns {[boolean, params]}
+         * @param {object} [params] exchange specific params
+         * @returns {Array}
          */
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         let postOnly = this.safeValue(params, 'postOnly', false);
@@ -3659,10 +3680,10 @@ export default class Exchange {
          * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
             const request = {
@@ -3681,10 +3702,10 @@ export default class Exchange {
          * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
             const request = {
@@ -3703,10 +3724,10 @@ export default class Exchange {
          * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
             const request = {
@@ -3763,7 +3784,7 @@ export default class Exchange {
          * @param {string} argument the argument to check
          * @param {string} argumentName the name of the argument to check
          * @param {string} methodName the name of the method that the argument is being checked for
-         * @param {[string]} options a list of options that the argument can be
+         * @param {string[]} options a list of options that the argument can be
          * @returns {undefined}
          */
         const optionsLength = options.length;
@@ -3804,9 +3825,9 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * @param {[object]|object} response unparsed response from the exchange
-         * @param {[string]|undefined} codes the unified currency codes to fetch transactions fees for, returns all currencies when undefined
-         * @param {str|undefined} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
+         * @param {object[]|object} response unparsed response from the exchange
+         * @param {string[]|undefined} codes the unified currency codes to fetch transactions fees for, returns all currencies when undefined
+         * @param {str} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         const depositWithdrawFees = {};
@@ -3879,11 +3900,11 @@ export default class Exchange {
          * @ignore
          * @method
          * @description parses funding fee info from exchange response
-         * @param {[object]} incomes each item describes once instance of currency being received or paid
-         * @param {object|undefined} market ccxt market
-         * @param {int|undefined} since when defined, the response items are filtered to only include items after this timestamp
-         * @param {int|undefined} limit limits the number of items in the response
-         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @param {object[]} incomes each item describes once instance of currency being received or paid
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -3907,10 +3928,10 @@ export default class Exchange {
          * @method
          * @name exchange#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
-         * @param {string|undefined} code unified currency code for the currency of the deposit/withdrawals, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest deposit/withdrawal, default is undefined
-         * @param {int|undefined} limit max number of deposit/withdrawals to return, default is undefined
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         if (this.has['fetchTransactions']) {

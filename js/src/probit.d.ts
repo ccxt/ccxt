@@ -1,5 +1,9 @@
 import Exchange from './abstract/probit.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class probit
+ * @extends Exchange
+ */
 export default class probit extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

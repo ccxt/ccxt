@@ -1,5 +1,9 @@
 import Exchange from './abstract/huobi.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class huobi
+ * @extends Exchange
+ */
 export default class huobi extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{

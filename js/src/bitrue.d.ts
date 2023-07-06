@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitrue.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitrue
+ * @extends Exchange
+ */
 export default class bitrue extends Exchange {
     describe(): any;
     costToPrecision(symbol: any, cost: any): any;

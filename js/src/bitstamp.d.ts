@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitstamp.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitstamp
+ * @extends Exchange
+ */
 export default class bitstamp extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

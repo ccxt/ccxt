@@ -229,7 +229,7 @@ class krakenfutures extends Exchange {
             /**
              * Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple $currencies
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-$instruments
-             * @param {array} $params exchange specific $params
+             * @param {array} [$params] exchange specific $params
              * @return An array of $market structures
              */
             $response = Async\await($this->publicGetInstruments ($params));
@@ -402,8 +402,8 @@ class krakenfutures extends Exchange {
             /**
              * Fetches a list of open orders in a $market
              * @param {string} $symbol Unified $market $symbol
-             * @param {int|null} $limit Not used by krakenfutures
-             * @param {array} $params exchange specific $params
+             * @param {int} [$limit] Not used by krakenfutures
+             * @param {array} [$params] exchange specific $params
              * @return An ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
              */
             Async\await($this->load_markets());
@@ -635,10 +635,10 @@ class krakenfutures extends Exchange {
             /**
              * @descriptions Fetch a $history of filled trades that this account has made
              * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {int|null} $since Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with $params->until
-             * @param {int|null} $limit Total number of trades, cannot exceed 100
-             * @param {array} $params Exchange specific $params
-             * @param {int|null} $params->until Timestamp in ms of latest trade
+             * @param {int} [$since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with $params->until
+             * @param {int} [$limit] Total number of trades, cannot exceed 100
+             * @param {array} [$params] Exchange specific $params
+             * @param {int} [$params->until] Timestamp in ms of latest trade
              * @return An array of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
@@ -807,12 +807,12 @@ class krakenfutures extends Exchange {
              * @param {string} $side buy or sell
              * @param {int} $amount Contract quantity
              * @param {float} $price Limit order $price
-             * @param {float|null} $params->stopPrice The stop $price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst $price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
-             * @param {bool|null} $params->reduceOnly Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
-             * @param {bool|null} $params->postOnly Set if you wish to make a $postOnly order, Default false
-             * @param {string|null} $params->triggerSignal If placing a stp or take_profit, the signal used for trigger, One of => 'mark', 'index', 'last', last is market $price
-             * @param {string|null} $params->cliOrdId UUID The order identity that is specified from the user, It must be globally unique
-             * @param {string|null} $params->clientOrderId UUID The order identity that is specified from the user, It must be globally unique
+             * @param {float} [$params->stopPrice] The stop $price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst $price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
+             * @param {bool} [$params->reduceOnly] Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
+             * @param {bool} [$params->postOnly] Set if you wish to make a $postOnly order, Default false
+             * @param {string} [$params->triggerSignal] If placing a stp or take_profit, the signal used for trigger, One of => 'mark', 'index', 'last', last is market $price
+             * @param {string} [$params->cliOrdId] UUID The order identity that is specified from the user, It must be globally unique
+             * @param {string} [$params->clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
              */
             Async\await($this->load_markets());
             $type = $this->safe_string($params, 'orderType', $type);
@@ -894,9 +894,9 @@ class krakenfutures extends Exchange {
              * @param {string} $symbol Not used by Krakenfutures
              * @param {string} $type Not used by Krakenfutures
              * @param {string} $side Not used by Krakenfutures
-             * @param {float|null} $amount Order size
-             * @param {float|null} $price Price to fill $order at
-             * @param {array} $params Exchange specific $params
+             * @param {float} $amount Order size
+             * @param {float} $price Price to fill $order at
+             * @param {array} [$params] Exchange specific $params
              * @return An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -921,8 +921,8 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * @param {string} $id Order $id
-             * @param {string|null} $symbol Not used by Krakenfutures
-             * @param {array} $params Exchange specific $params
+             * @param {string} $symbol Not used by Krakenfutures
+             * @param {array} [$params] Exchange specific $params
              * @return An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -942,7 +942,7 @@ class krakenfutures extends Exchange {
             /**
              * Cancels all orders on the exchange, including trigger orders
              * @param {str} $symbol Unified market $symbol
-             * @param {dict} $params Exchange specific $params
+             * @param {dict} [$params] Exchange specific $params
              * @return Response from exchange api
              */
             $request = array();
@@ -959,9 +959,9 @@ class krakenfutures extends Exchange {
             /**
              * Gets all open $orders, including trigger $orders, for an account from the exchange api
              * @param {string} $symbol Unified $market $symbol
-             * @param {int} $since Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
-             * @param {int} $limit How many $orders to return. (Not used by kraken api but filtered internally by CCXT)
-             * @param {array} $params Exchange specific parameters
+             * @param {int} [$since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+             * @param {int} [$limit] How many $orders to return. (Not used by kraken api but filtered internally by CCXT)
+             * @param {array} [$params] Exchange specific parameters
              * @return An array of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -1388,9 +1388,9 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * Fetch the $balance for a sub-$account, all sub-$account balances are inside 'info' in the $response
-             * @param {array} $params Exchange specific parameters
-             * @param {string} $params->type The sub-$account $type to query the $balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market $symbol * defaults to 'cash' *
-             * @param {string} $params->symbol A unified market $symbol, when assigned the $balance for a trading market that matches the $symbol is returned
+             * @param {array} [$params] Exchange specific parameters
+             * @param {string} [$params->type] The sub-$account $type to query the $balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market $symbol * defaults to 'cash' *
+             * @param {string} [$params->symbol] A unified market $symbol, when assigned the $balance for a trading market that matches the $symbol is returned
              * @return A ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             Async\await($this->load_markets());
@@ -1612,9 +1612,9 @@ class krakenfutures extends Exchange {
             /**
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-$tickers
              * fetch the current funding rates
-             * @param {[string]} $symbols unified $market $symbols
-             * @param {array} $params extra parameters specific to the krakenfutures api endpoint
-             * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+             * @param {string[]} $symbols unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
+             * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
             $marketIds = $this->market_ids($symbols);
@@ -1740,8 +1740,8 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * Fetches current contract trading positions
-             * @param {[string]} $symbols List of unified $symbols
-             * @param {array} $params Not used by krakenfutures
+             * @param {string[]} $symbols List of unified $symbols
+             * @param {array} [$params] Not used by krakenfutures
              * @return Parsed exchange $response for positions
              */
             Async\await($this->load_markets());
@@ -2008,7 +2008,7 @@ class krakenfutures extends Exchange {
              * transfer from futures wallet to spot wallet
              * @param {str} $code Unified currency $code
              * @param {float} $amount Size of the transfer
-             * @param {dict} $params Exchange specific parameters
+             * @param {dict} [$params] Exchange specific parameters
              * @return a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             return Async\await($this->transfer($code, $amount, 'future', 'spot', $params));
@@ -2023,7 +2023,7 @@ class krakenfutures extends Exchange {
              * @param {float} $amount Size of the $transfer
              * @param {string} $fromAccount 'main'/'funding'/'future', 'flex', or a unified market symbol
              * @param {string} $toAccount 'main'/'funding', 'flex', 'spot' or a unified market symbol
-             * @param {array} $params Exchange specific parameters
+             * @param {array} [$params] Exchange specific parameters
              * @return a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
              */
             Async\await($this->load_markets());

@@ -1,5 +1,9 @@
 import Exchange from './abstract/okx.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class okx
+ * @extends Exchange
+ */
 export default class okx extends Exchange {
     describe(): any;
     handleMarketTypeAndParams(methodName: any, market?: any, params?: {}): any;

@@ -1,5 +1,9 @@
 import Exchange from './abstract/cryptocom.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class cryptocom
+ * @extends Exchange
+ */
 export default class cryptocom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -175,6 +179,9 @@ export default class cryptocom extends Exchange {
     };
     parseSettlements(settlements: any, market: any): any[];
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchPosition(symbol: string, params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

@@ -1,5 +1,9 @@
 import Exchange from './abstract/kucoin.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class kucoin
+ * @extends Exchange
+ */
 export default class kucoin extends Exchange {
     describe(): any;
     nonce(): number;

@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitso.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitso
+ * @extends Exchange
+ */
 export default class bitso extends Exchange {
     describe(): any;
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

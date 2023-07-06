@@ -1,5 +1,9 @@
 import Exchange from './abstract/poloniex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class poloniex
+ * @extends Exchange
+ */
 export default class poloniex extends Exchange {
     describe(): any;
     parseOHLCV(ohlcv: any, market?: any): number[];

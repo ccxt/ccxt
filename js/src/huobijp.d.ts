@@ -1,5 +1,9 @@
 import Exchange from './abstract/huobijp.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class huobijp
+ * @extends Exchange
+ */
 export default class huobijp extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

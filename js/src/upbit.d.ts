@@ -1,5 +1,9 @@
 import Exchange from './abstract/upbit.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class upbit
+ * @extends Exchange
+ */
 export default class upbit extends Exchange {
     describe(): any;
     fetchCurrency(code: string, params?: {}): Promise<{

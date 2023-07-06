@@ -1,5 +1,9 @@
 import Exchange from './abstract/deribit.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class deribit
+ * @extends Exchange
+ */
 export default class deribit extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

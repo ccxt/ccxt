@@ -1,5 +1,9 @@
 import Exchange from './abstract/wavesexchange.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class wavesexchange
+ * @extends Exchange
+ */
 export default class wavesexchange extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;

@@ -1,5 +1,9 @@
 import Exchange from './abstract/digifinex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class digifinex
+ * @extends Exchange
+ */
 export default class digifinex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
