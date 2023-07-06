@@ -3218,17 +3218,6 @@ export default class Exchange {
         }
     }
 
-    async fetchFees () {
-        const result = {}
-        let promises = [];
-        promises.push (this.fetchTradingFees ());
-        promises.push (this.fetchDepositWithdrawFees ());
-        promises = await Promise.all (promises);
-        result['trading'] = this.safeValue (promises, 0);
-        result['funding'] = this.safeValue (promises, 1);
-        return result;
-    }
-
     async fetchBalance (params = {}): Promise<Balances> {
         throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
     }

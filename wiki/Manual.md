@@ -4978,14 +4978,12 @@ Fees are often grouped into two categories:
 Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
 
 ```javascript
-fetchFees (params = {})
 fetchTradingFee (symbol, params = {})
 fetchTradingFees (params = {})
 fetchDepositWithdrawFees (codes = undefined, params = {})
 fetchDepositWithdrawFee (code, params = {})
 ```
 
-**NOTE: Previously we used fetchTransactionFee(s) to fetch the transaction fees, which are now DEPRECATED and these functions have been replace by fetchDepositWithdrawFee(s)**
 
 The fee methods will return a unified fee structure, which is often present with orders and trades as well. The fee structure is a common format for representing the fee info throughout the library. Fee structures are usually indexed by market or currency.
 
@@ -4993,7 +4991,9 @@ Because this is still a work in progress, some or all of methods and info descri
 
 **DO NOT use the `.fees` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
-`fetchFees` will automatically call both `fetchTradingFees` and `fetchDepositWithdrawFees` to get all the fee information. You can call `fetchTradingFee` / `fetchTradingFees` or `fetchDepositWithdrawFee` / `fetchDepositWithdrawFees` for more precise control over what endpoint on the exchange is requested.
+**NOTE: Previously we used fetchTransactionFee(s) to fetch the transaction fees, which are now DEPRECATED and these functions have been replace by fetchDepositWithdrawFee(s)**
+
+You call `fetchTradingFee` / `fetchTradingFees` to fetch the trading fees, `fetchDepositWithdrawFee` / `fetchDepositWithdrawFees` to fetch the deposit & withdraw fees.
 
 ### Fee Structure
 
@@ -5010,36 +5010,41 @@ Orders, private trades, transactions and ledger entries may define the following
 ### Fee Schedule
 
 ```javascript
-fetchFees (params = {})
+fetchTradingFees (params = {})
 ```
 
 ```javascript
 {
-    'funding': {
-        'withdraw': {
-            'BTC': 0.00001,
-            'ETH': 0.001,
-            'LTC': 0.0003,
-        },
-        'deposit': {
-            'BTC': 0,
+    'withdraw': {
+        'BTC': 0.00001,
+        'ETH': 0.001,
+        'LTC': 0.0003,
+    },
+    'deposit': {
+        'BTC': 0,
+    },
+    'info': { ... },
+}
+```
+
+```javascript
+fetchDepositWithdrawFees (codes, params = {})
+```
+
+```javascript
+{
+    'BTC': {
+        'withdraw': { 'fee': 0.0005, 'percentage': false },
+        'deposit': { 'fee': undefined, 'percentage': undefined },
+        'networks': {
+            'BTC': {
+                'deposit': { 'fee': undefined, 'percentage': undefined },
+                'withdraw': { 'fee': 0.0005, 'percentage': false }
+            }
         },
         'info': { ... },
     },
-    'trading': {
-        'BTC': {
-            'info': { ... },
-            'withdraw': { 'fee': 0.0005, 'percentage': false },
-            'deposit': { 'fee': undefined, 'percentage': undefined },
-            'networks': {
-                'BTC': {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': 0.0005, 'percentage': false }
-                }
-            }
-        },
-        ...
-    },
+    ...
 }
 ```
 
