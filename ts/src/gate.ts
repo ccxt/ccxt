@@ -1918,47 +1918,28 @@ export default class gate extends Exchange {
                 }
             }
             const code = this.safeCurrencyCode (currencyName);
-            // since each entry from the response is actually a network entry
-            // we create the currency structure on first encounter
-            let currency = this.safeValue (result, code);
-            if (currency === undefined) {
-                currency = {
-                    'info': undefined,
+            // if it's first time of the currency loop
+            if (!(code in result)) {
+                result[code] = this.safeCurrencyStructure ({
+                    'info': entry,
                     'id': currencyName,
                     'lowerCaseId': currencyName.toLowerCase (),
-                    'name': undefined,
                     'code': code,
                     'precision': this.options['currencyPrecision'],
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
-                    'fees': [],
                     'limits': this.limits,
-                    'networks': {},
-                };
+                });
             }
+            // now (as currency entry is defined in results) then just add the current parsed entry into it's networks
             // below are network-specific values
             const listed = !this.safeValue (entry, 'delisted');
-            const withdrawEnabled = !this.safeValue (entry, 'withdraw_disabled', false);
-            const depositEnabled = !this.safeValue (entry, 'deposit_disabled', false);
-            const tradeEnabled = !this.safeValue (entry, 'trade_disabled', false);
+            const withdrawEnabled = this.safeValue (entry, 'withdraw_disabled');
+            const depositEnabled = this.safeValue (entry, 'deposit_disabled');
+            const tradeEnabled = this.safeValue (entry, 'trade_disabled');
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
-            // if a network property is true set the corresponding currency property to true
-            // a currency is withdrawable in general if it is withdrawable through at least one of the networks
-            if (active) {
-                currency['active'] = active;
-            }
-            if (depositEnabled) {
-                currency['deposit'] = depositEnabled;
-            }
-            if (withdrawEnabled) {
-                currency['withdraw'] = withdrawEnabled;
-            }
             const networkId = this.safeString (entry, 'chain'); // some networks are null
             if (networkId !== undefined) {
                 const networkCode = this.networkIdToCode (networkId, code);
-                currency['networks'][networkCode] = {
+                result[code]['networks'][networkCode] = {
                     'info': entry,
                     'id': networkId,
                     'network': networkCode,
@@ -1978,8 +1959,19 @@ export default class gate extends Exchange {
                     'fee': undefined,
                     'precision': this.options['currencyPrecision'],
                 };
+                // if a network property is true set the corresponding currency property to true
+                // a currency is withdrawable in general if it is withdrawable through at least one of the networks
+                if (active) {
+                    result[code]['active'] = active;
+                }
+                if (depositEnabled) {
+                    result[code]['deposit'] = depositEnabled;
+                }
+                if (withdrawEnabled) {
+                    result[code]['withdraw'] = withdrawEnabled;
+                }
+                result[code]['info'][networkId] = entry; // add this entry in the info property as well
             }
-            result[code] = currency;
         }
         return result;
     }
