@@ -1505,7 +1505,7 @@ export default class Exchange {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
-                const entryKeyGESince = entry[key] && since && (entry[key] >= since);
+                const entryKeyGESince = (key in entry) && since && (entry[key] >= since);
                 const secondCondition = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push (entry);
