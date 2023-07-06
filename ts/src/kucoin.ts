@@ -102,13 +102,14 @@ export default class kucoin extends Exchange {
                     'private': 'https://api.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
-                    'webExchange': 'https://api.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
                     'private': 'https://openapi-sandbox.kucoin.com',
                     'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
                     'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -311,6 +312,11 @@ export default class kucoin extends Exchange {
                         'stopOrders': 1.3953,
                     },
                 },
+                'webExchange': {
+                    'get': {
+                        'currency/currency/chain-info': 1, // this is temporary from webApi
+                    },
+                },
             },
             'timeframes': {
                 '1m': '1min',
@@ -440,6 +446,10 @@ export default class kucoin extends Exchange {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'fetchCurrencies': {
+                    'webApiEnable': true, // fetches from WEB
+                    'webApiRetries': 5,
+                },
                 'fetchMarkets': {
                     'fetchTickersFees': true,
                 },
@@ -1058,7 +1068,8 @@ export default class kucoin extends Exchange {
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        const promises = [];
+        promises.push (this.publicGetCurrencies (params));
         //
         //     {
         //         "currency": "OMG",
@@ -1074,7 +1085,48 @@ export default class kucoin extends Exchange {
         //         "isDebitEnabled": false
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        promises.push (this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true));
+        //
+        //    {
+        //        "success": true,
+        //        "code": "200",
+        //        "msg": "success",
+        //        "retry": false,
+        //        "data": [
+        //            {
+        //                "withdrawMinFee": "0.0005",
+        //                "chainName": "BTC",
+        //                "preDepositTipEnabled": "false",
+        //                "chain": "btc",
+        //                "isChainEnabled": "true",
+        //                "withdrawDisabledTip": "",
+        //                "walletPrecision": "8",
+        //                "chainFullName": "Bitcoin",
+        //                "orgAddress": "",
+        //                "isDepositEnabled": "true",
+        //                "withdrawMinSize": "0.001",
+        //                "depositDisabledTip": "",
+        //                "userAddressName": "",
+        //                "txUrl": "https://blockchain.info/tx/{txId}",
+        //                "preWithdrawTipEnabled": "false",
+        //                "withdrawFeeRate": "0",
+        //                "confirmationCount": "2",
+        //                "currency": "BTC",
+        //                "depositMinSize": "0.00005",
+        //                "isWithdrawEnabled": "true",
+        //                "preDepositTip": "",
+        //                "preWithdrawTip": "",
+        //                "status": "enabled"
+        //            },
+        //        ]
+        //    }
+        //
+        const responses = await Promise.all (promises);
+        const responseCurrencies = responses[0];
+        const responseChains = responses[1];
+        const data = this.safeValue (responseCurrencies, 'data', []);
+        const chainsData = this.safeValue (responseChains, 'data', []);
+        const currencyChains = this.groupBy (chainsData, 'currency');
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -1085,6 +1137,37 @@ export default class kucoin extends Exchange {
             const isDepositEnabled = this.safeValue (entry, 'isDepositEnabled', false);
             const fee = this.safeNumber (entry, 'withdrawalMinFee');
             const active = (isWithdrawEnabled && isDepositEnabled);
+            const networks = {};
+            const chains = this.safeValue (currencyChains, id, []);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const chainId = this.safeString (chain, 'chain');
+                const isChainEnabled = this.safeString (chain, 'isChainEnabled'); // better than 'status'
+                if (isChainEnabled === 'true') {
+                    const networkCode = this.networkIdToCode (chainId);
+                    const chainWithdrawEnabled = this.safeValue (chain, 'isWithdrawEnabled', false);
+                    const chainDepositEnabled = this.safeValue (chain, 'isDepositEnabled', false);
+                    networks[networkCode] = {
+                        'info': chain,
+                        'id': chainId,
+                        'name': this.safeString2 (chain, 'chainFullName', 'chainName'),
+                        'code': networkCode,
+                        'active': chainWithdrawEnabled && chainDepositEnabled,
+                        'fee': this.safeNumber (chain, 'withdrawMinFee'),
+                        'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'walletPrecision'))),
+                        'limits': {
+                            'withdraw': {
+                                'min': this.safeNumber (chain, 'withdrawMinSize'),
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': this.safeNumber (chain, 'depositMinSize'),
+                                'max': undefined,
+                            },
+                        },
+                    };
+                }
+            }
             result[code] = {
                 'id': id,
                 'name': name,
@@ -1096,6 +1179,7 @@ export default class kucoin extends Exchange {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
+                'networks': networks,
             };
         }
         return result;
@@ -1611,7 +1695,10 @@ export default class kucoin extends Exchange {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data');
+        if (data === undefined) {
+            throw new ExchangeError (this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
+        }
         return this.parseDepositAddress (data, currency);
     }
 
@@ -4054,7 +4141,7 @@ export default class kucoin extends Exchange {
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
-        if (api === 'webFront') {
+        if (api === 'webExchange') {
             endpoint = '/' + this.implodeParams (path, params);
         }
         const query = this.omit (params, this.extractParams (path));
