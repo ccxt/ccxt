@@ -481,7 +481,7 @@ export default class gate extends Exchange {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
-                                'networks': {
+                'networks': {
                     'ALGORAND': 'ALGO',
                     'ARBITRUM_NOVA': 'ARBNOVA',
                     'ARBITRUM_ONE': 'ARBEVM',
@@ -1375,7 +1375,7 @@ export default class gate extends Exchange {
             return undefined;
         }
         const response = await this.publicSpotGetCurrencies (params);
-         //
+        //
         //    {
         //        "currency": "BCN",
         //        "delisted": false,
