@@ -481,257 +481,45 @@ export default class gate extends Exchange {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
-                // gate networks and currencies are hardcoded on their withdrawal page
-                'networks': {
-                    'BTC': 'BTC',
-                    'TRC20': 'TRX',
-                    'TRX': 'TRX',
-                    'ERC20': 'ETH',
-                    'ETH': 'ETH',
-                    'BEP2': 'BNB',
-                    'BEP20': 'BSC',
-                    'HRC20': 'HT',
-                    'CRC20': 'CRO',
-                    'OKC': 'OKT',
-                    'LTC': 'LTC',
-                    'AVALANCHE_C': 'AVAX_C',
-                    'AVALANCHE_X': 'AVAX',
-                    'DOGECOIN': 'DOGE', // DOGEEVM is different
-                    'POLKADOT': 'DOT', // DOTSM ? // todo
-                    'COSMOS': 'ATOM',
-                    // 'GATECHAIN': 'GT', // ? GTEVM is different (same as GRC20) // todo
-                    'SOLANA': 'SOL',
-                    'ETC': 'ETC',
-                    'POLYGON': 'MATIC',
-                    'TERRA': 'LUNA',
-                    'TERRACLASSIC': 'LUNC',
-                    'CHILIZ': 'CHZ',
-                    'WAVES': 'WAVES',
-                    'ALTAIR': 'AIR',
-                    'ALEPHIUM': 'ALPH',
-                    'ALAYA': 'ALAYA',
-                    'AMECHAIN': 'AME',
-                    'STELLAR': 'XLM',
-                    'OPTIMISM': 'OPETH',
-                    'CARDANO': 'ADA',
-                    'ELROND': 'EGLD',
-                    'CELO': 'CELO',
-                    //'ARBITRUM_ONE': 'ARB', // ? ARBEVM // todo  
-                    'ARBITRUM_NOVA': 'ARBNOVA',
-                    'EOS': 'EOS',
-                    'ETHW': 'ETHW',
-                    'KLAYTN': 'KLAY',
-                    'APTOS': 'APT',
+                                'networks': {
                     'ALGORAND': 'ALGO',
-                    'ECASH': 'XEC',
-                    'ZCASH': 'ZEC',
-                    'MOONRIVER': 'MOVR',
-                    'MOONBEAM': 'GLMR',
-                    'MONERO': 'XMR',
-                    'RIPPLE': 'XRP',
-                    'TEZOS': 'XTZ',
-                    'CASPER': 'CSPR',
-                    'VECHAIN': 'VET',
-                    'ARWEAVE': 'AR',
-                    'ASTAR': 'ASTR', // ASTREVM is different
-                    'INJECTIVE': 'INJ',
-                    'ACALA': 'ACA',
-                    'TON': 'TONCOIN',
-                    'FILECOIN': 'FIL',
-                    'WAX': 'WAXP',
-                    'ZILLIQA': 'ZIL',
-                    'KUSAMA': 'KSM', // KSMSM is different
-                    'KARURA': 'KAR',
-                    'KADENA': 'KDA',
-                    'MOBILECOIN': 'MOB',
-                    'METERSTABLE': 'MTR',
-                    'LINE': 'LN', // for LINK token
-                    'LAYR': 'LAYR', // composable finance
-                    'BITSHARES': 'BTS',
-                    // 'BITTORRENT': 'BTT', tbd bttc  / BTT: 'USDD_BTT'
-                    'REEF': 'REEF',
-                    'BUMO': 'BU',
-                    'HARMONY': 'ONE',
-                    'ONTOLOGY': 'ONG',
-                    'SOLAR': 'SXP',
-                    'NANO': 'NANO',
-                    'THETA': 'THETA',
-                    'NERVOS': 'CKB',
-                    'NTFMART': 'NMT',
-                    'RADIX': 'XRD',
-                    'NODLE': 'NODL',
-                    'NYZO': 'NYZO',
-                    'PLIAN': 'PI',
-                    'QIT': 'QTC',
-                    'RSK': 'RBTC', // ROOTSTOCK, RSK Infrastructure Framework (RIF)
-                    'CONFLUX': 'CFX', // CFXEVM is different
-                    'SUPERBITCOIN': 'SBTC',
-                    'PROTON': 'XPR',
-                    'CENTRIFUGE': 'CFG',
-                    'STEP': 'FITFI',
-                    'SYSCOIN': 'SYS',
-                    'CHIA': 'XCH', // XCH_OLD is different
-                    'TELOS': 'TLOS', // TLOSEVM is different
-                    'POLKADEX': 'PDEX',
-                    'WITNET': 'WIT',
-                    'SORA': 'XOR',
-                    'XPLA': 'XPLA',
-                    'MONEROCLASSIC': 'XMC',
-                    'QTUM': 'QTUM',
-                    'ZEITGEIST': 'ZTG',
-                    'CALLISTO': 'CLO',
-                    'CERTIK': 'CTK',
-                    'VERGE': 'XVG',
-                    'CREDITS': 'CS',
-                    'CLOVER': 'CLV', // CLVEVM is different
-                    'PERSISTENCE': 'XPRT',
-                    'HELIUM': 'HNT',
-                    'HATHOR': 'HTR',
-                    'BSV': 'BSV',
-                    'BCH': 'BCH', // actually, the real name is BITCOIN-CASH-ABC, but most exchanges just call it mistakenly BCH/BITCOINCASH
-                    // 'BCHA': 'BCHA', // simultaneously, BITCOIN-CASH-ABC is other IOU, which ignored existing BITCOIN-CASH-ABC name presense and named it again, but it is not BCH
-                    'BITCOINFILE': 'BIFI',
-                    'METAVERSEPIONEER': 'NEER',
-                    'INTERNETCOMPUTER': 'ICP',
-                    'MINA': 'MINA',
-                    'GOCHAIN': 'GO',
-                    'IOTEX': 'IOTX',
-                    'IOST': 'IOST',
-                    'BYTECOIN': 'BCN', // BCNNEW is different
-                    'KAVA': 'KAVA',
-                    'DASH': 'DASH',
-                    'METIS': 'METIS',
-                    'FANTOM': 'FTM',
-                    'TOMOCHAIN': 'TOMO',
-                    'CALAMARI': 'KMA',
-                    'OSMOSIS': 'OSMO',
-                    'THUNDERCORE': 'TT',
-                    'TARAXA': 'TARA',
-                    'RAVENCOIN': 'RVC',
-                    'FETCH_AI': 'FET',
-                    'OASIS': 'ROSE',
+                    'ARBITRUM_NOVA': 'ARBNOVA',
+                    'ARBITRUM_ONE': 'ARBEVM',
+                    'AVALANCHE_C': 'AVAX_C',
+                    'BEP20': 'BSC',
+                    'CHILIZ': 'CHZ',
+                    'EOS': 'EOS',
+                    'ERC20': 'ETH',
+                    'GATECHAIN': 'GTEVM',
+                    'HRC20': 'HT',
+                    'KUSAMA': 'KSMSM',
                     'NEAR': 'NEAR',
-                    'SIACOIN': 'SC',
-                    'HORIZEN': 'ZEN',
-                    'KARDIACHAIN': 'KAI',
-                    'FILESTAR': 'STAR',
-                    'STARCOIN': 'STC',
-                    'SUPERTX': 'SUP',
-                    'TIPS': 'TIPS', // FEDORACOIN
-                    'BIFROST': 'BNC',
-                    'BIFROSTPOLKADOT': 'BNCDOT',
-                    'SHIDEN': 'SDN', // SDNEVM is different
-                    'BITCOINDIAMOND': 'BCD',
-                    'WEMIX': 'WEMIX',
-                    'GAS': 'GAS',
-                    'BELDEX': 'BDX',
-                    'BITCI': 'BITCI',
-                    'SONGBIRD': 'SGB',
-                    'SECRET': 'SCRT',
-                    'OASYS': 'OAS',
-                    'FINDORA': 'FRA', // FRAEVM is different
-                    'FUSION': 'FSN',
-                    'HASHGARD': 'GARD',
-                    'HYPERCASH': 'HC',
-                    'KINTSUGI': 'KINT',
-                    'KON': 'KONCHAIN',
-                    'GATHER': 'GTH',
-                    'GXSHARES': 'GXS',
-                    'WAYIKICHAIN': 'WICC',
-                    'FLOW': 'FLOW',
-                    // BOBA: BOBA, // BOBAEVM . tbd
-                    'BITGERT': 'BRISE',
-                    'BOTTOS': 'BTO',
-                    'SHYFT': 'SHFT',
-                    'ETHF': 'ETHF',
-                    'ONELEDGER': 'OLT',
-                    'STACKS': 'STX',
-                    'BITCOINGOLD': 'BTG',
-                    'BYTOM': 'BTM',
-                    'XDC': 'XDC',
-                    'DIGITALBITS': 'XDB',
-                    'TERNOA': 'CAPS',
-                    'NEM': 'XEM',
-                    'KILT': 'KILT',
-                    'PLCULTIMA': 'PLCU',
-                    'GRIN': 'GRIN',
-                    'BITKUB': 'KUB',
-                    'VITE': 'VITE',
-                    'ROBONOMICS': 'XRT',
-                    'CHAINX': 'PCX',
-                    'CADUCEUS': 'CMP',
-                    'PHALA': 'PHA',
-                    'SYMBOL': 'XYM',
-                    'PLATON': 'LAT',
-                    'NEBULAS': 'NAS',
-                    'PASTEL': 'PSL',
-                    'COCOSBCX': 'COCOS',
-                    'HIVE': 'HIVE',
-                    'CONSTELLATION': 'DAG',
-                    'DEEPBRAIN': 'DBC',
-                    'DEFICHAIN': 'DFI',
-                    'HANDSHAKE': 'HNS',
-                    'AETERNITY': 'AE',
-                    'SERO': 'SERO',
-                    'HPB': 'HPB',
-                    'MATRIXAI': 'MAN',
-                    'EVERSCALE': 'EVER',
-                    'QUARKCHAIN': 'QKC',
-                    'WAVESENTERPRISE': 'WEST',
-                    'MEDIBLOC': 'MED',
-                    'FLUX': 'FLUX',
-                    'DOCK': 'DOCK',
-                    'PIRATECHAIN': 'ARRR',
-                    'ICON': 'ICX',
-                    'HEDERA': 'HBAR',
-                    'INTEGRITEE': 'TEER',
-                    'AXELAR': 'WAXL',
-                    'FUSE': 'FUSE',
-                    'RIZON': 'ATOLO',
-                    'EDGEWARE': 'EDG',
-                    'BEAM': 'BEAM',
-                    'CHEQD': 'CHEQ',
-                    'IRISNET': 'IRIS',
-                    'ABBC': 'ABBC',
-                    'BITCOINX': 'BCX',
-                    'SEELE': 'SEELE',
-                    'VELAS': 'VLX',
-                    'REI': 'REI',
-                    'ELASTOS': 'ELA', // ELAEVM is different
-                    'ELASTOSSMARTCHAIN': 'ESC',
-                    'AELF': 'ELF',
-                    'STEEM': 'STEEM',
-                    'FNCY': 'FNCY',
-                    'SMARTMESH': 'SMT',
-                    'BITSHARESNEW': 'NBS',
-                    'UMEE': 'UMEE',
-                    'ERGO': 'ERG',
-                    'AKASH': 'AKT',
-                    'NULS': 'NULS',
-                    'RONIN': 'RON',
-                    'ALEPHZERO': 'AZERO',
-                    'ENERGYWEB': 'EWT',
-                    'NIMIQ': 'NIM',
-                    'BAND': 'BAND',
-                    'NKN': 'NKN',
-                    'INTERLAY': 'INTERLAY',
-                    'FIRO': 'FIRO',
-                    'POLYMESH': 'POLYX',
-                    'STRATIS': 'STRAX',
-                    'HYDRA': 'HYDRA',
-                    'DECRED': 'DCR',
-                    'DECREDNEXT': 'DCRN',
-                    'DATAHIGHWAY': 'DHX',
-                    'THORCHAIN': 'RUNE',
-                    'POCKET': 'POKT',
-                    'FILECASH': 'FIC',
-                    'FIO': 'FIO',
-                    'STAFI': 'FIS',
-                    'CRUST': 'CRU',
-                    'CUBENETWORK': 'CUBE',
-                    'CLASSZZ': 'CZZ',
-                    // dead: MANTA, CSM (probably crust shadow)
-                    // undetermined: ASK_OLD, BTMV1, ETH2, GALA2 (ZPT), GAS_OLD (NKN_N2), GATEIO (POINT), GEMINIS, LION_GTEVM, CTO, EQ, HKO, KAZE, KPHA (probably phala), KPN (apron?), KSX, LBTC, LUK (MLK), NEO_OLD (NEO_OLD), PHAKSM, PICA, PKS, SUB (subsocial), SUBG (subgame), SUPV1, TIPS0, TUR, UNIQUE, USC, USDTEST
+                    'OKC': 'OKT',
+                    'OPTIMISM': 'OPETH',
+                    'POLKADOT': 'DOTSM',
+                    'POLYGON': 'MATIC',
+                    'SOLANA': 'SOL',
+                    'TRC20': 'TRX',
+                },
+                'networksById': {
+                    'ALGO': 'ALGORAND',
+                    'ARBEVM': 'ARBITRUM_ONE',
+                    'ARBNOVA': 'ARBITRUM_NOVA',
+                    'AVAX_C': 'AVALANCHE_C',
+                    'BSC': 'BEP20',
+                    'CHZ': 'CHILIZ',
+                    'DOTSM': 'POLKADOT',
+                    'EOS': 'EOS',
+                    'ETH': 'ERC20',
+                    'GTEVM': 'GATECHAIN',
+                    'HT': 'HRC20',
+                    'KSMSM': 'KUSAMA',
+                    'MATIC': 'POLYGON',
+                    'NEAR': 'NEAR',
+                    'OKT': 'OKC',
+                    'OPETH': 'OPTIMISM',
+                    'SOL': 'SOLANA',
+                    'TRX': 'TRC20',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -765,10 +553,6 @@ export default class gate extends Exchange {
                         'settlementCurrencies': [ 'usdt' ],
                     },
                 },
-                // gateio's withdrawal api doc page source contains a call to num_need_fix(this.value, 4)
-                // so users can't set lower precision than 0.0001
-                // also, all currencies with gate have the same precision up to 4 decimals
-                'currencyPrecision': this.parseNumber ('1e-4'),
             },
             'precisionMode': TICK_SIZE,
             'fees': {
@@ -1591,16 +1375,15 @@ export default class gate extends Exchange {
             return undefined;
         }
         const response = await this.publicSpotGetCurrencies (params);
-        //
-        //     {
-        //         "currency": "USDT_ETH",
-        //         "delisted": false,
-        //         "withdraw_disabled": false,
-        //         "withdraw_delayed": false,
-        //         "deposit_disabled": false,
-        //         "trade_disabled": false,
-        //         "chain": "ETH"
-        //     },
+         //
+        //    {
+        //        "currency": "BCN",
+        //        "delisted": false,
+        //        "withdraw_disabled": true,
+        //        "withdraw_delayed": false,
+        //        "deposit_disabled": true,
+        //        "trade_disabled": false
+        //    }
         //
         //    {
         //        "currency":"USDT_ETH",
@@ -1616,77 +1399,6 @@ export default class gate extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
-<<<<<<< HEAD
-            const parts = currencyId.split ('_');
-            const partFirst = this.safeString (parts, 0);
-            let currencyName = undefined;
-            // if there's an underscore then the second part is always the chain name except the _OLD suffix
-            if (currencyId.indexOf ('_OLD') > -1) {
-                currencyName = currencyId;
-            } else {
-                // however, if there is underscore, the exceptional is 'USD_USDC' inclusive currencies, i.e. USD_USDCTRX, USD_USDCSOL...
-                if (currencyId.indexOf ('USD_USDC') > -1) {
-                    currencyName = 'USD_USDC';
-                } else {
-                    currencyName = partFirst;
-                }
-            }
-            const code = this.safeCurrencyCode (currencyName);
-            // since each entry from the response is actually a network entry
-            // we create the currency structure on first encounter
-            let currency = this.safeValue (result, code);
-            if (currency === undefined) {
-                currency = {
-                    'info': undefined,
-                    'id': currencyName,
-                    'lowerCaseId': currencyName.toLowerCase (),
-                    'name': undefined,
-                    'code': code,
-                    'precision': this.options['currencyPrecision'],
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
-                    'fees': [],
-                    'limits': this.limits,
-                    'networks': {},
-                };
-            }
-            // below are network-specific values
-            const listed = !this.safeValue (entry, 'delisted');
-            const withdrawEnabled = !this.safeValue (entry, 'withdraw_disabled', false);
-            const depositEnabled = !this.safeValue (entry, 'deposit_disabled', false);
-            const tradeEnabled = !this.safeValue (entry, 'trade_disabled', false);
-            const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
-            // if a network property is true set the corresponding currency property to true
-            // a currency is withdrawable in general if it is withdrawable through at least one of the networks
-            if (active) {
-                currency['active'] = active;
-            }
-            if (depositEnabled) {
-                currency['deposit'] = depositEnabled;
-            }
-            if (withdrawEnabled) {
-                currency['withdraw'] = withdrawEnabled;
-            }
-            const networkId = this.safeString (entry, 'chain'); // some networks are null
-            if (networkId !== undefined) {
-                const networkCode = this.networkIdToCode (networkId, code);
-                currency['networks'][networkCode] = {
-                    'info': entry,
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-=======
             const currencyIdLower = this.safeStringLower (entry, 'currency');
             const parts = currencyId.split ('_');
             const currency = parts[0];
@@ -1708,17 +1420,10 @@ export default class gate extends Exchange {
                     'code': code,
                     'info': undefined,
                     'name': undefined,
->>>>>>> 78ad249dc96d2b9a9a959f84e74699b6a72d0bb3
                     'active': active,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': undefined,
-<<<<<<< HEAD
-                    'precision': this.options['currencyPrecision'],
-                };
-            }
-            result[code] = currency;
-=======
                     'fees': [],
                     'precision': this.parseNumber ('1e-4'),
                     'limits': this.limits,
@@ -1763,7 +1468,6 @@ export default class gate extends Exchange {
             result[code]['active'] = depositAvailable && withdrawAvailable;
             result[code]['deposit'] = depositAvailable;
             result[code]['withdraw'] = withdrawAvailable;
->>>>>>> 78ad249dc96d2b9a9a959f84e74699b6a72d0bb3
         }
         return result;
     }
