@@ -1482,7 +1482,7 @@ export default class Exchange {
             result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                if (entry[key] >= since) {
+                if ((key in entry) && (entry[key] >= since)) {
                     result.push (entry);
                 }
             }
