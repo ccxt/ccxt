@@ -561,7 +561,7 @@ export default class cryptocom extends cryptocomRest {
             'nonce': nonce,
         };
         const message = this.extend (request, params);
-        return await this.watch (url, nonce.toString (), message);
+        return await this.watch (url, nonce.toString (), message, true);
     }
 
     async watchPrivateSubscribe (messageHash, params = {}) {
