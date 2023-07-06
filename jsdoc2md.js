@@ -44,9 +44,9 @@ proTemplateData = proTemplateData.filter (x => x.length > 0)
 
 // assign pro classes to REST template data
 proTemplateData.forEach((proData) => {
-  const classArray = templateData.find ((template) => template[0].id === proData[0]?.memberof);
+  const classArray = templateData.find ((template) => template[0].id === proData[0].memberof);
   if (classArray) {
-    const classArray = templateData.find ((template) => template[0].id === proData[0]?.memberof);
+    const classArray = templateData.find ((template) => template[0].id === proData[0].memberof);
     classArray.push(...proData);
   }
 })
