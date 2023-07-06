@@ -2368,7 +2368,7 @@ export default class kucoinfutures extends kucoin {
     }
 
     parseFundingRateHistory (info, market = undefined) {
-        const timestamp = this.safeNumber (info, 'timePoint');
+        const timestamp = this.safeInteger (info, 'timePoint');
         const marketId = this.safeString (info, 'symbol');
         return {
             'info': info,
