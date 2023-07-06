@@ -1482,7 +1482,8 @@ export default class Exchange {
             result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                if ((key in entry) && (entry[key] >= since)) {
+                const value = this.safeValue (entry, key);
+                if (value && (value >= since)) {
                     result.push (entry);
                 }
             }
@@ -1505,7 +1506,8 @@ export default class Exchange {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
-                const entryKeyGESince = (key in entry) && since && (entry[key] >= since);
+                const entryKeyValue = this.safeValue (entry, key);
+                const entryKeyGESince = (entryKeyValue) && since && (entryKeyValue >= since);
                 const secondCondition = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push (entry);
