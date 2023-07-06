@@ -1256,7 +1256,7 @@ export default class kucoin extends Exchange {
         };
         const isWithdrawEnabled = this.safeValue (fee, 'isWithdrawEnabled');
         if (isWithdrawEnabled) {
-            result['withdraw']['fee'] = this.safeNumber (fee, 'withdrawalMinFee');
+            result['withdraw']['fee'] = this.safeNumber2 (fee, 'withdrawalMinFee', 'withdrawMinFee');
             result['withdraw']['percentage'] = false;
             const networkId = this.safeString (fee, 'chain');
             if (networkId) {
