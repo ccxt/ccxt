@@ -275,6 +275,7 @@ export default class okx extends Exchange {
                         'account/max-size': 1,
                         'account/max-avail-size': 1,
                         'account/leverage-info': 1,
+                        'account/adjust-leverage-info': 4,
                         'account/max-loan': 1,
                         'account/trade-fee': 4,
                         'account/interest-accrued': 4,
