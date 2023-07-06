@@ -1178,7 +1178,7 @@ export default class bitget extends Exchange {
                     'XRP': 'RIPPLE',
                     'ZIL': 'ZILLIQA',
                     'RSK': 'RSK',
-                    'TRC10': 'TRC10'
+                    'TRC10': 'TRC10',
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
