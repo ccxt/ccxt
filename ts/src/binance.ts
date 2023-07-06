@@ -6181,7 +6181,7 @@ export default class binance extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    parseDepositAddress (depositAddress: any, currency = undefined) {
+    parseDepositAddress (depositAddress, currency = undefined) {
         const currencyId = this.safeString (depositAddress, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (depositAddress, 'address');
