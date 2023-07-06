@@ -1897,7 +1897,6 @@ export default class binance extends Exchange {
         }
         const response = await this.sapiGetCapitalConfigGetall (params);
         const isUnifiedNetworks = this.safeValue (this.options, 'useUnifiedNetworkCodes', false);
-        this.options['defaultNetworkCodesForCurrencies'] = {};
         const result = {};
         for (let i = 0; i < response.length; i++) {
             //
@@ -2014,15 +2013,15 @@ export default class binance extends Exchange {
                     const networkItem = networkList[j];
                     const networkId = this.safeString (networkItem, 'network');
                     const networkCode = this.networkIdToCode (networkId);
-                    const isDefault = this.safeValue (networkItem, 'isDefault');
-                    if (isDefault) {
-                        this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
-                    }
+                    // todo: default networks
+                    // const isDefault = this.safeValue (networkItem, 'isDefault');
+                    // if (isDefault) {
+                    //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
+                    // }
+                    let decimalPlaces = undefined;
                     const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
-                    // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                    // so, when there is 0 [zero] instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended, inexistent or other reasons
                     const isZero = Precise.stringEq (precisionTick, '0');
-                    let decimalPlaces = undefined; // this and few other lines be removed when we migrate binance to ticksize
+                    // FIAT, LEVERAGED (UP/DOWN) TOKENS or some abandonded coin versions might provide "0" (zero) string for precision : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731 so, we skip those occasions
                     if (!isZero) {
                         decimalPlaces = this.numberToString (this.precisionFromString (precisionTick));
                         maxDecimalPlaces = (maxDecimalPlaces === undefined) ? decimalPlaces : Precise.stringMax (maxDecimalPlaces, decimalPlaces);
@@ -5741,13 +5740,15 @@ export default class binance extends Exchange {
         if (internal !== undefined) {
             internal = internal ? true : false as any;
         }
+        const useUnified = this.safeValue (this.options, 'useUnifiedNetworkCodes', false);
+        const networkId = this.safeString (transaction, 'network');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
+            'network': (useUnified ? this.networkIdToCode (networkId) : networkId),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -6024,9 +6025,9 @@ export default class binance extends Exchange {
         };
         // if you don't pass network name it will try to get for the "default" network.
         // you can see which one is default for any currency by looking to "isDefault" param in currency->networks->info
-        const [ networkCodeOrId, query ] = this.handleNetworkCodeAndParams (params);
-        if (networkCodeOrId !== undefined) {
-            request['network'] = this.networkCodeToId (networkCodeOrId);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode);
         }
         const response = await this.sapiGetCapitalDepositAddress (this.extend (request, query));
         //
@@ -6042,20 +6043,16 @@ export default class binance extends Exchange {
         //         }
         //     }
         //
-        const address = this.safeString (response, 'address');
-        const useUnified = this.safeValue (this.options, 'useUnifiedNetworkCodes', false);
-        let networkCodeDetected = undefined;
-        if (useUnified) {
-            // if the network was specified in the request, then binance will return its data, or if  it was unrecognized network, then it throws exception and doesn't ignore silently. Thus, as long as there was network provided in the request, we can determine the network code depending on the request
-            if (networkCodeOrId === undefined) {
-                networkCodeDetected = this.safeString (this.options['defaultNetworkCodesForCurrencies'], code);
-            } else {
-                networkCodeDetected = networkCodeOrId;
-            }
-        }
-        const url = this.safeString (response, 'url');
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress: any, currency = undefined) {
+        const currencyId = this.safeString (depositAddress, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const address = this.safeString (depositAddress, 'address');
+        const url = this.safeString (depositAddress, 'url');
         let impliedNetwork = undefined;
-        if (!useUnified && url !== undefined) {
+        if (url !== undefined) {
             const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
             const parts = url.split ('/');
             let topLevel = this.safeString (parts, 2);
@@ -6075,7 +6072,7 @@ export default class binance extends Exchange {
                 impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
             }
         }
-        let tag = this.safeString (response, 'tag', '');
+        let tag = this.safeString (depositAddress, 'tag', '');
         if (tag.length === 0) {
             tag = undefined;
         }
@@ -6084,8 +6081,8 @@ export default class binance extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': useUnified ? networkCodeDetected : impliedNetwork,
-            'info': response,
+            'network': this.networkIdToCode (impliedNetwork),
+            'info': depositAddress,
         };
     }
 
