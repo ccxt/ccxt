@@ -20,12 +20,11 @@ const TICK_SIZE = ccxt\TICK_SIZE;
 const NO_PADDING = ccxt\NO_PADDING;
 const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 
-use \ccxt\Precise;
-use \ccxt\AuthenticationError;
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
-use \ccxt\BadSymbol;
+use ccxt\Precise;
+use ccxt\AuthenticationError;
+use ccxt\ExchangeError;
+use ccxt\NotSupported;
+use ccxt\BadSymbol;
 
 use React;
 use React\Async;
