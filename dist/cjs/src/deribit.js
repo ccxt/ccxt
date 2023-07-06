@@ -53,6 +53,7 @@ class deribit extends deribit$1 {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchHistoricalVolatility': true,
+                'fetchDepositWithdrawFees': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -2618,6 +2619,69 @@ class deribit extends deribit$1 {
         }
         const response = await this.privateGetWithdraw(this.extend(request, params));
         return this.parseTransaction(response, currency);
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //    {
+        //      "withdrawal_priorities": [],
+        //      "withdrawal_fee": 0.01457324,
+        //      "min_withdrawal_fee": 0.000001,
+        //      "min_confirmations": 1,
+        //      "fee_precision": 8,
+        //      "currency_long": "Solana",
+        //      "currency": "SOL",
+        //      "coin_type": "SOL"
+        //    }
+        //
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber(fee, 'withdrawal_fee'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.deribit.com/#public-get_currencies
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicGetGetCurrencies(params);
+        //
+        //    {
+        //      "jsonrpc": "2.0",
+        //      "result": [
+        //        {
+        //          "withdrawal_priorities": [],
+        //          "withdrawal_fee": 0.01457324,
+        //          "min_withdrawal_fee": 0.000001,
+        //          "min_confirmations": 1,
+        //          "fee_precision": 8,
+        //          "currency_long": "Solana",
+        //          "currency": "SOL",
+        //          "coin_type": "SOL"
+        //        },
+        //        ...
+        //      ],
+        //      "usIn": 1688652701456124,
+        //      "usOut": 1688652701456390,
+        //      "usDiff": 266,
+        //      "testnet": true
+        //    }
+        //
+        const data = this.safeValue(response, 'result', {});
+        return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
     nonce() {
         return this.milliseconds();

@@ -48,6 +48,7 @@ class deribit extends Exchange {
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFees' => true,
                 'fetchHistoricalVolatility' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
@@ -2579,6 +2580,69 @@ class deribit extends Exchange {
         }
         $response = $this->privateGetWithdraw (array_merge($request, $params));
         return $this->parse_transaction($response, $currency);
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //      "withdrawal_priorities" => array(),
+        //      "withdrawal_fee" => 0.01457324,
+        //      "min_withdrawal_fee" => 0.000001,
+        //      "min_confirmations" => 1,
+        //      "fee_precision" => 8,
+        //      "currency_long" => "Solana",
+        //      "currency" => "SOL",
+        //      "coin_type" => "SOL"
+        //    }
+        //
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'withdrawal_fee'),
+                'percentage' => false,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://docs.deribit.com/#public-get_currencies
+         * @param {string[]|null} $codes list of unified currency $codes
+         * @param {array} [$params] extra parameters specific to the deribit api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->publicGetGetCurrencies ($params);
+        //
+        //    {
+        //      "jsonrpc" => "2.0",
+        //      "result" => array(
+        //        array(
+        //          "withdrawal_priorities" => array(),
+        //          "withdrawal_fee" => 0.01457324,
+        //          "min_withdrawal_fee" => 0.000001,
+        //          "min_confirmations" => 1,
+        //          "fee_precision" => 8,
+        //          "currency_long" => "Solana",
+        //          "currency" => "SOL",
+        //          "coin_type" => "SOL"
+        //        ),
+        //        ...
+        //      ),
+        //      "usIn" => 1688652701456124,
+        //      "usOut" => 1688652701456390,
+        //      "usDiff" => 266,
+        //      "testnet" => true
+        //    }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
     public function nonce() {

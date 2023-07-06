@@ -67,6 +67,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFees': True,
                 'fetchHistoricalVolatility': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
@@ -2492,6 +2493,67 @@ class deribit(Exchange, ImplicitAPI):
             request['tfa'] = self.totp(self.twofa)
         response = await self.privateGetWithdraw(self.extend(request, params))
         return self.parse_transaction(response, currency)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #      "withdrawal_priorities": [],
+        #      "withdrawal_fee": 0.01457324,
+        #      "min_withdrawal_fee": 0.000001,
+        #      "min_confirmations": 1,
+        #      "fee_precision": 8,
+        #      "currency_long": "Solana",
+        #      "currency": "SOL",
+        #      "coin_type": "SOL"
+        #    }
+        #
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdrawal_fee'),
+                'percentage': False,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://docs.deribit.com/#public-get_currencies
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetGetCurrencies(params)
+        #
+        #    {
+        #      "jsonrpc": "2.0",
+        #      "result": [
+        #        {
+        #          "withdrawal_priorities": [],
+        #          "withdrawal_fee": 0.01457324,
+        #          "min_withdrawal_fee": 0.000001,
+        #          "min_confirmations": 1,
+        #          "fee_precision": 8,
+        #          "currency_long": "Solana",
+        #          "currency": "SOL",
+        #          "coin_type": "SOL"
+        #        },
+        #        ...
+        #      ],
+        #      "usIn": 1688652701456124,
+        #      "usOut": 1688652701456390,
+        #      "usDiff": 266,
+        #      "testnet": True
+        #    }
+        #
+        data = self.safe_value(response, 'result', {})
+        return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
     def nonce(self):
         return self.milliseconds()
