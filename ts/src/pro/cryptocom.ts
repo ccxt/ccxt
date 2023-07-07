@@ -585,13 +585,15 @@ export default class cryptocom extends cryptocomRest {
     }
 
     handleErrorMessage (client: Client, message) {
-        // {
-        //     id: 0,
-        //     code: 10004,
-        //     method: 'subscribe',
-        //     message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
-        // }
-        const errorCode = this.safeInteger (message, 'code');
+        //
+        //    {
+        //        id: 0,
+        //        code: 10004,
+        //        method: 'subscribe',
+        //        message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
+        //    }
+        //
+        const errorCode = this.safeString (message, 'code');
         try {
             if (errorCode) {
                 const feedback = this.id + ' ' + this.json (message);
