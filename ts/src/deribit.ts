@@ -51,6 +51,7 @@ export default class deribit extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -425,7 +426,6 @@ export default class deribit extends Exchange {
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        await this.loadMarkets ();
         const response = await this.publicGetGetCurrencies (params);
         //
         //    {
