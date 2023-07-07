@@ -1110,6 +1110,16 @@ export default class bitmart extends Exchange {
         return [ currencyId, networkCode, params ];
     }
 
+    currency (code) {
+        if (code in this.currencies || code in this.currencies_by_id) {
+            return super.currency (code);
+        } else {
+            // if user passed exchange-specific id (i.e. USDT-TRC20) then we should try to derive the unified currency code from it
+            const unifiedCurrencyCode = this.safeString (this.generatedNetworkData['currencyIdToCurrencyCode'], code, code);
+            return super.currency (unifiedCurrencyCode);
+        }
+    }
+
     async fetchTransactionFee (code: string, params = {}) {
         /**
          * @method
