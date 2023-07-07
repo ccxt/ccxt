@@ -229,7 +229,7 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the coinex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -392,7 +392,7 @@ class coinex extends \ccxt\async\coinex {
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the coinex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_tickers(array( $symbol ), $params));
@@ -404,8 +404,8 @@ class coinex extends \ccxt\async\coinex {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {[string]} $symbols unified symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the coinex api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -438,10 +438,10 @@ class coinex extends \ccxt\async\coinex {
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -471,8 +471,8 @@ class coinex extends \ccxt\async\coinex {
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the coinex api endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -519,10 +519,10 @@ class coinex extends \ccxt\async\coinex {
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -657,7 +657,7 @@ class coinex extends \ccxt\async\coinex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -762,7 +762,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order) {
+    public function parse_ws_order($order, $market = null) {
         //
         //  spot
         //
@@ -876,7 +876,7 @@ class coinex extends \ccxt\async\coinex {
         $amount = $this->safe_string($order, 'amount');
         $status = $this->safe_string($order, 'status');
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $market = $this->safe_market($marketId, null, null, $defaultType);
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $cost = $this->safe_string($order, 'deal_money');
         $filled = $this->safe_string($order, 'deal_stock');
         $average = null;

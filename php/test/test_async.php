@@ -48,7 +48,6 @@ define ('is_synchronous', stripos(__FILE__, '_async') === false);
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('ext', 'php');
-define('httpsAgent', null);
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -87,11 +86,6 @@ function call_method($testFiles, $methodName, $exchange, $skippedProperties, $ar
 function exception_message ($exc) {
     $inner_message = $exc->getMessage();
     return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
-}
-
-function add_proxy ($exchange, $http_proxy) {
-    // just add a simple redirect through proxy
-    $exchange->proxy = $http_proxy;
 }
 
 function exit_script() {
@@ -167,7 +161,6 @@ class testMainClass extends baseMainTestClass {
             $exchangeArgs = array(
                 'verbose' => $this->verbose,
                 'debug' => $this->debug,
-                'httpsAgent' => httpsAgent,
                 'enableRateLimit' => true,
                 'timeout' => 30000,
             );
@@ -248,10 +241,7 @@ class testMainClass extends baseMainTestClass {
             dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script ();
         }
-        $proxy = $exchange->safe_string($skippedSettingsForExchange, 'httpProxy');
-        if ($proxy !== null) {
-            add_proxy ($exchange, $proxy);
-        }
+        $exchange->httpsProxy = $exchange->safe_string($skippedSettingsForExchange, 'httpsProxy');
         $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
         $this->checkedPublicTests = array();
     }
@@ -711,7 +701,8 @@ class testMainClass extends baseMainTestClass {
                     $errors[] = $testName;
                 }
             }
-            if (strlen($errors) > 0) {
+            $errorsCnt = count($errors); // PHP transpile count($errors)
+            if ($errorsCnt > 0) {
                 throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
             } else {
                 if ($this->info) {

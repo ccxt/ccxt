@@ -24,13 +24,13 @@ class cryptocom extends cryptocom$1 {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://stream.crypto.com/v2/market',
-                        'private': 'wss://stream.crypto.com/v2/user',
+                        'public': 'wss://stream.crypto.com/exchange/v1/market',
+                        'private': 'wss://stream.crypto.com/exchange/v1/user',
                     },
                 },
                 'test': {
-                    'public': 'wss://uat-stream.3ona.co/v2/market',
-                    'private': 'wss://uat-stream.3ona.co/v2/user',
+                    'public': 'wss://uat-stream.3ona.co/exchange/v1/market',
+                    'private': 'wss://uat-stream.3ona.co/exchange/v1/user',
                 },
             },
             'options': {},
@@ -50,17 +50,14 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://exchange-docs.crypto.com/spot/index.html#book-instrument_name-depth
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
-            throw new errors.NotSupported(this.id + ' watchOrderBook() supports spot markets only');
-        }
         const messageHash = 'book' + '.' + market['id'];
         const orderbook = await this.watchPublic(messageHash, params);
         return orderbook.limit();
@@ -110,18 +107,16 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
-        if (!market['spot']) {
-            throw new errors.NotSupported(this.id + ' watchTrades() supports spot markets only');
-        }
         const messageHash = 'trade' + '.' + market['id'];
         const trades = await this.watchPublic(messageHash, params);
         if (this.newUpdates) {
@@ -164,23 +159,29 @@ class cryptocom extends cryptocom$1 {
             this.trades[symbol] = stored;
         }
         const data = this.safeValue(message, 'data', []);
+        const dataLength = data.length;
+        if (dataLength === 0) {
+            return;
+        }
         const parsedTrades = this.parseTrades(data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append(parsedTrades[j]);
         }
+        const channelReplaced = channel.replace('.' + marketId, '');
         client.resolve(stored, symbolSpecificMessageHash);
-        client.resolve(stored, channel);
+        client.resolve(stored, channelReplaced);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchMyTrades
          * @description watches information on multiple trades made by the user
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-trade-instrument_name
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         let market = undefined;
@@ -188,8 +189,7 @@ class cryptocom extends cryptocom$1 {
             market = this.market(symbol);
             symbol = market['symbol'];
         }
-        const defaultType = this.safeString(this.options, 'defaultType', 'spot');
-        let messageHash = (defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
+        let messageHash = 'user.trade';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
         const trades = await this.watchPrivate(messageHash, params);
         if (this.newUpdates) {
@@ -202,15 +202,13 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
-            throw new errors.NotSupported(this.id + ' watchTicker() supports spot markets only');
-        }
         const messageHash = 'ticker' + '.' + market['id'];
         return await this.watchPublic(messageHash, params);
     }
@@ -254,19 +252,17 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
-        if (!market['spot']) {
-            throw new errors.NotSupported(this.id + ' watchOHLCV() supports spot markets only');
-        }
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageHash = 'candlestick' + '.' + interval + '.' + market['id'];
         const ohlcv = await this.watchPublic(messageHash, params);
@@ -312,11 +308,12 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-order-instrument_name
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -324,14 +321,13 @@ class cryptocom extends cryptocom$1 {
             market = this.market(symbol);
             symbol = market['symbol'];
         }
-        const defaultType = this.safeString(this.options, 'defaultType', 'spot');
-        let messageHash = (defaultType === 'margin') ? 'user.margin.order' : 'user.order';
+        let messageHash = 'user.order';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
         const orders = await this.watchPrivate(messageHash, params);
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message, subscription = undefined) {
         //
@@ -387,43 +383,70 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        const defaultType = this.safeString(this.options, 'defaultType', 'spot');
-        const messageHash = (defaultType === 'margin') ? 'user.margin.balance' : 'user.balance';
+        const messageHash = 'user.balance';
         return await this.watchPrivate(messageHash, params);
     }
     handleBalance(client, message) {
         //
-        // {
-        //     "method": "subscribe",
-        //     "result": {
-        //       "subscription": "user.balance",
-        //       "channel": "user.balance",
-        //       "data": [
-        //         {
-        //           "currency": "CRO",
-        //           "balance": 99999999947.99626,
-        //           "available": 99999988201.50826,
-        //           "order": 11746.488,
-        //           "stake": 0
+        //     {
+        //         "id": 1,
+        //         "method": "subscribe",
+        //         "code": 0,
+        //         "result": {
+        //             "subscription": "user.balance",
+        //             "channel": "user.balance",
+        //             "data": [
+        //                 {
+        //                     "total_available_balance": "5.84684368",
+        //                     "total_margin_balance": "5.84684368",
+        //                     "total_initial_margin": "0",
+        //                     "total_maintenance_margin": "0",
+        //                     "total_position_cost": "0",
+        //                     "total_cash_balance": "6.44412101",
+        //                     "total_collateral_value": "5.846843685",
+        //                     "total_session_unrealized_pnl": "0",
+        //                     "instrument_name": "USD",
+        //                     "total_session_realized_pnl": "0",
+        //                     "position_balances": [
+        //                         {
+        //                             "quantity": "0.0002119875",
+        //                             "reserved_qty": "0",
+        //                             "collateral_weight": "0.9",
+        //                             "collateral_amount": "5.37549592",
+        //                             "market_value": "5.97277325",
+        //                             "max_withdrawal_balance": "0.00021198",
+        //                             "instrument_name": "BTC",
+        //                             "hourly_interest_rate": "0"
+        //                         },
+        //                     ],
+        //                     "total_effective_leverage": "0",
+        //                     "position_limit": "3000000",
+        //                     "used_position_limit": "0",
+        //                     "total_borrow": "0",
+        //                     "margin_score": "0",
+        //                     "is_liquidating": false,
+        //                     "has_risk": false,
+        //                     "terminatable": true
+        //                 }
+        //             ]
         //         }
-        //       ],
-        //       "channel": "user.balance"
         //     }
-        // }
         //
         const messageHash = this.safeString(message, 'subscription');
-        const data = this.safeValue(message, 'data');
+        const data = this.safeValue(message, 'data', []);
+        const positionBalances = this.safeValue(data[0], 'position_balances', []);
         this.balance['info'] = data;
-        for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
-            const currencyId = this.safeString(balance, 'currency');
+        for (let i = 0; i < positionBalances.length; i++) {
+            const balance = positionBalances[i];
+            const currencyId = this.safeString(balance, 'instrument_name');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            account['free'] = this.safeString(balance, 'available');
-            account['total'] = this.safeString(balance, 'balance');
+            account['total'] = this.safeString(balance, 'quantity');
+            account['used'] = this.safeString(balance, 'reserved_qty');
             this.balance[code] = account;
             this.balance = this.safeBalance(this.balance);
         }
@@ -537,14 +560,15 @@ class cryptocom extends cryptocom$1 {
             'trade': this.handleTrades,
             'book': this.handleOrderBookSnapshot,
             'user.order': this.handleOrders,
-            'user.margin.order': this.handleOrders,
             'user.trade': this.handleTrades,
-            'user.margin.trade': this.handleTrades,
             'user.balance': this.handleBalance,
-            'user.margin.balance': this.handleBalance,
         };
         const result = this.safeValue2(message, 'result', 'info');
         const channel = this.safeString(result, 'channel');
+        if ((channel !== undefined) && channel.indexOf('user.trade') > -1) {
+            // channel might be user.trade.BTC_USDT
+            this.handleTrades(client, result);
+        }
         const method = this.safeValue(methods, channel);
         if (method !== undefined) {
             method.call(this, client, result);

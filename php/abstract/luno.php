@@ -49,11 +49,11 @@ abstract class luno extends \ccxt\Exchange {
     public function private_get_listtrades($params = array()) {
         return $this->request('listtrades', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_send_fee($params = array()) {
+        return $this->request('send_fee', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_orders_id($params = array()) {
         return $this->request('orders/{id}', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function private_get_quotes_id($params = array()) {
-        return $this->request('quotes/{id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_withdrawals($params = array()) {
         return $this->request('withdrawals', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -67,8 +67,8 @@ abstract class luno extends \ccxt\Exchange {
     public function private_post_accounts($params = array()) {
         return $this->request('accounts', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_accounts_id_name($params = array()) {
-        return $this->request('accounts/{id}/name', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_address_validate($params = array()) {
+        return $this->request('address/validate', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_postorder($params = array()) {
         return $this->request('postorder', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -88,20 +88,11 @@ abstract class luno extends \ccxt\Exchange {
     public function private_post_send($params = array()) {
         return $this->request('send', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_quotes($params = array()) {
-        return $this->request('quotes', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
     public function private_post_oauth2_grant($params = array()) {
         return $this->request('oauth2/grant', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_put_accounts_id_name($params = array()) {
         return $this->request('accounts/{id}/name', 'private', 'PUT', $params, null, null, array("cost" => 1));
-    }
-    public function private_put_quotes_id($params = array()) {
-        return $this->request('quotes/{id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
-    }
-    public function private_delete_quotes_id($params = array()) {
-        return $this->request('quotes/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function private_delete_withdrawals_id($params = array()) {
         return $this->request('withdrawals/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
@@ -148,11 +139,11 @@ abstract class luno extends \ccxt\Exchange {
     public function privateGetListtrades($params = array()) {
         return $this->request('listtrades', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetSendFee($params = array()) {
+        return $this->request('send_fee', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetOrdersId($params = array()) {
         return $this->request('orders/{id}', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function privateGetQuotesId($params = array()) {
-        return $this->request('quotes/{id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetWithdrawals($params = array()) {
         return $this->request('withdrawals', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -166,8 +157,8 @@ abstract class luno extends \ccxt\Exchange {
     public function privatePostAccounts($params = array()) {
         return $this->request('accounts', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostAccountsIdName($params = array()) {
-        return $this->request('accounts/{id}/name', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostAddressValidate($params = array()) {
+        return $this->request('address/validate', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostPostorder($params = array()) {
         return $this->request('postorder', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -187,20 +178,11 @@ abstract class luno extends \ccxt\Exchange {
     public function privatePostSend($params = array()) {
         return $this->request('send', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostQuotes($params = array()) {
-        return $this->request('quotes', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
     public function privatePostOauth2Grant($params = array()) {
         return $this->request('oauth2/grant', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePutAccountsIdName($params = array()) {
         return $this->request('accounts/{id}/name', 'private', 'PUT', $params, null, null, array("cost" => 1));
-    }
-    public function privatePutQuotesId($params = array()) {
-        return $this->request('quotes/{id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
-    }
-    public function privateDeleteQuotesId($params = array()) {
-        return $this->request('quotes/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteWithdrawalsId($params = array()) {
         return $this->request('withdrawals/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));

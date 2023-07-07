@@ -1,5 +1,9 @@
 import Exchange from './abstract/okx.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class okx
+ * @extends Exchange
+ */
 export default class okx extends Exchange {
     describe(): any;
     handleMarketTypeAndParams(methodName: any, market?: any, params?: {}): any;
@@ -69,8 +73,8 @@ export default class okx extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickersByType(type: any, symbols?: string[], params?: {}): Promise<any>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickersByType(type: any, symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -254,6 +258,7 @@ export default class okx extends Exchange {
         toAccount: string;
         status: string;
     };
+    parseTransferStatus(status: any): string;
     fetchTransfer(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
@@ -265,6 +270,7 @@ export default class okx extends Exchange {
         toAccount: string;
         status: string;
     }>;
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
@@ -413,7 +419,7 @@ export default class okx extends Exchange {
         info: any;
     };
     setSandboxMode(enable: any): void;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {

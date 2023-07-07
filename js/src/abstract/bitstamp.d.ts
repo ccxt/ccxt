@@ -203,6 +203,10 @@ interface Exchange {
     privatePostDogeAddress(params?: {}): Promise<implicitReturnType>;
     privatePostFlrWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostFlrAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostDgldWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostDgldAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostLdoWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostLdoAddress(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

@@ -58,7 +58,7 @@ class bitrue extends bitrue$1 {
          * @name bitrue#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const url = await this.authenticate();
@@ -170,10 +170,10 @@ class bitrue extends bitrue$1 {
          * @name bitrue#watchOrders
          * @description watches information on user orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-         * @param {[string]} symbols unified symbols of the market to watch the orders for
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the maximum amount of orders to return
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {string[]} symbols unified symbols of the market to watch the orders for
+         * @param {int} [since] timestamp in ms of the earliest order
+         * @param {int} [limit] the maximum amount of orders to return
+         * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -194,7 +194,7 @@ class bitrue extends bitrue$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrder(client, message) {
         //
@@ -220,7 +220,7 @@ class bitrue extends bitrue$1 {
         //        Y: '0'
         //    }
         //
-        const parsed = this.parseWSOrder(message);
+        const parsed = this.parseWsOrder(message);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -230,7 +230,7 @@ class bitrue extends bitrue$1 {
         const messageHash = 'orders';
         client.resolve(this.orders, messageHash);
     }
-    parseWSOrder(order, market = undefined) {
+    parseWsOrder(order, market = undefined) {
         //
         //    {
         //        e: 'ORDER',
@@ -271,7 +271,7 @@ class bitrue extends bitrue$1 {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': this.safeInteger(order, 'T'),
             'symbol': this.safeSymbol(marketId, market),
-            'type': this.parseWSOrderType(typeId),
+            'type': this.parseWsOrderType(typeId),
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
@@ -282,7 +282,7 @@ class bitrue extends bitrue$1 {
             'average': undefined,
             'filled': this.safeString(order, 'z'),
             'remaining': undefined,
-            'status': this.parseWSOrderStatus(statusId),
+            'status': this.parseWsOrderStatus(statusId),
             'fee': {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
                 'cost': this.safeNumber(order, 'n'),
@@ -355,7 +355,7 @@ class bitrue extends bitrue$1 {
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
-    parseWSOrderType(typeId) {
+    parseWsOrderType(typeId) {
         const types = {
             '1': 'limit',
             '2': 'market',
@@ -363,7 +363,7 @@ class bitrue extends bitrue$1 {
         };
         return this.safeString(types, typeId, typeId);
     }
-    parseWSOrderStatus(status) {
+    parseWsOrderStatus(status) {
         const statuses = {
             '0': 'open',
             '1': 'open',

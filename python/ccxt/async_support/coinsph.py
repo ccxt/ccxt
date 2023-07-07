@@ -76,7 +76,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
                 'fetchDeposit': None,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
@@ -188,6 +188,10 @@ class coinsph(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': {
+                        'openapi/wallet/v1/config/getall': 10,
+                        'openapi/wallet/v1/deposit/address': 10,
+                        'openapi/wallet/v1/deposit/history': 1,
+                        'openapi/wallet/v1/withdraw/history': 1,
                         'openapi/v1/account': 10,
                         # cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': {'cost': 3, 'noSymbol': 40},
@@ -198,16 +202,32 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/v1/myTrades': 10,
                         'openapi/v1/capital/deposit/history': 1,
                         'openapi/v1/capital/withdraw/history': 1,
+                        'openapi/v3/payment-request/get-payment-request': 1,
+                        'merchant-api/v1/get-invoices': 1,
+                        'openapi/account/v3/crypto-accounts': 1,
+                        'openapi/transfer/v3/transfers/{id}': 1,
                     },
                     'post': {
+                        'openapi/wallet/v1/withdraw/apply': 600,
                         'openapi/v1/order/test': 1,
                         'openapi/v1/order': 1,
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
+                        'openapi/v3/payment-request/payment-requests': 1,
+                        'openapi/v3/payment-request/delete-payment-request': 1,
+                        'openapi/v3/payment-request/payment-request-reminder': 1,
+                        'openapi/v1/userDataStream': 1,
+                        'merchant-api/v1/invoices': 1,
+                        'merchant-api/v1/invoices-cancel': 1,
+                        'openapi/convert/v1/get-supported-trading-pairs': 1,
+                        'openapi/convert/v1/get-quote': 1,
+                        'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/transfer/v3/transfers': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1,
                         'openapi/v1/openOrders': 1,
+                        'openapi/v1/userDataStream': 1,
                     },
                 },
             },
@@ -269,6 +289,14 @@ class coinsph(Exchange, ImplicitAPI):
                 },
                 'fetchTickers': {
                     'method': 'publicGetOpenapiQuoteV1Ticker24hr',  # publicGetOpenapiQuoteV1TickerPrice, publicGetOpenapiQuoteV1TickerBookTicker
+                },
+                'networks': {
+                    # all networks: 'ETH', 'TRX', 'BSC', 'ARBITRUM', 'RON', 'BTC', 'XRP'
+                    # you can call api privateGetOpenapiWalletV1ConfigGetall to check which network is supported for the currency
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                    'ARB': 'ARBITRUM',
                 },
             },
             # https://coins-docs.github.io/errors/
@@ -414,7 +442,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         response = await self.publicGetOpenapiV1Ping(params)
@@ -429,7 +457,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = await self.publicGetOpenapiV1Time(params)
@@ -441,8 +469,8 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for coinsph
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetOpenapiV1ExchangeInfo(params)
         #
@@ -574,8 +602,8 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -597,7 +625,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -693,8 +721,8 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return(default 100, max 200)
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -727,10 +755,10 @@ class coinsph(Exchange, ImplicitAPI):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch(default 500, max 1000)
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch(default 500, max 1000)
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -785,10 +813,10 @@ class coinsph(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch(default 500, max 1000)
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch(default 500, max 1000)
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -821,10 +849,10 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve(default 500, max 1000)
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve(default 500, max 1000)
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -847,10 +875,10 @@ class coinsph(Exchange, ImplicitAPI):
         fetch all the trades made from a single order
         :param str id: order id
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades to retrieve
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
@@ -944,7 +972,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
@@ -997,8 +1025,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param str type: 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # todo: add test order low priority
@@ -1086,7 +1114,7 @@ class coinsph(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :param int|str id: order id
         :param str symbol: not used by coinsph fetchOrder()
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1103,11 +1131,11 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1121,11 +1149,11 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve(default 500, max 1000)
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve(default 500, max 1000)
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -1147,8 +1175,8 @@ class coinsph(Exchange, ImplicitAPI):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: not used by coinsph cancelOrder()
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param str symbol: not used by coinsph cancelOrder()
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1165,9 +1193,9 @@ class coinsph(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel open orders of market
-        :param str|None symbol: unified market symbol
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -1343,7 +1371,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
@@ -1367,7 +1395,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -1414,26 +1442,34 @@ class coinsph(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal to coins_ph account
+        see https://coins-docs.github.io/rest-api/#withdrawuser_data
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: not used by coinsph withdraw()
-        :param str|None tag:
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param str tag:
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         options = self.safe_value(self.options, 'withdraw')
         warning = self.safe_value(options, 'warning', True)
         if warning:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
+        networkCode = self.safe_string(params, 'network')
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is None:
+            raise BadRequest(self.id + ' withdraw() require network parameter')
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
             'amount': self.number_to_string(amount),
+            'network': networkId,
+            'address': address,
         }
         if tag is not None:
             request['withdrawOrderId'] = tag
-        response = await self.privatePostOpenapiV1CapitalWithdrawApply(self.extend(request, params))
+        params = self.omit(params, 'network')
+        response = await self.privatePostOpenapiWalletV1WithdrawApply(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
     async def deposit(self, code: str, amount, address, tag=None, params={}):
@@ -1442,8 +1478,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to deposit
         :param str address: not used by coinsph deposit()
-        :param str|None tag:
-        :param dict params: extra parameters specific to the coinsph api endpoint
+        :param str tag:
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         options = self.safe_value(self.options, 'deposit')
@@ -1464,11 +1500,12 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
+        see https://coins-docs.github.io/rest-api/#deposit-history-user_data
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # todo: returns an empty array - find out why
         await self.load_markets()
@@ -1481,17 +1518,46 @@ class coinsph(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetOpenapiV1CapitalDepositHistory(self.extend(request, params))
+        response = await self.privateGetOpenapiWalletV1DepositHistory(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "id": "d_769800519366885376",
+        #         "amount": "0.001",
+        #         "coin": "BNB",
+        #         "network": "BNB",
+        #         "status": 0,
+        #         "address": "bnb136ns6lfw4zs5hg4n85vdthaad7hq5m4gtkgf23",
+        #         "addressTag": "101764890",
+        #         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
+        #         "insertTime": 1661493146000,
+        #         "confirmNo": 10,
+        #     },
+        #     {
+        #         "id": "d_769754833590042625",
+        #         "amount":"0.5",
+        #         "coin":"IOTA",
+        #         "network":"IOTA",
+        #         "status":1,
+        #         "address":"SIZ9VLMHWATXKV99LH99CIGFJFUMLEHGWVZVNNZXRJJVWBPHYWPPBOSDORZ9EQSHCZAMPVAPGFYQAUUV9DROOXJLNW",
+        #         "addressTag":"",
+        #         "txId":"ESBFVQUTPIWQNJSPXFNHNYHSQNTGKRVKPRABQWTAXCDWOAKDKYWPTVG9BGXNVNKTLEJGESAVXIKIZ9999",
+        #         "insertTime":1599620082000,
+        #         "confirmNo": 20,
+        #     }
+        # ]
+        #
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
+        see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the coinsph api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # todo: returns an empty array - find out why
         await self.load_markets()
@@ -1504,7 +1570,41 @@ class coinsph(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetOpenapiV1CapitalWithdrawHistory(self.extend(request, params))
+        response = await self.privateGetOpenapiWalletV1WithdrawHistory(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "id": "459890698271244288",
+        #         "amount": "0.01",
+        #         "transactionFee": "0",
+        #         "coin": "ETH",
+        #         "status": 1,
+        #         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        #         "addressTag": "",
+        #         "txId": "0x4ae2fed36a90aada978fc31c38488e8b60d7435cfe0b4daed842456b4771fcf7",
+        #         "applyTime": 1673601139000,
+        #         "network": "ETH",
+        #         "withdrawOrderId": "thomas123",
+        #         "info": "",
+        #         "confirmNo": 100
+        #     },
+        #     {
+        #         "id": "451899190746456064",
+        #         "amount": "0.00063",
+        #         "transactionFee": "0.00037",
+        #         "coin": "ETH",
+        #         "status": 1,
+        #         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        #         "addressTag": "",
+        #         "txId": "0x62690ca4f9d6a8868c258e2ce613805af614d9354dda7b39779c57b2e4da0260",
+        #         "applyTime": 1671695815000,
+        #         "network": "ETH",
+        #         "withdrawOrderId": "",
+        #         "info": "",
+        #         "confirmNo": 100
+        #     }
+        # ]
+        #
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
@@ -1598,14 +1698,59 @@ class coinsph(Exchange, ImplicitAPI):
     def parse_transaction_status(self, status):
         statuses = {
             '0': 'pending',
-            '1': 'canceled',
-            '2': 'pending',
-            '3': 'failed',
-            '4': 'pending',
-            '5': 'failed',
-            '6': 'ok',
+            '1': 'ok',
+            '2': 'failed',
+            '3': 'pending',
         }
         return self.safe_string(statuses, status, status)
+
+    async def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.network]: network for fetch deposit address
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        networkCode = self.safe_string(params, 'network')
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is None:
+            raise BadRequest(self.id + ' fetchDepositAddress() require network parameter')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'network': networkId,
+        }
+        params = self.omit(params, 'network')
+        response = await self.privateGetOpenapiWalletV1DepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         "coin": "ETH",
+        #         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        #         "addressTag": ""
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         "coin": "ETH",
+        #         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        #         "addressTag": ""
+        #     }
+        #
+        currencyId = self.safe_string(depositAddress, 'coin')
+        parsedCurrency = self.safe_currency_code(currencyId, currency)
+        return {
+            'currency': parsedCurrency,
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': self.safe_string(depositAddress, 'addressTag'),
+            'network': None,
+            'info': depositAddress,
+        }
 
     def url_encode_query(self, query={}):
         encodedArrayParams = ''

@@ -106,6 +106,12 @@ abstract class cryptocom extends \ccxt\Exchange {
     public function v1_private_post_private_get_accounts($params = array()) {
         return $this->request('private/get-accounts', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function v1_private_post_private_get_withdrawal_history($params = array()) {
+        return $this->request('private/get-withdrawal-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1_private_post_private_get_deposit_history($params = array()) {
+        return $this->request('private/get-deposit-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
     public function v2_public_get_public_auth($params = array()) {
         return $this->request('public/auth', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -456,6 +462,12 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v1PrivatePostPrivateGetAccounts($params = array()) {
         return $this->request('private/get-accounts', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateGetWithdrawalHistory($params = array()) {
+        return $this->request('private/get-withdrawal-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateGetDepositHistory($params = array()) {
+        return $this->request('private/get-deposit-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function v2PublicGetPublicAuth($params = array()) {
         return $this->request('public/auth', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));

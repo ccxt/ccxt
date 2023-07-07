@@ -227,7 +227,7 @@ class coinex(ccxt.async_support.coinex):
     async def watch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
@@ -378,7 +378,7 @@ class coinex(ccxt.async_support.coinex):
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_tickers([symbol], params)
@@ -387,8 +387,8 @@ class coinex(ccxt.async_support.coinex):
         """
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param [str] symbols: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -416,10 +416,10 @@ class coinex(ccxt.async_support.coinex):
         see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -446,8 +446,8 @@ class coinex(ccxt.async_support.coinex):
         see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -488,10 +488,10 @@ class coinex(ccxt.async_support.coinex):
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -612,7 +612,7 @@ class coinex(ccxt.async_support.coinex):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_orders(self, client: Client, message):
         #
@@ -713,7 +713,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash += ':' + parsedOrder['symbol']
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order):
+    def parse_ws_order(self, order, market=None):
         #
         #  spot
         #
@@ -827,7 +827,7 @@ class coinex(ccxt.async_support.coinex):
         amount = self.safe_string(order, 'amount')
         status = self.safe_string(order, 'status')
         defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, None, None, defaultType)
+        market = self.safe_market(marketId, market, None, defaultType)
         cost = self.safe_string(order, 'deal_money')
         filled = self.safe_string(order, 'deal_stock')
         average = None
