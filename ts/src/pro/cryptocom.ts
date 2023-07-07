@@ -169,12 +169,17 @@ export default class cryptocom extends cryptocomRest {
             this.trades[symbol] = stored;
         }
         const data = this.safeValue (message, 'data', []);
+        const dataLength = data.length;
+        if (dataLength === 0) {
+            return;
+        }
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
         }
+        const channelReplaced = channel.replace ('.' + marketId, '');
         client.resolve (stored, symbolSpecificMessageHash);
-        client.resolve (stored, channel);
+        client.resolve (stored, channelReplaced);
     }
 
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -581,6 +586,10 @@ export default class cryptocom extends cryptocomRest {
         };
         const result = this.safeValue2 (message, 'result', 'info');
         const channel = this.safeString (result, 'channel');
+        if ((channel !== undefined) && channel.indexOf ('user.trade') > -1) {
+            // channel might be user.trade.BTC_USDT
+            this.handleTrades (client, result);
+        }
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {
             method.call (this, client, result);
