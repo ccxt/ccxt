@@ -166,6 +166,7 @@ class cryptocom extends Exchange {
                             'private/get-deposit-address' => 10 / 3,
                             'private/get-accounts' => 10 / 3,
                             'private/get-withdrawal-history' => 10 / 3,
+                            'private/get-deposit-history' => 10 / 3,
                         ),
                     ),
                 ),
@@ -1450,10 +1451,12 @@ class cryptocom extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
@@ -1470,26 +1473,34 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->v2PrivatePostPrivateGetDepositHistory (array_merge($request, $params));
-        // {
-        //     "id" => 11,
-        //     "method" => "private/get-deposit-history",
-        //     "code" => 0,
-        //     "result" => {
-        //       "deposit_list" => array(
-        //         {
-        //           "currency" => "XRP",
-        //           "fee" => 1.0,
-        //           "create_time" => 1607063412000,
-        //           "id" => "2220",
-        //           "update_time" => 1607063460000,
-        //           "amount" => 100,
-        //           "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //           "status" => "1"
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $request['end_ts'] = $until;
+        }
+        $response = $this->v1PrivatePostPrivateGetDepositHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 1688701375714,
+        //         "method" => "private/get-deposit-history",
+        //         "code" => 0,
+        //         "result" => {
+        //             "deposit_list" => array(
+        //                 array(
+        //                     "currency" => "BTC",
+        //                     "fee" => 0,
+        //                     "create_time" => 1688023659000,
+        //                     "id" => "6201135",
+        //                     "update_time" => 1688178509000,
+        //                     "amount" => 0.00114571,
+        //                     "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //                     "status" => "1",
+        //                     "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
+        //                 ),
+        //             )
         //         }
-        //       )
         //     }
-        // }
+        //
         $data = $this->safe_value($response, 'result', array());
         $depositList = $this->safe_value($data, 'deposit_list', array());
         return $this->parse_transactions($depositList, $currency, $since, $limit);
@@ -1998,14 +2009,15 @@ class cryptocom extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "currency" => "XRP",
-        //         "fee" => 1.0,
-        //         "create_time" => 1607063412000,
-        //         "id" => "2220",
-        //         "update_time" => 1607063460000,
-        //         "amount" => 100,
-        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //         "status" => "1"
+        //         "currency" => "BTC",
+        //         "fee" => 0,
+        //         "create_time" => 1688023659000,
+        //         "id" => "6201135",
+        //         "update_time" => 1688178509000,
+        //         "amount" => 0.00114571,
+        //         "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //         "status" => "1",
+        //         "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
         //     }
         //
         // fetchWithdrawals
