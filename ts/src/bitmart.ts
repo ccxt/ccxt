@@ -648,6 +648,8 @@ export default class bitmart extends Exchange {
                     'spot': 'spot',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
+                // also, all currencies with gate have the same precision up to 4 decimals
+                'currencyPrecision': this.parseNumber ('1e-4'),
             },
         });
     }
@@ -966,47 +968,113 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetSpotV1Currencies (params);
+        const response = await this.publicGetAccountV1Currencies (params);
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":[
-        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "c25d91c7-359a-47e4-80c4-4a6a2c19be2f",
+        //         "data": {
+        //             "currencies": [
+        //                  {
+        //                     "currency": "USDT",
+        //                     "name": "Tether USD",
+        //                     "contract_address": null,
+        //                     "network": "OMNI",
+        //                     "withdraw_enabled": false,
+        //                     "deposit_enabled": false,
+        //                     "withdraw_minsize": "10",
+        //                     "withdraw_minfee": null
+        //                  },
+        //                  {
+        //                     "currency": "USDT-SPL",
+        //                     "name": "USDT-SPL",
+        //                     "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //                     "network": "SOL",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true,
+        //                     "withdraw_minsize": "20",
+        //                     "withdraw_minfee": null
+        //                  },
         //             ]
         //         }
-        //     }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
-            const depositEnabled = this.safeValue (currency, 'deposit_enabled');
-            const active = withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'info': currency, // the original payload
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': undefined,
+            const currencyId = this.safeString (currency, 'currency');
+            const parts = currencyId.split ('-');
+            const currencyName = parts[0];
+            const code = this.safeCurrencyCode (currencyName);
+            // if it's first time of the currency loop
+            if (!(code in result)) {
+                result[code] = this.safeCurrencyStructure ({
+                    'info': [],
+                    'id': currencyName, // not 'currencyId' (USDT-BEP20, USDT-TRX,...) but name itself (USDT)
+                    'lowerCaseId': currencyName.toLowerCase (),
+                    'code': code,
+                    'name': this.safeString (currency, 'name'),
+                    'limits': this.limits,
+                });
+            }
+            // now (as currency entry is defined in results) then just add the current parsed entry into it's networks
+            // below are network-specific values
+            const networkId = this.safeString (currency, 'network');
+            const networkCode = this.networkIdToCode (networkId);
+            const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
+            const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
+            const withdraw_minsize = this.safeString (currency, 'withdraw_minsize');
+            const withdraw_minfee = this.safeString (currency, 'withdraw_minfee');
+            let minPrecisionSize = undefined;
+            let minPrecisionFee = undefined;
+            if (withdraw_minsize !== undefined) {
+                minPrecisionSize = this.numberToString (this.precisionFromString (withdraw_minsize));
+            }
+            if (withdraw_minfee !== undefined) {
+                minPrecisionFee = this.numberToString (this.precisionFromString (withdraw_minfee));
+            }
+            let maxScale = undefined;
+            if (minPrecisionSize !== undefined && minPrecisionFee !== undefined) {
+                maxScale = Precise.stringMax (minPrecisionSize, minPrecisionFee);
+            } else if (minPrecisionSize !== undefined) {
+                maxScale = minPrecisionSize;
+            } else if (minPrecisionFee !== undefined) {
+                maxScale = minPrecisionFee;
+            }
+            if (maxScale === undefined) {
+                maxScale = this.numberToString (this.precisionFromString (this.options['currencyPrecision']));
+            }
+            const precision = this.parseNumber (this.parsePrecision (maxScale));
+            result[code]['networks'][networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'network': networkCode,
+                'active': (deposit_enabled || withdraw_enabled),
+                'deposit': deposit_enabled,
+                'withdraw': withdraw_enabled,
+                'fee': this.parseNumber (withdraw_minfee),
+                'precision': precision,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': this.parseNumber (withdraw_minsize),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
             };
+            // currency wide values
+            result[code]['withdraw'] = (withdraw_enabled || result[code]['withdraw'] === undefined) ? true : result[code]['withdraw'];
+            result[code]['deposit'] = (deposit_enabled || result[code]['deposit'] === undefined) ? true : result[code]['deposit'];
+            result[code]['precision'] = (result[code]['precision'] === undefined) ? true : result[code]['deposit'];
+            if (result[code]['withdraw'] && result[code]['deposit']) {
+                result[code]['active'] = true;
+            }
         }
         return result;
     }
