@@ -668,6 +668,7 @@
     "deribit": {
         "skipWs": true,
         "skipMethods": {
+            "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
             "fetchTickers": "something wrong"
         }
