@@ -132,6 +132,7 @@ class Exchange {
     public $currencies = array();
     public $base_currencies = null;
     public $quote_currencies = null;
+    public $generatedNetworkData = array();
     public $balance = array();
     public $orderbooks = array();
     public $tickers = array();
@@ -1180,6 +1181,8 @@ class Exchange {
         if ($this->markets) {
             $this->set_markets($this->markets);
         }
+
+        $this->afterConstruct();
     }
 
     public static function underscore($camelcase) {

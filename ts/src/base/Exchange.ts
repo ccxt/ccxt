@@ -291,6 +291,7 @@ export default class Exchange {
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
+    generatedNetworkData = {}
     currencies_by_id = undefined
     codes = undefined
 
@@ -734,6 +735,8 @@ export default class Exchange {
             this.setMarkets (this.markets)
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
+
+        this.afterConstruct ();
     }
 
     encodeURIComponent (...args) {
@@ -1682,6 +1685,15 @@ export default class Exchange {
         const stringifiedNumber = number.toString ();
         const convertedNumber = parseFloat (stringifiedNumber) as any;
         return parseInt (convertedNumber);
+    }
+
+    afterConstruct () {
+        this.generatedNetworkData = {
+            'currencyIdToCurrencyCode': {},
+            'currencyIdToNetworkCode': {},
+            'networkCodeToCurrencyId': {},
+            'networkCodeToNetworkId': {},
+        };
     }
 
     getDefaultOptions () {
