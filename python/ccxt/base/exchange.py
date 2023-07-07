@@ -434,7 +434,7 @@ class Exchange(object):
         if self.markets:
             self.set_markets(self.markets)
 
-        self.afterConstruct()
+        self.after_construct()
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)

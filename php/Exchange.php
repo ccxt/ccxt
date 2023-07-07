@@ -1182,7 +1182,7 @@ class Exchange {
             $this->set_markets($this->markets);
         }
 
-        $this->afterConstruct();
+        $this->after_construct();
     }
 
     public static function underscore($camelcase) {
