@@ -1,3 +1,81 @@
+## 4.0.11 (2023-07-06)
+
+*  Luno update API [8680bb5efb](https://github.com/ccxt/ccxt/commits/8680bb5efbb380e4dec49503f4d133fec50cb6bc)
+*  networks [ee7b1f0ef1](https://github.com/ccxt/ccxt/commits/ee7b1f0ef135b18403209ad032b8fb76134b4ee3)
+*  fetchCurrencies [42d78019c7](https://github.com/ccxt/ccxt/commits/42d78019c7373caae8d2d277af8ef54989dd427f)
+*  fetch d [f1e8150447](https://github.com/ccxt/ccxt/commits/f1e8150447f34e301800743c9d69d6f02c469611)
+*  withdraw & f [2b0b423505](https://github.com/ccxt/ccxt/commits/2b0b423505f6370a29ac95728217b27824850786)
+*  fT [42568bd299](https://github.com/ccxt/ccxt/commits/42568bd29928513df8a3e883388b4f72e0ba6372)
+*  final [d02b3e3139](https://github.com/ccxt/ccxt/commits/d02b3e31395b4ff27a516d074279b50c694a00d3)
+*  Commit luno.ts file [963e8c0128](https://github.com/ccxt/ccxt/commits/963e8c012855f7f1ea1e52eb0dff1efd41485791)
+*  Delete luno.js [7f925f0c37](https://github.com/ccxt/ccxt/commits/7f925f0c3785790a964e96039bc8748f943e01ab)
+*  revert [99aaca39f8](https://github.com/ccxt/ccxt/commits/99aaca39f8002436c410f8fc8b638c38a0ef4141)
+*  cr [0a863598a4](https://github.com/ccxt/ccxt/commits/0a863598a4cee97857a939c6ef69ab039089a4bb)
+*  lowercase networkCode [d375e81bab](https://github.com/ccxt/ccxt/commits/d375e81bab6bb393452d08e8c7d4eca425a2a4d3)
+*  fix parseDepositWithdrawFee [dbcdb0d7ef](https://github.com/ccxt/ccxt/commits/dbcdb0d7efb2944cdc19bf44dbdb3d3d0a415158)
+*  fix(base): protect filterByValueSinceLimit [763943c841](https://github.com/ccxt/ccxt/commits/763943c841028afcb62a60e578128a45154fc7dc)
+*  protect filterBySinceLimit [93758fcf5a](https://github.com/ccxt/ccxt/commits/93758fcf5afa244fa3f898d6a1725e044e366309)
+*  4.0.11 [862fc05148](https://github.com/ccxt/ccxt/commits/862fc05148e9df5d25c87ec0dbfb63d50ddc788f)
+
+
+## 4.0.10 (2023-07-06)
+
+*  okx: add apis [e03876a135](https://github.com/ccxt/ccxt/commits/e03876a135758b4bd79f062227a9ca42fea34fda)
+*  refactor(cryptocom): fetchWithdrawals, migrate to unified API [87a42e610a](https://github.com/ccxt/ccxt/commits/87a42e610a243903cb25d9b90261bacbe70d8291)
+*  okx: add apis, privateGetAccountAdjustLeverageInfo [a68694d7e9](https://github.com/ccxt/ccxt/commits/a68694d7e9f9864287dc8f74cee3d17fda622263)
+*  4.0.10 [d7d4a16d4f](https://github.com/ccxt/ccxt/commits/d7d4a16d4fafec56a8947cafcc6e84f147299374)
+
+
+## 4.0.9 (2023-07-05)
+
+*  feat(binance): add support for websocket trading [ab0d483031](https://github.com/ccxt/ccxt/commits/ab0d483031ccc0ab4b85a6cb2a75dc6a9f1127e1)
+*  small fixes [d37f258005](https://github.com/ccxt/ccxt/commits/d37f2580056a045b6818b72b635e131484a60aa5)
+*  transpile fixes [d5dbcc064a](https://github.com/ccxt/ccxt/commits/d5dbcc064afbb34b233a427feda5b36ef959c73e)
+*  gate: add apis [4fffc58cc1](https://github.com/ccxt/ccxt/commits/4fffc58cc1654f7cac86fc47aa7003cdb498b753)
+*  pr comments [34567da301](https://github.com/ccxt/ccxt/commits/34567da3013b76fb08701da28f42667d2d5fb32f)
+*  fix jsdocs and extend params [db79487c8d](https://github.com/ccxt/ccxt/commits/db79487c8dc27470d9185b0bc54de1e73878d5d8)
+*  improve checkIsSpot [75e310085a](https://github.com/ccxt/ccxt/commits/75e310085adfb695abb70e52584451866773a448)
+*  bitget parseTransaction edits [aaa02002f1](https://github.com/ccxt/ccxt/commits/aaa02002f12e8b9aa7b0ad2b5175972b4669c91a)
+*  bitget parseTransaction more edits [df09366b87](https://github.com/ccxt/ccxt/commits/df09366b87d7c8ad776e7ec277418be0981c289d)
+*  bitget linting [e2b34933cf](https://github.com/ccxt/ccxt/commits/e2b34933cf5de2ce4e0d4c95bd2f5c95c9d788b9)
+*  oceanex: add @see [d15bd6b8f4](https://github.com/ccxt/ccxt/commits/d15bd6b8f4de4e5640316ec73d044263a55d9758)
+*  woo: remove apis GET /v1/client/info [9c621b1cfb](https://github.com/ccxt/ccxt/commits/9c621b1cfb6cf8e185af4828dd28aeccf17c1fab)
+*  novadax: add @see [6d2b7b92d1](https://github.com/ccxt/ccxt/commits/6d2b7b92d11d67b5637d53c549c8111875583439)
+*  CR fixes [f0f280cc5a](https://github.com/ccxt/ccxt/commits/f0f280cc5ac364803ca5c3c2e3d95b3e4b42c1b3)
+*  add filterBySymbolSinceLimit to ws methods [e9240e8d5e](https://github.com/ccxt/ccxt/commits/e9240e8d5e11f090529609b69b8ce4db566b283a)
+*  fix error message [f0a255b999](https://github.com/ccxt/ccxt/commits/f0a255b9990be449465664066d14f7d8d3d3cbcf)
+*  add checkRequiredSymbol [aab1f49dbe](https://github.com/ccxt/ccxt/commits/aab1f49dbee41beef6601cd33c8b06f9f0048969)
+*  edit to grep pattern [b9e8562bad](https://github.com/ccxt/ccxt/commits/b9e8562bad469f408be8921cc615c5e69135497c)
+*  add comment [93886bc48f](https://github.com/ccxt/ccxt/commits/93886bc48f9207dbd3c5c39fddc657dff2225e5d)
+*  edit multilang for options [73ab1a6e4f](https://github.com/ccxt/ccxt/commits/73ab1a6e4f233575a2ea3a92753d705c4a156a47)
+*  4.0.9 [6085a11cba](https://github.com/ccxt/ccxt/commits/6085a11cba4e1111b51076a21b5e4f9561625001)
+
+
+## 4.0.8 (2023-07-05)
+
+*  Update Exchange.php [7e3210883b](https://github.com/ccxt/ccxt/commits/7e3210883b55427da72b05d2679bdd20c2b06a80)
+*  travis: remove change.sh for now [2b6a02a0b3](https://github.com/ccxt/ccxt/commits/2b6a02a0b35f72e3185c360ae272dbb29effd74c)
+*  probit fetchDepositsWithdrawals true [bfb8e2ce0e](https://github.com/ccxt/ccxt/commits/bfb8e2ce0ecb7b9bda0842a0c5f61db3bb385928)
+*  4.0.8 [004e385993](https://github.com/ccxt/ccxt/commits/004e3859934abbc07a7e14298ad3ffcf91350078)
+
+
+## 4.0.7 (2023-07-04)
+
+*  bitget: add apis [4be436de77](https://github.com/ccxt/ccxt/commits/4be436de775c512895933977083fa10e0c80e920)
+*  okx reflink fix [ci deploy] [0960f8044b](https://github.com/ccxt/ccxt/commits/0960f8044bba11b7ea19cee9c6dcee8b68500008)
+*  4.0.7 [450fcab82a](https://github.com/ccxt/ccxt/commits/450fcab82ac906a3a69108d99da1129243a5a578)
+
+
+## 4.0.6 (2023-07-04)
+
+*  feat(coinbase): fetchBidsAsks [a20ca10028](https://github.com/ccxt/ccxt/commits/a20ca10028d3d82c802d7da1cd0867d4c67a0503)
+*  okx ccxt campaign reflink [4032cb80d9](https://github.com/ccxt/ccxt/commits/4032cb80d9becf42c562f9d2089b48c279ad0e27)
+*  okx campaign banner [ci deploy] [5e55b6f36a](https://github.com/ccxt/ccxt/commits/5e55b6f36add43e6f37ca2975ec5ba4486457d5e)
+*  okx campaign banner [ci deploy] [1d23033e33](https://github.com/ccxt/ccxt/commits/1d23033e33c9025842b1f25d8b1f3301e727edfb)
+*  okx campaign banner [ci deploy] [0dd8d45650](https://github.com/ccxt/ccxt/commits/0dd8d45650a77217c8eaf0863a64029de0d8f7ba)
+*  4.0.6 [c774fe31d4](https://github.com/ccxt/ccxt/commits/c774fe31d492920ba7e9d53bfbe1ee6b2484898a)
+
+
 ## 4.0.5 (2023-07-03)
 
 *  fetchdepositaddress [727a9e6ced](https://github.com/ccxt/ccxt/commits/727a9e6cedca6ad8e38b2f55bf16efbb213faf6a)
