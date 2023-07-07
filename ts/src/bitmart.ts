@@ -1028,26 +1028,7 @@ export default class bitmart extends Exchange {
             const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
             const withdraw_minsize = this.safeString (currency, 'withdraw_minsize');
             const withdraw_minfee = this.safeString (currency, 'withdraw_minfee');
-            let minPrecisionSize = undefined;
-            let minPrecisionFee = undefined;
-            if (withdraw_minsize !== undefined) {
-                minPrecisionSize = this.numberToString (this.precisionFromString (withdraw_minsize));
-            }
-            if (withdraw_minfee !== undefined) {
-                minPrecisionFee = this.numberToString (this.precisionFromString (withdraw_minfee));
-            }
-            let maxScale = undefined;
-            if (minPrecisionSize !== undefined && minPrecisionFee !== undefined) {
-                maxScale = Precise.stringMax (minPrecisionSize, minPrecisionFee);
-            } else if (minPrecisionSize !== undefined) {
-                maxScale = minPrecisionSize;
-            } else if (minPrecisionFee !== undefined) {
-                maxScale = minPrecisionFee;
-            }
-            if (maxScale === undefined) {
-                maxScale = this.numberToString (this.precisionFromString (this.options['currencyPrecision']));
-            }
-            const precision = this.parseNumber (this.parsePrecision (maxScale));
+            const precisionString = this.options['currencyPrecision'];
             result[code]['networks'][networkCode] = {
                 'info': currency,
                 'id': networkId,
@@ -1056,7 +1037,7 @@ export default class bitmart extends Exchange {
                 'deposit': deposit_enabled,
                 'withdraw': withdraw_enabled,
                 'fee': this.parseNumber (withdraw_minfee),
-                'precision': precision,
+                'precision': this.parseNumber (precisionString),
                 'limits': {
                     'withdraw': {
                         'min': this.parseNumber (withdraw_minsize),
@@ -1071,9 +1052,14 @@ export default class bitmart extends Exchange {
             // currency wide values
             result[code]['withdraw'] = (withdraw_enabled || result[code]['withdraw'] === undefined) ? true : result[code]['withdraw'];
             result[code]['deposit'] = (deposit_enabled || result[code]['deposit'] === undefined) ? true : result[code]['deposit'];
-            result[code]['precision'] = (result[code]['precision'] === undefined) ? true : result[code]['deposit'];
             if (result[code]['withdraw'] && result[code]['deposit']) {
                 result[code]['active'] = true;
+            }
+            if (result[code]['precision'] === undefined) {
+                result[code]['precision'] = precisionString;
+            } else {
+                const minPrecisionString = this.numberToString (result[code]['precision']);
+                result[code]['precision'] = Precise.stringMin (minPrecisionString, precisionString);
             }
         }
         return result;
