@@ -197,7 +197,7 @@ class kraken extends kraken$1 {
          * @name kraken#cancelOrdersWs
          * @see https://docs.kraken.com/websockets/#message-cancelOrder
          * @description cancel multiple orders
-         * @param {[string]} ids order ids
+         * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -261,7 +261,7 @@ class kraken extends kraken$1 {
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' cancelAllOrdersWs () does not support cancelling orders in a specific market.');
