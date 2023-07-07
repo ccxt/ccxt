@@ -2821,7 +2821,7 @@ export default class coinbase extends Exchange {
          * @name coinbase#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
-         * @param {string[]|undefined} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
