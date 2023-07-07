@@ -509,10 +509,15 @@ export default class cryptocom extends cryptocomRest {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        params = this.extend ({
             'order_id': id,
+        }, params);
+        const request = {
+            'method': 'private/cancel-order',
+            'params': params,
         };
-        return await this.watchPrivateRequest (id, request);
+        const messageHash = this.nonce ();
+        return await this.watchPrivateRequest (messageHash, request);
     }
 
     async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
