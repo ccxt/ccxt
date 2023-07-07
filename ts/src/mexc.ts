@@ -4178,7 +4178,7 @@ export default class mexc extends Exchange {
             'currency': this.safeCurrencyCode (coin, currency),
             'address': address,
             'tag': this.safeString2 (depositAddress, 'tag', 'memo'),
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'network')),
+            'network': this.networkIdToCode (this.safeString2 (depositAddress, 'network', 'chain')),
             'info': depositAddress,
         };
     }
