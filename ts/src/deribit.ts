@@ -465,7 +465,7 @@ export default class deribit extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
-                'precision': this.safeInteger (currency, 'fee_precision'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'fee_precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
