@@ -977,16 +977,6 @@ export default class bitmart extends Exchange {
         //         "data": {
         //             "currencies": [
         //                  {
-        //                     "currency": "USDT",
-        //                     "name": "Tether USD",
-        //                     "contract_address": null,
-        //                     "network": "OMNI",
-        //                     "withdraw_enabled": false,
-        //                     "deposit_enabled": false,
-        //                     "withdraw_minsize": "10",
-        //                     "withdraw_minfee": null
-        //                  },
-        //                  {
         //                     "currency": "USDT-SPL",
         //                     "name": "USDT-SPL",
         //                     "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
@@ -996,16 +986,28 @@ export default class bitmart extends Exchange {
         //                     "withdraw_minsize": "20",
         //                     "withdraw_minfee": null
         //                  },
+        //                  {
+        //                     "currency": "USDT",
+        //                     "name": "Tether USD",
+        //                     "contract_address": null,
+        //                     "network": "OMNI",
+        //                     "withdraw_enabled": false,
+        //                     "deposit_enabled": false,
+        //                     "withdraw_minsize": "10",
+        //                     "withdraw_minfee": null
+        //                  },
         //             ]
         //         }
         //    }
         //
         const data = this.safeValue (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
+        this.options['tempIdsToCodes'] = {};
+        this.options['tempIdsToNetworkCodes'] = {};
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const currencyId = this.safeString (currency, 'currency');
+            const currencyId = this.safeString (currency, 'currency'); // USDT-BEP20, USDT-TRX, etc
             const parts = currencyId.split ('-');
             const currencyName = parts[0];
             const code = this.safeCurrencyCode (currencyName);
@@ -1013,7 +1015,7 @@ export default class bitmart extends Exchange {
             if (!(code in result)) {
                 result[code] = this.safeCurrencyStructure ({
                     'info': [],
-                    'id': currencyName, // not 'currencyId' (USDT-BEP20, USDT-TRX,...) but name itself (USDT)
+                    'id': currencyName, // not 'currencyId' (USDT-BEP20, USDT-TRX, ...) but name itself (USDT)
                     'lowerCaseId': currencyName.toLowerCase (),
                     'code': code,
                     'name': this.safeString (currency, 'name'),
@@ -1023,7 +1025,9 @@ export default class bitmart extends Exchange {
             // now (as currency entry is defined in results) then just add the current parsed entry into it's networks
             // below are network-specific values
             const networkId = this.safeString (currency, 'network');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
+            this.options['tempIdsToCodes'][currencyId] = code;
+            this.options['tempIdsToNetworkCodes'][currencyId] = networkCode;
             const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
             const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
             const withdraw_minsize = this.safeString (currency, 'withdraw_minsize');
@@ -1143,7 +1147,7 @@ export default class bitmart extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositWithdrawFee() requires a "network" parameter');
         }
-        const currencyIdWithNetwork = this.networkCodeToId (networkCode, currency['code']);
+        const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
         const request = {
             'currency': currencyIdWithNetwork,
         };
@@ -2513,7 +2517,7 @@ export default class bitmart extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter');
         }
-        const currencyIdWithNetwork = this.networkCodeToId (networkCode, currency['code']);
+        const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
         const request = {
             'currency': currencyIdWithNetwork,
         };
@@ -2574,19 +2578,20 @@ export default class bitmart extends Exchange {
         const currency = this.currency (code);
         const request = {
             'amount': amount,
-            'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
+            'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX :))
             'address': address,
         };
         if (tag !== undefined) {
             request['address_memo'] = tag;
         }
-        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
         }
-        const currencyIdWithNetwork = this.networkCodeToId (networkCode, currency['code']);
+        const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
         request['currency'] = currencyIdWithNetwork;
-        const response = await this.privatePostAccountV1WithdrawApply (this.extend (request, query));
+        const response = await this.privatePostAccountV1WithdrawApply (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -2624,7 +2629,7 @@ export default class bitmart extends Exchange {
             if (networkCode === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a "network" parameter');
             }
-            const currencyIdWithNetwork = this.networkCodeToId (networkCode, currency['code']);
+            const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
             request['currency'] = currencyIdWithNetwork;
         }
         const response = await this.privateGetAccountV2DepositWithdrawHistory (this.extend (request, params));
@@ -2819,14 +2824,15 @@ export default class bitmart extends Exchange {
         const amount = this.safeNumber (transaction, 'arrival_amount');
         const timestamp = this.safeInteger (transaction, 'apply_time');
         const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
+        const currencyCode = this.getCurrencyCodeForId (currencyId);
+        const networkCode = this.getCurrencyNetworkForId (currencyId);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': code,
+                'currency': currencyCode,
             };
         }
         const txid = this.safeString (transaction, 'tx_id');
@@ -2835,9 +2841,9 @@ export default class bitmart extends Exchange {
         return {
             'info': transaction,
             'id': id,
-            'currency': code,
+            'currency': currencyCode,
             'amount': amount,
-            'network': undefined,
+            'network': networkCode,
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,
@@ -2852,6 +2858,16 @@ export default class bitmart extends Exchange {
             'datetime': (timestamp !== 0) ? this.iso8601 (timestamp) : undefined,
             'fee': fee,
         };
+    }
+
+    getCurrencyCodeForId (currencyId) {
+        const mapping = this.safeValue (this.options, 'tempIdsToCodes', {});
+        return this.safeString (mapping, currencyId, currencyId);
+    }
+
+    getCurrencyNetworkForId (currencyId) {
+        const mapping = this.safeValue (this.options, 'tempIdsToNetworkCodes', {});
+        return this.safeString (mapping, currencyId, currencyId);
     }
 
     async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
