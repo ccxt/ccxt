@@ -169,6 +169,7 @@ export default class cryptocom extends Exchange {
                             'private/get-deposit-address': 10 / 3,
                             'private/get-accounts': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
+                            'private/get-deposit-history': 10 / 3,
                         },
                     },
                 },
@@ -1489,10 +1490,12 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
@@ -1509,26 +1512,34 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.v2PrivatePostPrivateGetDepositHistory (this.extend (request, params));
-        // {
-        //     "id": 11,
-        //     "method": "private/get-deposit-history",
-        //     "code": 0,
-        //     "result": {
-        //       "deposit_list": [
-        //         {
-        //           "currency": "XRP",
-        //           "fee": 1.0,
-        //           "create_time": 1607063412000,
-        //           "id": "2220",
-        //           "update_time": 1607063460000,
-        //           "amount": 100,
-        //           "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //           "status": "1"
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['end_ts'] = until;
+        }
+        const response = await this.v1PrivatePostPrivateGetDepositHistory (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1688701375714,
+        //         "method": "private/get-deposit-history",
+        //         "code": 0,
+        //         "result": {
+        //             "deposit_list": [
+        //                 {
+        //                     "currency": "BTC",
+        //                     "fee": 0,
+        //                     "create_time": 1688023659000,
+        //                     "id": "6201135",
+        //                     "update_time": 1688178509000,
+        //                     "amount": 0.00114571,
+        //                     "address": "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //                     "status": "1",
+        //                     "txid": "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
+        //                 },
+        //             ]
         //         }
-        //       ]
         //     }
-        // }
+        //
         const data = this.safeValue (response, 'result', {});
         const depositList = this.safeValue (data, 'deposit_list', []);
         return this.parseTransactions (depositList, currency, since, limit);
@@ -2043,14 +2054,15 @@ export default class cryptocom extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "currency": "XRP",
-        //         "fee": 1.0,
-        //         "create_time": 1607063412000,
-        //         "id": "2220",
-        //         "update_time": 1607063460000,
-        //         "amount": 100,
-        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //         "status": "1"
+        //         "currency": "BTC",
+        //         "fee": 0,
+        //         "create_time": 1688023659000,
+        //         "id": "6201135",
+        //         "update_time": 1688178509000,
+        //         "amount": 0.00114571,
+        //         "address": "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //         "status": "1",
+        //         "txid": "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
         //     }
         //
         // fetchWithdrawals
