@@ -388,61 +388,65 @@ export default class bitmart extends Exchange {
                     'BTC': 'BTC',
                     // 'ERC20': [ 'ERC20', 'ERC-20', 'ERC20 ' ], // todo: after unification
                     'OMNI': 'OMNI',
-                    'STELLAR': 'XLM',
+                    'XLM': 'XLM',
                     'EOS': 'EOS',
                     'NEO': 'NEO',
                     'BYTOM': 'BTM',
                     'BCH': 'BCH',
-                    'RIPPLE': 'XRP',
+                    'LTC': 'LTC',
+                    'BSV': 'BSV',
+                    'XRP': 'XRP',
                     // 'VECHAIN': [ 'VET', 'Vechain' ], // todo: after unification
                     'BITCOINHD': 'BHD',
                     'PLEX': 'PLEX',
-                    'CHIA': 'XCH',
+                    'XCH': 'XCH',
                     // 'AVALANCHE_C': [ 'AVAX', 'AVAX-C' ], // todo: after unification
                     'NEAR': 'NEAR',
                     'FIO': 'FIO',
                     'SECRET': 'SCRT',
                     'IOTEX': 'IOTX',
+                    'SOL': 'SOL',
+                    'ALGO': 'ALGO', // todo: ALGORAND
+                    'ATOM': 'ATOM', // todo: COSMOS
+                    'DOT': 'DOT', // todo: POLKADOT
+                    'ADA': 'ADA', // todo: CARDANO
+                    'DOGE': 'DOGE', // todo: DOGECOIN
+                    'XYM': 'XYM', // todo: SYMBOL
+                    'GLMR': 'GLMR', // todo: MOONBEAM
+                    'MOVR': 'MOVR', // todo: MOONRIVER
+                    'ZIL': 'ZIL', // todo: ZILLIQA
+                    'INJ': 'INJ', // todo: INJECTIVE
+                    'KSM': 'KSM', // todo: KUSAMA
+                    'ZEC': 'ZEC', // todo: ZCASH
+                    'NAS': 'NAS', // todo: NEBULAS
                     // 'POLYGON': [ 'MATIC', 'Polygon', 'POLYGON' ], // todo: after unification
                     'HRC20': 'HECO',
                     'XDC': 'XDC',
-                    'HARMONY': 'ONE',
-                    'SOLANA': 'SOL',
+                    'ONE': 'ONE',
                     'PLATON': 'LAT',
                     'CSPR': 'Casper',
-                    'INTERNETCOMPUTER': 'Computer',
-                    'TEZOS': 'XTZ',
+                    'ICP': 'Computer',
+                    'XTZ': 'XTZ',
                     'MINA': 'MINA',
-                    'CARDANO': 'ADA',
                     // 'BEP20': [ 'BEP20', 'BSC_BNB', 'bep20' ], // todo: after unification
                     'ERGO': 'ERG',
-                    'DOGECOIN': 'DOGE',
                     'THETA': 'THETA',
-                    'SYMBOL': 'XYM',
                     'AKASH': 'AKT',
                     'NEM': 'XEM',
                     'ARWEAVE': 'AR',
                     'CELO': 'CELO',
                     'BITCOINVAULT': 'BTCV',
-                    'FILECOIN': 'FIL',
+                    'FIL': 'FIL',
                     'NULS': 'NULS',
                     'ETC': 'ETC',
-                    'POLKADOT': 'DOT',
                     'DASH': 'DASH',
                     'DIGIBYTE': 'DGB',
-                    'KUSAMA': 'KSM',
                     'BEP2': 'BEP2',
                     'GRIN': 'GRIN',
                     'WAVES': 'WAVES',
-                    'ALGORAND': 'ALGO',
-                    'COSMOS': 'ATOM',
                     'ABBC': 'ABBC',
                     'ACALA': 'ACA',
-                    'LTC': 'LTC',
-                    'BSV': 'BSV',
                     'QTUM': 'QTUM',
-                    'ZCASH': 'ZEC',
-                    'NEBULAS': 'NAS',
                     'MOBILECOIN': 'MBX',
                     'PAC': 'PAC',
                     // 'TERRACLASSIC': 'LUNC', // TBD
@@ -458,8 +462,6 @@ export default class bitmart extends Exchange {
                     // 'ELROND': [ 'EGLD', 'Elrond eGold', 'MultiversX' ], // todo: after unification
                     'EVERSCALE': 'EVER',
                     'KAVA': 'KAVA',
-                    'MOONBEAM': 'GLMR',
-                    'MOONRIVER': 'MOVR',
                     'HYDRA': 'HYDRA',
                     'PLCULTIMA': 'PLCU',
                     'BITGERT': 'BRISE',
@@ -468,7 +470,6 @@ export default class bitmart extends Exchange {
                     'OPTIMISM': 'OPTIMISM',
                     'REEF': 'REEF',
                     'SYSCOIN': 'SYS', // NEVM is different
-                    'ZILLIQA': 'ZIL',
                     'VITE': 'VITE',
                     'STACKS': 'STX',
                     'SOLAR': 'SXP',
@@ -483,7 +484,6 @@ export default class bitmart extends Exchange {
                     'NODLE': 'NODL',
                     'ETHF': 'ETHF',
                     'IOST': 'IOST',
-                    'INJECTIVE': 'INJ',
                     'CUBE': 'CUBE',
                     // 'CHILIZ': [ 'CHZ', 'CHILIZ' ], // todo: after unification
                     'APTOS': 'APT',
