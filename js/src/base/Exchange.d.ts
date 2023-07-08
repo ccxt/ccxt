@@ -2,17 +2,12 @@ import * as functions from './functions.js';
 import { AuthenticationError, DDoSProtection, ExchangeError, ExchangeNotAvailable, RateLimitExceeded, RequestTimeout } from "./errors.js";
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
-import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
-export { Market, Trade, Fee, Ticker } from './types';
-/**
- * @class Exchange
- */
-/*
 import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './ws/OrderBook.js';
 import { Balance, Balances, Currency, DepositAddressResponse, Dictionary, IndexType, Int, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './types';
 export { Fee, Market, Ticker, Trade } from './types';
-*/
+/**
+ * @class Exchange
+ */
 export default class Exchange {
     options: {
         [key: string]: any;
@@ -57,8 +52,8 @@ export default class Exchange {
     validateServerSsl: boolean;
     validateClientSsl: boolean;
     timeout: number;
-    verbose: boolean;
     twofa: any;
+    verbose: boolean;
     apiKey: string;
     secret: string;
     uid: string;

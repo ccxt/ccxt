@@ -2852,7 +2852,6 @@ class Exchange {
             'cost' => $this->parse_number($cost),
             'datetime' => $datetime,
             'fee' => $this->safe_value($order, 'fee'),
-            'fee' => $this->safe_value($order, 'fee'),
             'filled' => $this->parse_number($filled),
             'id' => $this->safe_string($order, 'id'),
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
@@ -2862,7 +2861,6 @@ class Exchange {
             'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
             'remaining' => $this->parse_number($remaining),
             'side' => $side,
-            'status' => $this->safe_string($order, 'status'),
             'status' => $this->safe_string($order, 'status'),
             'stopLossPrice' => $stopLossPrice,
             'stopPrice' => $triggerPrice, // ! deprecated, use $triggerPrice instead

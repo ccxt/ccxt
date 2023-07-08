@@ -46,8 +46,8 @@ export default class Exchange {
         this.validateServerSsl = true;
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
-        this.verbose = false;
         this.twofa = undefined; // two-factor authentication (2FA)
+        this.verbose = false;
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
@@ -209,7 +209,6 @@ export default class Exchange {
         // http properties
         this.headers = {};
         this.origin = '*'; // CORS origin
-        this.proxy = '';
         // underlying properties
         this.handleContentTypeApplicationZip = false;
         this.minFundingAddressLength = 1; // used in checkAddress
@@ -973,9 +972,7 @@ export default class Exchange {
                         //               V
                         client.throttle(cost).then(() => {
                             client.send(message);
-                        }).catch((e) => {
-                            throw e;
-                        });
+                        }).catch((e) => { throw e; });
                     }
                     else {
                         client.send(message)

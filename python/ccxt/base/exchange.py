@@ -2282,7 +2282,6 @@ class Exchange(object):
             'cost': self.parse_number(cost),
             'datetime': datetime,
             'fee': self.safe_value(order, 'fee'),
-            'fee': self.safe_value(order, 'fee'),
             'filled': self.parse_number(filled),
             'id': self.safe_string(order, 'id'),
             'lastTradeTimestamp': lastTradeTimeTimestamp,
@@ -2292,7 +2291,6 @@ class Exchange(object):
             'reduceOnly': self.safe_value(order, 'reduceOnly'),
             'remaining': self.parse_number(remaining),
             'side': side,
-            'status': self.safe_string(order, 'status'),
             'status': self.safe_string(order, 'status'),
             'stopLossPrice': stopLossPrice,
             'stopPrice': triggerPrice,  # ! deprecated, use triggerPrice instead

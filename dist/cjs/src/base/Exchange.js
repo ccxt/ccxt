@@ -59,8 +59,8 @@ class Exchange {
         this.validateServerSsl = true;
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
-        this.verbose = false;
         this.twofa = undefined; // two-factor authentication (2FA)
+        this.verbose = false;
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
@@ -222,7 +222,6 @@ class Exchange {
         // http properties
         this.headers = {};
         this.origin = '*'; // CORS origin
-        this.proxy = '';
         // underlying properties
         this.handleContentTypeApplicationZip = false;
         this.minFundingAddressLength = 1; // used in checkAddress
@@ -422,8 +421,6 @@ class Exchange {
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': undefined,
-                'fetchTransactionFee': undefined,
-                'fetchTransactionFees': undefined,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
@@ -982,14 +979,11 @@ class Exchange {
                         //               V
                         client.throttle(cost).then(() => {
                             client.send(message);
-                        }).catch((e) => {
-                            throw e;
-                        });
+                        }).catch((e) => { throw e; });
                     }
                     else {
-                        client.send(message).catch((e) => {
-                            throw e;
-                        });
+                        client.send(message)
+                            .catch((e) => { throw e; });
                     }
                 }
             }).catch((e) => {
@@ -1829,7 +1823,6 @@ class Exchange {
             'cost': this.parseNumber(cost),
             'datetime': datetime,
             'fee': this.safeValue(order, 'fee'),
-            'fee': this.safeValue(order, 'fee'),
             'filled': this.parseNumber(filled),
             'id': this.safeString(order, 'id'),
             'lastTradeTimestamp': lastTradeTimeTimestamp,
@@ -1839,7 +1832,6 @@ class Exchange {
             'reduceOnly': this.safeValue(order, 'reduceOnly'),
             'remaining': this.parseNumber(remaining),
             'side': side,
-            'status': this.safeString(order, 'status'),
             'status': this.safeString(order, 'status'),
             'stopLossPrice': stopLossPrice,
             'stopPrice': triggerPrice,
