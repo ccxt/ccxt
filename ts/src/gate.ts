@@ -536,19 +536,19 @@ export default class gate extends Exchange {
                 'networks': {
                     'ALGO': 'ALGO',
                     'ARBITRUM_NOVA': 'ARBNOVA',
-                    // 'ARBITRUM_ONE': 'ARB', // todo: ARB-vs-ARBEVM needs clarification
+                    'ARBITRUM_ONE': 'ARB', // ARBEVM different
                     'AVALANCHE_C': 'AVAX_C',
                     'BEP20': 'BSC',
                     'CHZ': 'CHZ',
                     'EOS': 'EOS',
                     'ERC20': 'ETH',
-                    'GATECHAIN': 'GTEVM',
+                    'GATECHAIN': 'GT', // GTEVM is different (same as GRC20) // todo
                     'HRC20': 'HT',
                     'KSM': 'KSM', // KSMSM is different
                     'NEAR': 'NEAR',
                     'OKC': 'OKT',
                     'OPTIMISM': 'OPETH',
-                    'DOT': 'DOT', // todo: DOT-vs-DOTSM needs clarification
+                    'DOT': 'DOT', // DOTSM different
                     'MATIC': 'MATIC',
                     'SOL': 'SOL',
                     'TRC20': 'TRX',
@@ -561,7 +561,6 @@ export default class gate extends Exchange {
                     'AVALANCHE_X': 'AVAX',
                     'DOGE': 'DOGE', // DOGEEVM is different
                     'ATOM': 'ATOM',
-                    // 'GATECHAIN': 'GT', // ? GTEVM is different (same as GRC20) // todo
                     'ETC': 'ETC',
                     'TERRA': 'LUNA',
                     'TERRACLASSIC': 'LUNC',
@@ -615,8 +614,8 @@ export default class gate extends Exchange {
                     'HNT': 'HNT',
                     'HATHOR': 'HTR',
                     'BSV': 'BSV',
-                    'BCH': 'BCH', // actually, the real name is BITCOIN-CASH-ABC, but most exchanges just call it mistakenly BCH/BITCOINCASH
-                    // 'BCHA': 'BCHA', // simultaneously, BITCOIN-CASH-ABC is other IOU, which ignored existing BITCOIN-CASH-ABC name presense and named it again, but it is not BCH
+                    'BCH': 'BCH', // actually, the real name is BITCOIN-CASH-ABC, but most exchanges just call it mistakenly BCH (BITCOINCASH)
+                    // 'BCHA': 'BCHA', // simultaneously, BITCOIN-CASH-ABC is other IOU, which ignored existing BITCOIN-CASH-ABC name presense and named BCHA again, but it is not original BITCOIN-CASH-ABC (BCH)
                     'KAVA': 'KAVA',
                     'IOTEX': 'IOTX',
                     'IOST': 'IOST',
@@ -629,10 +628,10 @@ export default class gate extends Exchange {
                     'KMA': 'KMA',
                     'OSMO': 'OSMO',
                     'REI': 'REI',
-                    'ELASTOS': 'ELA', // ELAEVM is different
-                    'ELASTOSSMARTCHAIN': 'ESC',
+                    'ELA': 'ELA', // ELAEVM is different
+                    'ELAS': 'ESC',
                     'FLUX': 'FLUX',
-                    'PLATON': 'LAT',
+                    'LAT': 'LAT',
                     'NAS': 'NAS',
                     'XYM': 'XYM',
                     'NEM': 'XEM',
@@ -652,7 +651,7 @@ export default class gate extends Exchange {
                     'REEF': 'REEF',
                     'XDC': 'XDC',
                     'HIVE': 'HIVE',
-                    'EVERSCALE': 'EVER',
+                    'EVER': 'EVER',
                     'DOCK': 'DOCK',
                     'ICON': 'ICX',
                     'FUSE': 'FUSE',
@@ -666,14 +665,14 @@ export default class gate extends Exchange {
                     'BAND': 'BAND',
                     'POLYMESH': 'POLYX',
                     'HYDRA': 'HYDRA',
-                    'DECRED': 'DCR',
-                    'HEDERA': 'HBAR',
+                    'DCR': 'DCR',
+                    'HBAR': 'HBAR',
                     'NODLE': 'NODL',
-                    'THUNDERCORE': 'TT',
+                    'TT': 'TT',
                     'SMARTMESH': 'SMT',
                     'EDGEWARE': 'EDG',
                     'BEAM': 'BEAM',
-                    'AETERNITY': 'AE',
+                    'AE': 'AE',
                     'PASTEL': 'PSL',
                     'BYTOM': 'BTM',
                     'STACKS': 'STX',
