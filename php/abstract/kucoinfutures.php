@@ -508,8 +508,11 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function futuresprivate_delete_sub_api_key($params = array()) {
         return $this->request('sub/api-key', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function webfront_get_contract_symbol_funding_rates($params = array()) {
-        return $this->request('contract/{symbol}/funding-rates', 'webFront', 'GET', $params, null, null, array("cost" => 1));
+    public function webexchange_get_currency_currency_chain_info($params = array()) {
+        return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function webexchange_get_contract_symbol_funding_rates($params = array()) {
+        return $this->request('contract/{symbol}/funding-rates', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetTimestamp($params = array()) {
         return $this->request('timestamp', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -1012,7 +1015,10 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function futuresPrivateDeleteSubApiKey($params = array()) {
         return $this->request('sub/api-key', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function webFrontGetContractSymbolFundingRates($params = array()) {
-        return $this->request('contract/{symbol}/funding-rates', 'webFront', 'GET', $params, null, null, array("cost" => 1));
+    public function webExchangeGetCurrencyCurrencyChainInfo($params = array()) {
+        return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function webExchangeGetContractSymbolFundingRates($params = array()) {
+        return $this->request('contract/{symbol}/funding-rates', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
     }
 }

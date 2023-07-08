@@ -52,7 +52,7 @@ class probit extends probit$1 {
          * @name probit#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs-en.probit.com/reference/balance-1
-         * @param {object} params extra parameters specific to the probit api endpoint
+         * @param {object} [params] extra parameters specific to the probit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.authenticate(params);
@@ -119,8 +119,8 @@ class probit extends probit$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs-en.probit.com/reference/marketdata
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
+         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         let filter = undefined;
@@ -162,11 +162,11 @@ class probit extends probit$1 {
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs-en.probit.com/reference/trade_history
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTrades', 'filter', 'recent_trades');
@@ -174,7 +174,7 @@ class probit extends probit$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleTrades(client, message) {
         //
@@ -223,10 +223,10 @@ class probit extends probit$1 {
          * @name probit#watchMyTrades
          * @description get the list of trades associated with the user
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         await this.authenticate(params);
@@ -247,7 +247,7 @@ class probit extends probit$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //
@@ -302,11 +302,11 @@ class probit extends probit$1 {
          * @name probit#watchOrders
          * @description watches information on an order made by the user
          * @see https://docs-en.probit.com/reference/open_order
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {int|undefined} since timestamp in ms of the earliest order to watch
-         * @param {int|undefined} limit the maximum amount of orders to watch
-         * @param {object} params extra parameters specific to the aax api endpoint
-         * @param {string|undefined} params.channel choose what channel to use. Can open_order or order_history.
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {int} [since] timestamp in ms of the earliest order to watch
+         * @param {int} [limit] the maximum amount of orders to watch
+         * @param {object} [params] extra parameters specific to the aax api endpoint
+         * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.authenticate(params);
@@ -328,7 +328,7 @@ class probit extends probit$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         //
@@ -389,8 +389,8 @@ class probit extends probit$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs-en.probit.com/reference/marketdata
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the probit api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the probit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         let filter = undefined;

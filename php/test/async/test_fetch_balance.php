@@ -12,8 +12,8 @@ use React\Promise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_balance.php';
 
-function test_fetch_balance($exchange, $skipped_properties, $code, $symbol) {
-    return Async\async(function () use ($exchange, $skipped_properties, $code, $symbol) {
+function test_fetch_balance($exchange, $skipped_properties) {
+    return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'fetchBalance';
         $response = Async\await($exchange->fetch_balance());
         test_balance($exchange, $skipped_properties, $method, $response);

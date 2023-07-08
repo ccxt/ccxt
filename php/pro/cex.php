@@ -53,7 +53,7 @@ class cex extends \ccxt\async\cex {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://cex.io/websocket-api#get-balance
-             * @param {array} $params extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
@@ -115,10 +115,10 @@ class cex extends \ccxt\async\cex {
              * get the list of most recent $trades for a particular $symbol-> Note => can only watch one $symbol at a time.
              * @see https://cex.io/websocket-api#old-pair-room
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -150,7 +150,7 @@ class cex extends \ccxt\async\cex {
             for ($i = 0; $i < count($trades); $i++) {
                 $trades[$i]['symbol'] = $symbol;
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -236,8 +236,8 @@ class cex extends \ccxt\async\cex {
              * @see https://cex.io/websocket-api#ticker-subscription
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @param {string|null} $params->method public or private
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {string} [$params->method] public or private
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -274,8 +274,8 @@ class cex extends \ccxt\async\cex {
             /**
              * @see https://cex.io/websocket-api#$ticker-subscription
              * watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the cex api endpoint
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
@@ -395,10 +395,10 @@ class cex extends \ccxt\async\cex {
              * get the list of $orders associated with the user. Note => In CEX.IO system, $orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls => archived-orders/open-$orders->
              * @see https://docs.cex.io/#ws-api-open-$orders
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
@@ -424,7 +424,7 @@ class cex extends \ccxt\async\cex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -434,10 +434,10 @@ class cex extends \ccxt\async\cex {
              * get the list of trades associated with the user. Note => In CEX.IO system, $orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls => archived-orders/open-$orders->
              * @see https://docs.cex.io/#ws-api-open-$orders
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
@@ -876,8 +876,8 @@ class cex extends \ccxt\async\cex {
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://cex.io/websocket-api#$orderbook-$subscribe
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the cex api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -1009,10 +1009,10 @@ class cex extends \ccxt\async\cex {
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market-> It will return the last 120 minutes with the selected $timeframe and then 1m candle updates after that.
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents.
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1030,7 +1030,7 @@ class cex extends \ccxt\async\cex {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 

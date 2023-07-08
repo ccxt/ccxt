@@ -23,7 +23,6 @@ interface Exchange {
     v1PrivateGetClientTradeTid(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetOrderOidTrades(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetClientTrades(params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientInfo(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetAssetDeposit(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetAssetHistory(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetSubAccountAll(params?: {}): Promise<implicitReturnType>;
@@ -35,6 +34,7 @@ interface Exchange {
     v1PrivateGetFundingFeeHistory(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetPositions(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetPositionSymbol(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetClientTransactionHistory(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetMainSubTransfer(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetWithdraw(params?: {}): Promise<implicitReturnType>;
@@ -57,7 +57,7 @@ interface Exchange {
     v3PrivatePutOrderClientClientOrderId(params?: {}): Promise<implicitReturnType>;
     v3PrivatePutAlgoOrderOid(params?: {}): Promise<implicitReturnType>;
     v3PrivatePutAlgoOrderClientClientOrderId(params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteAlgoOrderOid(params?: {}): Promise<implicitReturnType>;
+    v3PrivateDeleteAlgoOrderOrderId(params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteAlgoOrdersPending(params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteAlgoOrdersPendingSymbol(params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteOrdersPending(params?: {}): Promise<implicitReturnType>;

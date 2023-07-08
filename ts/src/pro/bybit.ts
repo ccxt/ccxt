@@ -164,7 +164,7 @@ export default class bybit extends bybitRest {
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -322,10 +322,10 @@ export default class bybit extends bybitRest {
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -340,7 +340,7 @@ export default class bybit extends bybitRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -394,7 +394,7 @@ export default class bybit extends bybitRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv) {
+    parseWsOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "start": 1670363160000,
@@ -411,7 +411,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         return [
-            this.safeInteger (ohlcv, 'timestamp'),
+            this.safeInteger (ohlcv, 'start'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -427,8 +427,8 @@ export default class bybit extends bybitRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return.
-         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return.
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -537,10 +537,10 @@ export default class bybit extends bybitRest {
          * @description watches information on multiple trades made in a market
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -553,7 +553,7 @@ export default class bybit extends bybitRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client: Client, message) {
@@ -687,11 +687,11 @@ export default class bybit extends bybitRest {
          * @description watches information on multiple trades made by the user
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @param {boolean} params.unifiedMargin use unified margin account
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {boolean} [params.unifiedMargin] use unified margin account
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const method = 'watchMyTrades';
         let messageHash = 'myTrades';
@@ -712,7 +712,7 @@ export default class bybit extends bybitRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleMyTrades (client: Client, message) {
@@ -814,11 +814,11 @@ export default class bybit extends bybitRest {
          * @name bybit#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         const method = 'watchOrders';
@@ -839,7 +839,7 @@ export default class bybit extends bybitRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrder (client: Client, message, subscription = undefined) {
@@ -1055,7 +1055,7 @@ export default class bybit extends bybitRest {
          * @name bybit#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
-         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();

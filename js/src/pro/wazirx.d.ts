@@ -5,7 +5,7 @@ export default class wazirx extends wazirxRest {
     describe(): any;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
-    parseWSTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
@@ -22,7 +22,7 @@ export default class wazirx extends wazirxRest {
     handleOrderBook(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWSOrder(order: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleMyTrades(client: Client, message: any): void;
     handleConnected(client: Client, message: any): any;
     handleSubscribed(client: Client, message: any): any;

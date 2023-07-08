@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitget.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitget
+ * @extends Exchange
+ */
 export default class bitget extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
@@ -99,8 +103,8 @@ export default class bitget extends Exchange {
         status: string;
         updated: number;
         tagFrom: any;
-        tag: any;
-        tagTo: any;
+        tag: string;
+        tagTo: string;
         comment: any;
         fee: any;
     };
@@ -122,7 +126,7 @@ export default class bitget extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, limit?: Int, since?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<{
@@ -143,13 +147,13 @@ export default class bitget extends Exchange {
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseBalance(balance: any): import("./base/types.js").Balances;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -273,6 +277,19 @@ export default class bitget extends Exchange {
         toAccount: string;
         status: string;
     };
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
     parseOpenInterest(interest: any, market?: any): {
         symbol: any;

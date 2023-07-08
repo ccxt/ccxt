@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.1.4';
+const version = '4.0.13';
 
 (Exchange as any).ccxtVersion = version
 
@@ -81,7 +81,6 @@ import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
-import btcex from  './src/btcex.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btctradeua from  './src/btctradeua.js'
 import btcturk from  './src/btcturk.js'
@@ -141,7 +140,6 @@ import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
-import stex from  './src/stex.js'
 import tidex from  './src/tidex.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
@@ -150,7 +148,6 @@ import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
-import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
@@ -177,7 +174,6 @@ import bitstampPro from  './src/pro/bitstamp.js'
 import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
-import btcexPro from  './src/pro/btcex.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbaseprimePro from  './src/pro/coinbaseprime.js'
@@ -209,6 +205,8 @@ import okcoinPro from  './src/pro/okcoin.js'
 import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
+import poloniexPro from  './src/pro/poloniex.js'
+import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
 import probitPro from  './src/pro/probit.js'
 import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
@@ -251,7 +249,6 @@ const exchanges = {
     'blockchaincom':          blockchaincom,
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
-    'btcex':                  btcex,
     'btcmarkets':             btcmarkets,
     'btctradeua':             btctradeua,
     'btcturk':                btcturk,
@@ -311,7 +308,6 @@ const exchanges = {
     'poloniex':               poloniex,
     'poloniexfutures':        poloniexfutures,
     'probit':                 probit,
-    'stex':                   stex,
     'tidex':                  tidex,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
@@ -320,7 +316,6 @@ const exchanges = {
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
     'woo':                    woo,
-    'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zonda':                  zonda,
@@ -347,7 +342,6 @@ const pro = {
     'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
-    'btcex':                  btcexPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbaseprime':          coinbaseprimePro,
@@ -379,6 +373,8 @@ const pro = {
     'okex':                   okexPro,
     'okx':                    okxPro,
     'phemex':                 phemexPro,
+    'poloniex':               poloniexPro,
+    'poloniexfutures':        poloniexfuturesPro,
     'probit':                 probitPro,
     'upbit':                  upbitPro,
     'wazirx':                 wazirxPro,
@@ -492,7 +488,6 @@ export {
     blockchaincom,
     btcalpha,
     btcbox,
-    btcex,
     btcmarkets,
     btctradeua,
     btcturk,
@@ -552,7 +547,6 @@ export {
     poloniex,
     poloniexfutures,
     probit,
-    stex,
     tidex,
     timex,
     tokocrypto,
@@ -561,7 +555,6 @@ export {
     wazirx,
     whitebit,
     woo,
-    xt,
     yobit,
     zaif,
     zonda,    
