@@ -1092,6 +1092,7 @@ export default class bybit extends Exchange {
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'loadAllOptions': false, // load all possible option markets, adds signficant load time
+                'loadExpiredOptions': false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1713,12 +1714,12 @@ export default class bybit extends Exchange {
     async fetchOptionMarkets (params) {
         const request = {
             'category': 'option',
-            'limit': 1000,
         };
         const response = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
         const data = this.safeValue (response, 'result', {});
         let markets = this.safeValue (data, 'list', []);
         if (this.options['loadAllOptions']) {
+            request['limit'] = 1000;
             let paginationCursor = this.safeString (data, 'nextPageCursor');
             if (paginationCursor !== undefined) {
                 while (paginationCursor !== undefined) {
@@ -1787,56 +1788,111 @@ export default class bybit extends Exchange {
             const splitId = id.split ('-');
             const strike = this.safeString (splitId, 2);
             const optionLetter = this.safeString (splitId, 3);
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'option',
-                'spot': false,
-                'margin': undefined,
-                'swap': false,
-                'future': false,
-                'option': true,
-                'active': (status === 'Trading'),
-                'contract': true,
-                'linear': true,
-                'inverse': false,
-                'taker': this.safeNumber (market, 'takerFee', this.parseNumber ('0.0006')),
-                'maker': this.safeNumber (market, 'makerFee', this.parseNumber ('0.0001')),
-                'contractSize': this.safeNumber (lotSizeFilter, 'minOrderQty'),
-                'expiry': expiry,
-                'expiryDatetime': this.iso8601 (expiry),
-                'strike': this.parseNumber (strike),
-                'optionType': this.safeStringLower (market, 'optionsType'),
-                'precision': {
-                    'amount': this.safeNumber (lotSizeFilter, 'qtyStep'),
-                    'price': this.safeNumber (priceFilter, 'tickSize'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
+            if ((this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
+                result.push ({
+                    'id': id,
+                    'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter,
+                    'base': base,
+                    'quote': quote,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': 'option',
+                    'spot': false,
+                    'margin': false,
+                    'swap': false,
+                    'future': false,
+                    'option': true,
+                    'active': (status === 'Trading'),
+                    'contract': true,
+                    'linear': true,
+                    'inverse': false,
+                    'taker': this.safeNumber (market, 'takerFee', this.parseNumber ('0.0006')),
+                    'maker': this.safeNumber (market, 'makerFee', this.parseNumber ('0.0001')),
+                    'contractSize': this.safeNumber (lotSizeFilter, 'minOrderQty'),
+                    'expiry': expiry,
+                    'expiryDatetime': this.iso8601 (expiry),
+                    'strike': this.parseNumber (strike),
+                    'optionType': this.safeStringLower (market, 'optionsType'),
+                    'precision': {
+                        'amount': this.safeNumber (lotSizeFilter, 'qtyStep'),
+                        'price': this.safeNumber (priceFilter, 'tickSize'),
                     },
-                    'amount': {
-                        'min': this.safeNumber (lotSizeFilter, 'minOrderQty'),
-                        'max': this.safeNumber (lotSizeFilter, 'maxOrderQty'),
+                    'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'amount': {
+                            'min': this.safeNumber (lotSizeFilter, 'minOrderQty'),
+                            'max': this.safeNumber (lotSizeFilter, 'maxOrderQty'),
+                        },
+                        'price': {
+                            'min': this.safeNumber (priceFilter, 'minPrice'),
+                            'max': this.safeNumber (priceFilter, 'maxPrice'),
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'price': {
-                        'min': this.safeNumber (priceFilter, 'minPrice'),
-                        'max': this.safeNumber (priceFilter, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
+                    'info': market,
+                });
+            } else {
+                if (status === 'Trading') {
+                    result.push ({
+                        'id': id,
+                        'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter,
+                        'base': base,
+                        'quote': quote,
+                        'settle': settle,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                        'settleId': settleId,
+                        'type': 'option',
+                        'spot': false,
+                        'margin': false,
+                        'swap': false,
+                        'future': false,
+                        'option': true,
+                        'active': true,
+                        'contract': true,
+                        'linear': true,
+                        'inverse': false,
+                        'taker': this.safeNumber (market, 'takerFee', this.parseNumber ('0.0006')),
+                        'maker': this.safeNumber (market, 'makerFee', this.parseNumber ('0.0001')),
+                        'contractSize': this.safeNumber (lotSizeFilter, 'minOrderQty'),
+                        'expiry': expiry,
+                        'expiryDatetime': this.iso8601 (expiry),
+                        'strike': this.parseNumber (strike),
+                        'optionType': this.safeStringLower (market, 'optionsType'),
+                        'precision': {
+                            'amount': this.safeNumber (lotSizeFilter, 'qtyStep'),
+                            'price': this.safeNumber (priceFilter, 'tickSize'),
+                        },
+                        'limits': {
+                            'leverage': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'amount': {
+                                'min': this.safeNumber (lotSizeFilter, 'minOrderQty'),
+                                'max': this.safeNumber (lotSizeFilter, 'maxOrderQty'),
+                            },
+                            'price': {
+                                'min': this.safeNumber (priceFilter, 'minPrice'),
+                                'max': this.safeNumber (priceFilter, 'maxPrice'),
+                            },
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                        'info': market,
+                    });
+                }
+            }
         }
         return result;
     }
