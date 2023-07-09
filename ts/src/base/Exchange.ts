@@ -3575,7 +3575,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
-    async fetchOpenInterest (symbol: string, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
     }
 
