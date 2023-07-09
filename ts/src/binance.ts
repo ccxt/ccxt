@@ -727,6 +727,10 @@ export default class binance extends Exchange {
                         'adlQuantile': 5,
                         'pmAccountInfo': 5,
                         'orderAmendment': 1,
+                        'order/asyn': 5,
+                        'order/asyn/id': 5,
+                        'trade/asyn': 5,
+                        'trade/asyn/id': 5,
                     },
                     'post': {
                         'batchOrders': 5,
