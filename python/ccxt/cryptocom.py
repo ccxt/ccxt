@@ -392,6 +392,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     '50001': BadRequest,
                     '9010001': OnMaintenance,  # {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
+                'broad': {},
             },
         })
 
@@ -976,24 +977,7 @@ class cryptocom(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
-        """
-        create a trade order
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'PO'
-        :param str [params.ref_price_type]: 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-        :param float [params.stopPrice]: price to trigger a stop order
-        :param float [params.stopLossPrice]: price to trigger a stop-loss trigger order
-        :param float [params.takeProfitPrice]: price to trigger a take-profit trigger order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        self.load_markets()
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         market = self.market(symbol)
         uppercaseType = type.upper()
         request = {
@@ -1076,7 +1060,29 @@ class cryptocom(Exchange, ImplicitAPI):
         else:
             request['type'] = uppercaseType
         params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
-        response = self.v1PrivatePostPrivateCreateOrder(self.extend(request, params))
+        return self.extend(request, params)
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        create a trade order
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'PO'
+        :param str [params.ref_price_type]: 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
+        :param float [params.stopPrice]: price to trigger a stop order
+        :param float [params.stopLossPrice]: price to trigger a stop-loss trigger order
+        :param float [params.takeProfitPrice]: price to trigger a take-profit trigger order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        response = self.v1PrivatePostPrivateCreateOrder(request)
         #
         #     {
         #         "id": 1686804664362,
@@ -1097,7 +1103,7 @@ class cryptocom(Exchange, ImplicitAPI):
         see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
         :param str symbol: unified market symbol of the orders to cancel
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict} Returns exchange raw message{@link https://docs.ccxt.com/#/?id=order-structure:
         """
         self.load_markets()
         market = None
@@ -1112,7 +1118,7 @@ class cryptocom(Exchange, ImplicitAPI):
         cancels an open order
         see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
         :param str id: the order id of the order to cancel
-        :param str symbol: unified symbol of the market the order was made in
+        :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

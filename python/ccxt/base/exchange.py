@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.14'
+__version__ = '4.0.15'
 
 # -----------------------------------------------------------------------------
 
@@ -2342,7 +2342,7 @@ class Exchange(object):
 
     def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
         if type == 'market' and takerOrMaker == 'maker':
-            raise InvalidOrder(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
+            raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         useQuote = None
@@ -3472,6 +3472,9 @@ class Exchange(object):
 
     def fetch_withdrawals(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
+
+    def fetch_open_interest(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
