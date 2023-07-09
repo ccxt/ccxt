@@ -7338,6 +7338,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchPositionsRisk
          * @description fetch positions risk
+         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} data on the positions risk
@@ -7358,7 +7359,7 @@ export default class binance extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
         params = this.omit (params, 'type');
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetPositionRisk';
+            method = 'fapiPrivateV2GetPositionRisk';
             // ### Response examples ###
             //
             // For One-way position mode:
