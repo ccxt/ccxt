@@ -2764,8 +2764,8 @@ class coinbase extends Exchange {
         /**
          * fetches the bid and ask price and volume for multiple markets
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();

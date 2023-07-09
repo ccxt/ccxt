@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.10'
+__version__ = '4.0.14'
 
 # -----------------------------------------------------------------------------
 
@@ -445,7 +445,11 @@ class Exchange(object):
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
                 else:
-                    setattr(self, camelcase, attr)
+                    if hasattr(self, camelcase):
+                        if attr is not None:
+                            setattr(self, camelcase, attr)
+                    else:
+                        setattr(self, camelcase, attr)
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
@@ -1762,7 +1766,8 @@ class Exchange(object):
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
-                if entry[key] >= since:
+                value = self.safe_value(entry, key)
+                if value and (value >= since):
                     result.append(entry)
         if tail:
             return result[-limit:]
@@ -1780,7 +1785,8 @@ class Exchange(object):
                 entry = parsedArray[i]
                 entryFiledEqualValue = entry[field] == value
                 firstCondition = entryFiledEqualValue if valueIsDefined else True
-                entryKeyGESince = entry[key] and since and (entry[key] >= since)
+                entryKeyValue = self.safe_value(entry, key)
+                entryKeyGESince = (entryKeyValue) and since and (entryKeyValue >= since)
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)

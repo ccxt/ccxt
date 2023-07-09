@@ -103,12 +103,14 @@ export default class kucoin extends Exchange {
                     'private': 'https://api.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
                     'private': 'https://openapi-sandbox.kucoin.com',
                     'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
                     'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -311,6 +313,11 @@ export default class kucoin extends Exchange {
                         'stopOrders': 1.3953,
                     },
                 },
+                'webExchange': {
+                    'get': {
+                        'currency/currency/chain-info': 1, // this is temporary from webApi
+                    },
+                },
             },
             'timeframes': {
                 '1m': '1min',
@@ -440,6 +447,10 @@ export default class kucoin extends Exchange {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'fetchCurrencies': {
+                    'webApiEnable': true,
+                    'webApiRetries': 5,
+                },
                 'fetchMarkets': {
                     'fetchTickersFees': true,
                 },
@@ -532,18 +543,323 @@ export default class kucoin extends Exchange {
                     'hf': 'trade_hf',
                 },
                 'networks': {
-                    'Native': 'bech32',
-                    'BTC-Segwit': 'btc',
+                    'BTC': 'btc',
+                    'BTCNATIVESEGWIT': 'bech32',
+                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'BEP20': 'bsc',
+                    'TRX': 'trx',
                     'TRC20': 'trx',
-                    'TERRA': 'luna',
-                    'BNB': 'bsc',
+                    'KCC': 'kcc',
+                    'SOLANA': 'sol',
+                    'ALGORAND': 'algo',
+                    'EOS': 'eos',
                     'HRC20': 'heco',
-                    'HT': 'heco',
+                    'POLYGON': 'matic',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bnb',
+                    'ARBITRUM_ONE': 'arbitrum',
+                    'TELOS': 'tlos',
+                    'CONFLUX': 'cfx',
+                    'ACALA': 'aca',
+                    'OPTIMISM': 'optimism',
+                    'ONTOLOGY': 'ont',
+                    'MOONBEAM': 'glmr',
+                    'CASPER': 'cspr',
+                    'KLAYTN': 'klay',
+                    'RADIX': 'xrd',
+                    'RAVENCOIN': 'rvn',
+                    'NEAR': 'near',
+                    'APTOS': 'aptos',
+                    'ETHW': 'ethw',
+                    'TON': 'ton',
+                    'BCH': 'bch',
+                    'BSV': 'bchsv',
+                    'BCHA': 'bchabc',
+                    'OSMOSIS': 'osmo',
+                    'NANO': 'nano',
+                    'STELLAR': 'xlm',
+                    'VECHAIN': 'vet',
+                    'IOST': 'iost',
+                    'ZILLIQA': 'zil',
+                    'RIPPLE': 'xrp',
+                    'TOMOCHAIN': 'tomo',
+                    'MONERO': 'xmr',
+                    'COTI': 'coti',
+                    'TEZOS': 'xtz',
+                    'CARDANO': 'ada',
+                    'WAX': 'waxp',
+                    'THETA': 'theta',
+                    'HARMONY': 'one',
+                    'IOTEX': 'iotx',
+                    'NULS': 'nuls',
+                    'KUSAMA': 'ksm',
+                    'LTC': 'ltc',
+                    'WAVES': 'waves',
+                    'POLKADOT': 'dot',
+                    'STEEM': 'steem',
+                    'QTUM': 'qtum',
+                    'DOGECOIN': 'doge',
+                    'FILECOIN': 'fil',
+                    'AVALANCHE_X': 'avax',
+                    'AVALANCHE_C': 'avaxc',
+                    'SYMBOL': 'xym',
+                    'FLUX': 'flux',
+                    'COSMOS': 'atom',
+                    'XDC': 'xdc',
+                    'KADENA': 'kda',
+                    'INTERNETCOMPUTER': 'icp',
+                    'CELO': 'celo',
+                    'LISK': 'lsk',
+                    'VSYSTEMS': 'vsys',
+                    'KARURA': 'kar',
+                    'CHIA': 'xch',
+                    'FLOW': 'flow',
+                    'BAND': 'band',
+                    'ELROND': 'egld',
+                    'HEDERA': 'hbar',
+                    'PROTON': 'xpr',
+                    'ARWEAVE': 'ar',
+                    'FANTOM': 'ftm',
+                    'KAVA': 'kava',
+                    'CALAMARI': 'kma',
+                    'ECASH': 'xec',
+                    'IOTA': 'iota',
+                    'HELIUM': 'hnt',
+                    'ASTAR': 'astr',
+                    'POLKADEX': 'pdex',
+                    'METIS': 'metis',
+                    'ZCASH': 'zec',
+                    'POCKET': 'pokt',
+                    'OASYS': 'oas',
+                    'ETC': 'etc',
+                    'AKASH': 'akt',
+                    'FUSION': 'fsn',
+                    'SECRET': 'scrt',
+                    'CENTRIFUGE': 'cfg',
+                    'ICON': 'icx',
+                    'KOMODO': 'kmd',
+                    'NEM': 'NEM',
+                    'STACKS': 'stx',
+                    'DIGIBYTE': 'dgb',
+                    'DECRED': 'dcr',
+                    'NERVOS': 'ckb',
+                    'ELASTOS': 'ela',
+                    'HYDRA': 'hydra',
+                    'BYTOM': 'btm',
+                    'OASIS': 'oasis',
+                    'KARDIACHAIN': 'kai',
+                    'SOLAR': 'sxp',
+                    'NEBLIO': 'nebl',
+                    'HORIZEN': 'zen',
+                    'SHIDEN': 'sdn',
+                    'AURORA': 'aurora',
+                    'LTO': 'lto',
+                    // below will be uncommented after unification
+                    // 'ORAICHAIN': 'orai',
+                    // 'JUPITER': 'jup',
+                    // // 'terra' luna lunc TBD
+                    // 'DEROHE': 'derohe',
+                    // 'BIFROST': 'bnc',
+                    // 'BIFROSTPOLKADOT': 'bncdot',
+                    // // fra is fra-emv on kucoin
+                    // 'PASTEL': 'psl',
+                    // // sysevm
+                    // 'CONCORDIUM': 'ccd',
+                    // 'PIONEER': 'neer',
+                    // 'CADUCEUS': 'cmp',
+                    // 'PIXIE': 'pix',
+                    // 'ALEPHZERO': 'azero',
+                    // 'ACHAIN': 'act', // actevm is different
+                    // 'BOSCOIN': 'bos',
+                    // 'ELECTRONEUM': 'etn',
+                    // 'GOCHAIN': 'go',
+                    // 'HPB': 'hpb',
+                    // // 'NEO': 'neo', tbd neo legacy
+                    // 'SOPHIATX': 'sphtx',
+                    // 'WANCHAIN': 'wan',
+                    // 'ZEEPIN': 'zpt',
+                    // 'MATRIXAI': 'man',
+                    // 'METADIUM': 'meta',
+                    // 'BITCOINDIAMON': 'bcd',
+                    // 'AION': 'aion',
+                    // 'PAL': 'pal',
+                    // 'GRIN': 'grin',
+                    // 'METAHASH': 'mhc',
+                    // 'LOKI': 'loki',
+                    // 'NIMIQ': 'nim',
+                    // 'QUARKCHAIN': 'qkc',
+                    // 'ENERGI': 'nrg',
+                    // 'RSK': 'rbtc',
+                    // 'RFOX': 'rfox',
+                    // 'THUNDERCORE': 'TT',
+                    // 'NIX': 'nix',
+                    // 'PIVX': 'pivx',
+                    // 'SERO': 'sero',
+                    // // eosc --"eosforce" tbd
+                    // 'IOTCHAIN': 'itc',
+                    // 'TRUECHAIN': 'true',
+                    // 'CONTENTOS': 'cos',
+                    // 'CREDITS': 'cs',
+                    // 'CPCHAIN': 'cpc',
+                    // 'INTCHAIN': 'int',
+                    // // 'DASH': 'dash', tbd digita-cash
+                    // 'WALTONCHAIN': 'wtc',
+                    // 'AXE': 'axe',
+                    // 'CONSTELLATION': 'dag',
+                    // 'ONELEDGER': 'olt',
+                    // 'AIRDAO': 'amb', // a.k.a. AMBROSUS
+                    // 'ENERGYWEB': 'ewt',
+                    // 'WAVESENTERPRISE': 'west',
+                    // 'HYPERCASH': 'hc',
+                    // 'BITCOINGOLD': 'btg',
+                    // 'ENECUUM': 'enq',
+                    // 'HAVEN': 'xhv',
+                    // 'DOCK': 'dock',
+                    // 'HATHOR': 'htr',
+                    // 'DEFICHAIN': 'dfi',
+                    // 'CHAINX': 'pcx',
+                    // // 'FLUXOLD': 'zel', // zel seems old chain (with uppercase FLUX in kucoin UI and with id 'zel')
+                    // 'BITCOINPRIVATE': 'btcp',
+                    // 'BUMO': 'bu',
+                    // 'DEEPONION': 'onion',
+                    // 'PURA': 'pura',
+                    // 'ULORD': 'ut',
+                    // 'ASCH': 'xas',
+                    // 'SOLARIS': 'xlr',
+                    // 'APOLLO': 'apl',
+                    // 'DIVI': 'divi',
+                    // 'PIRATECHAIN': 'arrr',
+                    // 'ERGO': 'ergo',
+                    // 'ABBC': 'abbc',
+                    // 'ULTRA': 'uos',
+                    // 'MOONRIVE': 'movr',
+                    // 'NDAU': 'ndau',
+                    // 'PERSISTENCE': 'xprt',
+                    // 'SENTINEL': 'dvpn',
+                    // 'EDGEWARE': 'edg',
+                    // 'STATEMINE': 'statemine', // a.k.a. RMRK
+                    // 'VELAS': 'vlx', // vlxevm is different
+                    // 'EMONEY': 'ngm',
+                    // 'PHALA': 'pha', // a.k.a. khala
+                    // 'METER': 'meter',
+                    // 'AURORACHAIN': 'aoa',
+                    // 'EVERSCALE': 'ever',
+                    // // 'BOBA': 'boba', // tbd
+                    // 'DIGITALBITS': 'xdb',
+                    // 'WEMIX': 'wemix',
+                    // 'KLEVER': 'klv',
+                    // undetermined: xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus), neon3 (NEO N3),
                 },
                 'networksById': {
-                    'BEP20': 'BSC',
+                    'btc': 'BTC',
+                    'bech32': 'BTCNATIVESEGWIT',
+                    'eth': 'ERC20',
+                    'trx': 'TRC20',
+                    'kcc': 'KCC',
+                    'sol': 'SOLANA',
+                    'algo': 'ALGORAND',
+                    'eos': 'EOS',
+                    'heco': 'HRC20',
+                    'matic': 'POLYGON',
+                    'bsc': 'BEP20',
+                    'bnb': 'BEP2',
+                    'arbitrum': 'ARBITRUM_ONE',
+                    'tlos': 'TELOS',
+                    'cfx': 'CONFLUX',
+                    'aca': 'ACALA',
+                    'optimism': 'OPTIMISM',
+                    'ont': 'ONTOLOGY',
+                    'glmr': 'MOONBEAM',
+                    'cspr': 'CASPER',
+                    'klay': 'KLAYTN',
+                    'xrd': 'RADIX',
+                    'rvn': 'RAVENCOIN',
+                    'near': 'NEAR',
+                    'aptos': 'APTOS',
+                    'ethw': 'ETHW',
+                    'ton': 'TON',
+                    'bch': 'BCH',
+                    'bchsv': 'BSV',
+                    'bchabc': 'BCHA',
+                    'osmo': 'OSMOSIS',
+                    'nano': 'NANO',
+                    'xlm': 'STELLAR',
+                    'vet': 'VECHAIN',
+                    'iost': 'IOST',
+                    'zil': 'ZILLIQA',
+                    'xrp': 'RIPPLE',
+                    'tomo': 'TOMOCHAIN',
+                    'xmr': 'MONERO',
+                    'coti': 'COTI',
+                    'xtz': 'TEZOS',
+                    'ada': 'CARDANO',
+                    'waxp': 'WAX',
+                    'theta': 'THETA',
+                    'one': 'HARMONY',
+                    'iotx': 'IOTEX',
+                    'nuls': 'NULS',
+                    'ksm': 'KUSAMA',
+                    'ltc': 'LTC',
+                    'waves': 'WAVES',
+                    'dot': 'POLKADOT',
+                    'steem': 'STEEM',
+                    'qtum': 'QTUM',
+                    'doge': 'DOGECOIN',
+                    'fil': 'FILECOIN',
+                    'avax': 'AVALANCHE_X',
+                    'avaxc': 'AVALANCHE_C',
+                    'xym': 'SYMBOL',
+                    'flux': 'FLUX',
+                    'atom': 'COSMOS',
+                    'xdc': 'XDC',
+                    'kda': 'KADENA',
+                    'icp': 'INTERNETCOMPUTER',
+                    'celo': 'CELO',
+                    'lsk': 'LISK',
+                    'vsys': 'VSYSTEMS',
+                    'kar': 'KARURA',
+                    'xch': 'CHIA',
+                    'flow': 'FLOW',
+                    'band': 'BAND',
+                    'egld': 'ELROND',
+                    'hbar': 'HEDERA',
+                    'xpr': 'PROTON',
+                    'ar': 'ARWEAVE',
+                    'ftm': 'FANTOM',
+                    'kava': 'KAVA',
+                    'kma': 'CALAMARI',
+                    'xec': 'ECASH',
+                    'iota': 'IOTA',
+                    'hnt': 'HELIUM',
+                    'astr': 'ASTAR',
+                    'pdex': 'POLKADEX',
+                    'metis': 'METIS',
+                    'zec': 'ZCASH',
+                    'pokt': 'POCKET',
+                    'oas': 'OASYS',
+                    'etc': 'ETC',
+                    'akt': 'AKASH',
+                    'fsn': 'FUSION',
+                    'scrt': 'SECRET',
+                    'cfg': 'CENTRIFUGE',
+                    'icx': 'ICON',
+                    'kmd': 'KOMODO',
+                    'NEM': 'NEM',
+                    'stx': 'STACKS',
+                    'dgb': 'DIGIBYTE',
+                    'dcr': 'DECRED',
+                    'ckb': 'NERVOS',
+                    'ela': 'ELASTOS',
+                    'hydra': 'HYDRA',
+                    'btm': 'BYTOM',
+                    'oasis': 'OASIS',
+                    'kai': 'KARDIACHAIN',
+                    'nebl': 'NEBLIO',
+                    'zen': 'HORIZEN',
+                    'sdn': 'SHIDEN',
+                    'aurora': 'AURORA',
+                    'lto': 'LTO',
+                    'sxp': 'SOLAR',
                 },
                 'marginModes': {
                     'cross': 'MARGIN_TRADE',
@@ -745,11 +1061,11 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://docs.kucoin.com/#get-currencies
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies(params);
+        const promises = [];
+        promises.push(this.publicGetCurrencies(params));
         //
         //     {
         //         "currency": "OMG",
@@ -765,7 +1081,48 @@ export default class kucoin extends Exchange {
         //         "isDebitEnabled": false
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        promises.push(this.fetchWebEndpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true));
+        //
+        //    {
+        //        "success": true,
+        //        "code": "200",
+        //        "msg": "success",
+        //        "retry": false,
+        //        "data": [
+        //            {
+        //                "withdrawMinFee": "0.0005",
+        //                "chainName": "BTC",
+        //                "preDepositTipEnabled": "false",
+        //                "chain": "btc",
+        //                "isChainEnabled": "true",
+        //                "withdrawDisabledTip": "",
+        //                "walletPrecision": "8",
+        //                "chainFullName": "Bitcoin",
+        //                "orgAddress": "",
+        //                "isDepositEnabled": "true",
+        //                "withdrawMinSize": "0.001",
+        //                "depositDisabledTip": "",
+        //                "userAddressName": "",
+        //                "txUrl": "https://blockchain.info/tx/{txId}",
+        //                "preWithdrawTipEnabled": "false",
+        //                "withdrawFeeRate": "0",
+        //                "confirmationCount": "2",
+        //                "currency": "BTC",
+        //                "depositMinSize": "0.00005",
+        //                "isWithdrawEnabled": "true",
+        //                "preDepositTip": "",
+        //                "preWithdrawTip": "",
+        //                "status": "enabled"
+        //            },
+        //        ]
+        //    }
+        //
+        const responses = await Promise.all(promises);
+        const responseCurrencies = responses[0];
+        const responseChains = responses[1];
+        const data = this.safeValue(responseCurrencies, 'data', []);
+        const chainsData = this.safeValue(responseChains, 'data', []);
+        const currencyChains = this.groupBy(chainsData, 'currency');
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -776,6 +1133,37 @@ export default class kucoin extends Exchange {
             const isDepositEnabled = this.safeValue(entry, 'isDepositEnabled', false);
             const fee = this.safeNumber(entry, 'withdrawalMinFee');
             const active = (isWithdrawEnabled && isDepositEnabled);
+            const networks = {};
+            const chains = this.safeValue(currencyChains, id, []);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const chainId = this.safeString(chain, 'chain');
+                const isChainEnabled = this.safeString(chain, 'isChainEnabled'); // better than 'status'
+                if (isChainEnabled === 'true') {
+                    const networkCode = this.networkIdToCode(chainId);
+                    const chainWithdrawEnabled = this.safeValue(chain, 'isWithdrawEnabled', false);
+                    const chainDepositEnabled = this.safeValue(chain, 'isDepositEnabled', false);
+                    networks[networkCode] = {
+                        'info': chain,
+                        'id': chainId,
+                        'name': this.safeString2(chain, 'chainFullName', 'chainName'),
+                        'code': networkCode,
+                        'active': chainWithdrawEnabled && chainDepositEnabled,
+                        'fee': this.safeNumber(chain, 'withdrawMinFee'),
+                        'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'walletPrecision'))),
+                        'limits': {
+                            'withdraw': {
+                                'min': this.safeNumber(chain, 'withdrawMinSize'),
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': this.safeNumber(chain, 'depositMinSize'),
+                                'max': undefined,
+                            },
+                        },
+                    };
+                }
+            }
             result[code] = {
                 'id': id,
                 'name': name,
@@ -787,7 +1175,7 @@ export default class kucoin extends Exchange {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
-                'networks': {},
+                'networks': networks,
             };
         }
         return result;
@@ -845,28 +1233,24 @@ export default class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchTransactionFee
-         * @deprecated
-         * @description please use fetchDepositWithdrawFee instead
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
         };
-        const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper2(params, 'network', 'chain');
-        network = this.safeStringLower(networks, network, network);
-        if (network !== undefined) {
-            network = network.toLowerCase();
-            request['chain'] = network.toLowerCase();
-            params = this.omit(params, ['network', 'chain']);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
-        const data = response['data'];
+        const data = this.safeValue(response, 'data');
         const withdrawFees = {};
         withdrawFees[code] = this.safeNumber(data, 'withdrawMinFee');
         return {
@@ -891,11 +1275,10 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const networkCode = this.safeStringUpper(params, 'network');
-        const network = this.networkCodeToId(networkCode, code);
-        if (network !== undefined) {
-            request['chain'] = network.toLowerCase();
-            params = this.omit(params, ['network']);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
         //
@@ -949,7 +1332,7 @@ export default class kucoin extends Exchange {
         };
         const isWithdrawEnabled = this.safeValue(fee, 'isWithdrawEnabled');
         if (isWithdrawEnabled) {
-            result['withdraw']['fee'] = this.safeNumber(fee, 'withdrawalMinFee');
+            result['withdraw']['fee'] = this.safeNumber2(fee, 'withdrawalMinFee', 'withdrawMinFee');
             result['withdraw']['percentage'] = false;
             const networkId = this.safeString(fee, 'chain');
             if (networkId) {
@@ -1256,36 +1639,17 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper2(params, 'chain', 'network');
-        network = this.safeStringLower(networks, network, network);
-        if (network !== undefined) {
-            network = network.toLowerCase();
-            request['chain'] = network;
-            params = this.omit(params, ['chain', 'network']);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
         }
         const response = await this.privatePostDepositAddresses(this.extend(request, params));
         // {"code":"260000","msg":"Deposit address already exists."}
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue(response, 'data', {});
-        let address = this.safeString(data, 'address');
-        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        if (address !== undefined) {
-            address = address.replace('bitcoincash:', '');
-        }
-        const tag = this.safeString(data, 'memo');
-        if (code !== 'NIM') {
-            // contains spaces
-            this.checkAddress(address);
-        }
-        return {
-            'info': response,
-            'currency': code,
-            'network': this.safeString(data, 'chain'),
-            'address': address,
-            'tag': tag,
-        };
+        return this.parseDepositAddress(data, currency);
     }
     async fetchDepositAddress(code, params = {}) {
         /**
@@ -1305,14 +1669,10 @@ export default class kucoin extends Exchange {
             // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             // 'chain': 'ERC20', // optional
         };
-        // same as for withdraw
-        const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper2(params, 'chain', 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower(networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            network = network.toLowerCase();
-            request['chain'] = network;
-            params = this.omit(params, ['chain', 'network']);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
         }
         const version = this.options['versions']['private']['GET']['deposit-addresses'];
         this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
@@ -1320,22 +1680,32 @@ export default class kucoin extends Exchange {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeValue(response, 'data');
+        if (data === undefined) {
+            throw new ExchangeError(this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
+        }
         return this.parseDepositAddress(data, currency);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
-        const address = this.safeString(depositAddress, 'address');
-        const code = currency['id'];
-        if (code !== 'NIM') {
-            // contains spaces
-            this.checkAddress(address);
+        let address = this.safeString(depositAddress, 'address');
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        if (address !== undefined) {
+            address = address.replace('bitcoincash:', '');
+        }
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['id'];
+            if (code !== 'NIM') {
+                // contains spaces
+                this.checkAddress(address);
+            }
         }
         return {
             'info': depositAddress,
             'currency': code,
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.safeString(depositAddress, 'chain'),
+            'network': this.networkIdToCode(this.safeString(depositAddress, 'chain')),
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {
@@ -1372,33 +1742,11 @@ export default class kucoin extends Exchange {
         //     }
         //
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const data = this.safeValue(response, 'data', []);
-        return this.parseDepositAddressesByNetwork(data, currency);
-    }
-    parseDepositAddressesByNetwork(depositAddresses, currency = undefined) {
-        //
-        //     [
-        //         {
-        //             "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
-        //             "memo": "",
-        //             "chain": "BTC-Segwit",
-        //             "contractAddress": ""
-        //         },
-        //         ...
-        //     ]
-        //
-        const result = [];
-        for (let i = 0; i < depositAddresses.length; i++) {
-            const entry = depositAddresses[i];
-            result.push({
-                'info': entry,
-                'currency': this.safeCurrencyCode(currency['id'], currency),
-                'network': this.safeString(entry, 'chain'),
-                'address': this.safeString(entry, 'address'),
-                'tag': this.safeString(entry, 'memo'),
-            });
-        }
-        return result;
+        const chains = this.safeValue(response, 'data', []);
+        const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
+            'currency': currency['id'],
+        });
+        return this.indexBy(parsed, 'network');
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -2516,16 +2864,13 @@ export default class kucoin extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower(networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            network = network.toLowerCase();
-            request['chain'] = network;
-            params = this.omit(params, 'network');
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
         }
-        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        let includeFee = undefined;
+        [includeFee, params] = this.handleOptionAndParams(params, 'withdraw', 'includeFee', false);
         if (includeFee) {
             request['feeDeductType'] = 'INTERNAL';
         }
@@ -2641,13 +2986,12 @@ export default class kucoin extends Exchange {
             }
         }
         const tag = this.safeString(transaction, 'memo');
-        const network = this.safeString(transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString2(transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': network,
+            'network': this.networkIdToCode(this.safeString(transaction, 'chain')),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -3784,7 +4128,7 @@ export default class kucoin extends Exchange {
         const version = this.safeString(params, 'version', defaultVersion);
         params = this.omit(params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams(path, params);
-        if (api === 'webFront') {
+        if (api === 'webExchange') {
             endpoint = '/' + this.implodeParams(path, params);
         }
         const query = this.omit(params, this.extractParams(path));

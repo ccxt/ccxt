@@ -160,6 +160,7 @@ interface Exchange {
     futuresPrivateDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrders(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteStopOrders(params?: {}): Promise<implicitReturnType>;
+    webExchangeGetCurrencyCurrencyChainInfo(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

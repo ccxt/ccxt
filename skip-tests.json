@@ -668,6 +668,7 @@
     "deribit": {
         "skipWs": true,
         "skipMethods": {
+            "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
             "fetchTickers": "something wrong"
         }
@@ -912,6 +913,9 @@
     "kucoin": {
         "skipWs": true,
         "skipMethods":{
+            "fetchCurrencies": {
+                "networks": "not yet implemented"
+            },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
             },

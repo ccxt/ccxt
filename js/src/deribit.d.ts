@@ -7,6 +7,7 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 export default class deribit extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
+    fetchCurrencies(params?: {}): Promise<{}>;
     codeFromOptions(methodName: any, params?: {}): any;
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -128,6 +129,19 @@ export default class deribit extends Exchange {
         updated: number;
         fee: any;
     }>;
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: number;
+            percentage: boolean;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

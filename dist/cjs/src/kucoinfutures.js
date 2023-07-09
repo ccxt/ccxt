@@ -92,7 +92,7 @@ class kucoinfutures extends kucoinfutures$1 {
                     'private': 'https://openapi-v2.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
-                    'webFront': 'https://futures.kucoin.com/_api/web-front',
+                    'webExchange': 'https://futures.kucoin.com/_api/web-front',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
@@ -175,7 +175,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'sub/api-key': 1,
                     },
                 },
-                'webFront': {
+                'webExchange': {
                     'get': {
                         'contract/{symbol}/funding-rates': 1,
                     },
@@ -2314,7 +2314,7 @@ class kucoinfutures extends kucoinfutures$1 {
         if (limit !== undefined) {
             request['maxCount'] = limit;
         }
-        const response = await this.webFrontGetContractSymbolFundingRates(this.extend(request, params));
+        const response = await this.webExchangeGetContractSymbolFundingRates(this.extend(request, params));
         //
         //    {
         //        success: true,
@@ -2340,7 +2340,7 @@ class kucoinfutures extends kucoinfutures$1 {
         return this.parseFundingRateHistories(dataList, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {
-        const timestamp = this.safeNumber(info, 'timePoint');
+        const timestamp = this.safeInteger(info, 'timePoint');
         const marketId = this.safeString(info, 'symbol');
         return {
             'info': info,

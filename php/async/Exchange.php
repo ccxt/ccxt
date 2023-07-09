@@ -25,6 +25,10 @@ use ccxt\AuthenticationError;
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
+use ccxt\ArgumentsRequired;
+use ccxt\NullResponse;
+use ccxt\InvalidAddress;
+use ccxt\InvalidOrder;
 
 use React;
 use React\Async;
@@ -34,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.10';
+$version = '4.0.14';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.10';
+    const VERSION = '4.0.14';
 
     public $browser;
     public $marketsLoading = null;
@@ -386,7 +390,8 @@ class Exchange extends \ccxt\Exchange {
             $result = [ ];
             for ($i = 0; $i < count($parsedArray); $i++) {
                 $entry = $parsedArray[$i];
-                if ($entry[$key] >= $since) {
+                $value = $this->safe_value($entry, $key);
+                if ($value && ($value >= $since)) {
                     $result[] = $entry;
                 }
             }
@@ -409,7 +414,8 @@ class Exchange extends \ccxt\Exchange {
                 $entry = $parsedArray[$i];
                 $entryFiledEqualValue = $entry[$field] === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
-                $entryKeyGESince = $entry[$key] && $since && ($entry[$key] >= $since);
+                $entryKeyValue = $this->safe_value($entry, $key);
+                $entryKeyGESince = ($entryKeyValue) && $since && ($entryKeyValue >= $since);
                 $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;
