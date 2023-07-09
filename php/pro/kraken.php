@@ -206,7 +206,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * @see https://docs.kraken.com/websockets/#message-cancelOrder
              * cancel multiple orders
-             * @param {[string]} $ids order $ids
+             * @param {string[]} $ids order $ids
              * @param {string} $symbol unified market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
@@ -273,7 +273,7 @@ class kraken extends \ccxt\async\kraken {
              * cancel all open orders
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             if ($symbol !== null) {
                 throw new NotSupported($this->id . ' cancelAllOrdersWs () does not support cancelling orders in a specific market.');

@@ -66,7 +66,7 @@ export default class huobi extends Exchange {
         type: any;
         code: any;
     };
-    fetchAccountIdByType(type: any, params?: {}): Promise<any>;
+    fetchAccountIdByType(type: any, marginMode?: any, symbol?: any, params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
     networkIdToCode(networkId: any, currencyCode?: any): string;
     networkCodeToId(networkCode: any, currencyCode?: any): any;

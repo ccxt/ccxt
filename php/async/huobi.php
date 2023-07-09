@@ -2776,17 +2776,36 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_account_id_by_type($type, $params = array ()) {
-        return Async\async(function () use ($type, $params) {
+    public function fetch_account_id_by_type($type, $marginMode = null, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($type, $marginMode, $symbol, $params) {
             $accounts = Async\await($this->load_accounts());
-            $accountId = $this->safe_value($params, 'account-id');
+            $accountId = $this->safe_value_2($params, 'accountId', 'account-id');
             if ($accountId !== null) {
                 return $accountId;
             }
-            $indexedAccounts = $this->index_by($accounts, 'type');
+            if ($type === 'spot') {
+                if ($marginMode === 'cross') {
+                    $type = 'super-margin';
+                } elseif ($marginMode === 'isolated') {
+                    $type = 'margin';
+                }
+            }
+            $marketId = ($symbol === null) ? null : $this->market_id($symbol);
+            for ($i = 0; $i < count($accounts); $i++) {
+                $account = $accounts[$i];
+                $info = $this->safe_value($account, 'info');
+                $subtype = $this->safe_string($info, 'subtype', null);
+                $typeFromAccount = $this->safe_string($account, 'type');
+                if ($type === 'margin') {
+                    if ($subtype === $marketId) {
+                        return $this->safe_string($account, 'id');
+                    }
+                } elseif ($type === $typeFromAccount) {
+                    return $this->safe_string($account, 'id');
+                }
+            }
             $defaultAccount = $this->safe_value($accounts, 0, array());
-            $account = $this->safe_value($indexedAccounts, $type, $defaultAccount);
-            return $this->safe_string($account, 'id');
+            return $this->safe_string($defaultAccount, 'id');
         }) ();
     }
 
@@ -2982,7 +3001,7 @@ class huobi extends Exchange {
                     }
                 } else {
                     Async\await($this->load_accounts());
-                    $accountId = Async\await($this->fetch_account_id_by_type($type, $params));
+                    $accountId = Async\await($this->fetch_account_id_by_type($type, null, null, $params));
                     $request['account-id'] = $accountId;
                     $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
                 }
@@ -4512,6 +4531,15 @@ class huobi extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -4545,10 +4573,24 @@ class huobi extends Exchange {
 
     public function create_spot_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * @ignore
+             * create a spot trade order
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
             $market = $this->market($symbol);
-            $accountId = Async\await($this->fetch_account_id_by_type($market['type']));
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+            $accountId = Async\await($this->fetch_account_id_by_type($market['type'], $marginMode, $symbol));
             $request = array(
                 // spot -----------------------------------------------------------
                 'account-id' => $accountId,
@@ -4573,7 +4615,6 @@ class huobi extends Exchange {
             } else {
                 $defaultOperator = ($side === 'sell') ? 'lte' : 'gte';
                 $stopOperator = $this->safe_string($params, 'operator', $defaultOperator);
-                $params = $this->omit($params, array( 'stopPrice', 'stop-price' ));
                 $request['stop-price'] = $this->price_to_precision($symbol, $stopPrice);
                 $request['operator'] = $stopOperator;
                 if (($orderType === 'limit') || ($orderType === 'limit-fok')) {
@@ -4596,7 +4637,13 @@ class huobi extends Exchange {
             } else {
                 $request['client-order-id'] = $clientOrderId;
             }
-            $params = $this->omit($params, array( 'clientOrderId', 'client-order-id', 'postOnly' ));
+            if ($marginMode === 'cross') {
+                $request['source'] = 'super-margin-api';
+            } elseif ($marginMode === 'isolated') {
+                $request['source'] = 'margin-api';
+            } elseif ($marginMode === 'c2c') {
+                $request['source'] = 'c2c-margin-api';
+            }
             if (($orderType === 'market') && ($side === 'buy')) {
                 if ($this->options['createMarketBuyOrderRequiresPrice']) {
                     if ($price === null) {
@@ -4622,6 +4669,7 @@ class huobi extends Exchange {
             if (is_array($limitOrderTypes) && array_key_exists($orderType, $limitOrderTypes)) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
+            $params = $this->omit($params, array( 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator' ));
             $response = Async\await($this->spotPrivatePostV1OrderOrdersPlace (array_merge($request, $params)));
             //
             // spot
@@ -4654,6 +4702,21 @@ class huobi extends Exchange {
 
     public function create_contract_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * @ignore
+             * create a contract trade order
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
             $market = $this->market($symbol);
             $request = array(
                 'contract_code' => $market['id'],
@@ -7067,7 +7130,7 @@ class huobi extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());
-            $accountId = Async\await($this->fetch_account_id_by_type('spot', $params));
+            $accountId = Async\await($this->fetch_account_id_by_type('spot', null, null, $params));
             $request = array(
                 'accountId' => $accountId,
                 // 'currency' => $code,
@@ -7621,7 +7684,7 @@ class huobi extends Exchange {
             $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
             $marginAccounts = $this->safe_value($this->options, 'marginAccounts', array());
             $accountType = $this->get_supported_mapping($marginMode, $marginAccounts);
-            $accountId = Async\await($this->fetch_account_id_by_type($accountType, $params));
+            $accountId = Async\await($this->fetch_account_id_by_type($accountType, $marginMode, $symbol, $params));
             $request = array(
                 'currency' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
