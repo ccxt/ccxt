@@ -1811,7 +1811,7 @@ export default class bybit extends Exchange {
                 'contractSize': this.safeNumber (lotSizeFilter, 'minOrderQty'),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'strike': strike,
+                'strike': this.parseNumber (strike),
                 'optionType': this.safeStringLower (market, 'optionsType'),
                 'precision': {
                     'amount': this.safeNumber (lotSizeFilter, 'qtyStep'),
