@@ -3575,6 +3575,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
+    async fetchOpenInterest (symbol: string, params = {}) {
+        throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+    }
+
     parseLastPrice (price, market = undefined): any {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
