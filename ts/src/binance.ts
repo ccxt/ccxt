@@ -2583,47 +2583,6 @@ export default class binance extends Exchange {
         //
         // futures (fapi)
         //
-        //     fapiPrivateGetAccount
-        //
-        //     {
-        //         "feeTier":0,
-        //         "canTrade":true,
-        //         "canDeposit":true,
-        //         "canWithdraw":true,
-        //         "updateTime":0,
-        //         "totalInitialMargin":"0.00000000",
-        //         "totalMaintMargin":"0.00000000",
-        //         "totalWalletBalance":"4.54000000",
-        //         "totalUnrealizedProfit":"0.00000000",
-        //         "totalMarginBalance":"4.54000000",
-        //         "totalPositionInitialMargin":"0.00000000",
-        //         "totalOpenOrderInitialMargin":"0.00000000",
-        //         "maxWithdrawAmount":"4.54000000",
-        //         "assets":[
-        //             {
-        //                 "asset":"USDT",
-        //                 "walletBalance":"4.54000000",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "marginBalance":"4.54000000",
-        //                 "maintMargin":"0.00000000",
-        //                 "initialMargin":"0.00000000",
-        //                 "positionInitialMargin":"0.00000000",
-        //                 "openOrderInitialMargin":"0.00000000",
-        //                 "maxWithdrawAmount":"4.54000000"
-        //             }
-        //         ],
-        //         "positions":[
-        //             {
-        //                 "symbol":"BTCUSDT",
-        //                 "initialMargin":"0.00000",
-        //                 "maintMargin":"0.00000",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "positionInitialMargin":"0.00000",
-        //                 "openOrderInitialMargin":"0.00000"
-        //             }
-        //         ]
-        //     }
-        //
         //     fapiPrivateV2GetAccount
         //
         //     {
@@ -6240,7 +6199,7 @@ export default class binance extends Exchange {
         if (isSpotOrMargin) {
             method = 'sapiGetAssetTradeFee';
         } else if (isLinear) {
-            method = 'fapiPrivateGetAccount';
+            method = 'fapiPrivateV2GetAccount';
         } else if (isInverse) {
             method = 'dapiPrivateGetAccount';
         }
@@ -7362,7 +7321,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetAccount';
+            method = 'fapiPrivateV2GetAccount';
         } else if (this.isInverse (type, subType)) {
             method = 'dapiPrivateGetAccount';
         } else {
