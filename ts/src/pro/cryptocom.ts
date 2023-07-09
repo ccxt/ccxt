@@ -551,7 +551,7 @@ export default class cryptocom extends cryptocomRest {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
          * @param {string} symbol unified market symbol of the orders to cancel
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -565,6 +565,18 @@ export default class cryptocom extends cryptocomRest {
         }
         const messageHash = this.nonce ();
         return await this.watchPrivateRequest (messageHash, request);
+    }
+
+    handleCancelAllOrders (client: Client, message) {
+        //
+        //    {
+        //        "id": 1688914586647,
+        //        "method": "private/cancel-all-orders",
+        //        "code": 0
+        //    }
+        //
+        const messageHash = this.safeString (message, 'id');
+        client.resolve (message, messageHash);
     }
 
     async watchPublic (messageHash, params = {}) {
@@ -618,7 +630,7 @@ export default class cryptocom extends cryptocomRest {
         //
         const errorCode = this.safeString (message, 'code');
         try {
-            if (errorCode) {
+            if (errorCode && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue (message, 'message');
@@ -704,7 +716,7 @@ export default class cryptocom extends cryptocomRest {
             'public/auth': this.handleAuthenticate,
             'private/create-order': this.handleOrder,
             'private/cancel-order': this.handleOrder,
-            'private/cancel-all-orders': this.handleOrder,
+            'private/cancel-all-orders': this.handleCancelAllOrders,
             'private/close-position': this.handleOrder,
             'subscribe': this.handleSubscribe,
         };
