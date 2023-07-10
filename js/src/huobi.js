@@ -4600,15 +4600,14 @@ export default class huobi extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('createOrder', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'createSpotOrder',
-            'swap': 'createContractOrder',
-            'future': 'createContractOrder',
-        });
-        if (method === undefined) {
-            throw new NotSupported(this.id + ' createOrder() does not support ' + marketType + ' markets yet');
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.createSpotOrder(symbol, type, side, amount, price, query);
         }
-        return await this[method](symbol, type, side, amount, price, query);
+        else {
+            response = await this.createContractOrder(symbol, type, side, amount, price, query);
+        }
+        return response;
     }
     async createSpotOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**

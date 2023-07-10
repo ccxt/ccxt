@@ -4307,14 +4307,12 @@ class huobi(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'createSpotOrder',
-            'swap': 'createContractOrder',
-            'future': 'createContractOrder',
-        })
-        if method is None:
-            raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' markets yet')
-        return getattr(self, method)(symbol, type, side, amount, price, query)
+        response = None
+        if marketType == 'spot':
+            response = self.create_spot_order(symbol, type, side, amount, price, query)
+        else:
+            response = self.create_contract_order(symbol, type, side, amount, price, query)
+        return response
 
     def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
         """

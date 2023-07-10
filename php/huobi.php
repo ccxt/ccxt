@@ -4496,15 +4496,13 @@ class huobi extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'createSpotOrder',
-            'swap' => 'createContractOrder',
-            'future' => 'createContractOrder',
-        ));
-        if ($method === null) {
-            throw new NotSupported($this->id . ' createOrder() does not support ' . $marketType . ' markets yet');
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = $this->create_spot_order($symbol, $type, $side, $amount, $price, $query);
+        } else {
+            $response = $this->create_contract_order($symbol, $type, $side, $amount, $price, $query);
         }
-        return $this->$method ($symbol, $type, $side, $amount, $price, $query);
+        return $response;
     }
 
     public function create_spot_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
