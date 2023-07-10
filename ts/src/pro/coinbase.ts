@@ -5,6 +5,7 @@
 import coinbaseRest from '../coinbase.js';
 import { ArgumentsRequired } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -73,7 +74,7 @@ export default class coinbase extends coinbaseRest {
             'channel': name,
             'api_key': this.apiKey,
             'timestamp': timestamp,
-            'signature': this.hmac (this.encode (auth), this.encode (this.secret)),
+            'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
         };
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
@@ -170,7 +171,8 @@ export default class coinbase extends coinbaseRest {
         //
         const channel = this.safeString (message, 'channel');
         this.parseRawTickersHelper (client, message, channel);
-        client.resolve (Object.values (this.tickers), channel + ':');
+        const values = Object.values (this.tickers);
+        client.resolve (values, channel + ':');
     }
 
     parseRawTickersHelper (client, message, channel) {
