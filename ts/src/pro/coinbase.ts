@@ -20,7 +20,6 @@ export default class coinbase extends coinbaseRest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchBalance': false,
-                'watchStatus': true,
                 'watchOrders': true,
                 'watchMyTrades': false,
             },
