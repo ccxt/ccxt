@@ -81,6 +81,7 @@ export default class kraken extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false, // Kraken only supports cross margin
                 'withdraw': true,
+                'transfer': true,
             },
             'timeframes': {
                 '1m': 1,
