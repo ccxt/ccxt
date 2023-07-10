@@ -226,6 +226,7 @@ export default class bybit extends Exchange {
                         'derivatives/v3/public/open-interest': 1,
                         'derivatives/v3/public/insurance': 1,
                         // v5
+                        'v5/market/time': 1,
                         'v5/market/kline': 1,
                         'v5/market/mark-price-kline': 1,
                         'v5/market/index-price-kline': 1,
