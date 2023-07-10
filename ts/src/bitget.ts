@@ -137,6 +137,7 @@ export default class bitget extends Exchange {
                 'public': {
                     'spot': {
                         'get': {
+                            'notice/queryAllNotices': 1, // 20 times/1s (IP) => 20/20 = 1
                             'public/time': 1,
                             'public/currencies': 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
                             'public/products': 1,
