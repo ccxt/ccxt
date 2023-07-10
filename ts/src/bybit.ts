@@ -4212,10 +4212,10 @@ export default class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
-        if (market['linear']) {
-            request['category'] = 'linear';
-        } else {
+        if (market['option']) {
             request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
