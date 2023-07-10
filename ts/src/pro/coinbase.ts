@@ -377,16 +377,16 @@ export default class coinbase extends coinbaseRest {
         //
         const events = this.safeValue (message, 'events');
         const marketIds = [];
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const responseOrders = this.safeValue (event, 'orders');
             for (let j = 0; j < responseOrders.length; j++) {
                 const responseOrder = responseOrders[j];
                 const parsed = this.parseWsOrder (responseOrder);
-                if (this.orders === undefined) {
-                    const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                    this.orders = new ArrayCacheBySymbolById (limit);
-                }
                 const cachedOrders = this.orders;
                 const marketId = this.safeString (responseOrder, 'product_id');
                 if (!(marketId in marketIds)) {
