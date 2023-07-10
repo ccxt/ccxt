@@ -1,3 +1,48 @@
+## 4.0.14 (2023-07-08)
+
+*  huobi.createSpotOrder docstring [685b86b30a](https://github.com/ccxt/ccxt/commits/685b86b30aafff40e7152f3525837cb3f8b6bab1)
+*  huobi.createSpotOrder margin modes [6959c71960](https://github.com/ccxt/ccxt/commits/6959c719606a67df175de85621601442115f1c54)
+*  huobi.createContractOrder docstring [7a843c1db0](https://github.com/ccxt/ccxt/commits/7a843c1db01ba59dc3d86a062abcaae6905b4655)
+*  huobi.fetchAccountIdByType gets margin account ids [f38e388c74](https://github.com/ccxt/ccxt/commits/f38e388c74e93a39092c99927eea0a1aea08cf42)
+*  huobi.fetchAccountIdByType fix for cross margin [a2dd8cc5c8](https://github.com/ccxt/ccxt/commits/a2dd8cc5c8915282b25893a8c7ef353d6e545b84)
+*  huobi.fetchAccountIdByType fix for isolated margin [2c24cc7ad7](https://github.com/ccxt/ccxt/commits/2c24cc7ad76b37fa609af23ce6fd332d52ee4693)
+*  huobi createOrder @see [072ba651e8](https://github.com/ccxt/ccxt/commits/072ba651e8b9bebc8935b74a759ddd65cc9ebabb)
+*  huobi.fetchAccountIdByType bug fix [97aa7139a3](https://github.com/ccxt/ccxt/commits/97aa7139a33b0dcdf3d6474a5d48054c821ac1f8)
+*  fix typo [bfd7dec6e1](https://github.com/ccxt/ccxt/commits/bfd7dec6e1951d95a36ce4e6d232e7968efde469)
+*  huobi.createContractOrder removed errors thrown [7d10006841](https://github.com/ccxt/ccxt/commits/7d100068416db03f965922c99cda392c856e6c9a)
+*  huobi createSpotOrder minor changes [c0d6574ba6](https://github.com/ccxt/ccxt/commits/c0d6574ba68550963c86653344798a8e7d2f7cca)
+*  docs: add pro functions [7cd196db78](https://github.com/ccxt/ccxt/commits/7cd196db78a9879ddbe2b1feba49d68b3958bfc5)
+*  remove allow undefined [22951c5a8f](https://github.com/ccxt/ccxt/commits/22951c5a8f0c72ebfb05d42ffbd0552ff3aa1cf0)
+*  fix coinbase docs [adcf48ac85](https://github.com/ccxt/ccxt/commits/adcf48ac854eeb7076aca6e2b6e7d564d4b545d8)
+*  add errors [9dfbdab91c](https://github.com/ccxt/ccxt/commits/9dfbdab91c7f786c5d8d4f54a8a3c43a50b4e7db)
+*  refactor(cryptocom): migrate websockets to unified API [44c283a021](https://github.com/ccxt/ccxt/commits/44c283a021f9888872b13743239cc8c8d1564ac8)
+*  fix jsdocs [740571ba65](https://github.com/ccxt/ccxt/commits/740571ba6549477b140d62057e23ce24b3c6c5af)
+*  deribit: parse precision [141b0ce515](https://github.com/ccxt/ccxt/commits/141b0ce515d74370e6271e3421226eee8547970d)
+*  cr fixes [0ffba4e665](https://github.com/ccxt/ccxt/commits/0ffba4e665cb7507a23bf216c0fb874051d19333)
+*  fix(Exchange.py): fix camelCase props merging [3e8aa0115c](https://github.com/ccxt/ccxt/commits/3e8aa0115c0e19233e789dfbeefb18042c9bfdc1)
+*  revert changes [a0bbea6060](https://github.com/ccxt/ccxt/commits/a0bbea60603ee496af77d6d5b864bf9d1b695bef)
+*  remove debug log [6eed4963b5](https://github.com/ccxt/ccxt/commits/6eed4963b53ed6e3206e12cfdb73f98f0f41661e)
+*  fix watchMyTrades [eb572bb7e4](https://github.com/ccxt/ccxt/commits/eb572bb7e44896e6b06a907cb0cd8bc53e090d78)
+*  4.0.14 [ecba150f10](https://github.com/ccxt/ccxt/commits/ecba150f10d1c0a156650ccde4f02ab00d020d19)
+
+
+## 4.0.13 (2023-07-07)
+
+*  refactor(cryptocom): fetchDeposits, migrate to unified API [c0904b9b7a](https://github.com/ccxt/ccxt/commits/c0904b9b7a7c913feef43facb724d69edfee9bee)
+*  4.0.13 [feaba7277f](https://github.com/ccxt/ccxt/commits/feaba7277f23ec1eb51c2fab8d6b3ca8f15e49c2)
+
+
+## 4.0.12 (2023-07-06)
+
+*  kf [4a3e2b0282](https://github.com/ccxt/ccxt/commits/4a3e2b02826f6be4355a1cbcacde7df232db8713)
+*  remove fetchFees [6114912dd2](https://github.com/ccxt/ccxt/commits/6114912dd28c30e43747bdd1db0f6b33316e9a19)
+*  add flag [2bde5a7753](https://github.com/ccxt/ccxt/commits/2bde5a775381680d8e9e49eeddaac1073a55a85a)
+*  add webExchange to sandbox [da06d3bda0](https://github.com/ccxt/ccxt/commits/da06d3bda01bd37dec621fd90ce86777821f1e57)
+*  fix fundingRateHistory timestamp [cda9595bab](https://github.com/ccxt/ccxt/commits/cda9595bab9ab89253416b9135942e6e0cc42180)
+*  fix(base): ffilterBySinceLimit [ci deploy] [c0eadc8dc5](https://github.com/ccxt/ccxt/commits/c0eadc8dc500e9763331664fb242c644152b793e)
+*  4.0.12 [b82fb59e69](https://github.com/ccxt/ccxt/commits/b82fb59e692690359d9f4e0fb6c3ca94616d92e6)
+
+
 ## 4.0.11 (2023-07-06)
 
 *  Luno update API [8680bb5efb](https://github.com/ccxt/ccxt/commits/8680bb5efbb380e4dec49503f4d133fec50cb6bc)
