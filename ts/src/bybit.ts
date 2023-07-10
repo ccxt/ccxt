@@ -3678,10 +3678,10 @@ export default class bybit extends Exchange {
         };
         if (market['spot']) {
             request['category'] = 'spot';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
         } else if (market['option']) {
             request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
         } else {
             throw new NotSupported (this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
         }
