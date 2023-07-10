@@ -455,6 +455,7 @@ class huobi extends huobi$1 {
                             // Trading
                             'v1/order/orders/place': 0.2,
                             'v1/order/batch-orders': 0.4,
+                            'v1/order/auto/place': 0.2,
                             'v1/order/orders/{order-id}/submitcancel': 0.2,
                             'v1/order/orders/submitCancelClientOrder': 0.2,
                             'v1/order/orders/batchCancelOpenOrders': 0.4,
@@ -622,6 +623,7 @@ class huobi extends huobi$1 {
                             'api/v3/contract_financial_record': 1,
                             'api/v3/contract_financial_record_exact': 1,
                             // Future Trade Interface
+                            'api/v1/contract-cancel-after': 1,
                             'api/v1/contract_order': 1,
                             'v1/contract_batchorder': 1,
                             'api/v1/contract_cancel': 1,
@@ -679,6 +681,7 @@ class huobi extends huobi$1 {
                             'swap-api/v3/swap_financial_record': 1,
                             'swap-api/v3/swap_financial_record_exact': 1,
                             // Swap Trade Interface
+                            'swap-api/v1/swap-cancel-after': 1,
                             'swap-api/v1/swap_order': 1,
                             'swap-api/v1/swap_batchorder': 1,
                             'swap-api/v1/swap_cancel': 1,
@@ -776,6 +779,7 @@ class huobi extends huobi$1 {
                             'linear-swap-api/v1/swap_cross_matchresults': 1,
                             'linear-swap-api/v1/swap_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v1/linear-cancel-after': 1,
                             'linear-swap-api/v1/swap_switch_position_mode': 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
                             'linear-swap-api/v3/swap_matchresults': 1,

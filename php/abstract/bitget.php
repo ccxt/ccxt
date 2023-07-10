@@ -7,6 +7,9 @@ namespace ccxt\abstract;
 
 
 abstract class bitget extends \ccxt\Exchange {
+    public function public_spot_get_notice_queryallnotices($params = array()) {
+        return $this->request('notice/queryAllNotices', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_spot_get_public_time($params = array()) {
         return $this->request('public/time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -684,6 +687,9 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function private_margin_post_cross_order_batchcancelorder($params = array()) {
         return $this->request('cross/order/batchCancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function publicSpotGetNoticeQueryAllNotices($params = array()) {
+        return $this->request('notice/queryAllNotices', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetPublicTime($params = array()) {
         return $this->request('public/time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));

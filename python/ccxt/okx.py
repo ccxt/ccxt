@@ -318,6 +318,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/interest-limits': 4,
                         'account/greeks': 2,
                         'account/position-tiers': 2,
+                        'account/mmp-config': 4,
                         # subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -419,6 +420,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
                         'account/mmp-reset': 4,
+                        'account/mmp-config': 100,
                         # subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,

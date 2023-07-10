@@ -135,6 +135,7 @@ class bitget extends bitget$1 {
                 'public': {
                     'spot': {
                         'get': {
+                            'notice/queryAllNotices': 1,
                             'public/time': 1,
                             'public/currencies': 6.6667,
                             'public/products': 1,

@@ -239,6 +239,7 @@ class bybit(Exchange, ImplicitAPI):
                         'derivatives/v3/public/open-interest': 1,
                         'derivatives/v3/public/insurance': 1,
                         # v5
+                        'v5/market/time': 1,
                         'v5/market/kline': 1,
                         'v5/market/mark-price-kline': 1,
                         'v5/market/index-price-kline': 1,
@@ -1104,6 +1105,8 @@ class bybit(Exchange, ImplicitAPI):
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'loadAllOptions': False,  # load all possible option markets, adds signficant load time
+                'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1395,25 +1398,26 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
-        type = None
-        type, params = self.handle_market_type_and_params('fetchMarkets', None, params)
         promisesUnresolved = [
             self.fetch_spot_markets(params),
-            self.fetch_derivatives_markets({'category': 'linear'}),
-            self.fetch_derivatives_markets({'category': 'inverse'}),
+            self.fetch_future_markets({'category': 'linear'}),
+            self.fetch_future_markets({'category': 'inverse'}),
+            self.fetch_option_markets({'baseCoin': 'BTC'}),
+            self.fetch_option_markets({'baseCoin': 'ETH'}),
+            self.fetch_option_markets({'baseCoin': 'SOL'}),
         ]
-        if type == 'option':
-            promisesUnresolved.append(self.fetch_derivatives_markets({'category': 'option'}))
         promises = await asyncio.gather(*promisesUnresolved)
         spotMarkets = promises[0]
         linearMarkets = promises[1]
         inverseMarkets = promises[2]
-        markets = spotMarkets
-        markets = self.array_concat(markets, linearMarkets)
-        if type == 'option':
-            optionMarkets = promises[3]
-            markets = self.array_concat(markets, optionMarkets)
-        return self.array_concat(markets, inverseMarkets)
+        btcOptionMarkets = promises[3]
+        ethOptionMarkets = promises[4]
+        solOptionMarkets = promises[5]
+        futureMarkets = self.array_concat(linearMarkets, inverseMarkets)
+        optionMarkets = self.array_concat(btcOptionMarkets, ethOptionMarkets)
+        optionMarkets = self.array_concat(optionMarkets, solOptionMarkets)
+        derivativeMarkets = self.array_concat(futureMarkets, optionMarkets)
+        return self.array_concat(spotMarkets, derivativeMarkets)
 
     async def fetch_spot_markets(self, params):
         request = {
@@ -1521,7 +1525,7 @@ class bybit(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_derivatives_markets(self, params):
+    async def fetch_future_markets(self, params):
         params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
         response = await self.publicGetV5MarketInstrumentsInfo(params)
@@ -1539,8 +1543,6 @@ class bybit(Exchange, ImplicitAPI):
                     break
                 markets = self.array_concat(rawMarkets, markets)
                 paginationCursor = self.safe_string(dataNew, 'nextPageCursor')
-        #
-        # linear response
         #
         #     {
         #         "retCode": 0,
@@ -1585,43 +1587,6 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672712495660
         #     }
         #
-        # option response
-        #
-        #     {
-        #         "retCode": 0,
-        #         "retMsg": "OK",
-        #         "result": {
-        #             "category": "option",
-        #             "nextPageCursor": "",
-        #             "list": [
-        #                 {
-        #                     "category": "option",
-        #                     "symbol": "ETH-3JAN23-1250-P",
-        #                     "status": "ONLINE",
-        #                     "baseCoin": "ETH",
-        #                     "quoteCoin": "USD",
-        #                     "settleCoin": "USDC",
-        #                     "optionsType": "Put",
-        #                     "launchTime": "1672560000000",
-        #                     "deliveryTime": "1672732800000",
-        #                     "deliveryFeeRate": "0.00015",
-        #                     "priceFilter": {
-        #                         "minPrice": "0.1",
-        #                         "maxPrice": "10000000",
-        #                         "tickSize": "0.1"
-        #                     },
-        #                     "lotSizeFilter": {
-        #                         "maxOrderQty": "1500",
-        #                         "minOrderQty": "0.1",
-        #                         "qtyStep": "0.1"
-        #                     }
-        #                 }
-        #             ]
-        #         },
-        #         "retExtInfo": {},
-        #         "time": 1672712537130
-        #     }
-        #
         result = []
         category = self.safe_string(data, 'category')
         for i in range(0, len(markets)):
@@ -1652,17 +1617,13 @@ class bybit(Exchange, ImplicitAPI):
             priceFilter = self.safe_value(market, 'priceFilter', {})
             leverage = self.safe_value(market, 'leverageFilter', {})
             status = self.safe_string(market, 'status')
-            active = (status == 'Trading')
             swap = linearPerpetual or inversePerpetual
             future = inverseFutures or linearFutures
-            option = (category == 'option')
             type = None
             if swap:
                 type = 'swap'
             elif future:
                 type = 'future'
-            elif option:
-                type = 'option'
             expiry = None
             # some swaps have deliveryTime meaning delisting time
             if not swap:
@@ -1670,20 +1631,9 @@ class bybit(Exchange, ImplicitAPI):
                 if expiry is not None:
                     expiry = int(expiry)
             expiryDatetime = self.iso8601(expiry)
-            strike = None
-            optionType = None
             symbol = symbol + ':' + settle
             if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
-                if option:
-                    splitId = id.split('-')
-                    strike = self.safe_string(splitId, 2)
-                    optionLetter = self.safe_string(splitId, 3)
-                    symbol = symbol + '-' + strike + '-' + optionLetter
-                    if optionLetter == 'P':
-                        optionType = 'put'
-                    elif optionLetter == 'C':
-                        optionType = 'call'
             contractSize = self.safe_number_2(lotSizeFilter, 'minTradingQty', 'minOrderQty') if inverse else self.parse_number('1')
             result.append({
                 'id': id,
@@ -1699,8 +1649,8 @@ class bybit(Exchange, ImplicitAPI):
                 'margin': None,
                 'swap': swap,
                 'future': future,
-                'option': option,
-                'active': active,
+                'option': False,
+                'active': (status == 'Trading'),
                 'contract': True,
                 'linear': linear,
                 'inverse': inverse,
@@ -1709,8 +1659,8 @@ class bybit(Exchange, ImplicitAPI):
                 'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
-                'strike': strike,
-                'optionType': optionType,
+                'strike': None,
+                'optionType': None,
                 'precision': {
                     'amount': self.safe_number(lotSizeFilter, 'qtyStep'),
                     'price': self.safe_number(priceFilter, 'tickSize'),
@@ -1735,6 +1685,133 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'info': market,
             })
+        return result
+
+    async def fetch_option_markets(self, params):
+        request = {
+            'category': 'option',
+        }
+        response = await self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
+        data = self.safe_value(response, 'result', {})
+        markets = self.safe_value(data, 'list', [])
+        if self.options['loadAllOptions']:
+            request['limit'] = 1000
+            paginationCursor = self.safe_string(data, 'nextPageCursor')
+            if paginationCursor is not None:
+                while(paginationCursor is not None):
+                    request['cursor'] = paginationCursor
+                    responseInner = await self.publicGetDerivativesV3PublicInstrumentsInfo(self.extend(request, params))
+                    dataNew = self.safe_value(responseInner, 'result', {})
+                    rawMarkets = self.safe_value(dataNew, 'list', [])
+                    rawMarketsLength = len(rawMarkets)
+                    if rawMarketsLength == 0:
+                        break
+                    markets = self.array_concat(rawMarkets, markets)
+                    paginationCursor = self.safe_string(dataNew, 'nextPageCursor')
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "success",
+        #         "result": {
+        #             "category": "option",
+        #             "nextPageCursor": "0%2C2",
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTC-29DEC23-80000-C",
+        #                     "status": "Trading",
+        #                     "baseCoin": "BTC",
+        #                     "quoteCoin": "USD",
+        #                     "settleCoin": "USDC",
+        #                     "optionsType": "Call",
+        #                     "launchTime": "1688630400000",
+        #                     "deliveryTime": "1703836800000",
+        #                     "deliveryFeeRate": "0.00015",
+        #                     "priceFilter": {
+        #                         "minPrice": "5",
+        #                         "maxPrice": "10000000",
+        #                         "tickSize": "5"
+        #                     },
+        #                     "lotSizeFilter": {
+        #                         "maxOrderQty": "500",
+        #                         "minOrderQty": "0.01",
+        #                         "qtyStep": "0.01"
+        #                     }
+        #                 },
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1688873094448
+        #     }
+        #
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'baseCoin')
+            quoteId = self.safe_string(market, 'quoteCoin')
+            settleId = self.safe_string(market, 'settleCoin')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
+            lotSizeFilter = self.safe_value(market, 'lotSizeFilter', {})
+            priceFilter = self.safe_value(market, 'priceFilter', {})
+            status = self.safe_string(market, 'status')
+            expiry = self.safe_integer(market, 'deliveryTime')
+            splitId = id.split('-')
+            strike = self.safe_string(splitId, 2)
+            optionLetter = self.safe_string(splitId, 3)
+            isActive = (status == 'Trading')
+            if isActive or (self.options['loadAllOptions']) or (self.options['loadExpiredOptions']):
+                result.append({
+                    'id': id,
+                    'symbol': base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
+                    'base': base,
+                    'quote': quote,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': 'option',
+                    'spot': False,
+                    'margin': False,
+                    'swap': False,
+                    'future': False,
+                    'option': True,
+                    'active': isActive,
+                    'contract': True,
+                    'linear': True,
+                    'inverse': False,
+                    'taker': self.safe_number(market, 'takerFee', self.parse_number('0.0006')),
+                    'maker': self.safe_number(market, 'makerFee', self.parse_number('0.0001')),
+                    'contractSize': self.safe_number(lotSizeFilter, 'minOrderQty'),
+                    'expiry': expiry,
+                    'expiryDatetime': self.iso8601(expiry),
+                    'strike': self.parse_number(strike),
+                    'optionType': self.safe_string_lower(market, 'optionsType'),
+                    'precision': {
+                        'amount': self.safe_number(lotSizeFilter, 'qtyStep'),
+                        'price': self.safe_number(priceFilter, 'tickSize'),
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'amount': {
+                            'min': self.safe_number(lotSizeFilter, 'minOrderQty'),
+                            'max': self.safe_number(lotSizeFilter, 'maxOrderQty'),
+                        },
+                        'price': {
+                            'min': self.safe_number(priceFilter, 'minPrice'),
+                            'max': self.safe_number(priceFilter, 'maxPrice'),
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'info': market,
+                })
         return result
 
     def parse_ticker(self, ticker, market=None):

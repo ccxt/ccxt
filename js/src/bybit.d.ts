@@ -15,7 +15,8 @@ export default class bybit extends Exchange {
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any>;
     fetchSpotMarkets(params: any): Promise<any[]>;
-    fetchDerivativesMarkets(params: any): Promise<any[]>;
+    fetchFutureMarkets(params: any): Promise<any[]>;
+    fetchOptionMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;

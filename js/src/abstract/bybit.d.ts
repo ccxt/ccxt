@@ -80,6 +80,7 @@ interface Exchange {
     publicGetDerivativesV3PublicRecentTrade(params?: {}): Promise<implicitReturnType>;
     publicGetDerivativesV3PublicOpenInterest(params?: {}): Promise<implicitReturnType>;
     publicGetDerivativesV3PublicInsurance(params?: {}): Promise<implicitReturnType>;
+    publicGetV5MarketTime(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketKline(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketMarkPriceKline(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketIndexPriceKline(params?: {}): Promise<implicitReturnType>;
