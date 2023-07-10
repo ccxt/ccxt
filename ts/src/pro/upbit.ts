@@ -3,6 +3,8 @@
 
 import upbitRest from '../upbit.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -26,7 +28,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    async watchPublic (symbol, channel, params = {}) {
+    async watchPublic (symbol: string, channel, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -51,28 +53,28 @@ export default class upbit extends upbitRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name upbit#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the upbit api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the upbit api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchPublic (symbol, 'ticker');
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the upbit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the upbit api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -83,21 +85,21 @@ export default class upbit extends upbitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the upbit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the upbit api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const orderbook = await this.watchPublic (symbol, 'orderbook');
         return orderbook.limit ();
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         // 2020-03-17T23:07:36.511Z 'onMessage' <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type: 'ticker',
         //   code: 'BTC-ETH',
@@ -142,7 +144,7 @@ export default class upbit extends upbitRest {
         client.resolve (ticker, messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         // { type: 'orderbook',
         //   code: 'BTC-ETH',
         //   timestamp: 1584486737444,
@@ -197,7 +199,7 @@ export default class upbit extends upbitRest {
         client.resolve (orderBook, messageHash);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         // { type: 'trade',
         //   code: 'KRW-BTC',
         //   timestamp: 1584508285812,
@@ -226,7 +228,7 @@ export default class upbit extends upbitRest {
         client.resolve (stored, messageHash);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const methods = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,

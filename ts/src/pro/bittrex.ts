@@ -4,6 +4,10 @@
 import bittrexRest from '../bittrex.js';
 import { InvalidNonce, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
+import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -72,7 +76,7 @@ export default class bittrex extends bittrexRest {
         const timestamp = this.milliseconds ();
         const uuid = this.uuid ();
         const auth = timestamp.toString () + uuid;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+        const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);
         const args = [ this.apiKey, timestamp, uuid, signature ];
         const method = 'Authenticate';
         return this.makeRequest (requestId, method, args);
@@ -130,7 +134,7 @@ export default class bittrex extends bittrexRest {
         return await this.sendRequestToSubscribe (negotiation, messageHash, subscription, params);
     }
 
-    handleAuthenticate (client, message, subscription) {
+    handleAuthenticate (client: Client, message, subscription) {
         const requestId = this.safeString (subscription, 'id');
         if (requestId in client.subscriptions) {
             delete client.subscriptions[requestId];
@@ -143,7 +147,7 @@ export default class bittrex extends bittrexRest {
         return await this.sendRequestToAuthenticate (negotiation, true);
     }
 
-    handleAuthenticationExpiring (client, message) {
+    handleAuthenticationExpiring (client: Client, message) {
         //
         //     {
         //         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
@@ -178,7 +182,7 @@ export default class bittrex extends bittrexRest {
             future = client.future (messageHash);
             client.subscriptions[messageHash] = future;
             const request = this.createSignalRQuery (params);
-            const response = await (this as any).signalrGetNegotiate (this.extend (request, params));
+            const response = await this.signalrGetNegotiate (this.extend (request, params));
             //
             //     {
             //         Url: '/signalr/v1.1/signalr',
@@ -207,19 +211,19 @@ export default class bittrex extends bittrexRest {
         const request = this.createSignalRQuery (this.extend (negotiation['request'], {
             'connectionToken': connectionToken,
         }));
-        return await (this as any).signalrGetStart (request);
+        return await this.signalrGetStart (request);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bittrex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         if (symbol !== undefined) {
@@ -238,7 +242,7 @@ export default class bittrex extends bittrexRest {
         return await this.sendAuthenticatedRequestToSubscribe (authentication, messageHash, params);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //     {
         //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -277,7 +281,7 @@ export default class bittrex extends bittrexRest {
          * @method
          * @name bittrex#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @param {object} [params] extra parameters specific to the bittrex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -290,7 +294,7 @@ export default class bittrex extends bittrexRest {
         return await this.sendAuthenticatedRequestToSubscribe (authentication, messageHash, params);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -337,7 +341,7 @@ export default class bittrex extends bittrexRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    handleHeartbeat (client, message) {
+    handleHeartbeat (client: Client, message) {
         //
         // every 20 seconds (approx) if no other updates are sent
         //
@@ -346,14 +350,14 @@ export default class bittrex extends bittrexRest {
         client.resolve (message, 'heartbeat');
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bittrex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the bittrex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
@@ -374,7 +378,7 @@ export default class bittrex extends bittrexRest {
         return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         // summary subscription update
         //
@@ -398,17 +402,17 @@ export default class bittrex extends bittrexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bittrex api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -435,7 +439,7 @@ export default class bittrex extends bittrexRest {
         return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         sequence: 28286,
@@ -471,16 +475,16 @@ export default class bittrex extends bittrexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bittrex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -505,7 +509,7 @@ export default class bittrex extends bittrexRest {
         return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         deltas: [
@@ -540,16 +544,16 @@ export default class bittrex extends bittrexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchMyTrades
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bittrex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -566,7 +570,7 @@ export default class bittrex extends bittrexRest {
         return await this.sendAuthenticatedRequestToSubscribe (authentication, messageHash, params);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         //     {
         //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -600,15 +604,15 @@ export default class bittrex extends bittrexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bittrex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         limit = (limit === undefined) ? 25 : limit; // 25 by default
         if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
@@ -631,7 +635,7 @@ export default class bittrex extends bittrexRest {
         return orderbook.limit ();
     }
 
-    async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {
+    async subscribeToOrderBook (negotiation, symbol, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'orderbook';
@@ -699,7 +703,7 @@ export default class bittrex extends bittrexRest {
         }
     }
 
-    handleSubscribeToOrderBook (client, message, subscription) {
+    handleSubscribeToOrderBook (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
@@ -733,7 +737,7 @@ export default class bittrex extends bittrexRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         marketSymbol: 'BTC-USDT',
@@ -760,7 +764,7 @@ export default class bittrex extends bittrexRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {
         //         marketSymbol: 'BTC-USDT',
@@ -792,13 +796,13 @@ export default class bittrex extends bittrexRest {
         await this.start (negotiation);
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         // send signalR protocol start() call
         this.spawn (this.handleSystemStatusHelper);
         return message;
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         // success
         //
@@ -830,7 +834,7 @@ export default class bittrex extends bittrexRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         // subscription confirmation
         //
@@ -899,7 +903,7 @@ export default class bittrex extends bittrexRest {
                 } else {
                     const A = this.safeValue (M[i], 'A', []);
                     for (let k = 0; k < A.length; k++) {
-                        const inflated = this.inflate64 (A[k]);
+                        const inflated = this.decode (inflate (this.base64ToBinary (A[k])));
                         const update = JSON.parse (inflated);
                         method.call (this, client, update);
                     }

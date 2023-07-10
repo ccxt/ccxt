@@ -4,6 +4,8 @@
 import huobijpRest from '../huobijp.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
 
@@ -46,14 +48,14 @@ export default class huobijp extends huobijpRest {
         return requestId.toString ();
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name huobijp#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the huobijp api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -77,7 +79,7 @@ export default class huobijp extends huobijpRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         ch: 'market.btcusdt.detail',
@@ -110,16 +112,16 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the huobijp api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -147,7 +149,7 @@ export default class huobijp extends huobijpRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         ch: "market.btcusdt.trade.detail",
@@ -189,17 +191,17 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the huobijp api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -228,7 +230,7 @@ export default class huobijp extends huobijpRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         ch: 'market.btcusdt.kline.1min',
@@ -265,15 +267,15 @@ export default class huobijp extends huobijpRest {
         client.resolve (stored, ch);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the huobijp api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if ((limit !== undefined) && (limit !== 150)) {
             throw new ExchangeError (this.id + ' watchOrderBook accepts limit = 150 only');
@@ -304,7 +306,7 @@ export default class huobijp extends huobijpRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message, subscription) {
+    handleOrderBookSnapshot (client: Client, message, subscription) {
         //
         //     {
         //         id: 1583473663565,
@@ -386,7 +388,7 @@ export default class huobijp extends huobijpRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {
         //         ch: "market.btcusdt.mbp.150",
@@ -423,7 +425,7 @@ export default class huobijp extends huobijpRest {
         return orderbook;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // deltas
         //
@@ -460,7 +462,7 @@ export default class huobijp extends huobijpRest {
         }
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
@@ -471,7 +473,7 @@ export default class huobijp extends huobijpRest {
         this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         "id": 1583414227,
@@ -496,7 +498,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -510,7 +512,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         //
         //     {
         //         ch: "market.btcusdt.mbp.150",
@@ -559,11 +561,11 @@ export default class huobijp extends huobijpRest {
         await client.send ({ 'pong': this.safeInteger (message, 'ping') });
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         this.spawn (this.pong, client, message);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         ts: 1586323747018,
@@ -596,17 +598,25 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //
-            if ('id' in message) {
+            //           ________________________
+            //
+            // sometimes huobijp responds with half of a JSON response like
+            //
+            //     ' {"ch":"market.ethbtc.m '
+            //
+            // this is passed to handleMessage as a string since it failed to be decoded as JSON
+            //
+            if (this.safeString (message, 'id') !== undefined) {
                 this.handleSubscriptionStatus (client, message);
-            } else if ('ch' in message) {
+            } else if (this.safeString (message, 'ch') !== undefined) {
                 // route by channel aka topic aka subject
                 this.handleSubject (client, message);
-            } else if ('ping' in message) {
+            } else if (this.safeString (message, 'ping') !== undefined) {
                 this.handlePing (client, message);
             }
         }

@@ -3,6 +3,8 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -67,7 +69,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
         if (privateChannel) {
-            response = await (this as any).futuresPrivatePostBulletPrivate (params);
+            response = await this.futuresPrivatePostBulletPrivate (params);
             //
             //     {
             //         code: "200000",
@@ -86,7 +88,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             //     }
             //
         } else {
-            response = await (this as any).futuresPublicPostBulletPublic (params);
+            response = await this.futuresPublicPostBulletPublic (params);
         }
         const data = this.safeValue (response, 'data', {});
         const instanceServers = this.safeValue (data, 'instanceServers', []);
@@ -130,15 +132,15 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -151,7 +153,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.subscribe (url, messageHash, topic, undefined, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         // market/tickerV2
         //
@@ -180,17 +182,17 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs.kucoin.com/futures/#execution-data
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const url = await this.negotiate (false);
@@ -205,7 +207,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //    {
         //        type: 'message',
@@ -241,7 +243,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchOrderBook
@@ -254,9 +256,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
          *   6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
          * @see https://docs.kucoin.com/futures/#level-2-market-data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
             if ((limit !== 20) && (limit !== 100)) {
@@ -305,7 +307,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -365,7 +367,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return cache.length;
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -375,7 +377,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         // but not before, because otherwise we cannot synchronize the feed
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         id: '1578090438322',
@@ -392,7 +394,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -406,17 +408,17 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://docs.kucoin.com/futures/#trade-orders-according-to-the-market
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const url = await this.negotiate (true);
@@ -450,8 +452,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     parseWsOrder (order, market = undefined) {
         //
-        //     {
         //         'symbol': 'XCAD-USDT',
+        //     {
         //         'orderType': 'limit',
         //         'side': 'buy',
         //         'orderId': '6249167327218b000135e749',
@@ -504,7 +506,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }, market);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsOrder (data);
@@ -541,7 +543,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @name kucoinfutures#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.kucoin.com/futures/#account-balance-events
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const url = await this.negotiate (true);
@@ -556,7 +558,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.subscribe (url, messageHash, topic, subscription, this.extend (request, params));
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //    {
         //        id: '6375553193027a0001f6566f',
@@ -585,7 +587,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleBalanceSubscription (client, message, subscription) {
+    handleBalanceSubscription (client: Client, message, subscription) {
         this.spawn (this.fetchBalanceSnapshot, client, message);
     }
 
@@ -642,7 +644,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         //
         //    {
         //        type: 'message',
@@ -683,17 +685,17 @@ export default class kucoinfutures extends kucoinfuturesRest {
         };
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             const type = this.safeString (message, 'type');
             const methods = {

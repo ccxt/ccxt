@@ -4,6 +4,9 @@ import wooRest from '../woo.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
 
@@ -71,7 +74,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'orderbook';
         const market = this.market (symbol);
@@ -85,7 +88,7 @@ export default class woo extends wooRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         topic: 'PERP_BTC_USDT@orderbook',
@@ -122,7 +125,7 @@ export default class woo extends wooRest {
         client.resolve (orderbook, topic);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         await this.loadMarkets ();
         const name = 'ticker';
         const market = this.market (symbol);
@@ -173,7 +176,7 @@ export default class woo extends wooRest {
         }, market);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         topic: 'PERP_BTC_USDT@ticker',
@@ -203,7 +206,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'tickers';
         const topic = name;
@@ -216,7 +219,7 @@ export default class woo extends wooRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTickers (client, message) {
+    handleTickers (client: Client, message) {
         //
         //     {
         //         "topic":"tickers",
@@ -260,7 +263,7 @@ export default class woo extends wooRest {
         client.resolve (result, topic);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
             throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
@@ -281,7 +284,7 @@ export default class woo extends wooRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         "topic":"SPOT_BTC_USDT@kline_1m",
@@ -326,7 +329,7 @@ export default class woo extends wooRest {
         client.resolve (stored, topic);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const topic = market['id'] + '@trade';
@@ -342,7 +345,7 @@ export default class woo extends wooRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         // {
         //     "topic":"SPOT_ADA_USDT@trade",
@@ -430,7 +433,7 @@ export default class woo extends wooRest {
         if (future === undefined) {
             const ts = this.nonce ().toString ();
             const auth = '|' + ts;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const request = {
                 'event': event,
                 'params': {
@@ -457,7 +460,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const topic = 'executionreport';
         let messageHash = topic;
@@ -509,16 +512,19 @@ export default class woo extends wooRest {
         market = this.market (marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
-        const cost = this.safeString (order, 'totalFee');
         const fee = {
-            'cost': cost,
+            'cost': this.safeString (order, 'totalFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };
-        const price = this.safeFloat (order, 'price');
+        let price = this.safeNumber (order, 'price');
+        const avgPrice = this.safeNumber (order, 'avgPrice');
+        if ((price === 0) && (avgPrice !== undefined)) {
+            price = avgPrice;
+        }
         const amount = this.safeFloat (order, 'quantity');
         const side = this.safeStringLower (order, 'side');
         const type = this.safeStringLower (order, 'type');
-        const filled = this.safeFloat (order, 'executedQuantity');
+        const filled = this.safeNumber (order, 'totalExecutedQuantity');
         const totalExecQuantity = this.safeFloat (order, 'totalExecutedQuantity');
         let remaining = amount;
         if (amount >= totalExecQuantity) {
@@ -528,7 +534,7 @@ export default class woo extends wooRest {
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return {
+        return this.safeOrder ({
             'info': order,
             'symbol': symbol,
             'id': orderId,
@@ -544,17 +550,17 @@ export default class woo extends wooRest {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
-    handleOrderUpdate (client, message) {
+    handleOrderUpdate (client: Client, message) {
         //
         //     {
         //         topic: 'executionreport',
@@ -588,7 +594,7 @@ export default class woo extends wooRest {
         this.handleOrder (client, order);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         const topic = 'executionreport';
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
@@ -621,7 +627,7 @@ export default class woo extends wooRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const methods = {
             'ping': this.handlePing,
             'pong': this.handlePong,
@@ -670,11 +676,11 @@ export default class woo extends wooRest {
         return { 'event': 'ping' };
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         return { 'event': 'pong' };
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         //
         // { event: 'pong', ts: 1657117026090 }
         //
@@ -682,7 +688,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    handleSubscribe (client, message) {
+    handleSubscribe (client: Client, message) {
         //
         //     {
         //         id: '666888',
@@ -694,7 +700,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    handleAuth (client, message) {
+    handleAuth (client: Client, message) {
         //
         //     {
         //         event: 'auth',

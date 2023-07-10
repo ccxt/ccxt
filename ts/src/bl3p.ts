@@ -1,12 +1,18 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bl3p.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
+/**
+ * @class bl3p
+ * @extends Exchange
+ */
 export default class bl3p extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -129,11 +135,11 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bl3p api endpoint
+         * @param {object} [params] extra parameters specific to the bl3p api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGENMKTMoneyInfo (params);
+        const response = await this.privatePostGENMKTMoneyInfo (params);
         return this.parseBalance (response);
     }
 
@@ -146,21 +152,21 @@ export default class bl3p extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bl3p api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetMarketOrderbook (this.extend (request, params));
+        const response = await this.publicGetMarketOrderbook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data');
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
@@ -209,20 +215,20 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bl3p#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the bl3p api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
         };
-        const ticker = await (this as any).publicGetMarketTicker (this.extend (request, params));
+        const ticker = await this.publicGetMarketTicker (this.extend (request, params));
         //
         // {
         //     "currency":"BTC",
@@ -264,19 +270,19 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bl3p api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const market = this.market (symbol);
-        const response = await (this as any).publicGetMarketTrades (this.extend ({
+        const response = await this.publicGetMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
         const result = this.parseTrades (response['data']['trades'], market, since, limit);
@@ -288,11 +294,11 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the bl3p api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGENMKTMoneyInfo (params);
+        const response = await this.privatePostGENMKTMoneyInfo (params);
         //
         //     {
         //         result: 'success',
@@ -339,7 +345,7 @@ export default class bl3p extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#createOrder
@@ -348,9 +354,9 @@ export default class bl3p extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bl3p api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market (symbol);
         const amountString = this.numberToString (amount);
@@ -364,7 +370,7 @@ export default class bl3p extends Exchange {
         if (type === 'limit') {
             order['price_int'] = parseInt (Precise.stringMul (priceString, '100000.0'));
         }
-        const response = await (this as any).privatePostMarketMoneyOrderAdd (this.extend (order, params));
+        const response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         const orderId = this.safeString (response['data'], 'order_id');
         return this.safeOrder ({
             'info': response,
@@ -372,20 +378,20 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the bl3p api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'order_id': id,
         };
-        return await (this as any).privatePostMarketMoneyOrderCancel (this.extend (request, params));
+        return await this.privatePostMarketMoneyOrderCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -403,7 +409,7 @@ export default class bl3p extends Exchange {
             const secret = this.base64ToBinary (this.secret);
             // eslint-disable-next-line quotes
             const auth = request + "\0" + body;
-            const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
+            const signature = this.hmac (this.encode (auth), secret, sha512, 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': this.apiKey,

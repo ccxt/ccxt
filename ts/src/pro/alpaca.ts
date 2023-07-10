@@ -3,6 +3,8 @@
 import alpacaRest from '../alpaca.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -47,14 +49,14 @@ export default class alpaca extends alpacaRest {
         });
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name alpaca#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
@@ -68,7 +70,7 @@ export default class alpaca extends alpacaRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //    {
         //         T: 'q',
@@ -125,17 +127,17 @@ export default class alpaca extends alpacaRest {
         }, market);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
@@ -154,7 +156,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //    {
         //        T: 'b',
@@ -183,15 +185,15 @@ export default class alpaca extends alpacaRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return.
-         * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return.
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
@@ -207,7 +209,7 @@ export default class alpaca extends alpacaRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // snapshot
         //    {
@@ -265,16 +267,16 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchTrades
          * @description watches information on multiple trades made in a market
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
@@ -293,7 +295,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         T: 't',
@@ -319,17 +321,17 @@ export default class alpaca extends alpacaRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchMyTrades
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @param {boolean} params.unifiedMargin use unified margin account
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {boolean} [params.unifiedMargin] use unified margin account
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
@@ -352,16 +354,16 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
@@ -385,12 +387,12 @@ export default class alpaca extends alpacaRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleTradeUpdate (client, message) {
+    handleTradeUpdate (client: Client, message) {
         this.handleOrder (client, message);
         this.handleMyTrade (client, message);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //    {
         //        stream: 'trade_updates',
@@ -451,7 +453,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (orders, messageHash);
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client: Client, message) {
         //
         //    {
         //        stream: 'trade_updates',
@@ -605,7 +607,7 @@ export default class alpaca extends alpacaRest {
         return await future;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //    {
         //        T: 'error',
@@ -618,7 +620,7 @@ export default class alpaca extends alpacaRest {
         throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
     }
 
-    handleConnected (client, message) {
+    handleConnected (client: Client, message) {
         //
         //    {
         //        T: 'success',
@@ -628,7 +630,7 @@ export default class alpaca extends alpacaRest {
         return message;
     }
 
-    handleCryptoMessage (client, message) {
+    handleCryptoMessage (client: Client, message) {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString (data, 'T');
@@ -656,7 +658,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    handleTradingMessage (client, message) {
+    handleTradingMessage (client: Client, message) {
         const stream = this.safeString (message, 'stream');
         const methods = {
             'authorization': this.handleAuthenticate,
@@ -669,14 +671,14 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
             return this.handleCryptoMessage (client, message);
         }
         this.handleTradingMessage (client, message);
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         // crypto
         //    {
@@ -712,7 +714,7 @@ export default class alpaca extends alpacaRest {
         throw new AuthenticationError (this.id + ' failed to authenticate.');
     }
 
-    handleSubscription (client, message) {
+    handleSubscription (client: Client, message) {
         //
         // crypto
         //    {

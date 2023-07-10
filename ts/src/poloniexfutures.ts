@@ -1,12 +1,18 @@
 //  ---------------------------------------------------------------------------
 
 import { Precise } from './base/Precise.js';
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class poloniexfutures
+ * @extends Exchange
+ */
 export default class poloniexfutures extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -16,7 +22,7 @@ export default class poloniexfutures extends Exchange {
             // 30 requests per second
             'rateLimit': 33.3,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'version': 'v1',
             'has': {
                 'CORS': undefined,
@@ -197,10 +203,10 @@ export default class poloniexfutures extends Exchange {
          * @name poloniexfutures#fetchMarkets
          * @description retrieves data on all markets for poloniexfutures
          * @see https://futures-docs.poloniex.com/#symbol-2
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetContractsActive (params);
+        const response = await this.publicGetContractsActive (params);
         //
         // {
         //  "code": "200000",
@@ -338,10 +344,34 @@ export default class poloniexfutures extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //    {
+        //        "symbol": "BTCUSDTPERP",                   // Market of the symbol
+        //        "sequence": 45,                            // Sequence number which is used to judge the continuity of the pushed messages
+        //        "side": "sell",                            // Transaction side of the last traded taker order
+        //        "price": 3600.00,                          // Filled price
+        //        "size": 16,                                // Filled quantity
+        //        "tradeId": "5c9dcf4170744d6f5a3d32fb",     // Order ID
+        //        "bestBidSize": 795,                        // Best bid size
+        //        "bestBidPrice": 3200.00,                   // Best bid
+        //        "bestAskPrice": 3600.00,                   // Best ask size
+        //        "bestAskSize": 284,                        // Best ask
+        //        "ts": 1553846081210004941                  // Filled time - nanosecond
+        //    }
+        //
+        //    {
+        //        "volume": 30449670,            //24h Volume
+        //        "turnover": 845169919063,      //24h Turnover
+        //        "lastPrice": 3551,           //Last price
+        //        "priceChgPct": 0.0043,         //24h Change
+        //        "ts": 1547697294838004923      //Snapshot time (nanosecond)
+        //    }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
-        const last = this.safeString (ticker, 'price');
+        const last = this.safeString2 (ticker, 'price', 'lastPrice');
+        const percentage = Precise.stringMul (this.safeString (ticker, 'priceChgPct'), '100');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -358,30 +388,30 @@ export default class poloniexfutures extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'size'),
-            'quoteVolume': undefined,
+            'baseVolume': this.safeString2 (ticker, 'size', 'volume'),
+            'quoteVolume': this.safeString (ticker, 'turnover'),
             'info': ticker,
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         //
         // {
         //     code: '200000',
@@ -403,22 +433,22 @@ export default class poloniexfutures extends Exchange {
         return this.parseTicker (this.safeValue (response, 'data', {}), market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTickers (params);
+        const response = await this.publicGetTickers (params);
         return this.parseTickers (this.safeValue (response, 'data', []), symbols);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfuturesfutures#fetchOrderBook
@@ -426,9 +456,9 @@ export default class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-2
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the poloniexfuturesfutures api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the poloniexfuturesfutures api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const level = this.safeNumber (params, 'level');
@@ -442,9 +472,9 @@ export default class poloniexfutures extends Exchange {
         };
         let response = undefined;
         if (level === 3) {
-            response = await (this as any).publicGetLevel3Snapshot (this.extend (request, params));
+            response = await this.publicGetLevel3Snapshot (this.extend (request, params));
         } else {
-            response = await (this as any).publicGetLevel2Snapshot (this.extend (request, params));
+            response = await this.publicGetLevel2Snapshot (this.extend (request, params));
         }
         // L2
         //
@@ -504,16 +534,16 @@ export default class poloniexfutures extends Exchange {
         return orderbook;
     }
 
-    async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchL3OrderBook
          * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} limit max number of orders to return, default is undefined
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         * @param {int} [limit] max number of orders to return, default is undefined
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -612,24 +642,24 @@ export default class poloniexfutures extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @see https://futures-docs.poloniex.com/#historical-data
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTradeHistory (this.extend (request, params));
+        const response = await this.publicGetTradeHistory (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -656,10 +686,10 @@ export default class poloniexfutures extends Exchange {
          * @name poloniexfutures#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
          * @see https://futures-docs.poloniex.com/#time
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
          */
-        const response = await (this as any).publicGetTimestamp (params);
+        const response = await this.publicGetTimestamp (params);
         //
         // {
         //     "code":"200000",
@@ -670,7 +700,7 @@ export default class poloniexfutures extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOHLCV
@@ -678,10 +708,10 @@ export default class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#k-chart
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -708,7 +738,7 @@ export default class poloniexfutures extends Exchange {
             since = endAt - limit * duration;
             request['from'] = since;
         }
-        const response = await (this as any).publicGetKlineQuery (this.extend (request, params));
+        const response = await this.publicGetKlineQuery (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -745,7 +775,7 @@ export default class poloniexfutures extends Exchange {
          * @name poloniexfutures#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://futures-docs.poloniex.com/#get-account-overview
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -757,7 +787,7 @@ export default class poloniexfutures extends Exchange {
                 'currency': currency['id'],
             };
         }
-        const response = await (this as any).privateGetAccountOverview (this.extend (request, params));
+        const response = await this.privateGetAccountOverview (this.extend (request, params));
         //
         //     {
         //         code: '200000',
@@ -776,7 +806,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#createOrder
@@ -787,19 +817,19 @@ export default class poloniexfutures extends Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-         * @param {object} params  Extra parameters specific to the exchange API endpoint
-         * @param {float} params.leverage Leverage size of the order
-         * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {bool} params.reduceOnly A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-         * @param {string} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-         * @param {string} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
-         * @param {string} params.clientOid client order id, defaults to uuid if not passed
-         * @param {string} params.remark remark for the order, length cannot exceed 100 utf8 characters
-         * @param {string} params.stop 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
-         * @param {string} params.stopPriceType  TP, IP or MP, defaults to TP
-         * @param {bool} params.closeOrder set to true to close position
-         * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} [params]  Extra parameters specific to the exchange API endpoint
+         * @param {float} [params.leverage] Leverage size of the order
+         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+         * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+         * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+         * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
+         * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
+         * @param {string} [params.stop] 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+         * @param {string} [params.stopPriceType]  TP, IP or MP, defaults to TP
+         * @param {bool} [params.closeOrder] set to true to close position
+         * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -849,7 +879,7 @@ export default class poloniexfutures extends Exchange {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //    {
         //        code: "200000",
@@ -884,35 +914,37 @@ export default class poloniexfutures extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#cancelOrder
          * @description cancels an open order
          * @see https://futures-docs.poloniex.com/#cancel-an-order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order-id': id,
         };
-        const response = await (this as any).privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         //
-        //   {
-        //       code: "200000",
-        //       data: {
-        //           cancelledOrderIds: [
+        //    {
+        //        code: "200000",
+        //        data: {
+        //            cancelledOrderIds: [
         //                "619714b8b6353000014c505a",
-        //           ],
-        //           cancelFailedOrders: [
-        //              {
-        //                  orderId: "63a9c5c2b9e7d70007eb0cd5", orderState: "2"}
-        //          ],
-        //       },
-        //   }
+        //            ],
+        //            cancelFailedOrders: [
+        //                {
+        //                    orderId: "63a9c5c2b9e7d70007eb0cd5",
+        //                    orderState: "2"
+        //                }
+        //            ],
+        //        },
+        //    }
         //
         const data = this.safeValue (response, 'data');
         const cancelledOrderIds = this.safeValue (data, 'cancelledOrderIds');
@@ -920,43 +952,21 @@ export default class poloniexfutures extends Exchange {
         if (cancelledOrderIdsLength === 0) {
             throw new InvalidOrder (this.id + ' cancelOrder() order already cancelled');
         }
-        return {
-            'id': this.safeString (cancelledOrderIds, 0),
-            'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'symbol': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': undefined,
-            'amount': undefined,
-            'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
-            'fee': undefined,
-            'trades': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'stopPrice': undefined,
-            'info': response,
-        };
+        return this.parseOrder (data);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchPositions
          * @description fetch all open positions
          * @see https://futures-docs.poloniex.com/#get-position-list
-         * @param {[string]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetPositions (params);
+        const response = await this.privateGetPositions (params);
         //
         //    {
         //        "code": "200000",
@@ -1098,17 +1108,17 @@ export default class poloniexfutures extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
          * @see https://futures-docs.poloniex.com/#get-funding-history
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch funding history for
-         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @param {int} [since] the earliest time in ms to fetch funding history for
+         * @param {int} [limit] the maximum number of funding history structures to retrieve
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
@@ -1125,7 +1135,7 @@ export default class poloniexfutures extends Exchange {
             // * Since is ignored if limit is defined
             request['maxCount'] = limit;
         }
-        const response = await (this as any).privateGetFundingHistory (this.extend (request, params));
+        const response = await this.privateGetFundingHistory (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1172,15 +1182,15 @@ export default class poloniexfutures extends Exchange {
         return fees;
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @param {object} params.stop When true, all the trigger orders will be cancelled
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1233,7 +1243,7 @@ export default class poloniexfutures extends Exchange {
         return result;
     }
 
-    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOrdersByStatus
@@ -1241,15 +1251,15 @@ export default class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-order-list
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
          * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
-         * @param {string|undefined} symbol unified symbol for the market to retrieve orders from
-         * @param {int|undefined} since timestamp in ms of the earliest order to retrieve
-         * @param {int|undefined} limit The maximum number of orders to retrieve
-         * @param {object} params exchange specific parameters
-         * @param {bool|undefined} params.stop set to true to retrieve untriggered stop orders
-         * @param {int|undefined} params.until End time in ms
-         * @param {string|undefined} params.side buy or sell
-         * @param {string|undefined} params.type limit or market
-         * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol for the market to retrieve orders from
+         * @param {int} [since] timestamp in ms of the earliest order to retrieve
+         * @param {int} [limit] The maximum number of orders to retrieve
+         * @param {object} [params] exchange specific parameters
+         * @param {bool} [params.stop] set to true to retrieve untriggered stop orders
+         * @param {int} [params.until] End time in ms
+         * @param {string} [params.side] buy or sell
+         * @param {string} [params.type] limit or market
+         * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
@@ -1257,13 +1267,11 @@ export default class poloniexfutures extends Exchange {
         params = this.omit (params, [ 'stop', 'until', 'till' ]);
         if (status === 'closed') {
             status = 'done';
-        } else if (status === 'open') {
-            status = 'active';
         }
         const request = {};
         if (!stop) {
-            request['status'] = status;
-        } else if (status !== 'active') {
+            request['status'] = status === 'open' ? 'active' : 'done';
+        } else if (status !== 'open') {
             throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
         }
         let market = undefined;
@@ -1279,68 +1287,115 @@ export default class poloniexfutures extends Exchange {
         }
         const method = stop ? 'privateGetStopOrders' : 'privateGetOrders';
         const response = await this[method] (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "totalNum": 1,
+        //            "totalPage": 1,
+        //            "pageSize": 50,
+        //            "currentPage": 1,
+        //            "items": [
+        //                {
+        //                    "symbol": "ADAUSDTPERP",
+        //                    "leverage": "1",
+        //                    "hidden": false,
+        //                    "forceHold": false,
+        //                    "closeOrder": false,
+        //                    "type": "limit",
+        //                    "isActive": true,
+        //                    "createdAt": 1678936920000,
+        //                    "orderTime": 1678936920480905922,
+        //                    "price": "0.3",
+        //                    "iceberg": false,
+        //                    "stopTriggered": false,
+        //                    "id": "64128b582cc0710007a3c840",
+        //                    "value": "3",
+        //                    "timeInForce": "GTC",
+        //                    "updatedAt": 1678936920000,
+        //                    "side": "buy",
+        //                    "stopPriceType": "",
+        //                    "dealValue": "0",
+        //                    "dealSize": 0,
+        //                    "settleCurrency": "USDT",
+        //                    "stp": "",
+        //                    "filledValue": "0",
+        //                    "postOnly": false,
+        //                    "size": 1,
+        //                    "stop": "",
+        //                    "filledSize": 0,
+        //                    "reduceOnly": false,
+        //                    "marginType": 1,
+        //                    "cancelExist": false,
+        //                    "clientOid": "ba669f39-dfcc-4664-9801-a42d06e59c2e",
+        //                    "status": "open"
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
         const responseData = this.safeValue (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
         const ordersLength = orders.length;
         const result = [];
-        if (status === 'done') {
-            for (let i = 0; i < ordersLength; i++) {
-                if (!orders[i]['cancelExist']) {
-                    result.push (orders[i]);
-                }
+        for (let i = 0; i < ordersLength; i++) {
+            const order = orders[i];
+            const orderStatus = this.safeString (order, 'status');
+            if (status === orderStatus) {
+                result.push (orders[i]);
             }
         }
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://futures-docs.poloniex.com/#get-order-list
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @param {int|undefined} params.till end time in ms
-         * @param {string|undefined} params.side buy or sell
-         * @param {string|undefined} params.type limit, or market
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {int} [params.till] end time in ms
+         * @param {string} [params.side] buy or sell
+         * @param {string} [params.type] limit, or market
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://futures-docs.poloniex.com/#get-order-list
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @param {int|undefined} params.till end time in ms
-         * @param {string|undefined} params.side buy or sell
-         * @param {string|undefined} params.type limit, or market
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {int} [params.till] end time in ms
+         * @param {string} [params.side] buy or sell
+         * @param {string} [params.type] limit, or market
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchOrder (id = undefined, symbol = undefined, params = {}) {
+    async fetchOrder (id = undefined, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
          * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1357,31 +1412,132 @@ export default class poloniexfutures extends Exchange {
             request['order-id'] = id;
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "ADAUSDTPERP",
+        //            "leverage": "1",
+        //            "hidden": false,
+        //            "forceHold": false,
+        //            "closeOrder": false,
+        //            "type": "market",
+        //            "isActive": false,
+        //            "createdAt": 1678929587000,
+        //            "orderTime": 1678929587248115582,
+        //            "iceberg": false,
+        //            "stopTriggered": false,
+        //            "id": "64126eb38c6919000737dcdc",
+        //            "value": "3.1783",
+        //            "timeInForce": "GTC",
+        //            "updatedAt": 1678929587000,
+        //            "side": "buy",
+        //            "stopPriceType": "",
+        //            "dealValue": "3.1783",
+        //            "dealSize": 1,
+        //            "settleCurrency": "USDT",
+        //            "trades": [
+        //                {
+        //                    "feePay": "0.00158915",
+        //                    "tradeId": "64126eb36803eb0001ff99bc"
+        //                }
+        //            ],
+        //            "endAt": 1678929587000,
+        //            "stp": "",
+        //            "filledValue": "3.1783",
+        //            "postOnly": false,
+        //            "size": 1,
+        //            "stop": "",
+        //            "filledSize": 1,
+        //            "reduceOnly": false,
+        //            "marginType": 1,
+        //            "cancelExist": false,
+        //            "clientOid": "d19e8fcb-2df4-44bc-afd4-67dd42048246",
+        //            "status": "done"
+        //        }
+        //    }
+        //
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const responseData = this.safeValue (response, 'data');
         return this.parseOrder (responseData, market);
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //    {
+        //        code: "200000",
+        //        data: {
+        //            orderId: "619717484f1d010001510cde",
+        //        },
+        //    }
+        //
+        // fetchOrder
+        //
+        //    {
+        //        "symbol": "ADAUSDTPERP",
+        //        "leverage": "1",
+        //        "hidden": false,
+        //        "forceHold": false,
+        //        "closeOrder": false,
+        //        "type": "market",
+        //        "isActive": false,
+        //        "createdAt": 1678929587000,
+        //        "orderTime": 1678929587248115582,
+        //        "iceberg": false,
+        //        "stopTriggered": false,
+        //        "id": "64126eb38c6919000737dcdc",
+        //        "value": "3.1783",
+        //        "timeInForce": "GTC",
+        //        "updatedAt": 1678929587000,
+        //        "side": "buy",
+        //        "stopPriceType": "",
+        //        "dealValue": "3.1783",
+        //        "dealSize": 1,
+        //        "settleCurrency": "USDT",
+        //        "trades": [
+        //            {
+        //                "feePay": "0.00158915",
+        //                "tradeId": "64126eb36803eb0001ff99bc"
+        //            }
+        //        ],
+        //        "endAt": 1678929587000,
+        //        "stp": "",
+        //        "filledValue": "3.1783",
+        //        "postOnly": false,
+        //        "size": 1,
+        //        "stop": "",
+        //        "filledSize": 1,
+        //        "reduceOnly": false,
+        //        "marginType": 1,
+        //        "cancelExist": false,
+        //        "clientOid": "d19e8fcb-2df4-44bc-afd4-67dd42048246",
+        //        "status": "done"
+        //    }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        cancelledOrderIds: [
+        //            "619714b8b6353000014c505a",
+        //        ],
+        //        cancelFailedOrders: [
+        //            {
+        //                orderId: "63a9c5c2b9e7d70007eb0cd5",
+        //                orderState: "2"
+        //            }
+        //        ],
+        //    },
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const orderId = this.safeString (order, 'id');
-        const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
-        const datetime = this.iso8601 (timestamp);
-        const price = this.safeString (order, 'price');
         // price is zero for market order
         // omitZero is called in safeOrder2
-        const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
-        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        const feeCost = this.safeNumber (order, 'fee');
-        const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'dealSize');
         const rawCost = this.safeString2 (order, 'dealFunds', 'filledValue');
-        const leverage = this.safeString (order, 'leverage');
-        const cost = Precise.stringDiv (rawCost, leverage);
         let average = undefined;
         if (Precise.stringGt (filled, '0')) {
             const contractSize = this.safeString (market, 'contractSize');
@@ -1396,57 +1552,56 @@ export default class poloniexfutures extends Exchange {
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
-        let status = isActive ? 'open' : 'closed';
-        status = cancelExist ? 'canceled' : status;
-        const fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        };
-        const clientOrderId = this.safeString (order, 'clientOid');
-        const timeInForce = this.safeString (order, 'timeInForce');
-        const stopPrice = this.safeNumber (order, 'stopPrice');
-        const postOnly = this.safeValue (order, 'postOnly');
+        const status = isActive ? 'open' : 'closed';
+        let id = this.safeString (order, 'id');
+        if ('cancelledOrderIds' in order) {
+            const cancelledOrderIds = this.safeValue (order, 'cancelledOrderIds');
+            id = this.safeString (cancelledOrderIds, 0);
+        }
         return this.safeOrder ({
-            'id': orderId,
-            'clientOrderId': clientOrderId,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'side': side,
-            'amount': amount,
-            'price': price,
-            'stopPrice': stopPrice,
-            'cost': cost,
+            'info': order,
+            'id': id,
+            'clientOrderId': this.safeString (order, 'clientOid'),
+            'symbol': this.safeString (market, 'symbol'),
+            'type': this.safeString (order, 'type'),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': this.safeValue (order, 'postOnly'),
+            'side': this.safeString (order, 'side'),
+            'amount': this.safeString (order, 'size'),
+            'price': this.safeString (order, 'price'),
+            'stopPrice': this.safeString (order, 'stopPrice'),
+            'cost': this.safeString (order, 'dealValue'),
             'filled': filled,
             'remaining': undefined,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'fee': fee,
-            'status': status,
-            'info': order,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'cost': this.safeString (order, 'fee'),
+            },
+            'status': cancelExist ? 'canceled' : status,
             'lastTradeTimestamp': undefined,
             'average': average,
             'trades': undefined,
         }, market);
     }
 
-    async fetchFundingRate (symbol, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchFundingRate
          * @description fetch the current funding rate
          * @see https://futures-docs.poloniex.com/#get-premium-index
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetFundingRateSymbolCurrent (this.extend (request, params));
+        const response = await this.publicGetFundingRateSymbolCurrent (this.extend (request, params));
         //
         //    {
         //        "symbol": ".BTCUSDTPERPFPI8H",
@@ -1480,21 +1635,21 @@ export default class poloniexfutures extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://futures-docs.poloniex.com/#get-fills
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @param {string|undefined} orderIdFills filles for a specific order (other parameters can be ignored if specified)
-         * @param {string|undefined} side buy or sell
-         * @param {string|undefined} type  limit, market, limit_stop or market_stop
-         * @param {int|undefined} endAt end time (milisecond)
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {string} orderIdFills filles for a specific order (other parameters can be ignored if specified)
+         * @param {string} side buy or sell
+         * @param {string} type  limit, market, limit_stop or market_stop
+         * @param {int} endAt end time (milisecond)
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1507,7 +1662,7 @@ export default class poloniexfutures extends Exchange {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const response = await (this as any).privateGetFills (this.extend (request, params));
+        const response = await this.privateGetFills (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1554,7 +1709,7 @@ export default class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#change-margin-mode
          * @param {int} marginMode 0 (isolated) or 1 (cross)
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -1569,7 +1724,7 @@ export default class poloniexfutures extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        return await (this as any).privatePostMarginTypeChange (request);
+        return await this.privatePostMarginTypeChange (request);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1606,7 +1761,7 @@ export default class poloniexfutures extends Exchange {
                 endpart = body;
             }
             const payload = now + method + endpoint + endpart;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             headers = {
                 'PF-API-SIGN': signature,
                 'PF-API-TIMESTAMP': now,
@@ -1621,7 +1776,7 @@ export default class poloniexfutures extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
-            return;
+            return undefined;
         }
         //
         // bad
@@ -1635,5 +1790,6 @@ export default class poloniexfutures extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+        return undefined;
     }
 }

@@ -1,16 +1,18 @@
 import ndaxRest from '../ndax.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 export default class ndax extends ndaxRest {
     describe(): any;
     requestId(): any;
-    watchTicker(symbol: any, params?: {}): Promise<any>;
-    handleTicker(client: any, message: any): void;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    handleTrades(client: any, message: any): void;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    handleOHLCV(client: any, message: any): void;
-    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
-    handleOrderBook(client: any, message: any): any;
-    handleOrderBookSubscription(client: any, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: any, message: any): any;
-    handleMessage(client: any, message: any): any;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
+    handleTicker(client: Client, message: any): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleTrades(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleOHLCV(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    handleOrderBook(client: Client, message: any): any;
+    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
+    handleSubscriptionStatus(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): any;
 }

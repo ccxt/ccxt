@@ -4,7 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class poloniexfutures(Exchange):
+class poloniexfutures(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(poloniexfutures, self).describe(), {
@@ -29,7 +34,7 @@ class poloniexfutures(Exchange):
             # 30 requests per second
             'rateLimit': 33.3,
             'certified': False,
-            'pro': False,
+            'pro': True,
             'version': 'v1',
             'has': {
                 'CORS': None,
@@ -207,8 +212,8 @@ class poloniexfutures(Exchange):
         """
         retrieves data on all markets for poloniexfutures
         see https://futures-docs.poloniex.com/#symbol-2
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetContractsActive(params)
         #
@@ -346,10 +351,34 @@ class poloniexfutures(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #    {
+        #        "symbol": "BTCUSDTPERP",                   # Market of the symbol
+        #        "sequence": 45,                            # Sequence number which is used to judge the continuity of the pushed messages
+        #        "side": "sell",                            # Transaction side of the last traded taker order
+        #        "price": 3600.00,                          # Filled price
+        #        "size": 16,                                # Filled quantity
+        #        "tradeId": "5c9dcf4170744d6f5a3d32fb",     # Order ID
+        #        "bestBidSize": 795,                        # Best bid size
+        #        "bestBidPrice": 3200.00,                   # Best bid
+        #        "bestAskPrice": 3600.00,                   # Best ask size
+        #        "bestAskSize": 284,                        # Best ask
+        #        "ts": 1553846081210004941                  # Filled time - nanosecond
+        #    }
+        #
+        #    {
+        #        "volume": 30449670,            #24h Volume
+        #        "turnover": 845169919063,      #24h Turnover
+        #        "lastPrice": 3551,           #Last price
+        #        "priceChgPct": 0.0043,         #24h Change
+        #        "ts": 1547697294838004923      #Snapshot time(nanosecond)
+        #    }
+        #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
-        last = self.safe_string(ticker, 'price')
+        last = self.safe_string_2(ticker, 'price', 'lastPrice')
+        percentage = Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -366,20 +395,20 @@ class poloniexfutures(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': None,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'size'),
-            'quoteVolume': None,
+            'baseVolume': self.safe_string_2(ticker, 'size', 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'turnover'),
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -407,27 +436,27 @@ class poloniexfutures(Exchange):
         #
         return self.parse_ticker(self.safe_value(response, 'data', {}), market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetTickers(params)
         return self.parse_tickers(self.safe_value(response, 'data', []), symbols)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://futures-docs.poloniex.com/#get-full-order-book-level-2
         see https://futures-docs.poloniex.com/#get-full-order-book-level-3
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the poloniexfuturesfutures api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the poloniexfuturesfutures api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         level = self.safe_number(params, 'level')
@@ -499,14 +528,14 @@ class poloniexfutures(Exchange):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    async def fetch_l3_order_book(self, symbol, limit=None, params={}):
+    async def fetch_l3_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://futures-docs.poloniex.com/#get-full-order-book-level-3
         :param str symbol: unified market symbol
-        :param int|None limit: max number of orders to return, default is None
-        :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
+        :param int [limit]: max number of orders to return, default is None
+        :param dict [params]: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -598,15 +627,15 @@ class poloniexfutures(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         see https://futures-docs.poloniex.com/#historical-data
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -637,7 +666,7 @@ class poloniexfutures(Exchange):
         """
         fetches the current integer timestamp in milliseconds from the poloniexfutures server
         see https://futures-docs.poloniex.com/#time
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns int: the current integer timestamp in milliseconds from the poloniexfutures server
         """
         response = await self.publicGetTimestamp(params)
@@ -650,16 +679,16 @@ class poloniexfutures(Exchange):
         #
         return self.safe_integer(response, 'data')
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         see https://futures-docs.poloniex.com/#k-chart
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -716,7 +745,7 @@ class poloniexfutures(Exchange):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://futures-docs.poloniex.com/#get-account-overview
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
@@ -745,7 +774,7 @@ class poloniexfutures(Exchange):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         see https://futures-docs.poloniex.com/#place-an-order
@@ -754,19 +783,19 @@ class poloniexfutures(Exchange):
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-        :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params['leverage']: Leverage size of the order
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
-        :param bool params['reduceOnly']: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
-        :param str params['timeInForce']: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-        :param str params['postOnly']: Post only flag, invalid when timeInForce is IOC or FOK
-        :param str params['clientOid']: client order id, defaults to uuid if not passed
-        :param str params['remark']: remark for the order, length cannot exceed 100 utf8 characters
-        :param str params['stop']: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
-        :param str params['stopPriceType']:  TP, IP or MP, defaults to TP
-        :param bool params['closeOrder']: set to True to close position
-        :param bool params['forceHold']: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]:  Extra parameters specific to the exchange API endpoint
+        :param float [params.leverage]: Leverage size of the order
+        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
+        :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
+        :param str [params.clientOid]: client order id, defaults to uuid if not passed
+        :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
+        :param str [params.stop]: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+        :param str [params.stopPriceType]:  TP, IP or MP, defaults to TP
+        :param bool [params.closeOrder]: set to True to close position
+        :param bool [params.forceHold]: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -842,14 +871,14 @@ class poloniexfutures(Exchange):
             'info': response,
         }
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://futures-docs.poloniex.com/#cancel-an-order
         :param str id: order id
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -857,55 +886,35 @@ class poloniexfutures(Exchange):
         }
         response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
         #
-        #   {
-        #       code: "200000",
-        #       data: {
-        #           cancelledOrderIds: [
+        #    {
+        #        code: "200000",
+        #        data: {
+        #            cancelledOrderIds: [
         #                "619714b8b6353000014c505a",
-        #           ],
-        #           cancelFailedOrders: [
-        #              {
-        #                  orderId: "63a9c5c2b9e7d70007eb0cd5", orderState: "2"}
-        #          ],
-        #       },
-        #   }
+        #            ],
+        #            cancelFailedOrders: [
+        #                {
+        #                    orderId: "63a9c5c2b9e7d70007eb0cd5",
+        #                    orderState: "2"
+        #                }
+        #            ],
+        #        },
+        #    }
         #
         data = self.safe_value(response, 'data')
         cancelledOrderIds = self.safe_value(data, 'cancelledOrderIds')
         cancelledOrderIdsLength = len(cancelledOrderIds)
         if cancelledOrderIdsLength == 0:
             raise InvalidOrder(self.id + ' cancelOrder() order already cancelled')
-        return {
-            'id': self.safe_string(cancelledOrderIds, 0),
-            'clientOrderId': None,
-            'timestamp': None,
-            'datetime': None,
-            'lastTradeTimestamp': None,
-            'symbol': None,
-            'type': None,
-            'side': None,
-            'price': None,
-            'amount': None,
-            'cost': None,
-            'average': None,
-            'filled': None,
-            'remaining': None,
-            'status': None,
-            'fee': None,
-            'trades': None,
-            'timeInForce': None,
-            'postOnly': None,
-            'stopPrice': None,
-            'info': response,
-        }
+        return self.parse_order(data)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         see https://futures-docs.poloniex.com/#get-position-list
-        :param [str]|None symbols: list of unified market symbols
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         response = await self.privateGetPositions(params)
@@ -1047,15 +1056,15 @@ class poloniexfutures(Exchange):
             'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
         }
 
-    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         see https://futures-docs.poloniex.com/#get-funding-history
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch funding history for
-        :param int|None limit: the maximum number of funding history structures to retrieve
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
@@ -1114,13 +1123,13 @@ class poloniexfutures(Exchange):
             })
         return fees
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
-        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param dict params['stop']: When True, all the trigger orders will be cancelled
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param dict [params.stop]: When True, all the trigger orders will be cancelled
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1170,21 +1179,21 @@ class poloniexfutures(Exchange):
             })
         return result
 
-    async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches a list of orders placed on the exchange
         see https://futures-docs.poloniex.com/#get-order-list
         see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
         :param str status: 'active' or 'closed', only 'active' is valid for stop orders
-        :param str|None symbol: unified symbol for the market to retrieve orders from
-        :param int|None since: timestamp in ms of the earliest order to retrieve
-        :param int|None limit: The maximum number of orders to retrieve
-        :param dict params: exchange specific parameters
-        :param bool|None params['stop']: set to True to retrieve untriggered stop orders
-        :param int|None params['until']: End time in ms
-        :param str|None params['side']: buy or sell
-        :param str|None params['type']: limit or market
-        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified symbol for the market to retrieve orders from
+        :param int [since]: timestamp in ms of the earliest order to retrieve
+        :param int [limit]: The maximum number of orders to retrieve
+        :param dict [params]: exchange specific parameters
+        :param bool [params.stop]: set to True to retrieve untriggered stop orders
+        :param int [params.until]: End time in ms
+        :param str [params.side]: buy or sell
+        :param str [params.type]: limit or market
+        :returns: An `array of order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         stop = self.safe_value(params, 'stop')
@@ -1192,12 +1201,10 @@ class poloniexfutures(Exchange):
         params = self.omit(params, ['stop', 'until', 'till'])
         if status == 'closed':
             status = 'done'
-        elif status == 'open':
-            status = 'active'
         request = {}
         if not stop:
-            request['status'] = status
-        elif status != 'active':
+            request['status'] = status == 'active' if 'open' else 'done'
+        elif status != 'open':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
         market = None
         if symbol is not None:
@@ -1209,56 +1216,104 @@ class poloniexfutures(Exchange):
             request['endAt'] = until
         method = 'privateGetStopOrders' if stop else 'privateGetOrders'
         response = await getattr(self, method)(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "totalNum": 1,
+        #            "totalPage": 1,
+        #            "pageSize": 50,
+        #            "currentPage": 1,
+        #            "items": [
+        #                {
+        #                    "symbol": "ADAUSDTPERP",
+        #                    "leverage": "1",
+        #                    "hidden": False,
+        #                    "forceHold": False,
+        #                    "closeOrder": False,
+        #                    "type": "limit",
+        #                    "isActive": True,
+        #                    "createdAt": 1678936920000,
+        #                    "orderTime": 1678936920480905922,
+        #                    "price": "0.3",
+        #                    "iceberg": False,
+        #                    "stopTriggered": False,
+        #                    "id": "64128b582cc0710007a3c840",
+        #                    "value": "3",
+        #                    "timeInForce": "GTC",
+        #                    "updatedAt": 1678936920000,
+        #                    "side": "buy",
+        #                    "stopPriceType": "",
+        #                    "dealValue": "0",
+        #                    "dealSize": 0,
+        #                    "settleCurrency": "USDT",
+        #                    "stp": "",
+        #                    "filledValue": "0",
+        #                    "postOnly": False,
+        #                    "size": 1,
+        #                    "stop": "",
+        #                    "filledSize": 0,
+        #                    "reduceOnly": False,
+        #                    "marginType": 1,
+        #                    "cancelExist": False,
+        #                    "clientOid": "ba669f39-dfcc-4664-9801-a42d06e59c2e",
+        #                    "status": "open"
+        #                }
+        #            ]
+        #        }
+        #    }
+        #
         responseData = self.safe_value(response, 'data', {})
         orders = self.safe_value(responseData, 'items', [])
         ordersLength = len(orders)
         result = []
-        if status == 'done':
-            for i in range(0, ordersLength):
-                if not orders[i]['cancelExist']:
-                    result.append(orders[i])
+        for i in range(0, ordersLength):
+            order = orders[i]
+            orderStatus = self.safe_string(order, 'status')
+            if status == orderStatus:
+                result.append(orders[i])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         see https://futures-docs.poloniex.com/#get-order-list
         see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param int|None params['till']: end time in ms
-        :param str|None params['side']: buy or sell
-        :param str|None params['type']: limit, or market
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param int [params.till]: end time in ms
+        :param str [params.side]: buy or sell
+        :param str [params.type]: limit, or market
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        return await self.fetch_orders_by_status('active', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         see https://futures-docs.poloniex.com/#get-order-list
         see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param int|None params['till']: end time in ms
-        :param str|None params['side']: buy or sell
-        :param str|None params['type']: limit, or market
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param int [params.till]: end time in ms
+        :param str [params.side]: buy or sell
+        :param str [params.type]: limit, or market
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_order(self, id=None, symbol=None, params={}):
+    async def fetch_order(self, id=None, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         see https://futures-docs.poloniex.com/#get-details-of-a-single-order
         see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1273,30 +1328,131 @@ class poloniexfutures(Exchange):
         else:
             request['order-id'] = id
         response = await getattr(self, method)(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "symbol": "ADAUSDTPERP",
+        #            "leverage": "1",
+        #            "hidden": False,
+        #            "forceHold": False,
+        #            "closeOrder": False,
+        #            "type": "market",
+        #            "isActive": False,
+        #            "createdAt": 1678929587000,
+        #            "orderTime": 1678929587248115582,
+        #            "iceberg": False,
+        #            "stopTriggered": False,
+        #            "id": "64126eb38c6919000737dcdc",
+        #            "value": "3.1783",
+        #            "timeInForce": "GTC",
+        #            "updatedAt": 1678929587000,
+        #            "side": "buy",
+        #            "stopPriceType": "",
+        #            "dealValue": "3.1783",
+        #            "dealSize": 1,
+        #            "settleCurrency": "USDT",
+        #            "trades": [
+        #                {
+        #                    "feePay": "0.00158915",
+        #                    "tradeId": "64126eb36803eb0001ff99bc"
+        #                }
+        #            ],
+        #            "endAt": 1678929587000,
+        #            "stp": "",
+        #            "filledValue": "3.1783",
+        #            "postOnly": False,
+        #            "size": 1,
+        #            "stop": "",
+        #            "filledSize": 1,
+        #            "reduceOnly": False,
+        #            "marginType": 1,
+        #            "cancelExist": False,
+        #            "clientOid": "d19e8fcb-2df4-44bc-afd4-67dd42048246",
+        #            "status": "done"
+        #        }
+        #    }
+        #
         market = self.market(symbol) if (symbol is not None) else None
         responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #    {
+        #        code: "200000",
+        #        data: {
+        #            orderId: "619717484f1d010001510cde",
+        #        },
+        #    }
+        #
+        # fetchOrder
+        #
+        #    {
+        #        "symbol": "ADAUSDTPERP",
+        #        "leverage": "1",
+        #        "hidden": False,
+        #        "forceHold": False,
+        #        "closeOrder": False,
+        #        "type": "market",
+        #        "isActive": False,
+        #        "createdAt": 1678929587000,
+        #        "orderTime": 1678929587248115582,
+        #        "iceberg": False,
+        #        "stopTriggered": False,
+        #        "id": "64126eb38c6919000737dcdc",
+        #        "value": "3.1783",
+        #        "timeInForce": "GTC",
+        #        "updatedAt": 1678929587000,
+        #        "side": "buy",
+        #        "stopPriceType": "",
+        #        "dealValue": "3.1783",
+        #        "dealSize": 1,
+        #        "settleCurrency": "USDT",
+        #        "trades": [
+        #            {
+        #                "feePay": "0.00158915",
+        #                "tradeId": "64126eb36803eb0001ff99bc"
+        #            }
+        #        ],
+        #        "endAt": 1678929587000,
+        #        "stp": "",
+        #        "filledValue": "3.1783",
+        #        "postOnly": False,
+        #        "size": 1,
+        #        "stop": "",
+        #        "filledSize": 1,
+        #        "reduceOnly": False,
+        #        "marginType": 1,
+        #        "cancelExist": False,
+        #        "clientOid": "d19e8fcb-2df4-44bc-afd4-67dd42048246",
+        #        "status": "done"
+        #    }
+        #
+        # cancelOrder
+        #
+        #    {
+        #        cancelledOrderIds: [
+        #            "619714b8b6353000014c505a",
+        #        ],
+        #        cancelFailedOrders: [
+        #            {
+        #                orderId: "63a9c5c2b9e7d70007eb0cd5",
+        #                orderState: "2"
+        #            }
+        #        ],
+        #    },
+        #
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = market['symbol']
-        orderId = self.safe_string(order, 'id')
-        type = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'createdAt')
-        datetime = self.iso8601(timestamp)
-        price = self.safe_string(order, 'price')
         # price is zero for market order
         # omitZero is called in safeOrder2
-        side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
-        feeCurrency = self.safe_currency_code(feeCurrencyId)
-        feeCost = self.safe_number(order, 'fee')
-        amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'dealSize')
         rawCost = self.safe_string_2(order, 'dealFunds', 'filledValue')
-        leverage = self.safe_string(order, 'leverage')
-        cost = Precise.string_div(rawCost, leverage)
         average = None
         if Precise.string_gt(filled, '0'):
             contractSize = self.safe_string(market, 'contractSize')
@@ -1310,46 +1466,44 @@ class poloniexfutures(Exchange):
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
         status = 'open' if isActive else 'closed'
-        status = 'canceled' if cancelExist else status
-        fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        }
-        clientOrderId = self.safe_string(order, 'clientOid')
-        timeInForce = self.safe_string(order, 'timeInForce')
-        stopPrice = self.safe_number(order, 'stopPrice')
-        postOnly = self.safe_value(order, 'postOnly')
+        id = self.safe_string(order, 'id')
+        if 'cancelledOrderIds' in order:
+            cancelledOrderIds = self.safe_value(order, 'cancelledOrderIds')
+            id = self.safe_string(cancelledOrderIds, 0)
         return self.safe_order({
-            'id': orderId,
-            'clientOrderId': clientOrderId,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'side': side,
-            'amount': amount,
-            'price': price,
-            'stopPrice': stopPrice,
-            'cost': cost,
+            'info': order,
+            'id': id,
+            'clientOrderId': self.safe_string(order, 'clientOid'),
+            'symbol': self.safe_string(market, 'symbol'),
+            'type': self.safe_string(order, 'type'),
+            'timeInForce': self.safe_string(order, 'timeInForce'),
+            'postOnly': self.safe_value(order, 'postOnly'),
+            'side': self.safe_string(order, 'side'),
+            'amount': self.safe_string(order, 'size'),
+            'price': self.safe_string(order, 'price'),
+            'stopPrice': self.safe_string(order, 'stopPrice'),
+            'cost': self.safe_string(order, 'dealValue'),
             'filled': filled,
             'remaining': None,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'fee': fee,
-            'status': status,
-            'info': order,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': self.safe_currency_code(feeCurrencyId),
+                'cost': self.safe_string(order, 'fee'),
+            },
+            'status': 'canceled' if cancelExist else status,
             'lastTradeTimestamp': None,
             'average': average,
             'trades': None,
         }, market)
 
-    async def fetch_funding_rate(self, symbol, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
         see https://futures-docs.poloniex.com/#get-premium-index
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1389,19 +1543,19 @@ class poloniexfutures(Exchange):
             'previousFundingDatetime': self.iso8601(fundingTimestamp),
         }
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         see https://futures-docs.poloniex.com/#get-fills
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param str|None orderIdFills: filles for a specific order(other parameters can be ignored if specified)
-        :param str|None side: buy or sell
-        :param str|None type:  limit, market, limit_stop or market_stop
-        :param int|None endAt: end time(milisecond)
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param str orderIdFills: filles for a specific order(other parameters can be ignored if specified)
+        :param str side: buy or sell
+        :param str type:  limit, market, limit_stop or market_stop
+        :param int endAt: end time(milisecond)
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {
@@ -1456,7 +1610,7 @@ class poloniexfutures(Exchange):
         see https://futures-docs.poloniex.com/#change-margin-mode
         :param int marginMode: 0(isolated) or 1(cross)
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -1514,7 +1668,7 @@ class poloniexfutures(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
-            return
+            return None
         #
         # bad
         #     {"code": "400100", "msg": "validation.createOrder.clientOidIsRequired"}
@@ -1527,3 +1681,4 @@ class poloniexfutures(Exchange):
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+        return None

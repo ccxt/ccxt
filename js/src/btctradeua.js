@@ -5,11 +5,16 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btctradeua.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class btctradeua
+ * @extends Exchange
+ */
 export default class btctradeua extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -126,7 +131,7 @@ export default class btctradeua extends Exchange {
          * @method
          * @name btctradeua#signIn
          * @description sign in, must be called prior to using other authenticated methods
-         * @param {object} params extra parameters specific to the btctradeua api endpoint
+         * @param {object} [params] extra parameters specific to the btctradeua api endpoint
          * @returns response from exchange
          */
         return await this.privatePostAuth(params);
@@ -149,7 +154,7 @@ export default class btctradeua extends Exchange {
          * @method
          * @name btctradeua#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the btctradeua api endpoint
+         * @param {object} [params] extra parameters specific to the btctradeua api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -162,9 +167,9 @@ export default class btctradeua extends Exchange {
          * @name btctradeua#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the btctradeua api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the btctradeua api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -256,8 +261,8 @@ export default class btctradeua extends Exchange {
          * @name btctradeua#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the btctradeua api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the btctradeua api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -281,17 +286,28 @@ export default class btctradeua extends Exchange {
     convertMonthNameToString(cyrillic) {
         const months = {
             'Jan': '01',
+            'January': '01',
             'Feb': '02',
+            'February': '02',
             'Mar': '03',
+            'March': '03',
             'Apr': '04',
+            'April': '04',
             'May': '05',
             'Jun': '06',
+            'June': '06',
             'Jul': '07',
+            'July': '07',
             'Aug': '08',
+            'August': '08',
             'Sept': '09',
+            'September': '09',
             'Oct': '10',
+            'October': '10',
             'Nov': '11',
+            'November': '11',
             'Dec': '12',
+            'December': '12',
         };
         return this.safeString(months, cyrillic);
     }
@@ -377,10 +393,10 @@ export default class btctradeua extends Exchange {
          * @name btctradeua#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the btctradeua api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the btctradeua api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -408,9 +424,9 @@ export default class btctradeua extends Exchange {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the btctradeua api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the btctradeua api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (type === 'market') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
@@ -432,9 +448,9 @@ export default class btctradeua extends Exchange {
          * @name btctradeua#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol not used by btctradeua cancelOrder ()
-         * @param {object} params extra parameters specific to the btctradeua api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol not used by btctradeua cancelOrder ()
+         * @param {object} [params] extra parameters specific to the btctradeua api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'id': id,
@@ -479,10 +495,10 @@ export default class btctradeua extends Exchange {
          * @name btctradeua#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the btctradeua api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the btctradeua api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -517,7 +533,7 @@ export default class btctradeua extends Exchange {
             const auth = body + this.secret;
             headers = {
                 'public-key': this.apiKey,
-                'api-sign': this.hash(this.encode(auth), 'sha256'),
+                'api-sign': this.hash(this.encode(auth), sha256),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }

@@ -6,6 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 import json
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 
 
 class ripio(ccxt.async_support.ripio):
@@ -29,7 +31,7 @@ class ripio(ccxt.async_support.ripio):
             },
         })
 
-    async def watch_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -47,7 +49,7 @@ class ripio(ccxt.async_support.ripio):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message, subscription):
+    def handle_trade(self, client: Client, message, subscription):
         #
         #     {
         #         messageId: 'CAAQAA==',
@@ -86,12 +88,12 @@ class ripio(ccxt.async_support.ripio):
         tradesArray.append(trade)
         client.resolve(tradesArray, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the ripio api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -107,7 +109,7 @@ class ripio(ccxt.async_support.ripio):
         }
         return await self.watch(url, messageHash, None, messageHash, subscription)
 
-    def handle_ticker(self, client, message, subscription):
+    def handle_ticker(self, client: Client, message, subscription):
         #
         #     {
         #         messageId: 'CAAQAA==',
@@ -141,13 +143,13 @@ class ripio(ccxt.async_support.ripio):
             client.resolve(ticker, messageHash)
         return message
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the ripio api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -190,7 +192,7 @@ class ripio(ccxt.async_support.ripio):
         except Exception as e:
             client.reject(e, messageHash)
 
-    def handle_order_book(self, client, message, subscription):
+    def handle_order_book(self, client: Client, message, subscription):
         messageHash = self.safe_string(subscription, 'messageHash')
         symbol = self.safe_string(subscription, 'symbol')
         orderbook = self.safe_value(self.orderbooks, symbol)
@@ -203,7 +205,7 @@ class ripio(ccxt.async_support.ripio):
             client.resolve(orderbook, messageHash)
         return message
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
         #         messageId: 'CAAQAA==',
@@ -252,7 +254,7 @@ class ripio(ccxt.async_support.ripio):
         # the exchange requires acknowledging each received message
         await client.send({'messageId': messageId})
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         #     {
         #         messageId: 'CAAQAA==',

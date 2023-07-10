@@ -67,7 +67,7 @@ class deribit extends \ccxt\async\deribit {
             /**
              * @see https://docs.deribit.com/#user-portfolio-currency
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the deribit api endpoint
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
@@ -92,7 +92,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // subscription
         //     {
@@ -147,16 +147,17 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.deribit.com/#ticker-instrument_name-$interval
              * watches a price ticker, a statistical calculation with the information for a specific $market->
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @param {str|null} $params->interval specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $interval = $this->safe_string($params, 'interval', '100ms');
@@ -179,7 +180,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         jsonrpc => '2.0',
@@ -219,17 +220,17 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @see https://docs.deribit.com/#$trades-instrument_name-$interval
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @param {str|null} $params->interval specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -250,11 +251,14 @@ class deribit extends \ccxt\async\deribit {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $channel, $request, $channel, $request));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -298,17 +302,17 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->trades[$symbol], $channel);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
              * @see https://docs.deribit.com/#user-$trades-instrument_name-$interval
              * @param {string} $symbol unified $symbol of the market to fetch $trades for. Use 'any' to watch all $trades
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @param {str|null} $params->interval specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->authenticate($params));
             if ($symbol !== null) {
@@ -333,7 +337,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -385,16 +389,16 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($cachedTrades, $channel);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @param {string} $params->interval Frequency of notifications. Events will be aggregated over this $interval-> Possible values => 100ms, raw
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {string} [$params->interval] Frequency of notifications. Events will be aggregated over this $interval-> Possible values => 100ms, raw
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -419,7 +423,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //  snapshot
         //     {
@@ -470,7 +474,7 @@ class deribit extends \ccxt\async\deribit {
         $channel = $this->safe_string($params, 'channel');
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
-        $timestamp = $this->safe_number($data, 'timestamp');
+        $timestamp = $this->safe_integer($data, 'timestamp');
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         if ($storedOrderBook === null) {
             $storedOrderBook = $this->counted_order_book();
@@ -519,16 +523,16 @@ class deribit extends \ccxt\async\deribit {
         }
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#user-$orders-instrument_name-raw
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -558,7 +562,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         // Does not return a snapshot of current $orders
         //
         //     {
@@ -613,17 +617,17 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->orders, $channel);
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -651,7 +655,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         jsonrpc => '2.0',
@@ -694,7 +698,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($stored, $channel);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // $error
         //     {
@@ -789,7 +793,7 @@ class deribit extends \ccxt\async\deribit {
         return $message;
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         //
         //     {
         //         jsonrpc => '2.0',
@@ -807,43 +811,39 @@ class deribit extends \ccxt\async\deribit {
         //         testnet => false
         //     }
         //
-        $future = $this->safe_value($client->futures, 'authenticated');
-        if ($future !== null) {
-            $future->resolve (true);
-        }
+        $messageHash = 'authenticated';
+        $client->resolve ($message, $messageHash);
         return $message;
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $time = $this->milliseconds();
-            $timeString = $this->number_to_string($time);
-            $nonce = $timeString;
-            $messageHash = 'authenticated';
-            $future = $client->future ('authenticated');
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $this->check_required_credentials();
-                $requestId = $this->request_id();
-                $signature = $this->hmac($this->encode($timeString . '\n' . $nonce . '\n'), $this->encode($this->secret), 'sha256');
-                $request = array(
-                    'jsonrpc' => '2.0',
-                    'id' => $requestId,
-                    'method' => 'public/auth',
-                    'params' => array(
-                        'grant_type' => 'client_signature',
-                        'client_id' => $this->apiKey,
-                        'timestamp' => $time,
-                        'signature' => $signature,
-                        'nonce' => $nonce,
-                        'data' => '',
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
-            }
-            return Async\await($future);
-        }) ();
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $time = $this->milliseconds();
+        $timeString = $this->number_to_string($time);
+        $nonce = $timeString;
+        $messageHash = 'authenticated';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $this->check_required_credentials();
+            $requestId = $this->request_id();
+            $signature = $this->hmac($this->encode($timeString . '\n' . $nonce . '\n'), $this->encode($this->secret), 'sha256');
+            $request = array(
+                'jsonrpc' => '2.0',
+                'id' => $requestId,
+                'method' => 'public/auth',
+                'params' => array(
+                    'grant_type' => 'client_signature',
+                    'client_id' => $this->apiKey,
+                    'timestamp' => $time,
+                    'signature' => $signature,
+                    'nonce' => $nonce,
+                    'data' => '',
+                ),
+            );
+            $future = $this->watch($url, $messageHash, array_merge($request, $params));
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 }

@@ -4,6 +4,8 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,15 +45,15 @@ export default class bitstamp extends bitstampRest {
         });
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -70,7 +72,7 @@ export default class bitstamp extends bitstampRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -158,16 +160,16 @@ export default class bitstamp extends bitstampRest {
         return deltas.length;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -229,7 +231,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         data: {
@@ -268,16 +270,16 @@ export default class bitstamp extends bitstampRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
@@ -300,7 +302,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         //
         // {
         //     "data":{
@@ -380,7 +382,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrderBookSubscription (client, message) {
+    handleOrderBookSubscription (client: Client, message) {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
@@ -388,7 +390,7 @@ export default class bitstamp extends bitstampRest {
         this.orderbooks[symbol] = this.orderBook ();
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         'event': "bts:subscription_succeeded",
@@ -407,7 +409,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         //
         //     {
         //         data: {
@@ -460,7 +462,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         // {
         //     event: 'bts:error',
         //     channel: '',
@@ -476,7 +478,7 @@ export default class bitstamp extends bitstampRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -525,7 +527,7 @@ export default class bitstamp extends bitstampRest {
         const time = this.milliseconds ();
         const expiresIn = this.safeInteger (this.options, 'expiresIn');
         if ((expiresIn === undefined) || (time > expiresIn)) {
-            const response = await (this as any).privatePostWebsocketsToken (params);
+            const response = await this.privatePostWebsocketsToken (params);
             //
             // {
             //     "valid_sec":60,

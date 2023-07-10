@@ -62,16 +62,16 @@ class whitebit extends \ccxt\async\whitebit {
         ));
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the whitebit api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -94,7 +94,7 @@ class whitebit extends \ccxt\async\whitebit {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         // {
         //     method => 'candles_update',
@@ -134,14 +134,14 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the whitebit api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -165,7 +165,7 @@ class whitebit extends \ccxt\async\whitebit {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // {
         //     "method":"depth_update",
@@ -240,13 +240,13 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the whitebit api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -258,7 +258,7 @@ class whitebit extends \ccxt\async\whitebit {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //   {
         //       method => 'market_update',
@@ -308,15 +308,15 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the whitebit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -332,7 +332,7 @@ class whitebit extends \ccxt\async\whitebit {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //    {
         //        "method":"trades_update",
@@ -376,15 +376,15 @@ class whitebit extends \ccxt\async\whitebit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches $trades made by the user
-             * @param {str|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch $trades for
-             * @param {int|null} $limit the maximum number of $trades structures to retrieve
-             * @param {array} $params extra parameters specific to the whitebit api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @param {str} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of $trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades requires a $symbol argument');
@@ -403,7 +403,7 @@ class whitebit extends \ccxt\async\whitebit {
         }) ();
     }
 
-    public function handle_my_trades($client, $message, $subscription = null) {
+    public function handle_my_trades(Client $client, $message, $subscription = null) {
         //
         //   {
         //       method => 'deals_update',
@@ -478,15 +478,15 @@ class whitebit extends \ccxt\async\whitebit {
         ), $market);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the whitebit api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
@@ -505,7 +505,7 @@ class whitebit extends \ccxt\async\whitebit {
         }) ();
     }
 
-    public function handle_order($client, $message, $subscription = null) {
+    public function handle_order(Client $client, $message, $subscription = null) {
         //
         // {
         //     method => 'ordersPending_update',
@@ -540,14 +540,14 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $stored = $this->orders;
         $status = $this->safe_integer($params, 0);
-        $parsed = $this->parse_ws_order($data, $status);
+        $parsed = $this->parse_ws_order(array_merge($data, array( 'status' => $status )));
         $stored->append ($parsed);
         $symbol = $parsed['symbol'];
         $messageHash = 'orders:' . $symbol;
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, $status, $market = null) {
+    public function parse_ws_order($order, $market = null) {
         //
         //   {
         //         $id => 96433622651,
@@ -567,8 +567,10 @@ class whitebit extends \ccxt\async\whitebit {
         //         activation_price => '40',
         //         activation_condition => 'lte',
         //         client_order_id => ''
+        //         $status => 1, // 1 = new, 2 = update 3 = cancel or execute
         //    }
         //
+        $status = $this->safe_integer($order, 'status');
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
         $id = $this->safe_string($order, 'id');
@@ -601,13 +603,14 @@ class whitebit extends \ccxt\async\whitebit {
                 'currency' => $market['quote'],
             );
         }
+        $unifiedStatus = null;
         if (($status === 1) || ($status === 2)) {
-            $status = 'open';
+            $unifiedStatus = 'open';
         } else {
             if (Precise::string_equals($remaining, '0')) {
-                $status = 'closed';
+                $unifiedStatus = 'closed';
             } else {
-                $status = 'canceled';
+                $unifiedStatus = 'canceled';
             }
         }
         return $this->safe_order(array(
@@ -630,7 +633,7 @@ class whitebit extends \ccxt\async\whitebit {
             'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
-            'status' => $status,
+            'status' => $unifiedStatus,
             'fee' => $fee,
             'trades' => null,
         ), $market);
@@ -655,8 +658,8 @@ class whitebit extends \ccxt\async\whitebit {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the whitebit api endpoint
-             * @param {str|null} $params->type spot or contract if not provided $this->options['defaultType'] is used
+             * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+             * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -676,7 +679,7 @@ class whitebit extends \ccxt\async\whitebit {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -841,7 +844,7 @@ class whitebit extends \ccxt\async\whitebit {
         }) ();
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //     array( error => null, result => array( status => 'success' ), id => 1656084550 )
         //
@@ -850,7 +853,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     {
         //         $error => array( $code => 1, $message => 'invalid argument' ),
@@ -877,7 +880,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // auth
         //    array( error => null, $result => array( status => 'success' ), $id => 1656084550 )
@@ -918,7 +921,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function handle_subscription_status($client, $message, $id) {
+    public function handle_subscription_status(Client $client, $message, $id) {
         // not every $method stores its $subscription
         // object so we can't do indeById here
         $subs = $client->subscriptions;
@@ -938,7 +941,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }

@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\wavesexchange as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -14,6 +15,7 @@ use ccxt\InvalidOrder;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 
 class wavesexchange extends Exchange {
 
@@ -47,6 +49,8 @@ class wavesexchange extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -301,8 +305,9 @@ class wavesexchange extends Exchange {
                 ),
             ),
             'currencies' => array(
-                'WX' => array( 'id' => 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId' => null, 'code' => 'WX', 'precision' => 8 ),
+                'WX' => $this->safe_currency_structure(array( 'id' => 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId' => null, 'code' => 'WX', 'precision' => $this->parse_number('8') )),
             ),
+            'precisionMode' => DECIMAL_PLACES,
             'options' => array(
                 'allowedCandles' => 1440,
                 'accessToken' => null,
@@ -319,7 +324,7 @@ class wavesexchange extends Exchange {
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
                 ),
-                'reverseNetworks' => array(
+                'networksById' => array(
                     'ETH' => 'ERC20',
                     'BSC' => 'BEP20',
                 ),
@@ -360,10 +365,10 @@ class wavesexchange extends Exchange {
 
     public function set_sandbox_mode($enabled) {
         $this->options['messagePrefix'] = $enabled ? 'T' : 'W';
-        return parent::set_sandbox_mode($enabled);
+        parent::set_sandbox_mode($enabled);
     }
 
-    public function get_fees_for_asset($symbol, $side, $amount, $price, $params = array ()) {
+    public function get_fees_for_asset(string $symbol, $side, $amount, $price, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -380,7 +385,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function custom_calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function custom_calculate_fee(string $symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $takerOrMaker, $params) {
             $response = Async\await($this->get_fees_for_asset($symbol, $side, $amount, $price));
             // {
@@ -491,8 +496,8 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for wavesexchange
-             * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing market data
+             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->marketGetTickers ());
             //
@@ -587,14 +592,14 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -617,7 +622,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function parse_order_book_side($bookSide, $market = null, $limit = null) {
+    public function parse_order_book_side($bookSide, $market = null, ?int $limit = null) {
         $precision = $market['precision'];
         $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
         $amountPrecision = pow(10, $precision['amount']);
@@ -723,7 +728,7 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * sign in, must be called prior to using other authenticated methods
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
              * @return $response from exchange
              */
             if (!$this->safe_string($this->options, 'accessToken')) {
@@ -755,6 +760,7 @@ class wavesexchange extends Exchange {
                 $this->options['accessToken'] = $this->safe_string($response, 'access_token');
                 return $this->options['accessToken'];
             }
+            return null;
         }) ();
     }
 
@@ -833,13 +839,13 @@ class wavesexchange extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -877,13 +883,13 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the aax api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the aax api endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->marketGetTickers ($params));
@@ -919,16 +925,16 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the $open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the $length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {[[int]]} A list of candles ordered, $open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {int[][]} A list of candles ordered, $open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1042,13 +1048,13 @@ class wavesexchange extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->sign_in());
             $networks = $this->safe_value($this->options, 'networks', array());
@@ -1124,15 +1130,15 @@ class wavesexchange extends Exchange {
                     $request = array(
                         'publicKey' => $this->apiKey,
                     );
-                    $response = Async\await($this->nodeGetAddressesPublicKeyPublicKey (array_merge($request, $request)));
-                    $address = $this->safe_string($response, 'address');
+                    $responseInner = Async\await($this->nodeGetAddressesPublicKeyPublicKey (array_merge($request, $request)));
+                    $addressInner = $this->safe_string($response, 'address');
                     return array(
-                        'address' => $address,
+                        'address' => $addressInner,
                         'code' => $code, // kept here for backward-compatibility, but will be removed soon
                         'currency' => $code,
                         'network' => $network,
                         'tag' => null,
-                        'info' => $response,
+                        'info' => $responseInner,
                     );
                 } else {
                     $request = array(
@@ -1167,8 +1173,8 @@ class wavesexchange extends Exchange {
             // }
             $currency = $this->safe_value($response, 'currency');
             $networkId = $this->safe_string($currency, 'platform_id');
-            $reverseNetworks = $this->safe_value($this->options, 'reverseNetworks', array());
-            $unifiedNetwork = $this->safe_string($reverseNetworks, $networkId, $networkId);
+            $networkByIds = $this->safe_value($this->options, 'networkByIds', array());
+            $unifiedNetwork = $this->safe_string($networkByIds, $networkId, $networkId);
             $addresses = $this->safe_value($response, 'deposit_addresses');
             $address = $this->safe_string($addresses, 0);
             return array(
@@ -1274,7 +1280,7 @@ class wavesexchange extends Exchange {
         return $rates;
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1282,9 +1288,9 @@ class wavesexchange extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of $base currency
-             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             $this->check_required_dependencies();
             $this->check_required_keys();
@@ -1435,14 +1441,14 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
              * @param {string} $id order $id
-             * @param {string|null} $symbol unified $symbol of the market the order was made in
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $this->check_required_dependencies();
             $this->check_required_keys();
@@ -1484,13 +1490,13 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
-             * @param {string|null} $symbol unified $symbol of the $market the order was made in
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $this->check_required_dependencies();
             $this->check_required_keys();
@@ -1518,15 +1524,15 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $this->check_required_dependencies();
             $this->check_required_keys();
@@ -1571,15 +1577,15 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open orders for
-             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->sign_in());
@@ -1597,15 +1603,15 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->sign_in());
@@ -1795,7 +1801,7 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for $balance and get the $amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
              */
             // makes a lot of different requests to get all the $data
@@ -1873,10 +1879,10 @@ class wavesexchange extends Exchange {
             }
             $nonStandardAssets = count($assetIds);
             if ($nonStandardAssets) {
-                $request = array(
+                $requestInner = array(
                     'ids' => $assetIds,
                 );
-                $response = Async\await($this->publicGetAssets ($request));
+                $response = Async\await($this->publicGetAssets ($requestInner));
                 $data = $this->safe_value($response, 'data', array());
                 for ($i = 0; $i < count($data); $i++) {
                     $entry = $data[$i];
@@ -1942,15 +1948,15 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch trades for
-             * @param {int|null} $limit the maximum number of trades structures to retrieve
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $address = Async\await($this->get_waves_address());
@@ -2035,15 +2041,15 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2221,13 +2227,163 @@ class wavesexchange extends Exchange {
         ), $market);
     }
 
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
+        $depositWithdrawFees = array();
+        $codes = $this->market_codes($codes);
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $dictionary = $entry;
+            $currencyId = $this->safe_string($dictionary, $currencyIdKey);
+            $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+            $code = $this->safe_string($currency, 'code', $currencyId);
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
+                if ($depositWithdrawFee === null) {
+                    $depositWithdrawFee = array(
+                        'info' => array( $dictionary ),
+                        'withdraw' => array(
+                            'fee' => null,
+                            'percentage' => null,
+                        ),
+                        'deposit' => array(
+                            'fee' => null,
+                            'percentage' => null,
+                        ),
+                        'networks' => array(),
+                    );
+                } else {
+                    $depositWithdrawFee = $depositWithdrawFees[$code];
+                    $depositWithdrawFee['info'] = $this->array_concat($depositWithdrawFee['info'], array( $dictionary ));
+                }
+                $networkId = $this->safe_string($dictionary, 'platform_id');
+                $currencyCode = $this->safe_string($currency, 'code');
+                $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+                $network = $this->safe_value($depositWithdrawFee['networks'], $networkCode);
+                if ($network === null) {
+                    $network = array(
+                        'withdraw' => array(
+                            'fee' => null,
+                            'percentage' => null,
+                        ),
+                        'deposit' => array(
+                            'fee' => null,
+                            'percentage' => null,
+                        ),
+                    );
+                }
+                $feeType = $this->safe_string($dictionary, 'type');
+                $fees = $this->safe_value($dictionary, 'fees');
+                $networkKey = 'deposit';
+                if ($feeType === 'withdrawal_currency') {
+                    $networkKey = 'withdraw';
+                }
+                $network[$networkKey] = array( 'fee' => $this->safe_number($fees, 'flat'), 'percentage' => false );
+                $depositWithdrawFee['networks'][$networkCode] = $network;
+                $depositWithdrawFees[$code] = $depositWithdrawFee;
+            }
+        }
+        $depositWithdrawFeesKeys = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
+        for ($i = 0; $i < count($depositWithdrawFeesKeys); $i++) {
+            $code = $depositWithdrawFeesKeys[$i];
+            $entry = $depositWithdrawFees[$code];
+            $networks = $this->safe_value($entry, 'networks');
+            $networkKeys = is_array($networks) ? array_keys($networks) : array();
+            if (strlen($networkKeys) === 1) {
+                $network = $this->safe_value($networks, $networkKeys[0]);
+                $depositWithdrawFees[$code]['withdraw'] = $this->safe_value($network, 'withdraw');
+                $depositWithdrawFees[$code]['deposit'] = $this->safe_value($network, 'deposit');
+            }
+        }
+        return $depositWithdrawFees;
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://docs.waves.exchange/en/api/gateways/deposit/currencies
+             * @see https://docs.waves.exchange/en/api/gateways/withdraw/currencies
+             * @param {string[]|null} $codes list of unified currency $codes
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $data = array();
+            $promises = array();
+            $promises[] = $this->privateGetDepositCurrencies ($params);
+            $promises[] = $this->privateGetWithdrawCurrencies ($params);
+            $promises = Async\await(Promise\all($promises));
+            //
+            //    {
+            //        "type" => "list",
+            //        "page_info" => array(
+            //          "has_next_page" => false,
+            //          "last_cursor" => null
+            //        ),
+            //        "items" => array(
+            //          {
+            //            "type" => "deposit_currency",
+            //            "id" => "WEST",
+            //            "platform_id" => "WEST",
+            //            "waves_asset_id" => "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8",
+            //            "platform_asset_id" => "WEST",
+            //            "decimals" => 8,
+            //            "status" => "active",
+            //            "allowed_amount" => array(
+            //              "min" => 0.1,
+            //              "max" => 2000000
+            //            ),
+            //            "fees" => array(
+            //              "flat" => 0,
+            //              "rate" => 0
+            //            }
+            //          ),
+            //        )
+            //    }
+            //
+            //
+            //    {
+            //        "type" => "list",
+            //        "page_info" => array(
+            //          "has_next_page" => false,
+            //          "last_cursor" => null
+            //        ),
+            //        "items" => array(
+            //          {
+            //            "type" => "withdrawal_currency",
+            //            "id" => "BTC",
+            //            "platform_id" => "BTC",
+            //            "waves_asset_id" => "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+            //            "platform_asset_id" => "BTC",
+            //            "decimals" => 8,
+            //            "status" => "inactive",
+            //            "allowed_amount" => array(
+            //              "min" => 0.001,
+            //              "max" => 10
+            //            ),
+            //            "fees" => array(
+            //              "flat" => 0.001,
+            //              "rate" => 0
+            //            }
+            //          ),
+            //        )
+            //    }
+            //
+            for ($i = 0; $i < count($promises); $i++) {
+                $items = $this->safe_value($promises[$i], 'items');
+                $data = $this->array_concat($data, $items);
+            }
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'id');
+        }) ();
+    }
+
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'error');
         $success = $this->safe_value($response, 'success', true);
         $Exception = $this->safe_value($this->exceptions, $errorCode);
         if ($Exception !== null) {
-            $message = $this->safe_string($response, 'message');
-            throw new $Exception($this->id . ' ' . $message);
+            $messageInner = $this->safe_string($response, 'message');
+            throw new $Exception($this->id . ' ' . $messageInner);
         }
         $message = $this->safe_string($response, 'message');
         if ($message === 'Validation Error') {
@@ -2236,18 +2392,19 @@ class wavesexchange extends Exchange {
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
-             * @param {string|null} $tag
-             * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             // currently only works for BTC and WAVES
@@ -2292,8 +2449,8 @@ class wavesexchange extends Exchange {
                     'currency' => $code,
                 );
                 $withdrawAddress = Async\await($this->privateGetWithdrawAddressesCurrencyAddress ($withdrawAddressRequest));
-                $currency = $this->safe_value($withdrawAddress, 'currency');
-                $allowedAmount = $this->safe_value($currency, 'allowed_amount');
+                $currencyInner = $this->safe_value($withdrawAddress, 'currency');
+                $allowedAmount = $this->safe_value($currencyInner, 'allowed_amount');
                 $minimum = $this->safe_number($allowedAmount, 'min');
                 if ($amount <= $minimum) {
                     throw new BadRequest($this->id . ' ' . $code . ' withdraw failed, $amount ' . (string) $amount . ' must be greater than the $minimum allowed $amount of ' . (string) $minimum);

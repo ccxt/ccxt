@@ -7,8 +7,10 @@
 //  ---------------------------------------------------------------------------
 import { Precise } from '../base/Precise.js';
 import coinexRest from '../coinex.js';
-import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError, } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { md5 } from '../static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 export default class coinex extends coinexRest {
     describe() {
@@ -136,10 +138,21 @@ export default class coinex extends coinexRest {
             const symbol = this.safeSymbol(marketId, undefined, undefined, defaultType);
             const market = this.safeMarket(marketId, undefined, undefined, defaultType);
             const parsedTicker = this.parseWSTicker(rawTicker, market);
-            const messageHash = 'ticker:' + symbol;
             this.tickers[symbol] = parsedTicker;
             newTickers.push(parsedTicker);
-            client.resolve(parsedTicker, messageHash);
+        }
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys(tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve(tickers, messageHash);
+            }
         }
         client.resolve(newTickers, 'tickers');
     }
@@ -212,7 +225,7 @@ export default class coinex extends coinexRest {
          * @method
          * @name coinex#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -297,13 +310,13 @@ export default class coinex extends coinexRest {
         }
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
-            const parsed = this.parseWSTrade(trade, market);
+            const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
         this.trades[symbol] = stored;
         client.resolve(this.trades[symbol], messageHash);
     }
-    parseWSTrade(trade, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         //     {
         //         "type": "sell",
@@ -370,8 +383,8 @@ export default class coinex extends coinexRest {
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchTickers([symbol], params);
     }
@@ -381,33 +394,30 @@ export default class coinex extends coinexRest {
          * @name coinex#watchTickers
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchTickers', undefined, params);
         const url = this.urls['api']['ws'][type];
-        const messageHash = 'tickers';
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join(',');
+        }
         const subscribe = {
             'method': 'state.subscribe',
             'id': this.requestId(),
             'params': [],
         };
         const request = this.deepExtend(subscribe, params);
-        const tickers = await this.watch(url, messageHash, request, messageHash);
-        const result = this.filterByArray(tickers, 'symbol', symbols);
-        const keys = Object.keys(result);
-        const resultLength = keys.length;
-        if (resultLength > 0) {
-            if (this.newUpdates) {
-                return result;
-            }
-            return this.filterByArray(this.tickers, 'symbol', symbols);
+        const newTickers = await this.watch(url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            return newTickers;
         }
-        return await this.watchTickers(symbols, params);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -417,10 +427,10 @@ export default class coinex extends coinexRest {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -449,9 +459,9 @@ export default class coinex extends coinexRest {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -484,7 +494,7 @@ export default class coinex extends coinexRest {
             'params': Object.values(watchOrderBookSubscriptions),
         };
         this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
-        const subscriptionHash = this.hash(this.encode(this.json(watchOrderBookSubscriptions)));
+        const subscriptionHash = this.hash(this.encode(this.json(watchOrderBookSubscriptions)), sha256);
         const request = this.deepExtend(subscribe, params);
         const orderbook = await this.watch(url, messageHash, request, subscriptionHash, request);
         return orderbook.limit();
@@ -496,10 +506,10 @@ export default class coinex extends coinexRest {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -536,7 +546,7 @@ export default class coinex extends coinexRest {
         if (this.newUpdates) {
             limit = ohlcvs.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcvs, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcvs, since, limit, 0);
     }
     handleDelta(bookside, delta) {
         const bidAsk = this.parseBidAsk(delta, 0, 1);
@@ -606,32 +616,6 @@ export default class coinex extends coinexRest {
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);
         client.resolve(this.orderbooks[symbol], messageHash);
     }
-    checkOrderBookChecksum(orderBook) {
-        const asks = this.safeValue(orderBook, 'asks', []);
-        const bids = this.safeValue(orderBook, 'bids', []);
-        let string = '';
-        const bidsLength = bids.length;
-        for (let i = 0; i < bidsLength; i++) {
-            const bid = bids[i];
-            if (i !== 0) {
-                string += ':';
-            }
-            string += bid[0] + ':' + bid[1];
-        }
-        const asksLength = asks.length;
-        for (let i = 0; i < asksLength; i++) {
-            const ask = asks[i];
-            if (bidsLength !== 0) {
-                string += ':';
-            }
-            string += ask[0] + ':' + ask[1];
-        }
-        const signedString = this.hash(string, 'cr32', 'hex');
-        const checksum = this.safeString(orderBook, 'checksum');
-        if (checksum !== signedString) {
-            throw new ExchangeError(this.id + ' watchOrderBook () checksum failed');
-        }
-    }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         await this.authenticate(params);
@@ -649,7 +633,7 @@ export default class coinex extends coinexRest {
             messageHash += ':' + symbol;
         }
         else {
-            message['params'] = this.ids;
+            message['params'] = [];
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend(message, query);
@@ -748,7 +732,7 @@ export default class coinex extends coinexRest {
         //
         const params = this.safeValue(message, 'params', []);
         const order = this.safeValue(params, 1, {});
-        const parsedOrder = this.parseWSOrder(order);
+        const parsedOrder = this.parseWsOrder(order);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -759,7 +743,7 @@ export default class coinex extends coinexRest {
         messageHash += ':' + parsedOrder['symbol'];
         client.resolve(this.orders, messageHash);
     }
-    parseWSOrder(order) {
+    parseWsOrder(order, market = undefined) {
         //
         //  spot
         //
@@ -873,7 +857,7 @@ export default class coinex extends coinexRest {
         const amount = this.safeString(order, 'amount');
         const status = this.safeString(order, 'status');
         const defaultType = this.safeString(this.options, 'defaultType');
-        const market = this.safeMarket(marketId, undefined, undefined, defaultType);
+        market = this.safeMarket(marketId, market, undefined, defaultType);
         let cost = this.safeString(order, 'deal_money');
         let filled = this.safeString(order, 'deal_stock');
         let average = undefined;
@@ -912,12 +896,12 @@ export default class coinex extends coinexRest {
             'remaining': remaining,
             'cost': cost,
             'average': average,
-            'status': this.parseWSOrderStatus(status),
+            'status': this.parseWsOrderStatus(status),
             'fee': fee,
             'trades': undefined,
         }, market);
     }
-    parseWSOrderStatus(status) {
+    parseWsOrderStatus(status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',
@@ -955,14 +939,14 @@ export default class coinex extends coinexRest {
         //         id: 1
         //     }
         //
-        const future = this.safeValue(client.futures, 'authenticated');
-        if (future !== undefined) {
-            future.resolve(true);
-        }
+        const messageHashSpot = 'authenticated:spot';
+        const messageHashSwap = 'authenticated:swap';
+        client.resolve(message, messageHashSpot);
+        client.resolve(message, messageHashSwap);
         return message;
     }
     handleSubscriptionStatus(client, message) {
-        const id = this.safeString(message, 'id');
+        const id = this.safeInteger(message, 'id');
         const subscription = this.safeValue(client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString(subscription, 'future');
@@ -981,18 +965,17 @@ export default class coinex extends coinexRest {
         const time = this.milliseconds();
         if (type === 'spot') {
             const messageHash = 'authenticated:spot';
-            const authenticated = this.safeValue(client.futures, messageHash);
-            if (authenticated !== undefined) {
-                return;
+            let future = this.safeValue(client.subscriptions, messageHash);
+            if (future !== undefined) {
+                return future;
             }
-            const future = client.future(messageHash);
             const requestId = this.requestId();
             const subscribe = {
                 'id': requestId,
                 'future': 'authenticated:spot',
             };
             const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString(time) + '&secret_key=' + this.secret;
-            const hash = this.hash(this.encode(signData), 'md5');
+            const hash = this.hash(this.encode(signData), md5);
             const request = {
                 'method': 'server.sign',
                 'params': [
@@ -1002,23 +985,23 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            this.spawn(this.watch, url, messageHash, request, requestId, subscribe);
+            future = this.watch(url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = future;
             return future;
         }
         else {
             const messageHash = 'authenticated:swap';
-            const authenticated = this.safeValue(client.futures, messageHash);
-            if (authenticated !== undefined) {
-                return;
+            let future = this.safeValue(client.subscriptions, messageHash);
+            if (future !== undefined) {
+                return future;
             }
-            const future = client.future('authenticated:swap');
             const requestId = this.requestId();
             const subscribe = {
                 'id': requestId,
                 'future': 'authenticated:swap',
             };
             const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString(time) + '&secret_key=' + this.secret;
-            const hash = this.hash(this.encode(signData), 'sha256', 'hex');
+            const hash = this.hash(this.encode(signData), sha256, 'hex');
             const request = {
                 'method': 'server.sign',
                 'params': [
@@ -1028,7 +1011,8 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            this.spawn(this.watch, url, messageHash, request, requestId, subscribe);
+            future = this.watch(url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = future;
             return future;
         }
     }

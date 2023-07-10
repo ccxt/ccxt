@@ -5,11 +5,16 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
-import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } from './base/errors.js';
+import Exchange from './abstract/zonda.js';
+import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class zonda
+ * @extends Exchange
+ */
 export default class zonda extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -244,6 +249,8 @@ export default class zonda extends Exchange {
                 },
             },
             'options': {
+                'fetchTickerMethod': 'v1_01PublicGetTradingTickerSymbol',
+                'fetchTickersMethod': 'v1_01PublicGetTradingTicker',
                 'fiatCurrencies': ['EUR', 'USD', 'GBP', 'PLN'],
                 'transfer': {
                     'fillResponseFromRequest': true,
@@ -288,9 +295,10 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchMarkets
+         * @see https://docs.zonda.exchange/reference/ticker-1
          * @description retrieves data on all markets for zonda
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.v1_01PublicGetTradingTicker(params);
         const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
@@ -389,12 +397,13 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchOpenOrders
+         * @see https://docs.zonda.exchange/reference/active-orders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol not used by zonda fetchOpenOrders
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol not used by zonda fetchOpenOrders
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -456,12 +465,13 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchMyTrades
+         * @see https://docs.zonda.exchange/reference/transactions-history
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -520,8 +530,9 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchBalance
+         * @see https://docs.zonda.exchange/reference/list-of-wallets
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -532,11 +543,12 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchOrderBook
+         * @see https://docs.zonda.exchange/reference/orderbook-2
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -575,40 +587,66 @@ export default class zonda extends Exchange {
     }
     parseTicker(ticker, market = undefined) {
         //
-        //     {
-        //         m: 'ETH-PLN',
-        //         h: '13485.13',
-        //         l: '13100.01',
-        //         v: '126.10710939',
-        //         r24h: '13332.72'
-        //       }
+        // version 1
         //
-        const open = this.safeString(ticker, 'r24h');
-        const high = this.safeString(ticker, 'h');
-        const low = this.safeString(ticker, 'l');
-        const volume = this.safeString(ticker, 'v');
-        const marketId = this.safeString(ticker, 'm');
-        market = this.safeMarket(marketId, market, '-');
-        const symbol = market['symbol'];
+        //    {
+        //        m: 'ETH-PLN',
+        //        h: '13485.13',
+        //        l: '13100.01',
+        //        v: '126.10710939',
+        //        r24h: '13332.72'
+        //    }
+        //
+        // version 2
+        //
+        //    {
+        //        market: {
+        //            code: 'ADA-USDT',
+        //            first: {
+        //                currency: 'ADA',
+        //                minOffer: '0.2',
+        //                scale: '6'
+        //            },
+        //            second: {
+        //                currency: 'USDT',
+        //                minOffer: '0.099',
+        //                scale: '6'
+        //            },
+        //            amountPrecision: '6',
+        //            pricePrecision: '6',
+        //            ratePrecision: '6'
+        //        },
+        //        time: '1655812661202',
+        //        highestBid: '0.492',
+        //        lowestAsk: '0.499389',
+        //        rate: '0.50588',
+        //        previousRate: '0.504981'
+        //    }
+        //
+        const tickerMarket = this.safeValue(ticker, 'market');
+        const marketId = this.safeString2(tickerMarket, 'code', 'm');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(ticker, 'time');
+        const rate = this.safeValue(ticker, 'rate');
         return this.safeTicker({
-            'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'high': high,
-            'low': low,
-            'bid': undefined,
+            'symbol': this.safeSymbol(marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeString(ticker, 'h'),
+            'low': this.safeString(ticker, 'l'),
+            'bid': this.safeNumber(ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeNumber(ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
-            'close': undefined,
-            'last': undefined,
-            'previousClose': undefined,
+            'open': this.safeString(ticker, 'r24h'),
+            'close': rate,
+            'last': rate,
+            'previousClose': this.safeValue(ticker, 'previousRate'),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': volume,
+            'baseVolume': this.safeString(ticker, 'v'),
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
@@ -617,57 +655,146 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @description v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
+         * @see https://docs.zonda.exchange/reference/market-statistics
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @param {string} [params.method] v1_01PublicGetTradingTickerSymbol (default) or v1_01PublicGetTradingStatsSymbol
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v1_01PublicGetTradingStatsSymbol(this.extend(request, params));
-        //
-        //     {
-        //       status: 'Ok',
-        //       stats: {
-        //         m: 'ETH-PLN',
-        //         h: '13485.13',
-        //         l: '13100.01',
-        //         v: '126.10710939',
-        //         r24h: '13332.72'
-        //       }
-        //     }
-        //
-        const stats = this.safeValue(response, 'stats');
+        const method = 'v1_01PublicGetTradingTickerSymbol';
+        const defaultMethod = this.safeString(this.options, 'fetchTickerMethod', method);
+        const fetchTickerMethod = this.safeString2(params, 'method', 'fetchTickerMethod', defaultMethod);
+        let response = undefined;
+        if (fetchTickerMethod === method) {
+            response = await this.v1_01PublicGetTradingTickerSymbol(this.extend(request, params));
+            //
+            //    {
+            //        "status": "Ok",
+            //        "ticker": {
+            //            "market": {
+            //                "code": "ADA-USDT",
+            //                "first": {
+            //                    "currency": "ADA",
+            //                    "minOffer": "0.21",
+            //                    "scale": 6
+            //                },
+            //                "second": {
+            //                    "currency": "USDT",
+            //                    "minOffer": "0.099",
+            //                    "scale": 6
+            //                },
+            //                "amountPrecision": 6,
+            //                "pricePrecision": 6,
+            //                "ratePrecision": 6
+            //            },
+            //            "time": "1655810976780",
+            //            "highestBid": "0.498543",
+            //            "lowestAsk": "0.50684",
+            //            "rate": "0.50588",
+            //            "previousRate": "0.504981"
+            //        }
+            //    }
+            //
+        }
+        else if (fetchTickerMethod === 'v1_01PublicGetTradingStatsSymbol') {
+            response = await this.v1_01PublicGetTradingStatsSymbol(this.extend(request, params));
+            //
+            //    {
+            //        "status": "Ok",
+            //        "stats": {
+            //            "m": "BTC-USDT",
+            //            "h": "28800",
+            //            "l": "26703.950101",
+            //            "v": "6.72932396",
+            //            "r24h": "27122.2"
+            //        }
+            //    }
+            //
+        }
+        else {
+            throw new BadRequest(this.id + ' fetchTicker params["method"] must be "v1_01PublicGetTradingTickerSymbol" or "v1_01PublicGetTradingStatsSymbol"');
+        }
+        const stats = this.safeValue2(response, 'ticker', 'stats');
         return this.parseTicker(stats, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
+         * @ignore
          * @method
-         * @name zonda#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @name zonda#fetchTickersV2
+         * @description v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
+         * @see https://docs.zonda.exchange/reference/market-statistics
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @param {string} [params.method] v1_01PublicGetTradingTicker (default) or v1_01PublicGetTradingStats
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        const response = await this.v1_01PublicGetTradingStats(params);
-        //
-        //     {
-        //         status: 'Ok',
-        //         items: {
-        //             'DAI-PLN': {
-        //                 m: 'DAI-PLN',
-        //                 h: '4.41',
-        //                 l: '4.37',
-        //                 v: '8.71068087',
-        //                 r24h: '4.36'
-        //             }
-        //         }
-        //     }
-        //
+        const method = 'v1_01PublicGetTradingTicker';
+        const defaultMethod = this.safeString(this.options, 'fetchTickersMethod', method);
+        const fetchTickersMethod = this.safeString2(params, 'method', 'fetchTickersMethod', defaultMethod);
+        let response = undefined;
+        if (fetchTickersMethod === method) {
+            response = await this.v1_01PublicGetTradingTicker(params);
+            //
+            //    {
+            //        "status": "Ok",
+            //        "items": {
+            //            "DAI-PLN": {
+            //                "market": {
+            //                    "code": "DAI-PLN",
+            //                    "first": {
+            //                        "currency": "DAI",
+            //                        "minOffer": "0.99",
+            //                        "scale": 8
+            //                    },
+            //                    "second": {
+            //                        "currency": "PLN",
+            //                        "minOffer": "5",
+            //                        "scale": 2
+            //                    },
+            //                    "amountPrecision": 8,
+            //                    "pricePrecision": 2,
+            //                    "ratePrecision": 2
+            //                },
+            //                "time": "1655810825137",
+            //                "highestBid": "4.42",
+            //                "lowestAsk": "4.44",
+            //                "rate": "4.44",
+            //                "previousRate": "4.43"
+            //            },
+            //            ...
+            //        }
+            //    }
+            //
+        }
+        else if (fetchTickersMethod === 'v1_01PublicGetTradingStats') {
+            response = await this.v1_01PublicGetTradingStats(params);
+            //
+            //     {
+            //         status: 'Ok',
+            //         items: {
+            //             'DAI-PLN': {
+            //                 m: 'DAI-PLN',
+            //                 h: '4.41',
+            //                 l: '4.37',
+            //                 v: '8.71068087',
+            //                 r24h: '4.36'
+            //             },
+            //             ...
+            //         }
+            //     }
+            //
+        }
+        else {
+            throw new BadRequest(this.id + ' fetchTickers params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"');
+        }
         const items = this.safeValue(response, 'items');
         return this.parseTickers(items, symbols);
     }
@@ -675,12 +802,13 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchLedger
+         * @see https://docs.zonda.exchange/reference/operations-history
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         const balanceCurrencies = [];
         if (code !== undefined) {
@@ -1048,13 +1176,14 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchOHLCV
+         * @see https://docs.zonda.exchange/reference/candles-chart
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1075,7 +1204,7 @@ export default class zonda extends Exchange {
             request['from'] = request['to'] - timerange;
         }
         else {
-            request['from'] = parseInt(since);
+            request['from'] = since;
             request['to'] = this.sum(request['from'], timerange);
         }
         const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution(this.extend(request, params));
@@ -1173,12 +1302,13 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchTrades
+         * @see https://docs.zonda.exchange/reference/last-transactions
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1205,9 +1335,9 @@ export default class zonda extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1327,11 +1457,12 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#cancelOrder
+         * @see https://docs.zonda.exchange/reference/cancel-order
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const side = this.safeString(params, 'side');
         if (side === undefined) {
@@ -1387,11 +1518,12 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchDepositAddress
+         * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @param {string|undefined} params.walletId Wallet id to filter deposit adresses.
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @param {string} [params.walletId] Wallet id to filter deposit adresses.
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1420,10 +1552,11 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchDepositAddresses
+         * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
          * @description fetch deposit addresses for multiple currencies and chain types
-         * @param {[string]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string[]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses(params);
@@ -1447,13 +1580,14 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#transfer
+         * @see https://docs.zonda.exchange/reference/internal-transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1558,13 +1692,14 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#withdraw
+         * @see https://docs.zonda.exchange/reference/crypto-withdrawal-1
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the zonda api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
@@ -1667,7 +1802,7 @@ export default class zonda extends Exchange {
                 'Request-Timestamp': nonce,
                 'Operation-Id': this.uuid(),
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac(this.encode(payload), this.encode(this.secret), 'sha512'),
+                'API-Hash': this.hmac(this.encode(payload), this.encode(this.secret), sha512),
                 'Content-Type': 'application/json',
             };
         }
@@ -1680,14 +1815,14 @@ export default class zonda extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
+                'API-Hash': this.hmac(this.encode(body), this.encode(this.secret), sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('code' in response) {
             //
@@ -1735,5 +1870,6 @@ export default class zonda extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }

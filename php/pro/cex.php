@@ -53,7 +53,7 @@ class cex extends \ccxt\async\cex {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://cex.io/websocket-api#get-balance
-             * @param {array} $params extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
@@ -69,7 +69,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         e => 'get-balance',
@@ -109,16 +109,16 @@ class cex extends \ccxt\async\cex {
         $client->resolve ($this->balance, 'balance');
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol-> Note => can only watch one $symbol at a time.
              * @see https://cex.io/websocket-api#old-pair-room
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -154,7 +154,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function handle_trades_snapshot($client, $message) {
+    public function handle_trades_snapshot(Client $client, $message) {
         //
         //     {
         //         e => 'history',
@@ -209,7 +209,7 @@ class cex extends \ccxt\async\cex {
         ), $market);
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         e => 'history-update',
@@ -230,15 +230,15 @@ class cex extends \ccxt\async\cex {
         $client->resolve ($this->trades, $messageHash);
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://cex.io/websocket-api#ticker-subscription
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @param {string|null} $params->method public or private
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {string} [$params->method] public or private
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -269,14 +269,14 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function watch_tickers($symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://cex.io/websocket-api#$ticker-subscription
              * watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -303,7 +303,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         e => 'tick',
@@ -389,16 +389,16 @@ class cex extends \ccxt\async\cex {
         ), $market);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $orders associated with the user. Note => In CEX.IO system, $orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls => archived-orders/open-$orders->
              * @see https://docs.cex.io/#ws-api-open-$orders
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
@@ -428,16 +428,16 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of trades associated with the user. Note => In CEX.IO system, $orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls => archived-orders/open-$orders->
              * @see https://docs.cex.io/#ws-api-open-$orders
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
@@ -460,11 +460,11 @@ class cex extends \ccxt\async\cex {
             );
             $request = $this->deep_extend($message, $params);
             $orders = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $request));
-            return $this->filter_by_symbol_since_limit($orders, $market['symbol'], $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $market['symbol'], $since, $limit);
         }) ();
     }
 
-    public function handle_transaction($client, $message) {
+    public function handle_transaction(Client $client, $message) {
         $data = $this->safe_value($message, 'data');
         $symbol2 = $this->safe_string($data, 'symbol2');
         if ($symbol2 === null) {
@@ -474,7 +474,7 @@ class cex extends \ccxt\async\cex {
         $this->handle_my_trades($client, $message);
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         e => 'tx',
@@ -593,7 +593,7 @@ class cex extends \ccxt\async\cex {
         return $this->safe_trade($parsedTrade, $market);
     }
 
-    public function handle_order_update($client, $message) {
+    public function handle_order_update(Client $client, $message) {
         //
         //  partialExecution
         //     {
@@ -832,7 +832,7 @@ class cex extends \ccxt\async\cex {
         return $this->from_precision($amount, $scale);
     }
 
-    public function handle_orders_snapshot($client, $message) {
+    public function handle_orders_snapshot(Client $client, $message) {
         //
         //     {
         //         e => 'open-orders',
@@ -870,15 +870,15 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://cex.io/websocket-api#$orderbook-$subscribe
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -905,7 +905,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function handle_order_book_snapshot($client, $message) {
+    public function handle_order_book_snapshot(Client $client, $message) {
         //
         //     {
         //         e => 'order-book-subscribe',
@@ -955,7 +955,7 @@ class cex extends \ccxt\async\cex {
         return $symbol;
     }
 
-    public function handle_order_book_update($client, $message) {
+    public function handle_order_book_update(Client $client, $message) {
         //
         //     {
         //         e => 'md_update',
@@ -1002,17 +1002,17 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://cex.io/websocket-api#minute-data
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market-> It will return the last 120 minutes with the selected $timeframe and then 1m candle updates after that.
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents.
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1034,7 +1034,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function handle_init_ohlcv($client, $message) {
+    public function handle_init_ohlcv(Client $client, $message) {
         //
         //     {
         //         e => 'init-ohlcv-data',
@@ -1072,7 +1072,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_ohlcv24($client, $message) {
+    public function handle_ohlcv24(Client $client, $message) {
         //
         //     {
         //         e => 'ohlcv24',
@@ -1083,7 +1083,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_ohlcv1m($client, $message) {
+    public function handle_ohlcv1m(Client $client, $message) {
         //
         //     {
         //         e => 'ohlcv1m',
@@ -1116,7 +1116,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         e => 'ohlcv',
@@ -1148,7 +1148,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function handle_connected($client, $message) {
+    public function handle_connected(Client $client, $message) {
         //
         //     {
         //         "e" => "connected"
@@ -1157,7 +1157,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     {
         //         e => 'get-balance',
@@ -1169,7 +1169,7 @@ class cex extends \ccxt\async\cex {
         throw new ExchangeError($this->id . ' ' . $this->json($message));
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         $ok = $this->safe_string($message, 'ok');
         if ($ok === 'error') {
             return $this->handle_error_message($client, $message);
@@ -1200,7 +1200,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         //
         //     {
         //         "e" => "auth",
@@ -1228,7 +1228,7 @@ class cex extends \ccxt\async\cex {
                 $this->check_required_credentials();
                 $nonce = (string) $this->seconds();
                 $auth = $nonce . $this->apiKey;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $request = array(
                     'e' => 'auth',
                     'auth' => array(

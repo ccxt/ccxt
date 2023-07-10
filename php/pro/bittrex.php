@@ -142,7 +142,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_authenticate($client, $message, $subscription) {
+    public function handle_authenticate(Client $client, $message, $subscription) {
         $requestId = $this->safe_string($subscription, 'id');
         if (is_array($client->subscriptions) && array_key_exists($requestId, $client->subscriptions)) {
             unset($client->subscriptions[$requestId]);
@@ -157,7 +157,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_authentication_expiring($client, $message) {
+    public function handle_authentication_expiring(Client $client, $message) {
         //
         //     {
         //         C => 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
@@ -228,15 +228,15 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified market $symbol of the market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $symbol unified market $symbol of the market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {
@@ -258,7 +258,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         //     {
         //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -296,7 +296,7 @@ class bittrex extends \ccxt\async\bittrex {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the bittrex api endpoint
+             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -312,7 +312,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -363,7 +363,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_heartbeat($client, $message) {
+    public function handle_heartbeat(Client $client, $message) {
         //
         // every 20 seconds (approx) if no other updates are sent
         //
@@ -372,13 +372,13 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($message, 'heartbeat');
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $negotiation = Async\await($this->negotiate());
@@ -402,7 +402,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         // summary subscription update
         //
@@ -426,16 +426,16 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -465,7 +465,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         sequence => 28286,
@@ -501,15 +501,15 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -537,7 +537,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         $deltas => array(
@@ -572,15 +572,15 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -600,7 +600,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -634,14 +634,14 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $limit = ($limit === null) ? 25 : $limit; // 25 by default
             if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
@@ -658,14 +658,14 @@ class bittrex extends \ccxt\async\bittrex {
             //     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
             //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
             //     7. Continue to apply messages are received from the socket number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
-            //     8. If a message is received that is not the next in order, return to step 2 in this process
+            //     8. If a message is received that is not the next in order, return to step property_exists($this, 2) process
             //
             $orderbook = Async\await($this->subscribe_to_order_book($negotiation, $symbol, $limit, $params));
             return $orderbook->limit ();
         }) ();
     }
 
-    public function subscribe_to_order_book($negotiation, $symbol, $limit = null, $params = array ()) {
+    public function subscribe_to_order_book($negotiation, $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($negotiation, $symbol, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -737,7 +737,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_subscribe_to_order_book($client, $message, $subscription) {
+    public function handle_subscribe_to_order_book(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -771,7 +771,7 @@ class bittrex extends \ccxt\async\bittrex {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         marketSymbol => 'BTC-USDT',
@@ -798,7 +798,7 @@ class bittrex extends \ccxt\async\bittrex {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
         //         marketSymbol => 'BTC-USDT',
@@ -832,13 +832,13 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_system_status($client, $message) {
+    public function handle_system_status(Client $client, $message) {
         // send signalR protocol start() call
         $this->spawn(array($this, 'handle_system_status_helper'));
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         // success
         //
@@ -870,7 +870,7 @@ class bittrex extends \ccxt\async\bittrex {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // subscription confirmation
         //
@@ -939,7 +939,7 @@ class bittrex extends \ccxt\async\bittrex {
                 } else {
                     $A = $this->safe_value($M[$i], 'A', array());
                     for ($k = 0; $k < count($A); $k++) {
-                        $inflated = $this->inflate64($A[$k]);
+                        $inflated = $this->decode($this->inflate(base64_decode($A[$k])));
                         $update = json_decode($inflated, $as_associative_array = true);
                         $method($client, $update);
                     }

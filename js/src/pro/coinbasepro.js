@@ -6,8 +6,9 @@
 
 //  ---------------------------------------------------------------------------
 import coinbaseproRest from '../coinbasepro.js';
-import { BadSymbol } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class coinbasepro extends coinbaseproRest {
     describe() {
@@ -41,7 +42,7 @@ export default class coinbasepro extends coinbaseproRest {
         const path = '/users/self/verify';
         const nonce = this.nonce();
         const payload = nonce.toString() + 'GET' + path;
-        const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), 'sha256', 'base64');
+        const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, 'base64');
         return {
             'timestamp': nonce,
             'key': this.apiKey,
@@ -76,8 +77,8 @@ export default class coinbasepro extends coinbaseproRest {
          * @name coinbasepro#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const name = 'ticker';
         return await this.subscribe(name, symbol, name, params);
@@ -88,10 +89,10 @@ export default class coinbasepro extends coinbaseproRest {
          * @name coinbasepro#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -108,10 +109,10 @@ export default class coinbasepro extends coinbaseproRest {
          * @name coinbasepro#watchMyTrades
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         if (symbol === undefined) {
             throw new BadSymbol(this.id + ' watchMyTrades requires a symbol');
@@ -132,11 +133,11 @@ export default class coinbasepro extends coinbaseproRest {
          * @method
          * @name coinbasepro#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new BadSymbol(this.id + ' watchMyTrades requires a symbol');
@@ -158,9 +159,9 @@ export default class coinbasepro extends coinbaseproRest {
          * @name coinbasepro#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const name = 'level2';
         await this.loadMarkets();
@@ -239,7 +240,7 @@ export default class coinbasepro extends coinbaseproRest {
         }
         return message;
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         //
         // private trades
         // {
@@ -300,7 +301,7 @@ export default class coinbasepro extends coinbaseproRest {
             parsed['takerOrMaker'] = 'taker';
             feeRate = this.safeNumber(trade, 'taker_fee_rate');
         }
-        const market = this.market(parsed['symbol']);
+        market = this.market(parsed['symbol']);
         const feeCurrency = market['quote'];
         let feeCost = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
@@ -488,7 +489,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
         }
     }
-    parseWsOrder(order) {
+    parseWsOrder(order, market = undefined) {
         const id = this.safeString(order, 'order_id');
         const clientOrderId = this.safeString(order, 'client_oid');
         const marketId = this.safeString(order, 'product_id');
@@ -677,6 +678,7 @@ export default class coinbasepro extends coinbaseproRest {
             this.handleDeltas(orderbook['bids'], this.safeValue(message, 'bids', []));
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
+            orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else if (type === 'l2update') {
@@ -715,6 +717,37 @@ export default class coinbasepro extends coinbaseproRest {
         //
         return message;
     }
+    handleErrorMessage(client, message) {
+        //
+        //     {
+        //         "type": "error",
+        //         "message": "error message",
+        //         /* ... */
+        //     }
+        //
+        // auth error
+        //
+        //     {
+        //         type: 'error',
+        //         message: 'Authentication Failed',
+        //         reason: '{"message":"Invalid API Key"}'
+        //     }
+        //
+        const errMsg = this.safeString(message, 'message');
+        const reason = this.safeString(message, 'reason');
+        try {
+            if (errMsg === 'Authentication Failed') {
+                throw new AuthenticationError('Authentication failed: ' + reason);
+            }
+            else {
+                throw new ExchangeError(this.id + ' ' + reason);
+            }
+        }
+        catch (error) {
+            client.reject(error);
+            return true;
+        }
+    }
     handleMessage(client, message) {
         const type = this.safeString(message, 'type');
         const methods = {
@@ -726,6 +759,7 @@ export default class coinbasepro extends coinbaseproRest {
             'open': this.handleOrder,
             'change': this.handleOrder,
             'done': this.handleOrder,
+            'error': this.handleErrorMessage,
         };
         const length = client.url.length - 0;
         const authenticated = client.url[length - 1] === '?';

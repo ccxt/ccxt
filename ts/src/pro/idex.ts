@@ -4,6 +4,9 @@
 import idexRest from '../idex.js';
 import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Precise } from '../base/Precise.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,14 +66,14 @@ export default class idex extends idexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name idex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the idex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -83,7 +86,7 @@ export default class idex extends idexRest {
         return await this.subscribe (this.extend (subscribeObject, params), messageHash);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         // { type: 'tickers',
         //   data:
         //    { m: 'DIL-ETH',
@@ -106,47 +109,47 @@ export default class idex extends idexRest {
         const symbol = this.safeSymbol (marketId);
         const messageHash = type + ':' + marketId;
         const timestamp = this.safeInteger (data, 't');
-        const close = this.safeFloat (data, 'c');
-        const percentage = this.safeFloat (data, 'P');
+        const close = this.safeString (data, 'c');
+        const percentage = this.safeString (data, 'P');
         let change = undefined;
         if ((percentage !== undefined) && (close !== undefined)) {
-            change = close * percentage;
+            change = Precise.stringMul (close, percentage);
         }
-        const ticker = {
+        const ticker = this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (data, 'h'),
-            'low': this.safeFloat (data, 'l'),
-            'bid': this.safeFloat (data, 'b'),
+            'high': this.safeString (data, 'h'),
+            'low': this.safeString (data, 'l'),
+            'bid': this.safeString (data, 'b'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (data, 'a'),
+            'ask': this.safeString (data, 'a'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (data, 'o'),
+            'open': this.safeString (data, 'o'),
             'close': close,
             'last': close,
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (data, 'v'),
-            'quoteVolume': this.safeFloat (data, 'q'),
+            'baseVolume': this.safeString (data, 'v'),
+            'quoteVolume': this.safeString (data, 'q'),
             'info': message,
-        };
+        });
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the idex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -164,7 +167,7 @@ export default class idex extends idexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         const type = this.safeString (message, 'type');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'm');
@@ -181,7 +184,7 @@ export default class idex extends idexRest {
         client.resolve (trades, messageHash);
     }
 
-    parseWsTrade (trade) {
+    parseWsTrade (trade, market = undefined) {
         // public trades
         // { m: 'DIL-ETH',
         //   i: '897ecae6-4b75-368a-ac00-be555e6ad65f',
@@ -234,17 +237,17 @@ export default class idex extends idexRest {
         };
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the idex api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -264,7 +267,7 @@ export default class idex extends idexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         // { type: 'candles',
         //   data:
         //    { m: 'DIL-ETH',
@@ -306,7 +309,7 @@ export default class idex extends idexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleSubscribeMessage (client, message) {
+    handleSubscribeMessage (client: Client, message) {
         // {
         //   "type": "subscriptions",
         //   "subscriptions": [
@@ -405,15 +408,15 @@ export default class idex extends idexRest {
         }
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the idex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -438,7 +441,7 @@ export default class idex extends idexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'm');
         const symbol = this.safeSymbol (marketId);
@@ -451,7 +454,7 @@ export default class idex extends idexRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         // {
         //   "type": "l2orderbook",
         //   "data": {
@@ -505,23 +508,23 @@ export default class idex extends idexRest {
                 'wallet': this.walletAddress,
                 'nonce': this.uuidv1 (),
             };
-            const response = await (this as any).privateGetWsToken (this.extend (request, params));
+            const response = await this.privateGetWsToken (this.extend (request, params));
             this.options['lastAuthenticatedTime'] = time;
             this.options['token'] = this.safeString (response, 'token');
         }
         return this.options['token'];
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the idex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const name = 'orders';
@@ -542,7 +545,7 @@ export default class idex extends idexRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         // {
         //   "type": "orders",
         //   "data": {
@@ -652,7 +655,7 @@ export default class idex extends idexRest {
         client.resolve (orders, type);
     }
 
-    async watchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'balances';
         const subscribeObject = {
@@ -666,10 +669,10 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = transactions.getLimit (code, limit);
         }
-        return this.filterBySinceLimit (transactions, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (transactions, since, limit, 'timestamp');
     }
 
-    handleTransaction (client, message) {
+    handleTransaction (client: Client, message) {
         // Update Speed: Real time, updates on any deposit or withdrawal of the wallet
         // { type: 'balances',
         //   data:
@@ -714,7 +717,7 @@ export default class idex extends idexRest {
         client.resolve (transactions, type);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
         const methods = {
             'tickers': this.handleTicker,

@@ -36,16 +36,16 @@ class gemini extends \ccxt\async\gemini {
         ));
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watch the list of most recent $trades for a particular $symbol
              * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the gemini api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -108,7 +108,7 @@ class gemini extends \ccxt\async\gemini {
         ), $market);
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         type => 'trade',
@@ -133,7 +133,7 @@ class gemini extends \ccxt\async\gemini {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         type => 'l2_updates',
@@ -191,17 +191,17 @@ class gemini extends \ccxt\async\gemini {
         }
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @see https://docs.gemini.com/websocket-api/#candles-data-feed
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the gemini api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -227,7 +227,7 @@ class gemini extends \ccxt\async\gemini {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         "type" => "candles_15m_updates",
@@ -284,15 +284,15 @@ class gemini extends \ccxt\async\gemini {
         return $message;
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the gemini api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -316,7 +316,7 @@ class gemini extends \ccxt\async\gemini {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         $changes = $this->safe_value($message, 'changes', array());
         $marketId = $this->safe_string_lower($message, 'symbol');
         $market = $this->safe_market($marketId);
@@ -340,7 +340,7 @@ class gemini extends \ccxt\async\gemini {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_l2_updates($client, $message) {
+    public function handle_l2_updates(Client $client, $message) {
         //
         //     {
         //         type => 'l2_updates',
@@ -382,16 +382,16 @@ class gemini extends \ccxt\async\gemini {
         $this->handle_trades($client, $message);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @see https://docs.gemini.com/websocket-api/#order-events
-             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the gemini api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $url = $this->urls['api']['ws'] . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
             Async\await($this->load_markets());
@@ -412,7 +412,7 @@ class gemini extends \ccxt\async\gemini {
         }) ();
     }
 
-    public function handle_heartbeat($client, $message) {
+    public function handle_heartbeat(Client $client, $message) {
         //
         //     {
         //         type => 'heartbeat',
@@ -425,7 +425,7 @@ class gemini extends \ccxt\async\gemini {
         return $message;
     }
 
-    public function handle_subscription($client, $message) {
+    public function handle_subscription(Client $client, $message) {
         //
         //     {
         //         type => 'subscription_ack',
@@ -439,7 +439,7 @@ class gemini extends \ccxt\async\gemini {
         return $message;
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         //     array(
         //         {
@@ -559,7 +559,7 @@ class gemini extends \ccxt\async\gemini {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function handle_error($client, $message) {
+    public function handle_error(Client $client, $message) {
         //
         //     {
         //         reason => 'NoValidTradingPairs',
@@ -569,7 +569,7 @@ class gemini extends \ccxt\async\gemini {
         throw new ExchangeError($this->json($message));
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //  public
         //     {
@@ -644,8 +644,8 @@ class gemini extends \ccxt\async\gemini {
             'request' => $request,
             'nonce' => $this->nonce(),
         );
-        $b64 = base64_encode($this->encode($this->json($payload)));
-        $signature = $this->hmac($b64, $this->encode($this->secret), 'sha384', 'hex');
+        $b64 = base64_encode($this->json($payload));
+        $signature = $this->hmac($this->encode($b64), $this->encode($this->secret), 'sha384', 'hex');
         $defaultOptions = array(
             'ws' => array(
                 'options' => array(
@@ -657,7 +657,7 @@ class gemini extends \ccxt\async\gemini {
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,
-            'X-GEMINI-PAYLOAD' => $this->decode($b64),
+            'X-GEMINI-PAYLOAD' => $b64,
             'X-GEMINI-SIGNATURE' => $signature,
         );
         $this->options['ws']['options']['headers'] = $headers;
