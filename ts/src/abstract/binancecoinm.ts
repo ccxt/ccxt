@@ -238,6 +238,7 @@ interface binance {
     sapiPostMarginExchangeSmallLiability (params?: {}): Promise<implicitReturnType>;
     sapiPostMarginIsolatedTransfer (params?: {}): Promise<implicitReturnType>;
     sapiPostMarginIsolatedAccount (params?: {}): Promise<implicitReturnType>;
+    sapiPostMarginMaxLeverage (params?: {}): Promise<implicitReturnType>;
     sapiPostBnbBurn (params?: {}): Promise<implicitReturnType>;
     sapiPostSubAccountVirtualSubAccount (params?: {}): Promise<implicitReturnType>;
     sapiPostSubAccountMarginTransfer (params?: {}): Promise<implicitReturnType>;
@@ -451,6 +452,10 @@ interface binance {
     fapiPrivateGetAdlQuantile (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetPmAccountInfo (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOrderAmendment (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetOrderAsyn (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetOrderAsynId (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetTradeAsyn (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetTradeAsynId (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin (params?: {}): Promise<implicitReturnType>;
