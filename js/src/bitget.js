@@ -866,6 +866,7 @@ export default class bitget extends Exchange {
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
                     '43025': InvalidOrder,
+                    '43115': OnMaintenance,
                     '45110': InvalidOrder,
                     // spot
                     'invalid sign': AuthenticationError,
