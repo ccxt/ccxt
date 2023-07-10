@@ -3531,10 +3531,10 @@ class bybit(Exchange, ImplicitAPI):
         }
         if market['spot']:
             request['category'] = 'spot'
-        elif market['linear']:
-            request['category'] = 'linear'
         elif market['option']:
             request['category'] = 'option'
+        elif market['linear']:
+            request['category'] = 'linear'
         else:
             raise NotSupported(self.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets')
         if market['spot'] and (type == 'market') and (side == 'buy'):
@@ -4012,10 +4012,10 @@ class bybit(Exchange, ImplicitAPI):
             # Valid for option only.
             # 'orderIv': '0',  # Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         }
-        if market['linear']:
-            request['category'] = 'linear'
-        else:
+        if market['option']:
             request['category'] = 'option'
+        elif market['linear']:
+            request['category'] = 'linear'
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')

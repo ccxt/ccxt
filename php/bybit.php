@@ -3646,10 +3646,10 @@ class bybit extends Exchange {
         );
         if ($market['spot']) {
             $request['category'] = 'spot';
-        } elseif ($market['linear']) {
-            $request['category'] = 'linear';
         } elseif ($market['option']) {
             $request['category'] = 'option';
+        } elseif ($market['linear']) {
+            $request['category'] = 'linear';
         } else {
             throw new NotSupported($this->id . ' createOrder does not allow inverse $market orders for ' . $symbol . ' markets');
         }
@@ -4180,10 +4180,10 @@ class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         );
-        if ($market['linear']) {
-            $request['category'] = 'linear';
-        } else {
+        if ($market['option']) {
             $request['category'] = 'option';
+        } elseif ($market['linear']) {
+            $request['category'] = 'linear';
         }
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);

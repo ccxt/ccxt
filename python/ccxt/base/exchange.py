@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.16'
+__version__ = '4.0.17'
 
 # -----------------------------------------------------------------------------
 
@@ -1770,7 +1770,7 @@ class Exchange(object):
                 if value and (value >= since):
                     result.append(entry)
         if tail:
-            return result[-limit:]
+            return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
     def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp', tail=False):
@@ -1791,7 +1791,7 @@ class Exchange(object):
                 if firstCondition and secondCondition:
                     result.append(entry)
         if tail:
-            return result[-limit:]
+            return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
     def set_sandbox_mode(self, enabled):
