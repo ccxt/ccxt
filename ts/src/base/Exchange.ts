@@ -118,6 +118,7 @@ const {
     , InvalidAddress
     , InvalidOrder
     , NotSupported
+    , BadResponse
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
@@ -2514,17 +2515,21 @@ export default class Exchange {
                 const jsoned = this.parseJson (content.trim ()); // content should be trimmed before json parsing
                 if (jsoned) {
                     return jsoned; // if parsing was not successfull, exception should be thrown
+                } else {
+                    throw new BadResponse ("could not parse the response into json");
                 }
             } else {
                 return content;
             }
         } catch (e) {
-            errorMessage = e.toString ();
+            const appendDebugMessage = this.safeValue (options, 'webApiAppendExceptionMessage', false);
+            const addedMessage = appendDebugMessage ? e.toString () : '';
+            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser. ' + addedMessage;
         }
         if (muteOnFailure) {
             return undefined;
         } else {
-            throw new NotSupported (this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser. ' + errorMessage);
+            throw new BadResponse (errorMessage);
         }
     }
 
