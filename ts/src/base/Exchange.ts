@@ -1694,7 +1694,7 @@ export default class Exchange {
         // automatically generate network-id-to-code mappings
         const networkCodesToIds = this.safeValue (this.options, 'networks', {});
         const networkIdsToCodes = this.safeValue (this.options, 'networksById', {}); // support old format for a while
-        const networkIdsToCodesAuto = this.invertStringDictionary (networkCodesToIds);
+        const networkIdsToCodesAuto = this.inverseFlatStringDictionary (networkCodesToIds);
         const networkIdsToCodesCombined = this.extend (networkIdsToCodesAuto, networkIdsToCodes);
         this.options['networksById'] = networkIdsToCodesCombined;
     }
@@ -2300,7 +2300,7 @@ export default class Exchange {
         return trade as Trade;
     }
 
-    invertStringDictionary (dict) {
+    inverseFlatStringDictionary (dict) {
         const reversed = {};
         const keys = Object.keys (dict);
         for (let i = 0; i < keys.length; i++) {
