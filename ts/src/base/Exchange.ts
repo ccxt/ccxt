@@ -1687,7 +1687,7 @@ export default class Exchange {
     }
 
     afterConstruct () {
-        this.reverseNetworkIdsObject  ();
+        this.reverseNetworkIdsObject ();
     }
 
     reverseNetworkIdsObject () {
