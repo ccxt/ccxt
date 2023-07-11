@@ -105,14 +105,23 @@ const decimalToPrecision = (
     countingMode = DECIMAL_PLACES,
     paddingMode = NO_PADDING
 ) => {
+    if (typeof numPrecisionDigits === 'string') {
+        numPrecisionDigits = parseFloat(numPrecisionDigits)
+    }
     if (countingMode === TICK_SIZE) {
-        if (typeof numPrecisionDigits === 'string') {
-            numPrecisionDigits = parseFloat(numPrecisionDigits)
-        }
         if (numPrecisionDigits <= 0) {
             throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
         }
+    } else {
+        if (!Number.isInteger (numPrecisionDigits)) {
+            throw new Error ('Precision must be an integer');
+        }
     }
+
+    if ((roundingMode !== ROUND) && (roundingMode !== TRUNCATE)) {
+        throw new Error ('roundingMode should be either "ROUND" or "TRUNCATE" constants');
+    }
+
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {

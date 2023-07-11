@@ -1033,6 +1033,7 @@ export default class binance extends Exchange {
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
@@ -1708,15 +1709,6 @@ export default class binance extends Exchange {
 
     costToPrecision (symbol, cost) {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
-    }
-
-    currencyToPrecision (code, fee, networkCode = undefined) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
-        } else {
-            return this.numberToString (fee);
-        }
     }
 
     nonce () {
