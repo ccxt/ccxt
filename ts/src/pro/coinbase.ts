@@ -181,7 +181,6 @@ export default class coinbase extends coinbaseRest {
                 client.resolve (result, messageHash);
             }
         }
-        console.log (newTickers);
         const messageHashes = this.findMessageHashes (client, 'ticker_batch::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
