@@ -1687,10 +1687,10 @@ export default class Exchange {
     }
 
     afterConstruct () {
-        this.reverseNetworkIdsObject ();
+        this.invertNetworksIdsObject ();
     }
 
-    reverseNetworkIdsObject () {
+    invertNetworksIdsObject () {
         // automatically generate network-id-to-code mappings
         const networkCodesToIds = this.safeValue (this.options, 'networks', {});
         const networkIdsToCodes = this.safeValue (this.options, 'networksById', {}); // support old format for a while
