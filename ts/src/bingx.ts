@@ -464,6 +464,7 @@ export default class bingx extends Exchange {
             symbol += ':' + settle;
         }
         const contractSize = this.safeNumber (market, 'size');
+        const isActive = this.safeString (market, 'status') === '1';
         const entry = {
             'id': id,
             'symbol': symbol,
@@ -479,7 +480,7 @@ export default class bingx extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': this.safeValue (market, 'status') ? true : false,
+            'active': isActive,
             'contract': swap,
             'linear': swap,
             'inverse': false,
