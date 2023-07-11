@@ -35,9 +35,9 @@ export default class bingx extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositWithdrawFees': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepisutWithdrawFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchLeverage': true,
@@ -500,7 +500,7 @@ export default class bingx extends Exchange {
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': this.safeInteger (market, 'maxLongLeverage'),
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'minQty'),
@@ -563,6 +563,8 @@ export default class bingx extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        } else {
+            request['limit'] = 50;
         }
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchOHLCV is not supported for spot markets');
@@ -1031,7 +1033,7 @@ export default class bingx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
+        if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchTicker is only supported for swap markets.');
         }
         const request = {
@@ -1076,7 +1078,8 @@ export default class bingx extends Exchange {
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
             const firstSymbol = this.safeString (symbols, 0);
-            if (this.markets[firstSymbol]['type'] !== 'swap') {
+            const market = this.market (firstSymbol);
+            if (!market['swap']) {
                 throw new BadRequest (this.id + ' fetchTicker is only supported for swap markets.');
             }
         }
