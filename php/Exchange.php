@@ -1637,20 +1637,21 @@ class Exchange {
     }
 
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
-        if (is_string($numPrecisionDigits)) {
-            $numPrecisionDigits = (float) $numPrecisionDigits;
-        }
         if ($countingMode === TICK_SIZE) {
-            if ($numPrecisionDigits <= 0) {
-                throw new BaseError ('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
-            }
-            if (!is_numeric($x)) {
-                throw new BaseError('Invalid number');
-            }
+            if (!(is_float($numPrecisionDigits) || is_int($numPrecisionDigits) || is_string($numPrecisionDigits) ))
+                throw new BaseError('Precision must be an integer or float or string for TICK_SIZE');
         } else {
             if (!is_int($numPrecisionDigits)) {
                 throw new BaseError('Precision must be an integer');
             }
+        }
+
+        if (is_string($numPrecisionDigits)) {
+            $numPrecisionDigits = (float) $numPrecisionDigits;
+        }
+
+        if (!is_numeric($x)) {
+            throw new BaseError('Invalid number');
         }
 
         assert(($roundingMode === ROUND) || ($roundingMode === TRUNCATE));
