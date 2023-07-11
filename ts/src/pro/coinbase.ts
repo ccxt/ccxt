@@ -60,6 +60,7 @@ export default class coinbase extends coinbaseRest {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds;
+            messageHash = messageHash + '::' + symbol.join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + '::' + market['id'];
@@ -180,7 +181,18 @@ export default class coinbase extends coinbaseRest {
                 client.resolve (result, messageHash);
             }
         }
-        client.resolve (newTickers, 'ticker_batch');
+        console.log (newTickers);
+        const messageHashes = this.findMessageHashes (client, 'ticker_batch::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
+            if (!this.isEmpty (tickers)) {
+                client.resolve (tickers, messageHash);
+            }
+        }
         return message;
     }
 
