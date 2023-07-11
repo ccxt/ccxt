@@ -291,7 +291,6 @@ export default class coinbase extends Exchange {
                 'fetchTicker': 'fetchTickerV3',
                 'fetchTickers': 'fetchTickersV3',
                 'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
-                'user_native_currency': 'USD', // needed to get fees for v3
             },
         });
     }
