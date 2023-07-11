@@ -113,7 +113,6 @@ const decimalToPrecision = (
             throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
         }
     }
-
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
