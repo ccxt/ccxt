@@ -47,11 +47,12 @@ export default class coinbase extends coinbaseRest {
          * @description subscribes to a websocket channel
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
          * @param {string} name the name of the channel
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the cex api endpoint
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object} subscription to a websocket channel
          */
         await this.loadMarkets ();
+        this.checkRequiredCredentials ();
         let market = undefined;
         let messageHash = name;
         let productIds = [];
@@ -84,8 +85,8 @@ export default class coinbase extends coinbaseRest {
          * @name coinbasepro#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
+         * @param {string} [symbol] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'ticker';
@@ -98,8 +99,8 @@ export default class coinbase extends coinbaseRest {
          * @name coinbasepro#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
-         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         if (symbols === undefined) {
@@ -240,10 +241,10 @@ export default class coinbase extends coinbaseRest {
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -261,11 +262,11 @@ export default class coinbase extends coinbaseRest {
          * @name coinbasepro#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} [symbol] unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const name = 'user';
@@ -283,8 +284,8 @@ export default class coinbase extends coinbaseRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
