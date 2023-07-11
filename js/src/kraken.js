@@ -81,8 +81,8 @@ export default class kraken extends Exchange {
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': false,
-                'withdraw': true,
                 'transfer': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 1,
