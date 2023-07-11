@@ -2516,7 +2516,7 @@ export default class Exchange {
                 if (jsoned) {
                     return jsoned; // if parsing was not successfull, exception should be thrown
                 } else {
-                    throw new BadResponse ("could not parse the response into json");
+                    throw new BadResponse ('could not parse the response into json');
                 }
             } else {
                 return content;
