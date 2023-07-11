@@ -1298,7 +1298,7 @@ export default class bitmex extends Exchange {
             'txid': this.safeString (transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': this.safeString (transaction, 'network'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network'), currency['code']),
             'amount': amount,
             'status': status,
             'timestamp': transactTime,
