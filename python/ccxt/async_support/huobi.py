@@ -2254,12 +2254,9 @@ class huobi(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrderTrades', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'fetchSpotOrderTrades',
-            # 'swap': 'fetchContractOrderTrades',
-            # 'future': 'fetchContractOrderTrades',
-        })
-        return await getattr(self, method)(id, symbol, since, limit, params)
+        if marketType != 'spot':
+            raise NotSupported(self.id + ' fetchOrderTrades() is only supported for spot markets')
+        return await self.fetch_spot_order_trades(id, symbol, since, limit, params)
 
     async def fetch_spot_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
@@ -3617,17 +3614,15 @@ class huobi(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'fetchSpotOrders',
-            'swap': 'fetchContractOrders',
-            'future': 'fetchContractOrders',
-        })
-        if method is None:
-            raise NotSupported(self.id + ' fetchOrders() does not support ' + marketType + ' markets yet')
         contract = (marketType == 'swap') or (marketType == 'future')
         if contract and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders')
-        return await getattr(self, method)(symbol, since, limit, params)
+        response = None
+        if contract:
+            response = await self.fetch_contract_orders(symbol, since, limit, params)
+        else:
+            response = await self.fetch_spot_orders(symbol, since, limit, params)
+        return response
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -3644,14 +3639,12 @@ class huobi(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'fetchClosedSpotOrders',
-            'swap': 'fetchClosedContractOrders',
-            'future': 'fetchClosedContractOrders',
-        })
-        if method is None:
-            raise NotSupported(self.id + ' fetchClosedOrders() does not support ' + marketType + ' markets yet')
-        return await getattr(self, method)(symbol, since, limit, params)
+        response = None
+        if marketType == 'spot':
+            response = await self.fetch_closed_spot_orders(symbol, since, limit, params)
+        else:
+            response = await self.fetch_closed_contract_orders(symbol, since, limit, params)
+        return response
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

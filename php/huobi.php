@@ -2304,12 +2304,10 @@ class huobi extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'fetchSpotOrderTrades',
-            // 'swap' => 'fetchContractOrderTrades',
-            // 'future' => 'fetchContractOrderTrades',
-        ));
-        return $this->$method ($id, $symbol, $since, $limit, $params);
+        if ($marketType !== 'spot') {
+            throw new NotSupported($this->id . ' fetchOrderTrades() is only supported for spot markets');
+        }
+        return $this->fetch_spot_order_trades($id, $symbol, $since, $limit, $params);
     }
 
     public function fetch_spot_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3774,19 +3772,17 @@ class huobi extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'fetchSpotOrders',
-            'swap' => 'fetchContractOrders',
-            'future' => 'fetchContractOrders',
-        ));
-        if ($method === null) {
-            throw new NotSupported($this->id . ' fetchOrders() does not support ' . $marketType . ' markets yet');
-        }
         $contract = ($marketType === 'swap') || ($marketType === 'future');
         if ($contract && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for ' . $marketType . ' orders');
         }
-        return $this->$method ($symbol, $since, $limit, $params);
+        $response = null;
+        if ($contract) {
+            $response = $this->fetch_contract_orders($symbol, $since, $limit, $params);
+        } else {
+            $response = $this->fetch_spot_orders($symbol, $since, $limit, $params);
+        }
+        return $response;
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3805,15 +3801,13 @@ class huobi extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'fetchClosedSpotOrders',
-            'swap' => 'fetchClosedContractOrders',
-            'future' => 'fetchClosedContractOrders',
-        ));
-        if ($method === null) {
-            throw new NotSupported($this->id . ' fetchClosedOrders() does not support ' . $marketType . ' markets yet');
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = $this->fetch_closed_spot_orders($symbol, $since, $limit, $params);
+        } else {
+            $response = $this->fetch_closed_contract_orders($symbol, $since, $limit, $params);
         }
-        return $this->$method ($symbol, $since, $limit, $params);
+        return $response;
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
