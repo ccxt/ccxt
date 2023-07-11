@@ -783,7 +783,6 @@ export default class gate extends Exchange {
                     // dead: MANTA, CSM (probably crust shadow)
                     // undetermined: ASK_OLD, BTMV1, ETH2, GALA2 (ZPT), GAS_OLD (NKN_N2), GATEIO (POINT), GEMINIS, LION_GTEVM, CTO, EQ, HKO, KAZE, KPHA (probably phala), KPN (apron?), KSX, LBTC, LUK (MLK), NEO_OLD (NEO_OLD), PHAKSM, PICA, PKS, SUB (subsocial), SUBG (subgame), SUPV1, TIPS0, TUR, UNIQUE, USC, USDTEST
                 },
-                'networksById': {},
                 'timeInForce': {
                     'GTC': 'gtc',
                     'IOC': 'ioc',
