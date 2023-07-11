@@ -36,7 +36,7 @@ class bybit extends Exchange {
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
-                'option' => null,
+                'option' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -82,6 +82,7 @@ class bybit extends Exchange {
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => true,
+                'fetchSettlementHistory' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -1822,8 +1823,8 @@ class bybit extends Exchange {
                         'option' => true,
                         'active' => $isActive,
                         'contract' => true,
-                        'linear' => true,
-                        'inverse' => false,
+                        'linear' => null,
+                        'inverse' => null,
                         'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                         'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                         'contractSize' => $this->safe_number($lotSizeFilter, 'minOrderQty'),
@@ -8738,6 +8739,100 @@ class bybit extends Exchange {
             $rows = $this->safe_value($data, 'rows', array());
             return $this->parse_deposit_withdraw_fees($rows, $codes, 'coin');
         }) ();
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical settlement records
+             * @see https://bybit-exchange.github.io/docs/v5/market/delivery-price
+             * @param {string} $symbol unified $market $symbol of the settlement history
+             * @param {int} [$since] timestamp in ms
+             * @param {int} [$limit] number of records
+             * @param {array} [$params] exchange specific $params
+             * @return {array[]} a list of [settlement history objects]
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+            if ($type === 'option') {
+                $request['category'] = 'option';
+            } else {
+                $subType = null;
+                list($subType, $params) = $this->handle_sub_type_and_params('fetchSettlementHistory', $market, $params, 'linear');
+                $request['category'] = $subType;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetV5MarketDeliveryPrice (array_merge($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "success",
+            //         "result" => array(
+            //             "category" => "option",
+            //             "nextPageCursor" => "0%2C3",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "SOL-27JUN23-20-C",
+            //                     "deliveryPrice" => "16.62258889",
+            //                     "deliveryTime" => "1687852800000"
+            //                 ),
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1689043527231
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'list', array());
+            $settlements = $this->parse_settlements($data, $market);
+            $sorted = $this->sort_by($settlements, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        //     {
+        //         "symbol" => "SOL-27JUN23-20-C",
+        //         "deliveryPrice" => "16.62258889",
+        //         "deliveryTime" => "1687852800000"
+        //     }
+        //
+        $timestamp = $this->safe_integer($settlement, 'deliveryTime');
+        $marketId = $this->safe_string($settlement, 'symbol');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'deliveryPrice'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_settlements($settlements, $market) {
+        //
+        //     array(
+        //         {
+        //             "symbol" => "SOL-27JUN23-20-C",
+        //             "deliveryPrice" => "16.62258889",
+        //             "deliveryTime" => "1687852800000"
+        //         }
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

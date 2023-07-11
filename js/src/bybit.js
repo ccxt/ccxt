@@ -34,7 +34,7 @@ export default class bybit extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -80,6 +80,7 @@ export default class bybit extends Exchange {
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
+                'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -1800,8 +1801,8 @@ export default class bybit extends Exchange {
                     'option': true,
                     'active': isActive,
                     'contract': true,
-                    'linear': true,
-                    'inverse': false,
+                    'linear': undefined,
+                    'inverse': undefined,
                     'taker': this.safeNumber(market, 'takerFee', this.parseNumber('0.0006')),
                     'maker': this.safeNumber(market, 'makerFee', this.parseNumber('0.0001')),
                     'contractSize': this.safeNumber(lotSizeFilter, 'minOrderQty'),
@@ -8694,6 +8695,98 @@ export default class bybit extends Exchange {
         const data = this.safeValue(response, 'result', {});
         const rows = this.safeValue(data, 'rows', []);
         return this.parseDepositWithdrawFees(rows, codes, 'coin');
+    }
+    async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://bybit-exchange.github.io/docs/v5/market/delivery-price
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [settlement history objects]
+         */
+        await this.loadMarkets();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
+        if (type === 'option') {
+            request['category'] = 'option';
+        }
+        else {
+            let subType = undefined;
+            [subType, params] = this.handleSubTypeAndParams('fetchSettlementHistory', market, params, 'linear');
+            request['category'] = subType;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV5MarketDeliveryPrice(this.extend(request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "category": "option",
+        //             "nextPageCursor": "0%2C3",
+        //             "list": [
+        //                 {
+        //                     "symbol": "SOL-27JUN23-20-C",
+        //                     "deliveryPrice": "16.62258889",
+        //                     "deliveryTime": "1687852800000"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1689043527231
+        //     }
+        //
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'list', []);
+        const settlements = this.parseSettlements(data, market);
+        const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseSettlement(settlement, market) {
+        //
+        //     {
+        //         "symbol": "SOL-27JUN23-20-C",
+        //         "deliveryPrice": "16.62258889",
+        //         "deliveryTime": "1687852800000"
+        //     }
+        //
+        const timestamp = this.safeInteger(settlement, 'deliveryTime');
+        const marketId = this.safeString(settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol(marketId, market),
+            'price': this.safeNumber(settlement, 'deliveryPrice'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    parseSettlements(settlements, market) {
+        //
+        //     [
+        //         {
+        //             "symbol": "SOL-27JUN23-20-C",
+        //             "deliveryPrice": "16.62258889",
+        //             "deliveryTime": "1687852800000"
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push(this.parseSettlement(settlements[i], market));
+        }
+        return result;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;

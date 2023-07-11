@@ -1,3 +1,51 @@
+## 4.0.18 (2023-07-11)
+
+*  binance: use fapiPrivateV2GetAccount instead [a70802a512](https://github.com/ccxt/ccxt/commits/a70802a512c41469034baab0e7449833d785c7bf)
+*  binance: use fapiPrivateV2GetPositionRisk instead [4f52bfcb78](https://github.com/ccxt/ccxt/commits/4f52bfcb786fbb28d7f17fb628557800199c3014)
+*  binance: add new fapis [8416b9f828](https://github.com/ccxt/ccxt/commits/8416b9f8281cfd0aa3baad566c789efdcfb66e09)
+*  feat(kraken): add transfer and transferOut [3f9d855dca](https://github.com/ccxt/ccxt/commits/3f9d855dca461e44f7c822ead9ea2987ddecc951)
+*  add flag [8975eafbc3](https://github.com/ccxt/ccxt/commits/8975eafbc3b14586c8abba964f150fcc2a4bae70)
+*  feat(bybit): option support [ed260bae66](https://github.com/ccxt/ccxt/commits/ed260bae66772b4dacad6be8ed61e10df5c2f8ce)
+*  4.0.18 [0103010265](https://github.com/ccxt/ccxt/commits/010301026555aa497da353895f63a267e90e616c)
+
+
+## 4.0.17 (2023-07-10)
+
+*  fix(huobi): createContractOrder and createSpotOrder casing [ce341b969d](https://github.com/ccxt/ccxt/commits/ce341b969d299fd52222f5f280ab57c244cbf42d)
+*  fix(Exchange.php): filterByLimit fix [9c07805647](https://github.com/ccxt/ccxt/commits/9c078056474964b4b2f5c52ea62fb54b946774d8)
+*  fix(bybit): v5 :: creatOrder :: option markets [ed8ffe5054](https://github.com/ccxt/ccxt/commits/ed8ffe505405f2520f2e1f38dcdab0f0a952b8cd)
+*  fix(bybit): editOrder options [9695bd1ce1](https://github.com/ccxt/ccxt/commits/9695bd1ce1ddeea743300c62cfa00aeb05357e64)
+*  4.0.17 [91ea2e02ab](https://github.com/ccxt/ccxt/commits/91ea2e02abe1344e5462391e3c51fe16effd592c)
+
+
+## 4.0.16 (2023-07-10)
+
+*  feat(bybit): fetchMarkets, add ETH and SOL options markets [fcbcb7e904](https://github.com/ccxt/ccxt/commits/fcbcb7e904ae8586b99f7bb676cc344ae93f73d9)
+*  fix error: use parseNumber on strike price [45c1896c35](https://github.com/ccxt/ccxt/commits/45c1896c355615c37402622755ea92fef1930dc2)
+*  add 'loadExpiredOptions' setting [c8cfcb5fb0](https://github.com/ccxt/ccxt/commits/c8cfcb5fb0cc194f47abd279d0fae5744a1c4dc3)
+*  bitget: add apis [8bd1144e57](https://github.com/ccxt/ccxt/commits/8bd1144e571f160f086b695dd5f01431cab1581d)
+*  bybit: add apis [2680834fc9](https://github.com/ccxt/ccxt/commits/2680834fc9c14b7f188d1253520ba4cf87c95f03)
+*  huobi: add apis [fd82b83d9f](https://github.com/ccxt/ccxt/commits/fd82b83d9f6ee2ef61ecd8384ded91d046d26bc1)
+*  okx: add apis [8def728d0c](https://github.com/ccxt/ccxt/commits/8def728d0c23e222139e76ad6e6afb475c54a01a)
+*  simplify options loading [d5a7c12ebc](https://github.com/ccxt/ccxt/commits/d5a7c12ebc11070524ebb2d485451eb63714bfec)
+*  4.0.16 [e272a14e0c](https://github.com/ccxt/ccxt/commits/e272a14e0c5e8bb9ff35b440a85bcc3416db2f39)
+
+
+## 4.0.15 (2023-07-09)
+
+*  feat(cryptocom): add ws trading api [2f71e3ae2f](https://github.com/ccxt/ccxt/commits/2f71e3ae2f45f7d6bf92db596cf8c9b4f9e6c737)
+*  fix py [456b60f477](https://github.com/ccxt/ccxt/commits/456b60f4779dfb37b0dbac9b9483331a8edeb850)
+*  fixes [1fb899e7e9](https://github.com/ccxt/ccxt/commits/1fb899e7e90288fadea525fbd9c19b865c15bc24)
+*  fix error [85c36ad61e](https://github.com/ccxt/ccxt/commits/85c36ad61eb9c5ccc87f340f1ea09f95f09fa3cd)
+*  fix(base): add fetchOpenInterest [72b3b88a47](https://github.com/ccxt/ccxt/commits/72b3b88a473abb8446496a719126ee56ec4fa25a)
+*  fix signature [38fd003fdb](https://github.com/ccxt/ccxt/commits/38fd003fdb598c9d18c2190d92cd6ec6595fd38f)
+*  bitget error mapping 43115 The current trading pair is opening soon, please refer to the official announcement for the opening time [a66778d2cd](https://github.com/ccxt/ccxt/commits/a66778d2cd58666e1d95b241308614d3bd53ff07)
+*  merge main [2c5a1d9b03](https://github.com/ccxt/ccxt/commits/2c5a1d9b035938a8e981b75c99f5e5e10fd702b2)
+*  fix [01367f5ce1](https://github.com/ccxt/ccxt/commits/01367f5ce1a7a3131c2b839f72f331d19f45e83d)
+*  priceToPrecision, amountToPrecision error handling fix [d6af644e4e](https://github.com/ccxt/ccxt/commits/d6af644e4e64c532ce308eca6af30b31c333b61d)
+*  4.0.15 [876f34c0a8](https://github.com/ccxt/ccxt/commits/876f34c0a8ea41c150628bb5143a78d30f8a8d00)
+
+
 ## 4.0.14 (2023-07-08)
 
 *  huobi.createSpotOrder docstring [685b86b30a](https://github.com/ccxt/ccxt/commits/685b86b30aafff40e7152f3525837cb3f8b6bab1)
