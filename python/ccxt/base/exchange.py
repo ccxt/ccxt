@@ -243,6 +243,7 @@ class Exchange(object):
     tickers = None
     base_currencies = None
     quote_currencies = None
+    generatedNetworkData = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
@@ -432,6 +433,8 @@ class Exchange(object):
 
         if self.markets:
             self.set_markets(self.markets)
+
+        self.after_construct()
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
