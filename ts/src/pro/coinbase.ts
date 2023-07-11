@@ -47,7 +47,7 @@ export default class coinbase extends coinbaseRest {
          * @description subscribes to a websocket channel
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
          * @param {string} name the name of the channel
-         * @param {string} [symbol] unified market symbol
+         * @param {string|string[]} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object} subscription to a websocket channel
          */
@@ -60,9 +60,10 @@ export default class coinbase extends coinbaseRest {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds;
+            messageHash = messageHash + '::' + symbol.join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash = name + ':' + market['id'];
+            messageHash = name + '::' + market['id'];
             productIds = [ market['id'] ];
         }
         const url = this.urls['api']['ws'];
@@ -111,7 +112,7 @@ export default class coinbase extends coinbaseRest {
         return tickers;
     }
 
-    handleTicker (client, message) {
+    handleTickers (client, message) {
         //
         //    {
         //        "channel": "ticker",
@@ -137,12 +138,6 @@ export default class coinbase extends coinbaseRest {
         //            }
         //        ]
         //    }
-        //
-        const channel = this.safeString (message, 'channel');
-        this.parseRawTickersHelper (client, message, channel);
-    }
-
-    handleTickers (client, message) {
         //
         //    {
         //        "channel": "ticker_batch",
@@ -170,13 +165,8 @@ export default class coinbase extends coinbaseRest {
         //    }
         //
         const channel = this.safeString (message, 'channel');
-        this.parseRawTickersHelper (client, message, channel);
-        const values = Object.values (this.tickers);
-        client.resolve (values, channel + ':');
-    }
-
-    parseRawTickersHelper (client, message, channel) {
         const events = this.safeValue (message, 'events', []);
+        const newTickers = [];
         for (let i = 0; i < events.length; i++) {
             const tickersObj = events[i];
             const tickers = this.safeValue (tickersObj, 'tickers', []);
@@ -186,11 +176,24 @@ export default class coinbase extends coinbaseRest {
                 const symbol = result['symbol'];
                 this.tickers[symbol] = result;
                 const wsMarketId = this.safeString (ticker, 'product_id');
-                const messageHash = channel + ':' + wsMarketId;
+                const messageHash = channel + '::' + wsMarketId;
+                newTickers.push (ticker);
                 client.resolve (result, messageHash);
             }
-            client.resolve (this.tickers, 'ticker_batch');
         }
+        console.log (newTickers);
+        const messageHashes = this.findMessageHashes (client, 'ticker_batch::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
+            if (!this.isEmpty (tickers)) {
+                client.resolve (tickers, messageHash);
+            }
+        }
+        return message;
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -325,7 +328,7 @@ export default class coinbase extends coinbaseRest {
         const trades = this.safeValue (event, 'trades');
         const trade = this.safeValue (trades, 0);
         const marketId = this.safeString (trade, 'product_id');
-        const messageHash = 'market_trades:' + marketId;
+        const messageHash = 'market_trades::' + marketId;
         const symbol = this.safeSymbol (marketId);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
@@ -397,7 +400,7 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const messageHash = 'user:' + marketId;
+            const messageHash = 'user::' + marketId;
             client.resolve (this.orders, messageHash);
         }
         client.resolve (this.orders, 'user');
@@ -500,7 +503,7 @@ export default class coinbase extends coinbaseRest {
             const event = events[i];
             const updates = this.safeValue (event, 'updates', []);
             const marketId = this.safeString (event, 'product_id');
-            const messageHash = 'level2:' + marketId;
+            const messageHash = 'level2::' + marketId;
             const subscription = this.safeValue (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit');
             const symbol = this.safeSymbol (marketId);
@@ -544,7 +547,7 @@ export default class coinbase extends coinbaseRest {
         const channel = this.safeString (message, 'channel');
         const methods = {
             'subscriptions': this.handleSubscriptionStatus,
-            'ticker': this.handleTicker,
+            'ticker': this.handleTickers,
             'ticker_batch': this.handleTickers,
             'market_trades': this.handleTrade,
             'user': this.handleOrder,
