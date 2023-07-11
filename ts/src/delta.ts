@@ -645,7 +645,7 @@ export default class delta extends Exchange {
                             letter = 'M';
                             optionType = 'move';
                         }
-                        symbol = symbol + ':' + strike + ':' + letter;
+                        symbol = symbol + '-' + strike + '-' + letter;
                     } else {
                         type = 'future';
                     }
