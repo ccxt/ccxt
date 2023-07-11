@@ -2522,9 +2522,7 @@ export default class Exchange {
                 return content;
             }
         } catch (e) {
-            const appendDebugMessage = this.safeValue (options, 'webApiAppendExceptionMessage', false);
-            const addedMessage = appendDebugMessage ? e.toString () : '';
-            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser. ' + addedMessage;
+            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
         if (muteOnFailure) {
             return undefined;
