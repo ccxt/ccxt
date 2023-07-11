@@ -291,6 +291,7 @@ export default class Exchange {
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
+    generatedNetworkData = {}
     currencies_by_id = undefined
     codes = undefined
 
@@ -734,6 +735,8 @@ export default class Exchange {
             this.setMarkets (this.markets)
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
+
+        this.afterConstruct ();
     }
 
     encodeURIComponent (...args) {
@@ -1684,6 +1687,19 @@ export default class Exchange {
         return parseInt (convertedNumber);
     }
 
+    afterConstruct () {
+        this.generateNetworkIdToCodeMappings ();
+    }
+
+    generateNetworkIdToCodeMappings () {
+        // automatically generate network-id-to-code mappings
+        const networkCodesToIds = this.safeValue (this.options, 'networks', {});
+        const networkIdsToCodes = this.safeValue (this.options, 'networksById', {}); // support old format for a while
+        const networkIdsToCodesAuto = this.invertStringDictionary (networkCodesToIds);
+        const networkIdsToCodesCombined = this.extend (networkIdsToCodesAuto, networkIdsToCodes);
+        this.options['networksById'] = networkIdsToCodesCombined;
+    }
+
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
@@ -2283,6 +2299,37 @@ export default class Exchange {
         trade['price'] = this.parseNumber (price);
         trade['cost'] = this.parseNumber (cost);
         return trade as Trade;
+    }
+
+    invertStringDictionary (dict) {
+        const reversed = {};
+        const keys = Object.keys (dict);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = dict[key];
+            let checkKeys = [];
+            // support array in value, i.e.  'a': [ 'b', 'c' ]
+            if (Array.isArray (value)) {
+                checkKeys = value;
+            } else if (typeof value === 'string') {
+                checkKeys.push (value);
+            }
+            for (let j = 0; j < checkKeys.length; j++) {
+                const currentKey = checkKeys[j];
+                // if it was already in keys
+                if (!(currentKey in reversed)) {
+                    reversed[currentKey] = key;
+                } else {
+                    if (Array.isArray (reversed[currentKey])) {
+                        reversed[currentKey].push (key);
+                    } else {
+                        const keyValue = reversed[currentKey];
+                        reversed[currentKey] = [ keyValue, key ];
+                    }
+                }
+            }
+        }
+        return reversed;
     }
 
     reduceFeesByCurrency (fees) {
