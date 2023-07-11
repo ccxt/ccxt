@@ -243,7 +243,6 @@ class Exchange(object):
     tickers = None
     base_currencies = None
     quote_currencies = None
-    generatedNetworkData = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None

@@ -291,7 +291,6 @@ export default class Exchange {
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
-    generatedNetworkData = {}
     currencies_by_id = undefined
     codes = undefined
 
@@ -1688,10 +1687,10 @@ export default class Exchange {
     }
 
     afterConstruct () {
-        this.generateNetworkIdToCodeMappings ();
+        this.reverseNetworkIdsObject  ();
     }
 
-    generateNetworkIdToCodeMappings () {
+    reverseNetworkIdsObject () {
         // automatically generate network-id-to-code mappings
         const networkCodesToIds = this.safeValue (this.options, 'networks', {});
         const networkIdsToCodes = this.safeValue (this.options, 'networksById', {}); // support old format for a while

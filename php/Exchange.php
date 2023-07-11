@@ -132,7 +132,6 @@ class Exchange {
     public $currencies = array();
     public $base_currencies = null;
     public $quote_currencies = null;
-    public $generatedNetworkData = array();
     public $balance = array();
     public $orderbooks = array();
     public $tickers = array();
