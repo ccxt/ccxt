@@ -99,6 +99,7 @@ class kraken(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'setLeverage': False,
                 'setMarginMode': False,  # Kraken only supports cross margin
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -209,6 +210,7 @@ class kraken(Exchange, ImplicitAPI):
                         'WithdrawCancel': 3,
                         'WithdrawInfo': 3,
                         'WithdrawStatus': 3,
+                        'WalletTransfer': 3,
                         # staking
                         'Stake': 3,
                         'Unstake': 3,
@@ -2294,6 +2296,90 @@ class kraken(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result')
         # todo unify parsePosition/parsePositions
         return result
+
+    def parse_account(self, account):
+        accountByType = {
+            'spot': 'Spot Wallet',
+            'swap': 'Futures Wallet',
+            'future': 'Futures Wallet',
+        }
+        return self.safe_string(accountByType, account, account)
+
+    async def transfer_out(self, code: str, amount, params={}):
+        """
+        transfer from spot wallet to futures wallet
+        :param str code: Unified currency code
+        :param float amount: Size of the transfer
+        :param dict [params]: Exchange specific parameters
+        :returns: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        return await self.transfer(code, amount, 'spot', 'swap', params)
+
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+        """
+        see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+        transfers currencies between sub-accounts(only spot->swap direction is supported)
+        :param str code: Unified currency code
+        :param float amount: Size of the transfer
+        :param str fromAccount: 'spot' or 'Spot Wallet'
+        :param str toAccount: 'swap' or 'Futures Wallet'
+        :param dict [params]: Exchange specific parameters
+        :returns: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        fromAccount = self.parse_account(fromAccount)
+        toAccount = self.parse_account(toAccount)
+        request = {
+            'amount': self.currency_to_precision(code, amount),
+            'from': fromAccount,
+            'to': toAccount,
+            'asset': currency['id'],
+        }
+        if fromAccount != 'Spot Wallet':
+            raise BadRequest(self.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount + '. Use krakenfutures instead to transfer from the futures account.')
+        response = await self.privatePostWalletTransfer(self.extend(request, params))
+        #
+        #   {
+        #       "error":[
+        #       ],
+        #       "result":{
+        #          "refid":"BOIUSIF-M7DLMN-UXZ3P5"
+        #       }
+        #   }
+        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #    {
+        #        "error":[
+        #        ],
+        #        "result":{
+        #           "refid":"BOIUSIF-M7DLMN-UXZ3P5"
+        #        }
+        #    }
+        #
+        result = self.safe_value(transfer, 'result', {})
+        refid = self.safe_string(result, 'refid')
+        return {
+            'info': transfer,
+            'id': refid,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_string(currency, 'code'),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'sucess',
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path
