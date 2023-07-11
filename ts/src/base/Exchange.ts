@@ -2496,7 +2496,11 @@ export default class Exchange {
                 } catch (e) {
                     retry = retry + 1;
                     if (retry === maxRetries) {
-                        throw e;
+                        if (this.safeValue (options, 'webApiMuteFailure', true)) {
+                            return undefined;
+                        } else {
+                            throw e;
+                        }
                     }
                 }
             }
