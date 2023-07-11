@@ -13,8 +13,7 @@ import { Int, OrderSide, OrderType } from './base/types.js';
  * @extends Exchange
  */
 export default class bitfinex2 extends Exchange {
-    describe () {USER APPROVED
-
+    describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
             'name': 'Bitfinex',
@@ -2008,6 +2007,7 @@ export default class bitfinex2 extends Exchange {
             'PENDING': 'pending',
             'PENDING REVIEW': 'pending',
             'PENDING CANCELLATION': 'pending',
+            'SENDING': 'pending',
             'USER APPROVED': 'pending',
         };
         return this.safeString (statuses, status, status);
