@@ -1175,6 +1175,7 @@ class bitmex(Exchange, ImplicitAPI):
 
     def parse_transaction_status(self, status):
         statuses = {
+            'Confirmed': 'pending',
             'Canceled': 'canceled',
             'Completed': 'ok',
             'Pending': 'pending',
@@ -1220,7 +1221,8 @@ class bitmex(Exchange, ImplicitAPI):
             addressTo = self.safe_string(transaction, 'address')
             addressFrom = self.safe_string(transaction, 'tx')
         amountString = self.safe_string(transaction, 'amount')
-        amount = self.convert_to_real_amount(currency['code'], amountString)
+        amountStringAbs = Precise.string_abs(amountString)
+        amount = self.convert_to_real_amount(currency['code'], amountStringAbs)
         feeCostString = self.safe_string(transaction, 'fee')
         feeCost = self.convert_to_real_amount(currency['code'], feeCostString)
         status = self.safe_string(transaction, 'transactStatus')

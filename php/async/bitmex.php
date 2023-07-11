@@ -1242,6 +1242,7 @@ class bitmex extends Exchange {
 
     public function parse_transaction_status($status) {
         $statuses = array(
+            'Confirmed' => 'pending',
             'Canceled' => 'canceled',
             'Completed' => 'ok',
             'Pending' => 'pending',
@@ -1289,7 +1290,8 @@ class bitmex extends Exchange {
             $addressFrom = $this->safe_string($transaction, 'tx');
         }
         $amountString = $this->safe_string($transaction, 'amount');
-        $amount = $this->convert_to_real_amount($currency['code'], $amountString);
+        $amountStringAbs = Precise::string_abs($amountString);
+        $amount = $this->convert_to_real_amount($currency['code'], $amountStringAbs);
         $feeCostString = $this->safe_string($transaction, 'fee');
         $feeCost = $this->convert_to_real_amount($currency['code'], $feeCostString);
         $status = $this->safe_string($transaction, 'transactStatus');

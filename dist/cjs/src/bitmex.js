@@ -1220,6 +1220,7 @@ class bitmex extends bitmex$1 {
     }
     parseTransactionStatus(status) {
         const statuses = {
+            'Confirmed': 'pending',
             'Canceled': 'canceled',
             'Completed': 'ok',
             'Pending': 'pending',
@@ -1267,7 +1268,8 @@ class bitmex extends bitmex$1 {
             addressFrom = this.safeString(transaction, 'tx');
         }
         const amountString = this.safeString(transaction, 'amount');
-        const amount = this.convertToRealAmount(currency['code'], amountString);
+        const amountStringAbs = Precise["default"].stringAbs(amountString);
+        const amount = this.convertToRealAmount(currency['code'], amountStringAbs);
         const feeCostString = this.safeString(transaction, 'fee');
         const feeCost = this.convertToRealAmount(currency['code'], feeCostString);
         let status = this.safeString(transaction, 'transactStatus');
