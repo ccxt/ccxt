@@ -1234,7 +1234,7 @@ class bitmex(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': self.safe_string(transaction, 'network'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), currency['code']),
             'amount': amount,
             'status': status,
             'timestamp': transactTime,

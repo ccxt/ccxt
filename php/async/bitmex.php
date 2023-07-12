@@ -1304,7 +1304,7 @@ class bitmex extends Exchange {
             'txid' => $this->safe_string($transaction, 'tx'),
             'type' => $type,
             'currency' => $currency['code'],
-            'network' => $this->safe_string($transaction, 'network'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $currency['code']),
             'amount' => $amount,
             'status' => $status,
             'timestamp' => $transactTime,
