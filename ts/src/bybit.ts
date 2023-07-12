@@ -7086,7 +7086,7 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const positions = this.safeValue2 (result, 'list', 'dataList', []);
         const timestamp = this.safeInteger (response, 'time');
-        const first = this.safeValue (positions, 0);
+        const first = this.safeValue (positions, 0, {});
         const position = this.parsePosition (first, market);
         return this.extend (position, {
             'timestamp': timestamp,

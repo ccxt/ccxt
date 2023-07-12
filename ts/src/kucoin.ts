@@ -449,6 +449,7 @@ export default class kucoin extends Exchange {
                 'fetchCurrencies': {
                     'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 5,
+                    'webApiMuteFailure': true,
                 },
                 'fetchMarkets': {
                     'fetchTickersFees': true,
