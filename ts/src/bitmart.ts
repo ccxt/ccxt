@@ -960,18 +960,6 @@ export default class bitmart extends Exchange {
         return result;
     }
 
-    setNetworkMappingsForUniqueCurrencyId (currencyId, currencyCode, networkId, networkCode) {
-        // unique currency id means that exchange uses currency id junctions like: 'USDT-BEP20', 'USDT-TRX', etc
-        this.generatedNetworkData['currencyIdToCurrencyCode'][currencyId] = currencyCode;
-        this.generatedNetworkData['currencyIdToNetworkCode'][currencyId] = networkCode;
-        if (!(networkCode in this.generatedNetworkData['networkCodeToCurrencyId'])) {
-            this.generatedNetworkData['networkCodeToCurrencyId'][networkCode] = {};
-            this.generatedNetworkData['networkCodeToNetworkId'][networkCode] = {};
-        }
-        this.generatedNetworkData['networkCodeToCurrencyId'][networkCode][currencyCode] = currencyId;
-        this.generatedNetworkData['networkCodeToNetworkId'][networkCode][currencyCode] = networkId;
-    }
-
     handleNetworkCodeAndParamsWithCurrencyId (currencyCode, params = {}) {
         let networkCode = undefined;
         let currencyId = undefined;
@@ -1002,6 +990,7 @@ export default class bitmart extends Exchange {
     }
 
     currency (code) {
+        // as we have currency-ids like USDT-ERC20, we need to have `this.currency ('USDT')` instead of `this.currency ('USDT'), so make an override to achieve that
         try {
             return super.currency (code);
         } catch (e) {

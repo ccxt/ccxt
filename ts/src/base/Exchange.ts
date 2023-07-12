@@ -1691,9 +1691,20 @@ export default class Exchange {
         this.generatedNetworkData = {
             'currencyIdToCurrencyCode': {},
             'currencyIdToNetworkCode': {},
+            'currencyIdToNetworkId': {},
             'networkCodeToCurrencyId': {},
-            'networkCodeToNetworkId': {},
         };
+    }
+
+    setNetworkMappingsForUniqueCurrencyId (currencyId, currencyCode, networkId, networkCode) {
+        // unique currency id means that exchange uses currency id junctions like: 'USDT-BEP20', 'USDT-TRX', etc
+        this.generatedNetworkData['currencyIdToCurrencyCode'][currencyId] = currencyCode;
+        this.generatedNetworkData['currencyIdToNetworkCode'][currencyId] = networkCode;
+        this.generatedNetworkData['currencyIdToNetworkId'][currencyId] = networkId;
+        if (!(networkCode in this.generatedNetworkData['networkCodeToCurrencyId'])) {
+            this.generatedNetworkData['networkCodeToCurrencyId'][networkCode] = {};
+        }
+        this.generatedNetworkData['networkCodeToCurrencyId'][networkCode][currencyCode] = currencyId;
     }
 
     getDefaultOptions () {
