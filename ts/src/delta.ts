@@ -645,15 +645,13 @@ export default class delta extends Exchange {
                             letter = 'M';
                             optionType = 'move';
                         }
-                        symbol = symbol + ':' + strike + ':' + letter;
+                        symbol = symbol + '-' + strike + '-' + letter;
                     } else {
                         type = 'future';
                     }
                 } else {
                     type = 'swap';
                 }
-            } else {
-                symbol = id;
             }
             const state = this.safeString (market, 'state');
             result.push ({
