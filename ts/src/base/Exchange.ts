@@ -1692,11 +1692,8 @@ export default class Exchange {
 
     invertNetworksIdsObject () {
         // automatically generate network-id-to-code mappings
-        const networkCodesToIds = this.safeValue (this.options, 'networks', {});
-        const networkIdsToCodes = this.safeValue (this.options, 'networksById', {}); // support old format for a while
-        const networkIdsToCodesAuto = this.invertFlatStringDictionary (networkCodesToIds);
-        const networkIdsToCodesCombined = this.extend (networkIdsToCodesAuto, networkIdsToCodes);
-        this.options['networksById'] = networkIdsToCodesCombined;
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
+        this.options['networksById'] =  this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
     }
 
     getDefaultOptions () {
