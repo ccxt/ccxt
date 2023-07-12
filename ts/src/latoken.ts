@@ -112,6 +112,7 @@ export default class latoken extends Exchange {
                         'auth/transaction/bindings/{currency}': 1,
                         'auth/transaction/{id}': 1,
                         'auth/transfer': 1,
+                        'auth/user': 1,
                     },
                     'post': {
                         'auth/order/cancel': 1,

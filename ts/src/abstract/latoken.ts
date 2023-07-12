@@ -43,6 +43,7 @@ interface Exchange {
     privateGetAuthTransactionBindingsCurrency (params?: {}): Promise<implicitReturnType>;
     privateGetAuthTransactionId (params?: {}): Promise<implicitReturnType>;
     privateGetAuthTransfer (params?: {}): Promise<implicitReturnType>;
+    privateGetAuthUser (params?: {}): Promise<implicitReturnType>;
     privatePostAuthOrderCancel (params?: {}): Promise<implicitReturnType>;
     privatePostAuthOrderCancelAll (params?: {}): Promise<implicitReturnType>;
     privatePostAuthOrderCancelAllCurrencyQuote (params?: {}): Promise<implicitReturnType>;
