@@ -652,8 +652,6 @@ export default class delta extends Exchange {
                 } else {
                     type = 'swap';
                 }
-            } else {
-                symbol = id;
             }
             const state = this.safeString (market, 'state');
             result.push ({
