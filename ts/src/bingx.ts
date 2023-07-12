@@ -1340,6 +1340,10 @@ export default class bingx extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bingx api endpoint
+         * @param {bool} [params.postOnly] true to place a post only order
+         * @param {object} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered (swap markets only)
+         * @param {float} [params.stopLossPrice] stop loss trigger price (swap markets only)
+         * @param {float} [params.takeProfitPrice] take profit trigger price (swap markets only)
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1353,48 +1357,74 @@ export default class bingx extends Exchange {
             'side': side.toUpperCase (),
         };
         const isMarketOrder = type === 'MARKET';
-        const stopPriceRaw = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const isSpotMarket = marketType === 'spot';
+        let stopPriceRaw = undefined;
         let stopPrice = undefined;
-        if (stopPriceRaw !== undefined) {
-            stopPrice = this.priceToPrecision (symbol, stopPriceRaw);
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (!isSpotMarket) {
+            stopPriceRaw = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+            if (stopPriceRaw !== undefined) {
+                stopPrice = this.priceToPrecision (symbol, stopPriceRaw);
+            }
+            stopLossPrice = this.safeValue (params, 'stopLossPrice');
+            takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         }
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         if ((stopLossPrice !== undefined) && (takeProfitPrice !== undefined)) {
             throw new InvalidOrder ('Order is either a takeProfit order or a stopLoss order');
         }
         if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
+            if ((stopPrice !== undefined)) {
+                request['type'] = 'TRIGGER_LIMIT';
+                request['stopPrice'] = stopPrice;
+            }
             if (type === 'TRIGGER_LIMIT') {
+                if (stopPrice === undefined) {
+                    throw new InvalidOrder ('TRIGGER_LIMIT requires a triggerPrice / stopPrice');
+                }
                 request['stopPrice'] = stopPrice;
             }
         }
-        if (type === 'TRIGGER_MARKET') {
-            request['stopPrice'] = stopPrice;
+        if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
+            if ((stopPrice !== undefined)) {
+                request['type'] = 'TRIGGER_MARKET';
+                request['stopPrice'] = stopPrice;
+            }
+            if (type === 'TRIGGER_MARKET') {
+                if (stopPrice === undefined) {
+                    throw new InvalidOrder ('TRIGGER_MARKET requires a triggerPrice / stopPrice');
+                }
+                request['stopPrice'] = stopPrice;
+            }
         }
         const exchangeSpecificTifParam = this.safeStringUpperN (params, [ 'force', 'timeInForce' ]);
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'POC', params);
-        const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-        if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
-            if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+        if (isSpotMarket) {
+            const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                    request['quoteOrderQty'] = this.priceToPrecision (symbol, cost);
+                }
             } else {
-                const amountString = this.numberToString (amount);
-                const priceString = this.numberToString (price);
-                const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-                request['quoteOrderQty'] = this.priceToPrecision (symbol, cost);
+                request['quantity'] = this.amountToPrecision (symbol, amount);
             }
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         if ((stopLossPrice !== undefined)) {
             request['type'] = 'STOP_MARKET';
-            request['stopPrice'] = stopPrice;
+            request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
         }
         if ((takeProfitPrice !== undefined)) {
             request['type'] = 'TAKE_PROFIT_MARKET';
-            request['stopPrice'] = stopPrice;
+            request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
         }
         request['timeInForce'] = 'IOC';
         if (postOnly) {
@@ -1402,7 +1432,7 @@ export default class bingx extends Exchange {
         } else if (exchangeSpecificTifParam === 'POC') {
             request['timeInForce'] = 'POC';
         }
-        if (marketType === 'spot') {
+        if (isSpotMarket) {
             response = await this.spotV1PrivatePostTradeOrder (this.extend (request, query));
         } else {
             response = await this.swapV2PrivatePostTradeOrder (this.extend (request, query));
@@ -2488,10 +2518,7 @@ export default class bingx extends Exchange {
          */
         this.checkRequiredArgument ('fetchMyTrades', symbol, 'symbol');
         this.checkRequiredArgument ('fetchMyTrades', since, 'since');
-        const tradingUnit = this.safeStringUpper (params, 'tradingUnit');
-        if (tradingUnit === undefined) {
-            throw new BadRequest (this.id + ' fetchMyTrades() requires either COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets) for tradingUnit');
-        }
+        const tradingUnit = this.safeStringUpper (params, 'tradingUnit', 'CONT');
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
