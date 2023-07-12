@@ -4004,18 +4004,16 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://docs.kucoin.com/#one-click-repayment
-         * @see https://docs.kucoin.com/#quick-repayment
+         * @see https://docs.kucoin.com/#2-repayment
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kucoin api endpoints
-         * @param {string} [params.sequence] cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
-         * @param {string} [params.seqStrategy] isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
          * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        const isIsolated = marginMode === 'isolated';
         params = this.omit (params, 'marginMode');
         this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
@@ -4023,31 +4021,30 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
             'size': this.currencyToPrecision (code, amount),
-            // 'sequence': 'RECENTLY_EXPIRE_FIRST',  // Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-            // 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  // Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         };
-        let method = undefined;
-        const sequence = this.safeString2 (params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
-        let sequenceRequest = undefined;
-        if (symbol === undefined) {
-            method = 'privatePostMarginRepayAll';
-            sequenceRequest = 'sequence';
-        } else {
+        if (isIsolated) {
+            if (symbol === undefined) {
+                throw new Error ('symbol is required when isolated margin');
+            }
             const market = this.market (symbol);
             request['symbol'] = market['id'];
-            sequenceRequest = 'seqStrategy';
-            method = 'privatePostIsolatedRepayAll';
+            request['isIsolated'] = true;
         }
-        request[sequenceRequest] = sequence;
-        params = this.omit (params, [ 'sequence', 'seqStrategy' ]);
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privatePostMarginRepay (this.extend (request, params));
         //
         //     {
-        //         "code": "200000",
-        //         "data": null
+        //         "success": true,
+        //         "code": "200",
+        //         "msg": "success",
+        //         "retry": false,
+        //         "data": {
+        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //             "actualSize": 10
+        //         }
         //     }
         //
-        return this.parseMarginLoan (response, currency);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseMarginLoan (data, currency);
     }
 
     parseMarginLoan (info, currency = undefined) {
