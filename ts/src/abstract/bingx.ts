@@ -59,7 +59,7 @@ interface Exchange {
     contractV1PrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     contractV1PrivateGetBalance (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivateGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
-    walletsV1PrivateGetCapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivatePostCapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

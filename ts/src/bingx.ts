@@ -181,6 +181,8 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'capital/config/getall': 3,
+                            },
+                            'post': {
                                 'capital/withdraw/apply': 3,
                             },
                         },
@@ -2670,13 +2672,13 @@ export default class bingx extends Exchange {
         if (network !== undefined) {
             request['network'] = network;
         }
-        const response = await this.walletsV1PrivateGetCapitalWithdrawApply (this.extend (request, params));
+        params = this.omit (params, [ 'walletType', 'network' ]);
+        const response = await this.walletsV1PrivatePostCapitalWithdrawApply (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         //
-        // TODO: Add response info
+        //    { id: '1196801810222047233' }
         //
-        console.log (response);
-        console.log (data);
+        this.parseTransaction (data);
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
