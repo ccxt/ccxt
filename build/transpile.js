@@ -264,7 +264,7 @@ class Transpiler {
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
             [ /\.afterConstruct\s/g, '.after_construct'],
-            [ /\.invertNetworksIdsObject\s/g, '.invert_network_ids_object'],
+            [ /\.invertNetworksIdsObject\s/g, '.invert_networks_ids_object'],
             [ /\.invertFlatStringDictionary\s/g, '.invert_flat_string_dictionary'],
             [ /\.safeCurrencyStructure\s/g, '.safe_currency_structure'],
             [ /\.isTickPrecision\s/g, '.is_tick_precision'],
