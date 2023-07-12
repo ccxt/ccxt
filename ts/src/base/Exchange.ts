@@ -2315,17 +2315,7 @@ export default class Exchange {
             }
             for (let j = 0; j < checkKeys.length; j++) {
                 const currentKey = checkKeys[j];
-                // if it was already in keys
-                if (!(currentKey in reversed)) {
-                    reversed[currentKey] = key;
-                } else {
-                    if (Array.isArray (reversed[currentKey])) {
-                        reversed[currentKey].push (key);
-                    } else {
-                        const keyValue = reversed[currentKey];
-                        reversed[currentKey] = [ keyValue, key ];
-                    }
-                }
+                reversed[currentKey] = key;
             }
         }
         return reversed;
