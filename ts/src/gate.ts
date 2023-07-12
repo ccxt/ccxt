@@ -692,11 +692,11 @@ export default class gate extends Exchange {
                     'GAS': 'GAS',
                     'FRA': 'FRA', // FRAEVM is different
                     'KINT': 'KINT',
+                    'KILT': 'KILT',
                     'GXS': 'GXS',
                     // BOBA: BOBA, // BOBAEVM . tbd
                     'BRISE': 'BRISE',
                     'ETHF': 'ETHF',
-                    'KILT': 'KILT',
                     'PLCU': 'PLCU',
                     'GRIN': 'GRIN',
                     'VITE': 'VITE',
@@ -709,6 +709,10 @@ export default class gate extends Exchange {
                     'NKN': 'NKN',
                     'FIRO': 'FIRO',
                     // BELOW WILL BE UNCOMMENTED AFTER CONSENSUS
+                    // 'BITCOINX': 'BCX',
+                    // 'BITCOINFILE': 'BIFI',
+                    // 'BITCOINDIAMOND': 'BCD',
+                    // 'SUPERBITCOIN': 'SBTC',
                     // 'BITCOINGOLD': 'BTG',
                     // 'TARAXA': 'TARA',
                     // 'PASTEL': 'PSL',
@@ -724,8 +728,6 @@ export default class gate extends Exchange {
                     // 'EDGEWARE': 'EDG',
                     // 'STACKS': 'STX',
                     // 'KON': 'KONCHAIN',
-                    // 'BITCOINDIAMOND': 'BCD',
-                    // 'SUPERBITCOIN': 'SBTC',
                     // 'PLIAN': 'PI',
                     // 'BUMO': 'BU',
                     // 'METERSTABLE': 'MTR',
@@ -736,8 +738,6 @@ export default class gate extends Exchange {
                     // 'LAYR': 'LAYR', // composable finance
                     // 'NTFMART': 'NMT',
                     // 'QIT': 'QTC',
-                    // 'BITCOINFILE': 'BIFI',
-                    // 'BITCOINX': 'BCX',
                     // 'DIGITALBITS': 'XDB',
                     // 'BELDEX': 'BDX',
                     // 'METAVERSEPIONEER': 'NEER',
