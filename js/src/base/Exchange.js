@@ -10,7 +10,7 @@ import * as functions from './functions.js';
 const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -2174,8 +2174,9 @@ export default class Exchange {
     }
     async fetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
         let errorMessage = '';
+        const options = this.safeValue(this.options, method, {});
+        const muteOnFailure = this.safeValue(options, 'webApiMuteFailure', true);
         try {
-            const options = this.safeValue(this.options, method, {});
             // if it was not explicitly disabled, then don't fetch
             if (this.safeValue(options, 'webApiEnable', true) !== true) {
                 return undefined;
@@ -2209,15 +2210,23 @@ export default class Exchange {
                 if (jsoned) {
                     return jsoned; // if parsing was not successfull, exception should be thrown
                 }
+                else {
+                    throw new BadResponse('could not parse the response into json');
+                }
             }
             else {
                 return content;
             }
         }
         catch (e) {
-            errorMessage = e.toString();
+            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        throw new NotSupported(this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage);
+        if (muteOnFailure) {
+            return undefined;
+        }
+        else {
+            throw new BadResponse(errorMessage);
+        }
     }
     marketIds(symbols) {
         if (symbols === undefined) {

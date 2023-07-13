@@ -451,6 +451,7 @@ class kucoin extends Exchange {
                 'fetchCurrencies' => array(
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 5,
+                    'webApiMuteFailure' => true,
                 ),
                 'fetchMarkets' => array(
                     'fetchTickersFees' => true,

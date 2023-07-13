@@ -277,7 +277,8 @@ class gemini(Exchange, ImplicitAPI):
                 },
                 'fetchCurrencies': {
                     'webApiEnable': True,  # fetches from WEB
-                    'webApiRetries': 10,
+                    'webApiRetries': 5,
+                    'webApiMuteFailure': True,
                 },
                 'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],  # keep self list updated(not available trough web api)
                 'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2

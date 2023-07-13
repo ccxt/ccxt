@@ -447,6 +447,7 @@ class kucoin extends kucoin$1 {
                 'fetchCurrencies': {
                     'webApiEnable': true,
                     'webApiRetries': 5,
+                    'webApiMuteFailure': true,
                 },
                 'fetchMarkets': {
                     'fetchTickersFees': true,

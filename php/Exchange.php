@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.0.19';
+$version = '4.0.21';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.0.19';
+    const VERSION = '4.0.21';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3213,8 +3213,9 @@ class Exchange {
 
     public function fetch_web_endpoint($method, $endpointMethod, $returnAsJson, $startRegex = null, $endRegex = null) {
         $errorMessage = '';
+        $options = $this->safe_value($this->options, $method, array());
+        $muteOnFailure = $this->safe_value($options, 'webApiMuteFailure', true);
         try {
-            $options = $this->safe_value($this->options, $method, array());
             // if it was not explicitly disabled, then don't fetch
             if ($this->safe_value($options, 'webApiEnable', true) !== true) {
                 return null;
@@ -3246,14 +3247,20 @@ class Exchange {
                 $jsoned = $this->parse_json(trim($content)); // $content should be trimmed before json parsing
                 if ($jsoned) {
                     return $jsoned; // if parsing was not successfull, exception should be thrown
+                } else {
+                    throw new BadResponse('could not parse the $response into json');
                 }
             } else {
                 return $content;
             }
         } catch (Exception $e) {
-            $errorMessage = (string) $e;
+            $errorMessage = $this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        throw new NotSupported($this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' . $errorMessage);
+        if ($muteOnFailure) {
+            return null;
+        } else {
+            throw new BadResponse($errorMessage);
+        }
     }
 
     public function market_ids($symbols) {

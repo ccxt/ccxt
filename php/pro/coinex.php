@@ -755,7 +755,8 @@ class coinex extends \ccxt\async\coinex {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
-        $this->orders.append ($parsedOrder);
+        $orders = $this->orders;
+        $orders->append ($parsedOrder);
         $messageHash = 'orders';
         $client->resolve ($this->orders, $messageHash);
         $messageHash .= ':' . $parsedOrder['symbol'];

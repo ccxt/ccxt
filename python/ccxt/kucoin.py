@@ -467,6 +467,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchCurrencies': {
                     'webApiEnable': True,  # fetches from WEB
                     'webApiRetries': 5,
+                    'webApiMuteFailure': True,
                 },
                 'fetchMarkets': {
                     'fetchTickersFees': True,
