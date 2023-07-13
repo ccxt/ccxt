@@ -1083,7 +1083,7 @@ export default class binance extends Exchange {
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
                     'SOLANA': 'SOL',
-                    'SPL': 'SOL', // temporary
+                    'SPL': 'SOL', // keep temporarily
                     'SOL': 'SOL',
                     // 'FIAT': 'FIAT_MONEY', // not unified atm
                     // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
@@ -1186,7 +1186,7 @@ export default class binance extends Exchange {
                     'FIO': 'FIO',
                     'MOVR': 'MOVR',
                     'XMR': 'XMR',
-                    // below will be uncommented after consensus
+                    // todo: below will be uncommented after consensus
                     // 'AELF': 'ELF',
                     // 'PARALLELFINANCE': 'PARA',
                     // 'EFINITY': 'EFI',
