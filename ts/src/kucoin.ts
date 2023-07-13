@@ -203,6 +203,10 @@ export default class kucoin extends Exchange {
                         'hf/orders/client-order/{clientOid}': 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
                         'hf/fills': 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
                         'margin/repay': 1,
+                        'project/list': 1,
+                        'project/marketInterestRate': 1,
+                        'redeem/orders': 1,
+                        'purchase/orders': 1,
                     },
                     'post': {
                         'accounts': 1,
@@ -232,6 +236,9 @@ export default class kucoin extends Exchange {
                         'hf/orders/multi/sync': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
                         'hf/orders/alter': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
                         'margin/repay': 1,
+                        'purchase': 1,
+                        'redeem': 1,
+                        'lend/purchase/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -355,6 +362,14 @@ export default class kucoin extends Exchange {
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '103000': InvalidOrder, // {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
+                    '130101': BadRequest, // Parameter error
+                    '130102': ExchangeError, // Maximum subscription amount has been exceeded.
+                    '130103': OrderNotFound, // Subscription order does not exist.
+                    '130104': ExchangeError, // Maximum number of subscription orders has been exceeded.
+                    '130105': InsufficientFunds, // Insufficient balance.
+                    '130106': NotSupported, // The currency does not support redemption.
+                    '130107': ExchangeError, // Redemption amount exceeds subscription amount.
+                    '130108': OrderNotFound, // Redemption order does not exist.
                     '130201': PermissionDenied, // Your account has restricted access to certain features. Please contact customer service for further assistance
                     '130202': ExchangeError, // The system is renewing the loan automatically. Please try again later
                     '130203': InsufficientFunds, // Insufficient account balance
@@ -489,6 +504,10 @@ export default class kucoin extends Exchange {
                             'hf/fills': 'v1',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
+                            'project/list': 'v3',
+                            'project/marketInterestRate': 'v3',
+                            'redeem/orders': 'v3',
+                            'purchase/orders': 'v3',
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
@@ -501,6 +520,9 @@ export default class kucoin extends Exchange {
                             'hf/orders/alter': 'v1',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
+                            'purchase': 'v3',
+                            'redeem': 'v3',
+                            'lend/purchase/update': 'v3',
                         },
                         'DELETE': {
                             'hf/orders/{orderId}': 'v1',
