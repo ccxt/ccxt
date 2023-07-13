@@ -2526,6 +2526,9 @@ export default class bingx extends Exchange {
         const tradingUnit = this.safeStringUpper (params, 'tradingUnit', 'CONT');
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadSymbol (this.id + ' fetchMyTrades() supports swap contracts only');
+        }
         const request = {
             'symbol': market['id'],
             'tradingUnit': tradingUnit,
