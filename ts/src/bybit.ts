@@ -1257,7 +1257,7 @@ export default class bybit extends Exchange {
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetV3PublicTime (params);
+        const response = await this.publicGetV5MarketTime (params);
         //
         //    {
         //         "retCode": "0",
