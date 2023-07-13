@@ -1318,6 +1318,7 @@
         }
     },
     "zaif": {
+        "skip": "2023-07-13 403 Forbidden",
         "skipMethods": {
             "fetchCurrencies": {
                 "info": "key is missing"
