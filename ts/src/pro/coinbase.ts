@@ -1,9 +1,7 @@
-'use strict';
-
 //  ---------------------------------------------------------------------------
 
 import coinbaseRest from '../coinbase.js';
-import { ArgumentsRequired } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
@@ -555,7 +553,7 @@ export default class coinbase extends coinbaseRest {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
-            throw new Error (errorMessage);
+            throw new ExchangeError (errorMessage);
         }
         const method = this.safeValue (methods, channel);
         return method.call (this, client, message);
