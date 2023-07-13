@@ -1253,7 +1253,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://bybit-exchange.github.io/docs/v3/server-time
+         * @see https://bybit-exchange.github.io/docs/v5/market/time
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
