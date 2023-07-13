@@ -1188,38 +1188,45 @@ export default class bybit extends Exchange {
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         const enableUnifiedAccount = this.safeValue (this.options, 'enableUnifiedAccount');
         if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
-            const response = await this.privateGetUserV3PrivateQueryApi (params);
+            const response = await this.privateGetV5UserQueryApi (params);
             //
             //     {
-            //         "retCode":0,
-            //         "retMsg":"OK",
-            //         "result":{
-            //             "id":"88888888",
-            //             "note":"ccxt-moon",
-            //             "apiKey":"8s8c808v8u8",
-            //             "readOnly":0,
-            //             "secret":"",
-            //             "permissions":{
-            //                 "ContractTrade":[""],
-            //                 "Spot":[""],
-            //                 "Wallet":[""],
-            //                 "Options":[""],
-            //                 "Derivatives":[""],
-            //                 "CopyTrading":[""],
-            //                 "BlockTrade":[],
-            //                 "Exchange":[""],
-            //                 "NFT":[""]
+            //         "retCode": 0,
+            //         "retMsg": "",
+            //         "result": {
+            //             "id": "13770661",
+            //             "note": "XXXXXX",
+            //             "apiKey": "XXXXXX",
+            //             "readOnly": 0,
+            //             "secret": "",
+            //             "permissions": {
+            //                 "ContractTrade": [...],
+            //                 "Spot": [...],
+            //                 "Wallet": [...],
+            //                 "Options": [...],
+            //                 "Derivatives": [...],
+            //                 "CopyTrading": [...],
+            //                 "BlockTrade": [...],
+            //                 "Exchange": [...],
+            //                 "NFT": [...],
             //             },
-            //             "ips":[""],
-            //             "type":1,
-            //             "deadlineDay":27,
-            //             "expiredAt":"",
-            //             "createdAt":"",
-            //             "unified":1,
-            //             "uta": 1
+            //             "ips": [...],
+            //             "type": 1,
+            //             "deadlineDay": 83,
+            //             "expiredAt": "2023-05-15T03:21:05Z",
+            //             "createdAt": "2022-10-16T02:24:40Z",
+            //             "unified": 0,
+            //             "uta": 0,
+            //             "userID": 24600000,
+            //             "inviterID": 0,
+            //             "vipLevel": "No VIP",
+            //             "mktMakerLevel": "0",
+            //             "affiliateID": 0,
+            //             "rsaPublicKey": "",
+            //             "isMaster": false
             //         },
-            //         "retExtInfo":null,
-            //         "time":1669735171649
+            //         "retExtInfo": {},
+            //         "time": 1676891757649
             //     }
             //
             const result = this.safeValue (response, 'result', {});
