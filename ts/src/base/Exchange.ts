@@ -2303,16 +2303,8 @@ export default class Exchange {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = dict[key];
-            let checkKeys = [];
-            // support array in value, i.e.  'a': [ 'b', 'c' ]
-            if (Array.isArray (value)) {
-                checkKeys = value;
-            } else if (typeof value === 'string') {
-                checkKeys.push (value);
-            }
-            for (let j = 0; j < checkKeys.length; j++) {
-                const currentKey = checkKeys[j];
-                reversed[currentKey] = key;
+            if (typeof value === 'string') {
+                reversed[value] = key;
             }
         }
         return reversed;
