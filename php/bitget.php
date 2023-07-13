@@ -3733,10 +3733,10 @@ class bitget extends Exchange {
 
     public function fetch_position(string $symbol, $params = array ()) {
         /**
-         * fetch $data on a single open contract trade position
-         * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+         * fetch $data on a single open contract trade $position
+         * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3774,7 +3774,9 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data);
+        $first = $this->safe_value($data, 0, array());
+        $position = $this->parse_position($first, $market);
+        return $position;
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {

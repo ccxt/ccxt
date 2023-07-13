@@ -35,6 +35,9 @@ class delta extends Exchange {
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => null,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => true,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode' => false,
@@ -2185,6 +2188,204 @@ class delta extends Exchange {
             'tag' => $this->safe_string($depositAddress, 'memo'),
             'network' => $this->network_id_to_code($networkId),
             'info' => $depositAddress,
+        );
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the delta api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetTickersSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "result" => array(
+        //             "close" => 30600.5,
+        //             "contract_type" => "perpetual_futures",
+        //             "funding_rate" => "0.00602961",
+        //             "greeks" => null,
+        //             "high" => 30803.0,
+        //             "low" => 30265.5,
+        //             "mark_basis" => "-0.45601594",
+        //             "mark_price" => "30600.10481568",
+        //             "oi" => "469.9190",
+        //             "oi_change_usd_6h" => "2226314.9900",
+        //             "oi_contracts" => "469919",
+        //             "oi_value" => "469.9190",
+        //             "oi_value_symbol" => "BTC",
+        //             "oi_value_usd" => "14385640.6802",
+        //             "open" => 30458.5,
+        //             "price_band" => array(
+        //                 "lower_limit" => "29067.08312627",
+        //                 "upper_limit" => "32126.77608693"
+        //             ),
+        //             "product_id" => 139,
+        //             "quotes" => array(
+        //                 "ask_iv" => null,
+        //                 "ask_size" => "965",
+        //                 "best_ask" => "30600.5",
+        //                 "best_bid" => "30599.5",
+        //                 "bid_iv" => null,
+        //                 "bid_size" => "196",
+        //                 "impact_mid_price" => null,
+        //                 "mark_iv" => "-0.44931641"
+        //             ),
+        //             "size" => 1226303,
+        //             "spot_price" => "30612.85362773",
+        //             "symbol" => "BTCUSDT",
+        //             "timestamp" => 1689136597460456,
+        //             "turnover" => 37392218.45999999,
+        //             "turnover_symbol" => "USDT",
+        //             "turnover_usd" => 37392218.45999999,
+        //             "volume" => 1226.3029999999485
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_funding_rate($result, $market);
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+        /**
+         * fetch the funding rate for multiple markets
+         * @see https://docs.delta.exchange/#get-tickers-for-products
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the delta api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-$rates-structure funding $rates structures~, indexe by market $symbols
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $request = array(
+            'contract_types' => 'perpetual_futures',
+        );
+        $response = $this->publicGetTickers (array_merge($request, $params));
+        //
+        //     {
+        //         "result" => array(
+        //             array(
+        //                 "close" => 30600.5,
+        //                 "contract_type" => "perpetual_futures",
+        //                 "funding_rate" => "0.00602961",
+        //                 "greeks" => null,
+        //                 "high" => 30803.0,
+        //                 "low" => 30265.5,
+        //                 "mark_basis" => "-0.45601594",
+        //                 "mark_price" => "30600.10481568",
+        //                 "oi" => "469.9190",
+        //                 "oi_change_usd_6h" => "2226314.9900",
+        //                 "oi_contracts" => "469919",
+        //                 "oi_value" => "469.9190",
+        //                 "oi_value_symbol" => "BTC",
+        //                 "oi_value_usd" => "14385640.6802",
+        //                 "open" => 30458.5,
+        //                 "price_band" => array(
+        //                     "lower_limit" => "29067.08312627",
+        //                     "upper_limit" => "32126.77608693"
+        //                 ),
+        //                 "product_id" => 139,
+        //                 "quotes" => array(
+        //                     "ask_iv" => null,
+        //                     "ask_size" => "965",
+        //                     "best_ask" => "30600.5",
+        //                     "best_bid" => "30599.5",
+        //                     "bid_iv" => null,
+        //                     "bid_size" => "196",
+        //                     "impact_mid_price" => null,
+        //                     "mark_iv" => "-0.44931641"
+        //                 ),
+        //                 "size" => 1226303,
+        //                 "spot_price" => "30612.85362773",
+        //                 "symbol" => "BTCUSDT",
+        //                 "timestamp" => 1689136597460456,
+        //                 "turnover" => 37392218.45999999,
+        //                 "turnover_symbol" => "USDT",
+        //                 "turnover_usd" => 37392218.45999999,
+        //                 "volume" => 1226.3029999999485
+        //             ),
+        //         ),
+        //         "success":true
+        //     }
+        //
+        $rates = $this->safe_value($response, 'result', array());
+        $result = $this->parse_funding_rates($rates);
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //     {
+        //         "close" => 30600.5,
+        //         "contract_type" => "perpetual_futures",
+        //         "funding_rate" => "0.00602961",
+        //         "greeks" => null,
+        //         "high" => 30803.0,
+        //         "low" => 30265.5,
+        //         "mark_basis" => "-0.45601594",
+        //         "mark_price" => "30600.10481568",
+        //         "oi" => "469.9190",
+        //         "oi_change_usd_6h" => "2226314.9900",
+        //         "oi_contracts" => "469919",
+        //         "oi_value" => "469.9190",
+        //         "oi_value_symbol" => "BTC",
+        //         "oi_value_usd" => "14385640.6802",
+        //         "open" => 30458.5,
+        //         "price_band" => array(
+        //             "lower_limit" => "29067.08312627",
+        //             "upper_limit" => "32126.77608693"
+        //         ),
+        //         "product_id" => 139,
+        //         "quotes" => array(
+        //             "ask_iv" => null,
+        //             "ask_size" => "965",
+        //             "best_ask" => "30600.5",
+        //             "best_bid" => "30599.5",
+        //             "bid_iv" => null,
+        //             "bid_size" => "196",
+        //             "impact_mid_price" => null,
+        //             "mark_iv" => "-0.44931641"
+        //         ),
+        //         "size" => 1226303,
+        //         "spot_price" => "30612.85362773",
+        //         "symbol" => "BTCUSDT",
+        //         "timestamp" => 1689136597460456,
+        //         "turnover" => 37392218.45999999,
+        //         "turnover_symbol" => "USDT",
+        //         "turnover_usd" => 37392218.45999999,
+        //         "volume" => 1226.3029999999485
+        //     }
+        //
+        $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.001);
+        $marketId = $this->safe_string($contract, 'symbol');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => $this->safe_number($contract, 'mark_price'),
+            'indexPrice' => $this->safe_number($contract, 'spot_price'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 

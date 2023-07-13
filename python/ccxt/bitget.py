@@ -3633,7 +3633,9 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data)
+        first = self.safe_value(data, 0, {})
+        position = self.parse_position(first, market)
+        return position
 
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
