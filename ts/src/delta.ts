@@ -2309,6 +2309,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchFundingRates
          * @description fetch the funding rate for multiple markets
+         * @see https://docs.delta.exchange/#get-tickers-for-products
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
