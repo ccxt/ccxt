@@ -35,9 +35,9 @@ export default class bingx extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDepositWithdrawFees': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchLeverage': true,
@@ -1623,7 +1623,7 @@ export default class bingx extends Exchange {
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
-            'CANCELED': 'canceled',
+            'CANCELLED': 'canceled',
             'FAILED': 'failed',
         };
         return this.safeString (statuses, status, status);
