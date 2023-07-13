@@ -20,6 +20,7 @@ export default class coinbase extends Exchange {
             'id': 'coinbase',
             'name': 'Coinbase',
             'countries': [ 'US' ],
+            'pro': true,
             'rateLimit': 400, // 10k calls per hour
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
