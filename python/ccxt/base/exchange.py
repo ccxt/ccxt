@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.19'
+__version__ = '4.0.21'
 
 # -----------------------------------------------------------------------------
 
@@ -2595,8 +2595,9 @@ class Exchange(object):
 
     def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
         errorMessage = ''
+        options = self.safe_value(self.options, method, {})
+        muteOnFailure = self.safe_value(options, 'webApiMuteFailure', True)
         try:
-            options = self.safe_value(self.options, method, {})
             # if it was not explicitly disabled, then don't fetch
             if self.safe_value(options, 'webApiEnable', True) is not True:
                 return None
@@ -2622,11 +2623,16 @@ class Exchange(object):
                 jsoned = self.parse_json(content.strip())  # content should be trimmed before json parsing
                 if jsoned:
                     return jsoned  # if parsing was not successfull, exception should be thrown
+                else:
+                    raise BadResponse('could not parse the response into json')
             else:
                 return content
         except Exception as e:
-            errorMessage = str(e)
-        raise NotSupported(self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage)
+            errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
+        if muteOnFailure:
+            return None
+        else:
+            raise BadResponse(errorMessage)
 
     def market_ids(self, symbols):
         if symbols is None:

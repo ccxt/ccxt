@@ -34,7 +34,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'countries': ['SC'],
             'rateLimit': 75,
             'version': 'v1',
-            'certified': False,
+            'certified': True,
             'pro': True,
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,

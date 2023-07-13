@@ -3813,16 +3813,18 @@ class bybit extends Exchange {
             if (($type === 'market') && ($side === 'buy')) {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    $cost = $this->safe_number($params, 'cost');
-                    $params = $this->omit($params, 'cost');
-                    if ($price === null && $cost === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
-                    } else {
+                    $cost = $this->safe_number_2($params, 'cost', 'orderQty');
+                    $params = $this->omit($params, array( 'cost', 'orderQty' ));
+                    if ($cost !== null) {
+                        $request['orderQty'] = $this->cost_to_precision($symbol, $cost);
+                    } elseif ($price !== null) {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $quoteAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
-                        $request['orderQty'] = $this->cost_to_precision($symbol, $amount);
+                        $costString = Precise::string_mul($amountString, $priceString);
+                        $cost = $this->parse_number($costString);
+                        $request['orderQty'] = $this->cost_to_precision($symbol, $cost);
+                    } else {
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
                     }
                 } else {
                     $request['orderQty'] = $this->cost_to_precision($symbol, $amount);
@@ -7164,7 +7166,7 @@ class bybit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $positions = $this->safe_value_2($result, 'list', 'dataList', array());
             $timestamp = $this->safe_integer($response, 'time');
-            $first = $this->safe_value($positions, 0);
+            $first = $this->safe_value($positions, 0, array());
             $position = $this->parse_position($first, $market);
             return array_merge($position, array(
                 'timestamp' => $timestamp,

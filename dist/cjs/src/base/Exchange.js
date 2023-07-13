@@ -2179,8 +2179,9 @@ class Exchange {
     }
     async fetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
         let errorMessage = '';
+        const options = this.safeValue(this.options, method, {});
+        const muteOnFailure = this.safeValue(options, 'webApiMuteFailure', true);
         try {
-            const options = this.safeValue(this.options, method, {});
             // if it was not explicitly disabled, then don't fetch
             if (this.safeValue(options, 'webApiEnable', true) !== true) {
                 return undefined;
@@ -2214,15 +2215,23 @@ class Exchange {
                 if (jsoned) {
                     return jsoned; // if parsing was not successfull, exception should be thrown
                 }
+                else {
+                    throw new errors.BadResponse('could not parse the response into json');
+                }
             }
             else {
                 return content;
             }
         }
         catch (e) {
-            errorMessage = e.toString();
+            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        throw new errors.NotSupported(this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage);
+        if (muteOnFailure) {
+            return undefined;
+        }
+        else {
+            throw new errors.BadResponse(errorMessage);
+        }
     }
     marketIds(symbols) {
         if (symbols === undefined) {
