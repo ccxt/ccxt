@@ -284,7 +284,9 @@ export default class bingx extends Exchange {
          * @param {object} params extra parameters specific to the bingx api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        this.checkRequiredCredentials ();
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
         //
         //    {
