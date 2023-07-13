@@ -231,6 +231,7 @@ export default class bingx extends Exchange {
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
+                    '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                 },
                 'broad': {},
             },
@@ -2317,10 +2318,6 @@ export default class bingx extends Exchange {
         //        "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
         //    }
         //
-        // withdraw
-        //
-        // TODO: Add withdraw item response
-        //
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'addressTag');
         let timestamp = this.safeInteger (transaction, 'insertTime');
@@ -2332,7 +2329,7 @@ export default class bingx extends Exchange {
         const network = this.safeString (transaction, 'network');
         const currencyId = this.safeString (transaction, 'coin');
         let code = this.safeCurrencyCode (currencyId, currency);
-        if (code.indexOf (network) >= 0) {
+        if (code !== undefined && code.indexOf (network) >= 0) {
             code = code.replace (network, '');
         }
         return {
@@ -2675,9 +2672,13 @@ export default class bingx extends Exchange {
         params = this.omit (params, [ 'walletType', 'network' ]);
         const response = await this.walletsV1PrivatePostCapitalWithdrawApply (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        //
-        //    { id: '1196801810222047233' }
-        //
+        //    {
+        //        "code":0,
+        //        "timestamp":1689258953651,
+        //        "data":{
+        //           "id":"1197073063359000577"
+        //        }
+        //    }
         this.parseTransaction (data);
     }
 
