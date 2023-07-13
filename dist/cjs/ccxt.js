@@ -139,6 +139,7 @@ var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
+var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbaseprime$1 = require('./src/pro/coinbaseprime.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
 var coinex$1 = require('./src/pro/coinex.js');
@@ -310,6 +311,7 @@ const pro = {
     'blockchaincom': blockchaincom$1,
     'bybit': bybit$1,
     'cex': cex$1,
+    'coinbase': coinbase$1,
     'coinbaseprime': coinbaseprime$1,
     'coinbasepro': coinbasepro$1,
     'coinex': coinex$1,

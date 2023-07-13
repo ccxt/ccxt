@@ -21,6 +21,7 @@ export default class coinbase extends Exchange {
             'id': 'coinbase',
             'name': 'Coinbase',
             'countries': ['US'],
+            'pro': true,
             'rateLimit': 400,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
@@ -290,7 +291,8 @@ export default class coinbase extends Exchange {
                 'fetchMarkets': 'fetchMarketsV3',
                 'fetchTicker': 'fetchTickerV3',
                 'fetchTickers': 'fetchTickersV3',
-                'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
+                'fetchAccounts': 'fetchAccountsV3',
+                'user_native_currency': 'USD', // needed to get fees for v3
             },
         });
     }

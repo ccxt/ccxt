@@ -169,6 +169,7 @@ import bitvavoPro from './src/pro/bitvavo.js';
 import blockchaincomPro from './src/pro/blockchaincom.js';
 import bybitPro from './src/pro/bybit.js';
 import cexPro from './src/pro/cex.js';
+import coinbasePro from './src/pro/coinbase.js';
 import coinbaseprimePro from './src/pro/coinbaseprime.js';
 import coinbaseproPro from './src/pro/coinbasepro.js';
 import coinexPro from './src/pro/coinex.js';
@@ -335,6 +336,7 @@ const pro = {
     'blockchaincom': blockchaincomPro,
     'bybit': bybitPro,
     'cex': cexPro,
+    'coinbase': coinbasePro,
     'coinbaseprime': coinbaseprimePro,
     'coinbasepro': coinbaseproPro,
     'coinex': coinexPro,

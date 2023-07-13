@@ -1359,30 +1359,51 @@ class bitget extends Exchange {
                 $code = $this->safe_currency_code($this->safe_string($entry, 'coinName'));
                 $chains = $this->safe_value($entry, 'chains', array());
                 $networks = array();
+                $deposit = false;
+                $withdraw = false;
+                $minWithdrawString = null;
+                $minDepositString = null;
+                $minWithdrawFeeString = null;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
                     $network = $this->safe_currency_code($networkId);
                     $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
+                    $canWithdraw = $withdrawEnabled === 'true';
+                    $withdraw = ($canWithdraw) ? $canWithdraw : $withdraw;
                     $depositEnabled = $this->safe_string($chain, 'rechargeable');
+                    $canDeposit = $depositEnabled === 'true';
+                    $deposit = ($canDeposit) ? $canDeposit : $deposit;
+                    $networkWithdrawFeeString = $this->safe_string($chain, 'withdrawFee');
+                    if ($networkWithdrawFeeString !== null) {
+                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
+                    }
+                    $networkMinWithdrawString = $this->safe_string($chain, 'minWithdrawAmount');
+                    if ($networkMinWithdrawString !== null) {
+                        $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
+                    }
+                    $networkMinDepositString = $this->safe_string($chain, 'minDepositAmount');
+                    if ($networkMinDepositString !== null) {
+                        $minDepositString = ($minDepositString === null) ? $networkMinDepositString : Precise::string_min($networkMinDepositString, $minDepositString);
+                    }
                     $networks[$network] = array(
                         'info' => $chain,
                         'id' => $networkId,
                         'network' => $network,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $this->safe_number($chain, 'minWithdrawAmount'),
+                                'min' => $this->parse_number($networkMinWithdrawString),
                                 'max' => null,
                             ),
                             'deposit' => array(
-                                'min' => $this->safe_number($chain, 'minDepositAmount'),
+                                'min' => $this->parse_number($networkMinDepositString),
                                 'max' => null,
                             ),
                         ),
-                        'active' => null,
-                        'withdraw' => $withdrawEnabled === 'true',
-                        'deposit' => $depositEnabled === 'true',
-                        'fee' => $this->safe_number($chain, 'withdrawFee'),
+                        'active' => $canWithdraw && $canDeposit,
+                        'withdraw' => $canWithdraw,
+                        'deposit' => $canDeposit,
+                        'fee' => $this->parse_number($networkWithdrawFeeString),
                         'precision' => null,
                     );
                 }
@@ -1393,14 +1414,24 @@ class bitget extends Exchange {
                     'networks' => $networks,
                     'type' => null,
                     'name' => null,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
+                    'active' => $deposit && $withdraw,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'fee' => $this->parse_number($minWithdrawFeeString),
                     'precision' => null,
                     'limits' => array(
-                        'amount' => array( 'min' => null, 'max' => null ),
-                        'withdraw' => array( 'min' => null, 'max' => null ),
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->parse_number($minWithdrawString),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($minDepositString),
+                            'max' => null,
+                        ),
                     ),
                 );
             }
