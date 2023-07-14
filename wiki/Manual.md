@@ -4,6 +4,24 @@ The ccxt library is a collection of available crypto *exchanges* or exchange cla
 
 The structure of the library can be outlined as follows:
 
+    ---------------------------------------------------------------
+    |                            CCXT|                            |
+    ---------------------------------------------------------------
+    |  [Public API](#public-api)   | [Private API](#private-api)  |
+    ---------------------------------------------------------------
+    |       loadMarkets            .           fetchBalance       |
+    |       fetchMarkets           .            createOrder       |
+    |       fetchCurrencies        .            cancelOrder       |
+    |       fetchTicker            .             fetchOrder       |
+    |       fetchTickers           .            fetchOrders       |
+    |       fetchOrderBook         .        fetchOpenOrders       |
+    |       fetchOHLCV             .      fetchClosedOrders       |
+    |       fetchStatus            .          fetchMyTrades       |
+    |       fetchTrades            .                deposit       |
+    |                              .               withdraw       |
+    ---------------------------------------------------------------
+
+
 ```text
                                  User
     +-------------------------------------------------------------+
