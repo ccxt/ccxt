@@ -2393,17 +2393,17 @@ export default class bingx extends Exchange {
          * @returns {object} response from the exchange
          */
         this.checkRequiredSymbol ('setMarginMode', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
+        }
         marginMode = marginMode.toUpperCase ();
         if (marginMode === 'CROSS') {
             marginMode = 'CROSSED';
         }
         if (marginMode !== 'ISOLATED' && marginMode !== 'CROSSED') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
-            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
         const request = {
             'symbol': market['id'],
