@@ -95,6 +95,7 @@ export default class gate extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -111,7 +112,6 @@ export default class gate extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
-                'fetchNetworkDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': true,
@@ -542,23 +542,23 @@ export default class gate extends Exchange {
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'BEP2': 'BNB',
-                    'POLKADOT': 'DOT', // DOTSM different
-                    'DOT': 'DOT', // DOTSM different
+                    'POLKADOT': 'DOT',
+                    'DOT': 'DOTSM', // todo: DOT vs DOTSM
                     'POLYGON': 'MATIC',
                     'MATIC': 'MATIC',
                     'ALGO': 'ALGO',
                     'ARB_NOVA': 'ARBNOVA',
-                    'ARB_ONE': 'ARB', // ARBEVM different
+                    // 'ARB_ONE': 'ARB', // todo: ARB vs ARBEVM
                     'AVAX_C': 'AVAX_C',
                     'AVAX_X': 'AVAX',
                     'BEP20': 'BSC',
                     'CHZ': 'CHZ',
                     'EOS': 'EOS',
-                    'GATECHAIN': 'GT', // GTEVM is different (same as GRC20) // todo
+                    // 'GATECHAIN': 'GT', // todo: GT vs GTEVM (same as GRC20)
                     'HECO': 'HT',
                     'HRC20': 'HT',
-                    'KUSAMA': 'KSM',
-                    'KSM': 'KSM', // KSMSM is different
+                    'KUSAMA': 'KSMSM',
+                    'KSM': 'KSMSM', // todo: KSM vs KSMSM
                     'NEAR': 'NEAR',
                     'OKC': 'OKT',
                     'OPTIMISM': 'OPETH',
@@ -622,7 +622,7 @@ export default class gate extends Exchange {
                     'BSV': 'BSV',
                     'BCH': 'BCH', // actually, the real name is BITCOIN-CASH-ABC, but most exchanges just call it mistakenly BCH (BITCOINCASH)
                     // 'BCHA': 'BCHA', // simultaneously, BITCOIN-CASH-ABC is other IOU, which ignored existing BITCOIN-CASH-ABC name presense and named BCHA again, but it is not original BITCOIN-CASH-ABC (BCH)
-                    'KAVA': 'KAVA',
+                    // 'KAVA': 'KAVA', // todo: KAVA vs KAVAEVM
                     'IOTX': 'IOTX',
                     'IOST': 'IOST',
                     'ICP': 'ICP',
@@ -1691,7 +1691,7 @@ export default class gate extends Exchange {
                     'limits': this.limits,
                 });
             }
-            // now (as currency entry is defined in results) then just add the current parsed entry into it's networks
+            // now (as currency entry is defined in results) then just add the current parsed entry into its networks
             // below are network-specific values
             const listed = !this.safeValue (entry, 'delisted');
             const withdrawEnabled = this.safeValue (entry, 'withdraw_disabled');
@@ -1968,6 +1968,30 @@ export default class gate extends Exchange {
         return result;
     }
 
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchDepositAddressesByNetwork
+         * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the api endpoint
+         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+         */
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
+        const chains = this.safeValue (response, 'multichain_addresses', []);
+        const currencyId = this.safeString (response, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
+            'currency': currency['id'],
+        });
+        return this.indexBy (parsed, 'network');
+    }
+
     async createDepositAddress (code: string, params = {}) {
         /**
          * @method
@@ -1986,57 +2010,36 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {object} [params] extra parameters specific to the api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const chainsIndexedById = await this.fetchDepositAddressesByNetwork (code, params);
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
+        return chainsIndexedById[selectedNetworkId];
+    }
+
+    parseDepositAddress (depositAddress, currency) {
         //
-        //    {
-        //        "currency": "XRP",
-        //        "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
-        //        "multichain_addresses": [
-        //            {
-        //                "chain": "XRP",
-        //                "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
-        //                "payment_id": "391331007",
-        //                "payment_name": "Tag",
-        //                "obtain_failed": 0
-        //            }
-        //        ]
-        //    }
+        //     {
+        //         chain: "BTC",
+        //         address: "1Nxu.......Ys",
+        //         payment_id: "",
+        //         payment_name: "",
+        //         obtain_failed: "0",
+        //     }
         //
-        const currencyId = this.safeString (response, 'currency');
-        code = this.safeCurrencyCode (currencyId);
-        const addressField = this.safeString (response, 'address');
-        let tag = undefined;
-        let address = undefined;
-        if (addressField !== undefined) {
-            if (addressField.indexOf ('New address is being generated for you, please wait') >= 0) {
-                throw new BadResponse (this.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.');
-            }
-            if (addressField.indexOf (' ') >= 0) {
-                const splitted = addressField.split (' ');
-                address = splitted[0];
-                tag = splitted[1];
-            } else {
-                address = addressField;
-            }
-        }
+        const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
-            'info': response,
-            'code': code, // kept here for backward-compatibility, but will be removed soon
-            'currency': code,
+            'info': depositAddress,
+            'currency': this.safeString (currency, 'code'),
             'address': address,
-            'tag': tag,
-            'network': undefined,
+            'tag': this.safeString (depositAddress, 'payment_id'),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain')),
         };
     }
 
@@ -3565,12 +3568,10 @@ export default class gate extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
-        if (network !== undefined) {
-            request['chain'] = network;
-            params = this.omit (params, 'network');
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode);
         } else {
             request['chain'] = currency['id'];
         }
