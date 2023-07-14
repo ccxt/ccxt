@@ -2280,8 +2280,7 @@ export default class bingx extends Exchange {
         //        },
         //    ]
         //
-        const withdrawals = this.safeValue (response, 'data', []);
-        return this.parseTransactions (withdrawals, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -2334,11 +2333,13 @@ export default class bingx extends Exchange {
         if (code !== undefined && code.indexOf (network) >= 0) {
             code = code.replace (network, '');
         }
+        const rawType = this.safeString (transaction, 'transferType');
+        const type = (rawType === '0') ? 'deposit' : 'withdrawal';
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txId'),
-            'type': this.safeString (transaction, 'transferType'),
+            'type': type,
             'currency': code,
             'network': network,
             'amount': this.safeNumber (transaction, 'amount'),
