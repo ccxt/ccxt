@@ -1337,5 +1337,15 @@
                 "active":"is undefined"
             }
         }
+    },
+    "bingx": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker":"is undefined"
+            },
+            "fetchTrades": {
+                "side": "undefined"
+            }
+        }
     }
 }
