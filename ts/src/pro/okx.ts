@@ -208,6 +208,7 @@ export default class okx extends okxRest {
         /**
          * @method
          * @name okx#watchTicker
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -225,6 +226,7 @@ export default class okx extends okxRest {
         /**
          * @method
          * @name okx#watchTickers
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the okx api endpoint
