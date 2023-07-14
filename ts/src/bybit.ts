@@ -1557,7 +1557,7 @@ export default class bybit extends Exchange {
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                const responseInner = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
+                const responseInner = await this.publicGetV5MarketInstrumentsInfo (params);
                 const dataNew = this.safeValue (responseInner, 'result', {});
                 const rawMarkets = this.safeValue (dataNew, 'list', []);
                 const rawMarketsLength = rawMarkets.length;
@@ -1733,7 +1733,7 @@ export default class bybit extends Exchange {
             if (paginationCursor !== undefined) {
                 while (paginationCursor !== undefined) {
                     request['cursor'] = paginationCursor;
-                    const responseInner = await this.publicGetDerivativesV3PublicInstrumentsInfo (this.extend (request, params));
+                    const responseInner = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
                     const dataNew = this.safeValue (responseInner, 'result', {});
                     const rawMarkets = this.safeValue (dataNew, 'list', []);
                     const rawMarketsLength = rawMarkets.length;
