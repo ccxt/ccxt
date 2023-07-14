@@ -1,5 +1,9 @@
 import Exchange from './abstract/digifinex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class digifinex
+ * @extends Exchange
+ */
 export default class digifinex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
@@ -241,7 +245,7 @@ export default class digifinex extends Exchange {
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

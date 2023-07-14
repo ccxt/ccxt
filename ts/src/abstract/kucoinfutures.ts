@@ -176,7 +176,8 @@ interface kucoin {
     futuresPrivateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteStopOrders (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteSubApiKey (params?: {}): Promise<implicitReturnType>;
-    webFrontGetContractSymbolFundingRates (params?: {}): Promise<implicitReturnType>;
+    webExchangeGetCurrencyCurrencyChainInfo (params?: {}): Promise<implicitReturnType>;
+    webExchangeGetContractSymbolFundingRates (params?: {}): Promise<implicitReturnType>;
 }
 abstract class kucoin extends _kucoin {}
 

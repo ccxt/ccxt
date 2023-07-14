@@ -1,5 +1,9 @@
 import Exchange from './abstract/bkex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bkex
+ * @extends Exchange
+ */
 export default class bkex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -15,7 +19,7 @@ export default class bkex extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -76,7 +80,7 @@ export default class bkex extends Exchange {
     fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
     parseTransactionFees(response: any, codes?: any): {};
     parseTransactionFee(transaction: any, currency?: any): number;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;

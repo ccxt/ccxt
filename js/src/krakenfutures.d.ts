@@ -1,10 +1,14 @@
 import Exchange from './abstract/krakenfutures.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class krakenfutures
+ * @extends Exchange
+ */
 export default class krakenfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -22,6 +26,26 @@ export default class krakenfutures extends Exchange {
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchBalance(params?: {}): Promise<any>;
     parseBalance(response: any): import("./base/types.js").Balances;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<{}>;
+    parseFundingRate(ticker: any, market?: any): {
+        info: any;
+        symbol: string;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: number;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePositions(response: any, symbols?: string[], params?: {}): any[];

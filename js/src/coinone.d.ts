@@ -1,5 +1,9 @@
 import Exchange from './abstract/coinone.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coinone
+ * @extends Exchange
+ */
 export default class coinone extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

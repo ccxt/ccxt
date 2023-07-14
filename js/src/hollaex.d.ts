@@ -1,5 +1,9 @@
 import Exchange from './abstract/hollaex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class hollaex
+ * @extends Exchange
+ */
 export default class hollaex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

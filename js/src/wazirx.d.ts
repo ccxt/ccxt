@@ -1,5 +1,9 @@
 import Exchange from './abstract/wazirx.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class wazirx
+ * @extends Exchange
+ */
 export default class wazirx extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

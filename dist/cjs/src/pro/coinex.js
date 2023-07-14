@@ -222,7 +222,7 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -307,13 +307,13 @@ class coinex extends coinex$1 {
         }
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
-            const parsed = this.parseWSTrade(trade, market);
+            const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
         this.trades[symbol] = stored;
         client.resolve(this.trades[symbol], messageHash);
     }
-    parseWSTrade(trade, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         //     {
         //         "type": "sell",
@@ -380,7 +380,7 @@ class coinex extends coinex$1 {
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchTickers([symbol], params);
@@ -391,8 +391,8 @@ class coinex extends coinex$1 {
          * @name coinex#watchTickers
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -424,10 +424,10 @@ class coinex extends coinex$1 {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -456,8 +456,8 @@ class coinex extends coinex$1 {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -503,10 +503,10 @@ class coinex extends coinex$1 {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -638,7 +638,7 @@ class coinex extends coinex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         //
@@ -729,18 +729,19 @@ class coinex extends coinex$1 {
         //
         const params = this.safeValue(message, 'params', []);
         const order = this.safeValue(params, 1, {});
-        const parsedOrder = this.parseWSOrder(order);
+        const parsedOrder = this.parseWsOrder(order);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        this.orders.append(parsedOrder);
+        const orders = this.orders;
+        orders.append(parsedOrder);
         let messageHash = 'orders';
         client.resolve(this.orders, messageHash);
         messageHash += ':' + parsedOrder['symbol'];
         client.resolve(this.orders, messageHash);
     }
-    parseWSOrder(order) {
+    parseWsOrder(order, market = undefined) {
         //
         //  spot
         //
@@ -854,7 +855,7 @@ class coinex extends coinex$1 {
         const amount = this.safeString(order, 'amount');
         const status = this.safeString(order, 'status');
         const defaultType = this.safeString(this.options, 'defaultType');
-        const market = this.safeMarket(marketId, undefined, undefined, defaultType);
+        market = this.safeMarket(marketId, market, undefined, defaultType);
         let cost = this.safeString(order, 'deal_money');
         let filled = this.safeString(order, 'deal_stock');
         let average = undefined;
@@ -893,12 +894,12 @@ class coinex extends coinex$1 {
             'remaining': remaining,
             'cost': cost,
             'average': average,
-            'status': this.parseWSOrderStatus(status),
+            'status': this.parseWsOrderStatus(status),
             'fee': fee,
             'trades': undefined,
         }, market);
     }
-    parseWSOrderStatus(status) {
+    parseWsOrderStatus(status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',

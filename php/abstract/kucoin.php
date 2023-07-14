@@ -484,6 +484,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresprivate_delete_stoporders($params = array()) {
         return $this->request('stopOrders', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1.3953));
     }
+    public function webexchange_get_currency_currency_chain_info($params = array()) {
+        return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetTimestamp($params = array()) {
         return $this->request('timestamp', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -960,5 +963,8 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function futuresPrivateDeleteStopOrders($params = array()) {
         return $this->request('stopOrders', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1.3953));
+    }
+    public function webExchangeGetCurrencyCurrencyChainInfo($params = array()) {
+        return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
     }
 }
