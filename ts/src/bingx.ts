@@ -470,6 +470,8 @@ export default class bingx extends Exchange {
         }
         const contractSize = this.safeNumber (market, 'size');
         const isActive = this.safeString (market, 'status') === '1';
+        const isInverse = (spot) ? undefined : false;
+        const isLinear = (spot) ? undefined : swap;
         const entry = {
             'id': id,
             'symbol': symbol,
@@ -487,8 +489,8 @@ export default class bingx extends Exchange {
             'option': false,
             'active': isActive,
             'contract': swap,
-            'linear': swap,
-            'inverse': (spot ? undefined : false),
+            'linear': isLinear,
+            'inverse': isInverse,
             'taker': undefined,
             'maker': undefined,
             'contractSize': contractSize,
