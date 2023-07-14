@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.23'
+__version__ = '4.0.24'
 
 # -----------------------------------------------------------------------------
 
@@ -62,6 +62,7 @@ from ccxt.async_support.binance import binance                                  
 from ccxt.async_support.binancecoinm import binancecoinm                        # noqa: F401
 from ccxt.async_support.binanceus import binanceus                              # noqa: F401
 from ccxt.async_support.binanceusdm import binanceusdm                          # noqa: F401
+from ccxt.async_support.bingx import bingx                                      # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                      # noqa: F401
 from ccxt.async_support.bitbank import bitbank                                  # noqa: F401
 from ccxt.async_support.bitbay import bitbay                                    # noqa: F401
@@ -169,6 +170,7 @@ exchanges = [
     'binancecoinm',
     'binanceus',
     'binanceusdm',
+    'bingx',
     'bit2c',
     'bitbank',
     'bitbay',
