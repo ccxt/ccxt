@@ -709,7 +709,7 @@ export default class okx extends okxRest {
         const feeMarketId = this.safeString (info, 'fillFeeCcy');
         const isTaker = this.safeString (info, 'execType', '') === 'T';
         return this.safeTrade ({
-            'info': order,
+            'info': info,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': this.safeString (order, 'symbol'),
@@ -723,7 +723,7 @@ export default class okx extends okxRest {
             'cost': undefined,
             'fee': {
                 'cost': this.safeNumber (info, 'fillFee'),
-                'currency': this.safeCurrency (feeMarketId),
+                'currency': this.safeCurrencyCode (feeMarketId),
             },
         }, market);
     }
@@ -1011,7 +1011,9 @@ export default class okx extends okxRest {
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest (symbol, type, side, amount, price, params);
-        if (args['trigger'] || (args['ordType'] === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
+        const trigger = this.safeString (args, 'trigger');
+        const ordType = this.safeString (args, 'ordType');
+        if (trigger || (ordType === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
             throw new BadRequest (this.id + ' createOrderWs() does not support algo trading. this.options["createOrderWs"]["op"] must be either order or batch-order');
         }
         if ((op !== 'order') && (op !== 'batch-orders')) {
