@@ -61,7 +61,7 @@ export default class bingx extends Exchange {
             },
             'hostname': 'bingx.com',
             'urls': {
-                'logo': '',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
