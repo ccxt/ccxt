@@ -1087,7 +1087,7 @@ export default class binance extends Exchange {
                     'SOL': 'SOL',
                     // 'FIAT': 'FIAT_MONEY', // not unified atm
                     // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
-                    // 'STAKING': 'STAKING',
+                    // 'STAKING': 'STAKING', // not unified atm
                     'NEAR': 'NEAR',
                     'HNT': 'HNT',
                     'NANO': 'NANO',
@@ -1096,7 +1096,7 @@ export default class binance extends Exchange {
                     'ONT': 'ONT',
                     'BCH': 'BCH',
                     'AR': 'AR',
-                    'IRISNET': 'IRIS',
+                    'IRIS': 'IRIS',
                     'AVAX_C': 'AVAXC',
                     'AVAX_X': 'AVAX',
                     'ARB_ONE': 'ARBITRUM',
@@ -1134,7 +1134,6 @@ export default class binance extends Exchange {
                     'COSMOS': 'ATOM',
                     'ATOM': 'ATOM',
                     'OPTIMISM': 'OPTIMISM',
-                    'OASIS': 'ROSE',
                     'GLMR': 'GLMR',
                     'ETC': 'ETC',
                     'TOMO': 'TOMO',
@@ -1188,6 +1187,7 @@ export default class binance extends Exchange {
                     'XMR': 'XMR',
                     // below will be uncommented after consensus
                     // 'AELF': 'ELF',
+                    // 'OASIS': 'ROSE',
                     // 'PARALLELFINANCE': 'PARA',
                     // 'EFINITY': 'EFI',
                     // 'TERRA': 'LUNA',
