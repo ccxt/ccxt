@@ -48,7 +48,7 @@ export default class ascendex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
-                'fetchDepositAddressesByNetwork': false,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
