@@ -2022,7 +2022,7 @@ export default class gate extends Exchange {
         return chainsIndexedById[selectedNetworkId];
     }
 
-    parseDepositAddress (depositAddress, currency) {
+    parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
         //         chain: "BTC",
