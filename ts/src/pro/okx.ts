@@ -27,7 +27,7 @@ export default class okx extends okxRest {
                 'editOrderWs': true,
                 'cancelOrderWs': true,
                 'cancelOrdersWs': true,
-                'cancelAllOrdersWs': true
+                'cancelAllOrdersWs': true,
             },
             'urls': {
                 'api': {
