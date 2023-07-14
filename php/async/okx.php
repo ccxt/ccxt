@@ -1335,13 +1335,21 @@ class okx extends Exchange {
                 'instType' => $this->convert_to_instrument_type($type),
             );
             if ($type === 'option') {
-                $defaultUnderlying = $this->safe_value($this->options, 'defaultUnderlying', 'BTC-USD');
-                $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
-                if ($currencyId === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets');
-                } else {
-                    $request['uly'] = $currencyId;
+                $optionsUnderlying = $this->safe_value($this->options, 'defaultUnderlying', array( 'BTC-USD', 'ETH-USD' ));
+                $promises = array();
+                for ($i = 0; $i < count($optionsUnderlying); $i++) {
+                    $underlying = $optionsUnderlying[$i];
+                    $request['uly'] = $underlying;
+                    $promises[] = $this->publicGetPublicInstruments (array_merge($request, $params));
                 }
+                $promisesResult = Async\await(Promise\all($promises));
+                $data = array();
+                for ($i = 0; $i < count($promisesResult); $i++) {
+                    $res = $this->safe_value($promisesResult, $i, array());
+                    $options = $this->safe_value($res, 'data', array());
+                    $data = $this->array_concat($data, $options);
+                }
+                return $this->parse_markets($data);
             }
             $response = Async\await($this->publicGetPublicInstruments (array_merge($request, $params)));
             //
