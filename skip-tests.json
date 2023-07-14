@@ -1337,5 +1337,22 @@
                 "active":"is undefined"
             }
         }
+    },
+    "bingx": {
+        "skipMethods": {
+            "loadMarkets": "some coins not detected",
+            "fetchTrades": {
+                "side": "undefined"
+            },
+            "fetchTicker": "spot not supported",
+            "fetchTickers": {
+                "quoteVolume": "not supported"
+            },
+            "fetchOHLCV": "spot not supported",
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "precision": "not provided"
+            }
+        }
     }
 }
