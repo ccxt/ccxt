@@ -97,13 +97,14 @@ class kucoin extends Exchange {
                     'private' => 'https://api.kucoin.com',
                     'futuresPrivate' => 'https://api-futures.kucoin.com',
                     'futuresPublic' => 'https://api-futures.kucoin.com',
-                    'webExchange' => 'https://api.kucoin.com',
+                    'webExchange' => 'https://kucoin.com/_api',
                 ),
                 'test' => array(
                     'public' => 'https://openapi-sandbox.kucoin.com',
                     'private' => 'https://openapi-sandbox.kucoin.com',
                     'futuresPrivate' => 'https://api-sandbox-futures.kucoin.com',
                     'futuresPublic' => 'https://api-sandbox-futures.kucoin.com',
+                    'webExchange' => 'https://kucoin.com/_api',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -306,6 +307,11 @@ class kucoin extends Exchange {
                         'stopOrders' => 1.3953,
                     ),
                 ),
+                'webExchange' => array(
+                    'get' => array(
+                        'currency/currency/chain-info' => 1, // this is temporary from webApi
+                    ),
+                ),
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -435,6 +441,11 @@ class kucoin extends Exchange {
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
+                'fetchCurrencies' => array(
+                    'webApiEnable' => true, // fetches from WEB
+                    'webApiRetries' => 5,
+                    'webApiMuteFailure' => true,
+                ),
                 'fetchMarkets' => array(
                     'fetchTickersFees' => true,
                 ),
@@ -533,317 +544,209 @@ class kucoin extends Exchange {
                     'ERC20' => 'eth',
                     'TRX' => 'trx',
                     'TRC20' => 'trx',
-                    'KCC' => 'kcc', // kucoin community chain
-                    'SOLANA' => 'sol',
-                    'ALGORAND' => 'algo',
-                    'EOS' => 'eos',
+                    'HECO' => 'heco',
                     'HRC20' => 'heco',
+                    'MATIC' => 'matic',
                     'POLYGON' => 'matic',
+                    'KCC' => 'kcc', // kucoin community chain
+                    'SOL' => 'sol',
+                    'ALGO' => 'algo',
+                    'EOS' => 'eos',
                     'BEP20' => 'bsc',
                     'BEP2' => 'bnb',
-                    'ARBITRUM_ONE' => 'arbitrum',
-                    'TELOS' => 'tlos', // tlosevm is different
-                    'CONFLUX' => 'cfx',
-                    'ACALA' => 'aca',
+                    'ARB_ONE' => 'arbitrum',
+                    'TLOS' => 'tlos', // tlosevm is different
+                    'CFX' => 'cfx',
+                    'ACA' => 'aca',
                     'OPTIMISM' => 'optimism',
-                    'ONTOLOGY' => 'ont',
-                    'MOONBEAM' => 'glmr',
-                    'CASPER' => 'cspr',
-                    'KLAYTN' => 'klay',
-                    'RADIX' => 'xrd',
-                    'RAVENCOIN' => 'rvn',
+                    'ONT' => 'ont',
+                    'GLMR' => 'glmr',
+                    'CSPR' => 'cspr',
+                    'KLAY' => 'klay',
+                    'XRD' => 'xrd',
+                    'RVN' => 'rvn',
                     'NEAR' => 'near',
-                    'APTOS' => 'aptos',
+                    'APT' => 'aptos',
                     'ETHW' => 'ethw',
                     'TON' => 'ton',
                     'BCH' => 'bch',
                     'BSV' => 'bchsv',
                     'BCHA' => 'bchabc',
-                    'OSMOSIS' => 'osmo',
+                    'OSMO' => 'osmo',
                     'NANO' => 'nano',
-                    'STELLAR' => 'xlm',
-                    'VECHAIN' => 'vet',
+                    'XLM' => 'xlm',
+                    'VET' => 'vet',
                     'IOST' => 'iost',
-                    'ZILLIQA' => 'zil',
-                    'RIPPLE' => 'xrp',
-                    'TOMOCHAIN' => 'tomo',
-                    'MONERO' => 'xmr',
+                    'ZIL' => 'zil',
+                    'XRP' => 'xrp',
+                    'TOMO' => 'tomo',
+                    'XMR' => 'xmr',
                     'COTI' => 'coti',
-                    'TEZOS' => 'xtz',
-                    'CARDANO' => 'ada',
+                    'XTZ' => 'xtz',
+                    'ADA' => 'ada',
                     'WAX' => 'waxp',
                     'THETA' => 'theta',
-                    'HARMONY' => 'one',
+                    'ONE' => 'one',
                     'IOTEX' => 'iotx',
                     'NULS' => 'nuls',
-                    'KUSAMA' => 'ksm',
+                    'KSM' => 'ksm',
                     'LTC' => 'ltc',
                     'WAVES' => 'waves',
-                    'POLKADOT' => 'dot',
+                    'DOT' => 'dot',
                     'STEEM' => 'steem',
                     'QTUM' => 'qtum',
-                    'DOGECOIN' => 'doge',
-                    'FILECOIN' => 'fil',
-                    'AVALANCHE_X' => 'avax',
-                    'AVALANCHE_C' => 'avaxc',
-                    'SYMBOL' => 'xym',
+                    'DOGE' => 'doge',
+                    'FIL' => 'fil',
+                    'AVAX_X' => 'avax',
+                    'AVAX_C' => 'avaxc',
+                    'XYM' => 'xym',
                     'FLUX' => 'flux',
-                    'COSMOS' => 'atom',
+                    'ATOM' => 'atom',
                     'XDC' => 'xdc',
-                    'KADENA' => 'kda',
-                    'INTERNETCOMPUTER' => 'icp',
+                    'KDA' => 'kda',
+                    'ICP' => 'icp',
                     'CELO' => 'celo',
-                    'LISK' => 'lsk',
-                    'VSYSTEMS' => 'vsys',
-                    'KARURA' => 'kar',
-                    'CHIA' => 'xch',
+                    'LSK' => 'lsk',
+                    'VSYS' => 'vsys',
+                    'KAR' => 'kar',
+                    'XCH' => 'xch',
                     'FLOW' => 'flow',
                     'BAND' => 'band',
-                    'ELROND' => 'egld',
-                    'HEDERA' => 'hbar',
-                    'PROTON' => 'xpr',
-                    'ARWEAVE' => 'ar',
-                    'FANTOM' => 'ftm',
+                    'EGLD' => 'egld',
+                    'HBAR' => 'hbar',
+                    'XPR' => 'xpr',
+                    'AR' => 'ar',
+                    'FTM' => 'ftm',
                     'KAVA' => 'kava',
-                    'CALAMARI' => 'kma',
-                    'ECASH' => 'xec',
+                    'KMA' => 'kma',
+                    'XEC' => 'xec',
                     'IOTA' => 'iota',
-                    'HELIUM' => 'hnt',
-                    'ASTAR' => 'astr',
-                    'POLKADEX' => 'pdex',
+                    'HNT' => 'hnt',
+                    'ASTR' => 'astr',
+                    'PDEX' => 'pdex',
                     'METIS' => 'metis',
-                    'ZCASH' => 'zec',
-                    'POCKET' => 'pokt',
+                    'ZEC' => 'zec',
+                    'POKT' => 'pokt',
                     'OASYS' => 'oas',
-                    'ETC' => 'etc',
-                    'AKASH' => 'akt',
-                    'FUSION' => 'fsn',
-                    'SECRET' => 'scrt',
-                    'CENTRIFUGE' => 'cfg',
-                    'ICON' => 'icx',
-                    'KOMODO' => 'kmd',
-                    'NEM' => 'NEM',
-                    'STACKS' => 'stx',
-                    'DIGIBYTE' => 'dgb',
-                    'DECRED' => 'dcr',
-                    'NERVOS' => 'ckb', // ckb2 is just odd entry
-                    'ELASTOS' => 'ela', // esc is another chain
-                    'HYDRA' => 'hydra',
-                    'BYTOM' => 'btm',
                     'OASIS' => 'oasis', // a.k.a. ROSE
-                    'KARDIACHAIN' => 'kai',
-                    'SOLAR' => 'sxp', // a.k.a. solar swipe
-                    'NEBLIO' => 'nebl',
-                    'HORIZEN' => 'zen',
-                    'SHIDEN' => 'sdn',
+                    'ETC' => 'etc',
+                    'AKT' => 'akt',
+                    'FSN' => 'fsn',
+                    'SCRT' => 'scrt',
+                    'CFG' => 'cfg',
+                    'ICX' => 'icx',
+                    'KMD' => 'kmd',
+                    'NEM' => 'NEM',
+                    'STX' => 'stx',
+                    'DGB' => 'dgb',
+                    'DCR' => 'dcr',
+                    'CKB' => 'ckb', // ckb2 is just odd entry
+                    'ELA' => 'ela', // esc might be another chain elastos smart chain
+                    'HYDRA' => 'hydra',
+                    'BTM' => 'btm',
+                    'KARDIA' => 'kai',
+                    'SXP' => 'sxp', // a.k.a. solar swipe
+                    'NEBL' => 'nebl',
+                    'ZEN' => 'zen',
+                    'SDN' => 'sdn',
                     'AURORA' => 'aurora',
                     'LTO' => 'lto',
-                    // below will be uncommented after unification
-                    // 'ORAICHAIN' => 'orai',
+                    'WEMIX' => 'wemix',
+                    // 'BOBA' => 'boba', // tbd
+                    'EVER' => 'ever',
+                    'PHA' => 'pha', // a.k.a. khala
+                    'BNC' => 'bnc',
+                    'BNCDOT' => 'bncdot',
+                    'CMP' => 'cmp',
+                    'AION' => 'aion',
+                    'PAL' => 'pal',
+                    'GRIN' => 'grin',
+                    'LOKI' => 'loki',
+                    'QKC' => 'qkc',
+                    'RSK' => 'rbtc',
+                    'NIX' => 'nix',
+                    'TT' => 'TT',
+                    'NIM' => 'nim',
+                    'NRG' => 'nrg',
+                    'RFOX' => 'rfox',
+                    'PIVX' => 'pivx',
+                    'SERO' => 'sero',
+                    'METER' => 'meter',
+                    'STATEMINE' => 'statemine', // a.k.a. RMRK
+                    'DVPN' => 'dvpn',
+                    'XPRT' => 'xprt',
+                    'NDAU' => 'ndau',
+                    'MOVR' => 'movr',
+                    'ERGO' => 'ergo',
+                    'ABBC' => 'abbc',
+                    'DIVI' => 'divi',
+                    'PURA' => 'pura',
+                    'DFI' => 'dfi',
+                    // 'NEO' => 'neo', // tbd neo legacy
+                    'NEON3' => 'neon3',
+                    'DOCK' => 'dock',
+                    'AXE' => 'axe',
+                    'TRUE' => 'true',
+                    'CS' => 'cs',
+                    'HTR' => 'htr',
+                    'ORAI' => 'orai',
+                    'DEROHE' => 'derohe',
+                    'HPB' => 'hpb',
+                    // below will be uncommented after consensus
+                    // 'BITCOINDIAMON' => 'bcd',
+                    // 'BITCOINGOLD' => 'btg',
+                    // 'BITCOINPRIVATE' => 'btcp',
+                    // 'EDGEWARE' => 'edg',
                     // 'JUPITER' => 'jup',
+                    // 'VELAS' => 'vlx', // vlxevm is different
                     // // 'terra' luna lunc TBD
-                    // 'DEROHE' => 'derohe',
-                    // 'BIFROST' => 'bnc',
-                    // 'BIFROSTPOLKADOT' => 'bncdot',
+                    // 'DIGITALBITS' => 'xdb',
                     // // fra is fra-emv on kucoin
                     // 'PASTEL' => 'psl',
                     // // sysevm
                     // 'CONCORDIUM' => 'ccd',
                     // 'PIONEER' => 'neer',
-                    // 'CADUCEUS' => 'cmp',
                     // 'PIXIE' => 'pix',
                     // 'ALEPHZERO' => 'azero',
                     // 'ACHAIN' => 'act', // actevm is different
                     // 'BOSCOIN' => 'bos',
                     // 'ELECTRONEUM' => 'etn',
                     // 'GOCHAIN' => 'go',
-                    // 'HPB' => 'hpb',
-                    // // 'NEO' => 'neo', tbd neo legacy
                     // 'SOPHIATX' => 'sphtx',
                     // 'WANCHAIN' => 'wan',
                     // 'ZEEPIN' => 'zpt',
                     // 'MATRIXAI' => 'man',
                     // 'METADIUM' => 'meta',
-                    // 'BITCOINDIAMON' => 'bcd',
-                    // 'AION' => 'aion',
-                    // 'PAL' => 'pal',
-                    // 'GRIN' => 'grin',
                     // 'METAHASH' => 'mhc',
-                    // 'LOKI' => 'loki',
-                    // 'NIMIQ' => 'nim',
-                    // 'QUARKCHAIN' => 'qkc',
-                    // 'ENERGI' => 'nrg',
-                    // 'RSK' => 'rbtc',
-                    // 'RFOX' => 'rfox',
-                    // 'THUNDERCORE' => 'TT',
-                    // 'NIX' => 'nix',
-                    // 'PIVX' => 'pivx',
-                    // 'SERO' => 'sero',
                     // // eosc --"eosforce" tbd
                     // 'IOTCHAIN' => 'itc',
-                    // 'TRUECHAIN' => 'true',
                     // 'CONTENTOS' => 'cos',
-                    // 'CREDITS' => 'cs',
                     // 'CPCHAIN' => 'cpc',
                     // 'INTCHAIN' => 'int',
                     // // 'DASH' => 'dash', tbd digita-cash
                     // 'WALTONCHAIN' => 'wtc',
-                    // 'AXE' => 'axe',
                     // 'CONSTELLATION' => 'dag',
                     // 'ONELEDGER' => 'olt',
                     // 'AIRDAO' => 'amb', // a.k.a. AMBROSUS
                     // 'ENERGYWEB' => 'ewt',
                     // 'WAVESENTERPRISE' => 'west',
                     // 'HYPERCASH' => 'hc',
-                    // 'BITCOINGOLD' => 'btg',
                     // 'ENECUUM' => 'enq',
                     // 'HAVEN' => 'xhv',
-                    // 'DOCK' => 'dock',
-                    // 'HATHOR' => 'htr',
-                    // 'DEFICHAIN' => 'dfi',
                     // 'CHAINX' => 'pcx',
                     // // 'FLUXOLD' => 'zel', // zel seems old chain (with uppercase FLUX in kucoin UI and with id 'zel')
-                    // 'BITCOINPRIVATE' => 'btcp',
                     // 'BUMO' => 'bu',
                     // 'DEEPONION' => 'onion',
-                    // 'PURA' => 'pura',
                     // 'ULORD' => 'ut',
                     // 'ASCH' => 'xas',
                     // 'SOLARIS' => 'xlr',
                     // 'APOLLO' => 'apl',
-                    // 'DIVI' => 'divi',
                     // 'PIRATECHAIN' => 'arrr',
-                    // 'ERGO' => 'ergo',
-                    // 'ABBC' => 'abbc',
                     // 'ULTRA' => 'uos',
-                    // 'MOONRIVE' => 'movr',
-                    // 'NDAU' => 'ndau',
-                    // 'PERSISTENCE' => 'xprt',
-                    // 'SENTINEL' => 'dvpn',
-                    // 'EDGEWARE' => 'edg',
-                    // 'STATEMINE' => 'statemine', // a.k.a. RMRK
-                    // 'VELAS' => 'vlx', // vlxevm is different
                     // 'EMONEY' => 'ngm',
-                    // 'PHALA' => 'pha', // a.k.a. khala
-                    // 'METER' => 'meter',
                     // 'AURORACHAIN' => 'aoa',
-                    // 'EVERSCALE' => 'ever',
-                    // // 'BOBA' => 'boba', // tbd
-                    // 'DIGITALBITS' => 'xdb',
-                    // 'WEMIX' => 'wemix',
                     // 'KLEVER' => 'klv',
-                    // undetermined => xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus), neon3 (NEO N3),
-                ),
-                'networksById' => array(
-                    'btc' => 'BTC',
-                    'bech32' => 'BTCNATIVESEGWIT',
-                    'eth' => 'ERC20',
-                    'trx' => 'TRC20',
-                    'kcc' => 'KCC',
-                    'sol' => 'SOLANA',
-                    'algo' => 'ALGORAND',
-                    'eos' => 'EOS',
-                    'heco' => 'HRC20',
-                    'matic' => 'POLYGON',
-                    'bsc' => 'BEP20',
-                    'bnb' => 'BEP2',
-                    'arbitrum' => 'ARBITRUM_ONE',
-                    'tlos' => 'TELOS',
-                    'cfx' => 'CONFLUX',
-                    'aca' => 'ACALA',
-                    'optimism' => 'OPTIMISM',
-                    'ont' => 'ONTOLOGY',
-                    'glmr' => 'MOONBEAM',
-                    'cspr' => 'CASPER',
-                    'klay' => 'KLAYTN',
-                    'xrd' => 'RADIX',
-                    'rvn' => 'RAVENCOIN',
-                    'near' => 'NEAR',
-                    'aptos' => 'APTOS',
-                    'ethw' => 'ETHW',
-                    'ton' => 'TON',
-                    'bch' => 'BCH',
-                    'bchsv' => 'BSV',
-                    'bchabc' => 'BCHA',
-                    'osmo' => 'OSMOSIS',
-                    'nano' => 'NANO',
-                    'xlm' => 'STELLAR',
-                    'vet' => 'VECHAIN',
-                    'iost' => 'IOST',
-                    'zil' => 'ZILLIQA',
-                    'xrp' => 'RIPPLE',
-                    'tomo' => 'TOMOCHAIN',
-                    'xmr' => 'MONERO',
-                    'coti' => 'COTI',
-                    'xtz' => 'TEZOS',
-                    'ada' => 'CARDANO',
-                    'waxp' => 'WAX',
-                    'theta' => 'THETA',
-                    'one' => 'HARMONY',
-                    'iotx' => 'IOTEX',
-                    'nuls' => 'NULS',
-                    'ksm' => 'KUSAMA',
-                    'ltc' => 'LTC',
-                    'waves' => 'WAVES',
-                    'dot' => 'POLKADOT',
-                    'steem' => 'STEEM',
-                    'qtum' => 'QTUM',
-                    'doge' => 'DOGECOIN',
-                    'fil' => 'FILECOIN',
-                    'avax' => 'AVALANCHE_X',
-                    'avaxc' => 'AVALANCHE_C',
-                    'xym' => 'SYMBOL',
-                    'flux' => 'FLUX',
-                    'atom' => 'COSMOS',
-                    'xdc' => 'XDC',
-                    'kda' => 'KADENA',
-                    'icp' => 'INTERNETCOMPUTER',
-                    'celo' => 'CELO',
-                    'lsk' => 'LISK',
-                    'vsys' => 'VSYSTEMS',
-                    'kar' => 'KARURA',
-                    'xch' => 'CHIA',
-                    'flow' => 'FLOW',
-                    'band' => 'BAND',
-                    'egld' => 'ELROND',
-                    'hbar' => 'HEDERA',
-                    'xpr' => 'PROTON',
-                    'ar' => 'ARWEAVE',
-                    'ftm' => 'FANTOM',
-                    'kava' => 'KAVA',
-                    'kma' => 'CALAMARI',
-                    'xec' => 'ECASH',
-                    'iota' => 'IOTA',
-                    'hnt' => 'HELIUM',
-                    'astr' => 'ASTAR',
-                    'pdex' => 'POLKADEX',
-                    'metis' => 'METIS',
-                    'zec' => 'ZCASH',
-                    'pokt' => 'POCKET',
-                    'oas' => 'OASYS',
-                    'etc' => 'ETC',
-                    'akt' => 'AKASH',
-                    'fsn' => 'FUSION',
-                    'scrt' => 'SECRET',
-                    'cfg' => 'CENTRIFUGE',
-                    'icx' => 'ICON',
-                    'kmd' => 'KOMODO',
-                    'NEM' => 'NEM',
-                    'stx' => 'STACKS',
-                    'dgb' => 'DIGIBYTE',
-                    'dcr' => 'DECRED',
-                    'ckb' => 'NERVOS',
-                    'ela' => 'ELASTOS',
-                    'hydra' => 'HYDRA',
-                    'btm' => 'BYTOM',
-                    'oasis' => 'OASIS',
-                    'kai' => 'KARDIACHAIN',
-                    'nebl' => 'NEBLIO',
-                    'zen' => 'HORIZEN',
-                    'sdn' => 'SHIDEN',
-                    'aurora' => 'AURORA',
-                    'lto' => 'LTO',
-                    'sxp' => 'SOLAR',
+                    // undetermined => xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus),
                 ),
                 'marginModes' => array(
                     'cross' => 'MARGIN_TRADE',
@@ -1045,7 +948,8 @@ class kucoin extends Exchange {
          * @param {array} $params extra parameters specific to the kucoin api endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicGetCurrencies ($params);
+        $promises = array();
+        $promises[] = $this->publicGetCurrencies ($params);
         //
         //     {
         //         "currency" => "OMG",
@@ -1061,7 +965,48 @@ class kucoin extends Exchange {
         //         "isDebitEnabled" => false
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $promises[] = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true);
+        //
+        //    {
+        //        "success" => true,
+        //        "code" => "200",
+        //        "msg" => "success",
+        //        "retry" => false,
+        //        "data" => array(
+        //            array(
+        //                "withdrawMinFee" => "0.0005",
+        //                "chainName" => "BTC",
+        //                "preDepositTipEnabled" => "false",
+        //                "chain" => "btc",
+        //                "isChainEnabled" => "true",
+        //                "withdrawDisabledTip" => "",
+        //                "walletPrecision" => "8",
+        //                "chainFullName" => "Bitcoin",
+        //                "orgAddress" => "",
+        //                "isDepositEnabled" => "true",
+        //                "withdrawMinSize" => "0.001",
+        //                "depositDisabledTip" => "",
+        //                "userAddressName" => "",
+        //                "txUrl" => "https://blockchain.info/tx/{txId}",
+        //                "preWithdrawTipEnabled" => "false",
+        //                "withdrawFeeRate" => "0",
+        //                "confirmationCount" => "2",
+        //                "currency" => "BTC",
+        //                "depositMinSize" => "0.00005",
+        //                "isWithdrawEnabled" => "true",
+        //                "preDepositTip" => "",
+        //                "preWithdrawTip" => "",
+        //                "status" => "enabled"
+        //            ),
+        //        )
+        //    }
+        //
+        $responses = $promises;
+        $responseCurrencies = $responses[0];
+        $responseChains = $responses[1];
+        $data = $this->safe_value($responseCurrencies, 'data', array());
+        $chainsData = $this->safe_value($responseChains, 'data', array());
+        $currencyChains = $this->group_by($chainsData, 'currency');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -1072,6 +1017,37 @@ class kucoin extends Exchange {
             $isDepositEnabled = $this->safe_value($entry, 'isDepositEnabled', false);
             $fee = $this->safe_number($entry, 'withdrawalMinFee');
             $active = ($isWithdrawEnabled && $isDepositEnabled);
+            $networks = array();
+            $chains = $this->safe_value($currencyChains, $id, array());
+            for ($j = 0; $j < count($chains); $j++) {
+                $chain = $chains[$j];
+                $chainId = $this->safe_string($chain, 'chain');
+                $isChainEnabled = $this->safe_string($chain, 'isChainEnabled'); // better than 'status'
+                if ($isChainEnabled === 'true') {
+                    $networkCode = $this->network_id_to_code($chainId);
+                    $chainWithdrawEnabled = $this->safe_value($chain, 'isWithdrawEnabled', false);
+                    $chainDepositEnabled = $this->safe_value($chain, 'isDepositEnabled', false);
+                    $networks[$networkCode] = array(
+                        'info' => $chain,
+                        'id' => $chainId,
+                        'name' => $this->safe_string_2($chain, 'chainFullName', 'chainName'),
+                        'code' => $networkCode,
+                        'active' => $chainWithdrawEnabled && $chainDepositEnabled,
+                        'fee' => $this->safe_number($chain, 'withdrawMinFee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'walletPrecision'))),
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'withdrawMinSize'),
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => $this->safe_number($chain, 'depositMinSize'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+            }
             $result[$code] = array(
                 'id' => $id,
                 'name' => $name,
@@ -1083,6 +1059,7 @@ class kucoin extends Exchange {
                 'withdraw' => $isWithdrawEnabled,
                 'fee' => $fee,
                 'limits' => $this->limits,
+                'networks' => $networks,
             );
         }
         return $result;
@@ -1582,7 +1559,10 @@ class kucoin extends Exchange {
         // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
         // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
         $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_value($response, 'data');
+        if ($data === null) {
+            throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty $response, you might try to run createDepositAddress() first and try again');
+        }
         return $this->parse_deposit_address($data, $currency);
     }
 
@@ -3975,7 +3955,7 @@ class kucoin extends Exchange {
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $params = $this->omit($params, 'version');
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
-        if ($api === 'webFront') {
+        if ($api === 'webExchange') {
             $endpoint = '/' . $this->implode_params($path, $params);
         }
         $query = $this->omit($params, $this->extract_params($path));

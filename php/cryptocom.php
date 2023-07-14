@@ -166,6 +166,7 @@ class cryptocom extends Exchange {
                             'private/get-deposit-address' => 10 / 3,
                             'private/get-accounts' => 10 / 3,
                             'private/get-withdrawal-history' => 10 / 3,
+                            'private/get-deposit-history' => 10 / 3,
                         ),
                     ),
                 ),
@@ -372,6 +373,7 @@ class cryptocom extends Exchange {
                     '50001' => '\\ccxt\\BadRequest',
                     '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
+                'broad' => array(),
             ),
         ));
     }
@@ -985,24 +987,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-         * @param {string} [$params->ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
-         * @param {float} [$params->stopPrice] $price to trigger a stop order
-         * @param {float} [$params->stopLossPrice] $price to trigger a stop-loss trigger order
-         * @param {float} [$params->takeProfitPrice] $price to trigger a take-profit trigger order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
-         */
-        $this->load_markets();
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $request = array(
@@ -1101,7 +1086,30 @@ class cryptocom extends Exchange {
             $request['type'] = $uppercaseType;
         }
         $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-        $response = $this->v1PrivatePostPrivateCreateOrder (array_merge($request, $params));
+        return array_merge($request, $params);
+    }
+
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+         * @param {string} [$params->ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
+         * @param {float} [$params->stopPrice] $price to trigger a stop order
+         * @param {float} [$params->stopLossPrice] $price to trigger a stop-loss trigger order
+         * @param {float} [$params->takeProfitPrice] $price to trigger a take-profit trigger order
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $response = $this->v1PrivatePostPrivateCreateOrder ($request);
         //
         //     {
         //         "id" => 1686804664362,
@@ -1123,7 +1131,7 @@ class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
          * @param {string} $symbol unified $market $symbol of the orders to cancel
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} Returns exchange raw messagearray(@link https://docs.ccxt.com/#/?id=order-structure)
          */
         $this->load_markets();
         $market = null;
@@ -1140,7 +1148,7 @@ class cryptocom extends Exchange {
          * cancels an open order
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
          * @param {string} $id the order $id of the order to cancel
-         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {string} [$symbol] unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1450,10 +1458,12 @@ class cryptocom extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
@@ -1470,26 +1480,34 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->v2PrivatePostPrivateGetDepositHistory (array_merge($request, $params));
-        // {
-        //     "id" => 11,
-        //     "method" => "private/get-deposit-history",
-        //     "code" => 0,
-        //     "result" => {
-        //       "deposit_list" => array(
-        //         {
-        //           "currency" => "XRP",
-        //           "fee" => 1.0,
-        //           "create_time" => 1607063412000,
-        //           "id" => "2220",
-        //           "update_time" => 1607063460000,
-        //           "amount" => 100,
-        //           "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //           "status" => "1"
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $request['end_ts'] = $until;
+        }
+        $response = $this->v1PrivatePostPrivateGetDepositHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 1688701375714,
+        //         "method" => "private/get-deposit-history",
+        //         "code" => 0,
+        //         "result" => {
+        //             "deposit_list" => array(
+        //                 array(
+        //                     "currency" => "BTC",
+        //                     "fee" => 0,
+        //                     "create_time" => 1688023659000,
+        //                     "id" => "6201135",
+        //                     "update_time" => 1688178509000,
+        //                     "amount" => 0.00114571,
+        //                     "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //                     "status" => "1",
+        //                     "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
+        //                 ),
+        //             )
         //         }
-        //       )
         //     }
-        // }
+        //
         $data = $this->safe_value($response, 'result', array());
         $depositList = $this->safe_value($data, 'deposit_list', array());
         return $this->parse_transactions($depositList, $currency, $since, $limit);
@@ -1998,14 +2016,15 @@ class cryptocom extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "currency" => "XRP",
-        //         "fee" => 1.0,
-        //         "create_time" => 1607063412000,
-        //         "id" => "2220",
-        //         "update_time" => 1607063460000,
-        //         "amount" => 100,
-        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //         "status" => "1"
+        //         "currency" => "BTC",
+        //         "fee" => 0,
+        //         "create_time" => 1688023659000,
+        //         "id" => "6201135",
+        //         "update_time" => 1688178509000,
+        //         "amount" => 0.00114571,
+        //         "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //         "status" => "1",
+        //         "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
         //     }
         //
         // fetchWithdrawals

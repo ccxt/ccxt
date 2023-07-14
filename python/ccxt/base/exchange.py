@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.11'
+__version__ = '4.0.24'
 
 # -----------------------------------------------------------------------------
 
@@ -445,7 +445,11 @@ class Exchange(object):
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
                 else:
-                    setattr(self, camelcase, attr)
+                    if hasattr(self, camelcase):
+                        if attr is not None:
+                            setattr(self, camelcase, attr)
+                    else:
+                        setattr(self, camelcase, attr)
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
@@ -1600,7 +1604,7 @@ class Exchange(object):
             if type == 'limit':
                 raise ArgumentsRequired(self.id + ' create_order() requires a price argument for a limit order')
         if amount <= 0:
-            raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
+            raise InvalidOrder(self.id + ' create_order() amount should be above 0')
 
     def handle_http_status_code(self, code, reason, url, method, body):
         codeAsString = str(code)
@@ -1762,10 +1766,11 @@ class Exchange(object):
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
-                if (key in entry) and (entry[key] >= since):
+                value = self.safe_value(entry, key)
+                if value and (value >= since):
                     result.append(entry)
         if tail:
-            return result[-limit:]
+            return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
     def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp', tail=False):
@@ -1780,12 +1785,13 @@ class Exchange(object):
                 entry = parsedArray[i]
                 entryFiledEqualValue = entry[field] == value
                 firstCondition = entryFiledEqualValue if valueIsDefined else True
-                entryKeyGESince = (key in entry) and since and (entry[key] >= since)
+                entryKeyValue = self.safe_value(entry, key)
+                entryKeyGESince = (entryKeyValue) and since and (entryKeyValue >= since)
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
         if tail:
-            return result[-limit:]
+            return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
     def set_sandbox_mode(self, enabled):
@@ -2589,8 +2595,9 @@ class Exchange(object):
 
     def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
         errorMessage = ''
+        options = self.safe_value(self.options, method, {})
+        muteOnFailure = self.safe_value(options, 'webApiMuteFailure', True)
         try:
-            options = self.safe_value(self.options, method, {})
             # if it was not explicitly disabled, then don't fetch
             if self.safe_value(options, 'webApiEnable', True) is not True:
                 return None
@@ -2616,11 +2623,16 @@ class Exchange(object):
                 jsoned = self.parse_json(content.strip())  # content should be trimmed before json parsing
                 if jsoned:
                     return jsoned  # if parsing was not successfull, exception should be thrown
+                else:
+                    raise BadResponse('could not parse the response into json')
             else:
                 return content
         except Exception as e:
-            errorMessage = str(e)
-        raise NotSupported(self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage)
+            errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
+        if muteOnFailure:
+            return None
+        else:
+            raise BadResponse(errorMessage)
 
     def market_ids(self, symbols):
         if symbols is None:
@@ -3467,6 +3479,9 @@ class Exchange(object):
     def fetch_withdrawals(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
 
+    def fetch_open_interest(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
+
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
 
@@ -3555,14 +3570,14 @@ class Exchange(object):
         market = self.market(symbol)
         result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
         if result == '0':
-            raise ArgumentsRequired(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(market['precision']['price']))
+            raise InvalidOrder(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(market['precision']['price']))
         return result
 
     def amount_to_precision(self, symbol: str, amount):
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
         if result == '0':
-            raise ArgumentsRequired(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
         return result
 
     def fee_to_precision(self, symbol: str, fee):

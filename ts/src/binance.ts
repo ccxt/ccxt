@@ -443,6 +443,7 @@ export default class binance extends Exchange {
                         // 'margin/isolated/create': 1, discontinued
                         'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
+                        'margin/max-leverage': 300, // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn': 0.1,
                         'sub-account/virtualSubAccount': 0.1,
                         'sub-account/margin/transfer': 4.0002, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
@@ -727,6 +728,10 @@ export default class binance extends Exchange {
                         'adlQuantile': 5,
                         'pmAccountInfo': 5,
                         'orderAmendment': 1,
+                        'order/asyn': 5,
+                        'order/asyn/id': 5,
+                        'trade/asyn': 5,
+                        'trade/asyn/id': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -2582,47 +2587,6 @@ export default class binance extends Exchange {
         //    }
         //
         // futures (fapi)
-        //
-        //     fapiPrivateGetAccount
-        //
-        //     {
-        //         "feeTier":0,
-        //         "canTrade":true,
-        //         "canDeposit":true,
-        //         "canWithdraw":true,
-        //         "updateTime":0,
-        //         "totalInitialMargin":"0.00000000",
-        //         "totalMaintMargin":"0.00000000",
-        //         "totalWalletBalance":"4.54000000",
-        //         "totalUnrealizedProfit":"0.00000000",
-        //         "totalMarginBalance":"4.54000000",
-        //         "totalPositionInitialMargin":"0.00000000",
-        //         "totalOpenOrderInitialMargin":"0.00000000",
-        //         "maxWithdrawAmount":"4.54000000",
-        //         "assets":[
-        //             {
-        //                 "asset":"USDT",
-        //                 "walletBalance":"4.54000000",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "marginBalance":"4.54000000",
-        //                 "maintMargin":"0.00000000",
-        //                 "initialMargin":"0.00000000",
-        //                 "positionInitialMargin":"0.00000000",
-        //                 "openOrderInitialMargin":"0.00000000",
-        //                 "maxWithdrawAmount":"4.54000000"
-        //             }
-        //         ],
-        //         "positions":[
-        //             {
-        //                 "symbol":"BTCUSDT",
-        //                 "initialMargin":"0.00000",
-        //                 "maintMargin":"0.00000",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "positionInitialMargin":"0.00000",
-        //                 "openOrderInitialMargin":"0.00000"
-        //             }
-        //         ]
-        //     }
         //
         //     fapiPrivateV2GetAccount
         //
@@ -6240,7 +6204,7 @@ export default class binance extends Exchange {
         if (isSpotOrMargin) {
             method = 'sapiGetAssetTradeFee';
         } else if (isLinear) {
-            method = 'fapiPrivateGetAccount';
+            method = 'fapiPrivateV2GetAccount';
         } else if (isInverse) {
             method = 'dapiPrivateGetAccount';
         }
@@ -7362,7 +7326,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetAccount';
+            method = 'fapiPrivateV2GetAccount';
         } else if (this.isInverse (type, subType)) {
             method = 'dapiPrivateGetAccount';
         } else {
@@ -7379,6 +7343,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchPositionsRisk
          * @description fetch positions risk
+         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} data on the positions risk
@@ -7399,7 +7364,7 @@ export default class binance extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
         params = this.omit (params, 'type');
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetPositionRisk';
+            method = 'fapiPrivateV2GetPositionRisk';
             // ### Response examples ###
             //
             // For One-way position mode:

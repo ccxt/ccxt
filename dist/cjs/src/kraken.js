@@ -78,6 +78,7 @@ class kraken extends kraken$1 {
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -188,6 +189,7 @@ class kraken extends kraken$1 {
                         'WithdrawCancel': 3,
                         'WithdrawInfo': 3,
                         'WithdrawStatus': 3,
+                        'WalletTransfer': 3,
                         // staking
                         'Stake': 3,
                         'Unstake': 3,
@@ -2447,6 +2449,93 @@ class kraken extends kraken$1 {
         const result = this.safeValue(response, 'result');
         // todo unify parsePosition/parsePositions
         return result;
+    }
+    parseAccount(account) {
+        const accountByType = {
+            'spot': 'Spot Wallet',
+            'swap': 'Futures Wallet',
+            'future': 'Futures Wallet',
+        };
+        return this.safeString(accountByType, account, account);
+    }
+    async transferOut(code, amount, params = {}) {
+        /**
+         * @description transfer from spot wallet to futures wallet
+         * @param {str} code Unified currency code
+         * @param {float} amount Size of the transfer
+         * @param {dict} [params] Exchange specific parameters
+         * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        return await this.transfer(code, amount, 'spot', 'swap', params);
+    }
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name kraken#transfer
+         * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+         * @description transfers currencies between sub-accounts (only spot->swap direction is supported)
+         * @param {string} code Unified currency code
+         * @param {float} amount Size of the transfer
+         * @param {string} fromAccount 'spot' or 'Spot Wallet'
+         * @param {string} toAccount 'swap' or 'Futures Wallet'
+         * @param {object} [params] Exchange specific parameters
+         * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        fromAccount = this.parseAccount(fromAccount);
+        toAccount = this.parseAccount(toAccount);
+        const request = {
+            'amount': this.currencyToPrecision(code, amount),
+            'from': fromAccount,
+            'to': toAccount,
+            'asset': currency['id'],
+        };
+        if (fromAccount !== 'Spot Wallet') {
+            throw new errors.BadRequest(this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount + '. Use krakenfutures instead to transfer from the futures account.');
+        }
+        const response = await this.privatePostWalletTransfer(this.extend(request, params));
+        //
+        //   {
+        //       "error":[
+        //       ],
+        //       "result":{
+        //          "refid":"BOIUSIF-M7DLMN-UXZ3P5"
+        //       }
+        //   }
+        //
+        const transfer = this.parseTransfer(response, currency);
+        return this.extend(transfer, {
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
+    }
+    parseTransfer(transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //    {
+        //        "error":[
+        //        ],
+        //        "result":{
+        //           "refid":"BOIUSIF-M7DLMN-UXZ3P5"
+        //        }
+        //    }
+        //
+        const result = this.safeValue(transfer, 'result', {});
+        const refid = this.safeString(result, 'refid');
+        return {
+            'info': transfer,
+            'id': refid,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeString(currency, 'code'),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': 'sucess',
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;

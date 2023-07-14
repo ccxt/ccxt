@@ -318,6 +318,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/interest-limits': 4,
                         'account/greeks': 2,
                         'account/position-tiers': 2,
+                        'account/mmp-config': 4,
                         # subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -419,6 +420,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
                         'account/mmp-reset': 4,
+                        'account/mmp-config': 100,
                         # subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -1311,12 +1313,19 @@ class okx(Exchange, ImplicitAPI):
             'instType': self.convert_to_instrument_type(type),
         }
         if type == 'option':
-            defaultUnderlying = self.safe_value(self.options, 'defaultUnderlying', 'BTC-USD')
-            currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
-            if currencyId is None:
-                raise ArgumentsRequired(self.id + ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets')
-            else:
-                request['uly'] = currencyId
+            optionsUnderlying = self.safe_value(self.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD'])
+            promises = []
+            for i in range(0, len(optionsUnderlying)):
+                underlying = optionsUnderlying[i]
+                request['uly'] = underlying
+                promises.append(self.publicGetPublicInstruments(self.extend(request, params)))
+            promisesResult = promises
+            data = []
+            for i in range(0, len(promisesResult)):
+                res = self.safe_value(promisesResult, i, {})
+                options = self.safe_value(res, 'data', [])
+                data = self.array_concat(data, options)
+            return self.parse_markets(data)
         response = self.publicGetPublicInstruments(self.extend(request, params))
         #
         # spot, future, swap, option
@@ -2242,28 +2251,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return self.parse_balance_by_type(marketType, response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
-        """
-        create a trade order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the okx api endpoint
-        :param bool [params.reduceOnly]: MARGIN orders only, or swap/future orders in net mode
-        :param bool [params.postOnly]: True to place a post only order
-        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
-        :param float [params.takeProfit.triggerPrice]: take profit trigger price
-        :param float [params.takeProfit.price]: used for take profit limit orders, not used for take profit market price orders
-        :param str [params.takeProfit.type]: 'market' or 'limit' used to specify the take profit price type
-        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
-        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
-        :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
-        :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        self.load_markets()
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2332,12 +2320,10 @@ class okx(Exchange, ImplicitAPI):
         trigger = (triggerPrice is not None) or (type == 'trigger')
         conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         marketIOC = (isMarketOrder and ioc) or (type == 'optimal_limit_ioc')
-        defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
         if (not contract) and (not margin):
             request['tgtCcy'] = tgtCcy
-        method = defaultMethod
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
             if spot and (side == 'buy'):
@@ -2429,12 +2415,10 @@ class okx(Exchange, ImplicitAPI):
                         raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"')
                     request['tpTriggerPxType'] = takeProfitTriggerPriceType
         elif trigger:
-            method = 'privatePostTradeOrderAlgo'
             request['ordType'] = 'trigger'
             request['triggerPx'] = self.price_to_precision(symbol, triggerPrice)
             request['orderPx'] = '-1' if isMarketOrder else self.price_to_precision(symbol, price)
         elif conditional:
-            method = 'privatePostTradeOrderAlgo'
             request['ordType'] = 'conditional'
             twoWayCondition = ((takeProfitPrice is not None) and (stopLossPrice is not None))
             # if TP and SL are sent together
@@ -2449,8 +2433,6 @@ class okx(Exchange, ImplicitAPI):
                 request['slTriggerPx'] = self.price_to_precision(symbol, stopLossPrice)
                 request['slOrdPx'] = '-1' if (slOrdPx is None) else self.price_to_precision(symbol, slOrdPx)
                 request['slTriggerPxType'] = slTriggerPxType
-        if (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
-            method = 'privatePostTradeOrderAlgo'
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
             if brokerId is not None:
@@ -2459,17 +2441,47 @@ class okx(Exchange, ImplicitAPI):
         else:
             request['clOrdId'] = clientOrderId
             params = self.omit(params, ['clOrdId', 'clientOrderId'])
-        extendedRequest = None
-        if (method == 'privatePostTradeOrder') or (method == 'privatePostTradeOrderAlgo'):
-            extendedRequest = self.extend(request, params)
-        elif method == 'privatePostTradeBatchOrders':
+        return self.extend(request, params)
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        create a trade order
+        see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+        see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+        see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param bool [params.reduceOnly]: MARGIN orders only, or swap/future orders in net mode
+        :param bool [params.postOnly]: True to place a post only order
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param float [params.takeProfit.price]: used for take profit limit orders, not used for take profit market price orders
+        :param str [params.takeProfit.type]: 'market' or 'limit' used to specify the take profit price type
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
+        :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        method = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
+        requestOrdType = self.safe_string(request, 'ordType')
+        if (requestOrdType == 'trigger') or (requestOrdType == 'conditional') or (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
+            method = 'privatePostTradeOrderAlgo'
+        if (method != 'privatePostTradeOrder') and (method != 'privatePostTradeOrderAlgo') and (method != 'privatePostTradeBatchOrders'):
+            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo')
+        if method == 'privatePostTradeBatchOrders':
             # keep the request body the same
             # submit a single order in an array to the batch order endpoint
             # because it has a lower ratelimit
-            extendedRequest = [self.extend(request, params)]
-        else:
-            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder')
-        response = getattr(self, method)(extendedRequest)
+            request = [request]
+        response = getattr(self, method)(request)
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
@@ -2477,6 +2489,22 @@ class okx(Exchange, ImplicitAPI):
             'type': type,
             'side': side,
         })
+
+    def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        request = {
+            'instId': self.market_id(symbol),
+        }
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+        else:
+            request['ordId'] = id
+        params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        if amount is not None:
+            request['newSz'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['newPx'] = self.price_to_precision(symbol, price)
+        return self.extend(request, params)
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
@@ -2495,22 +2523,8 @@ class okx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
-            'instId': market['id'],
-        }
-        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clOrdId'] = clientOrderId
-        else:
-            request['ordId'] = id
-        params = self.omit(params, ['clOrdId', 'clientOrderId'])
-        if amount is not None:
-            request['newSz'] = self.amount_to_precision(symbol, amount)
-        if price is not None:
-            request['newPx'] = self.price_to_precision(symbol, price)
-        response = self.privatePostTradeAmendOrder(self.extend(request, params))
+        request = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        response = self.privatePostTradeAmendOrder(request)
         #
         #     {
         #        "code": "0",

@@ -572,12 +572,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         limit = self.safe_integer(self.options, 'ordersLimit')
         self.orders = ArrayCacheBySymbolById(limit)
         symbols = {}
+        cachedOrders = self.orders
         for i in range(0, len(orders)):
             order = orders[i]
             parsed = self.parse_ws_order(order)
             symbol = parsed['symbol']
             symbols[symbol] = True
-            self.orders.append(parsed)
+            cachedOrders.append(parsed)
         if len(self.orders) > 0:
             client.resolve(self.orders, 'orders')
             keys = list(symbols.keys())

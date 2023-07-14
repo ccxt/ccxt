@@ -298,6 +298,7 @@ export default class okx extends Exchange {
                         'account/interest-limits': 4,
                         'account/greeks': 2,
                         'account/position-tiers': 2,
+                        'account/mmp-config': 4,
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -399,6 +400,7 @@ export default class okx extends Exchange {
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
                         'account/mmp-reset': 4,
+                        'account/mmp-config': 100,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -1319,14 +1321,21 @@ export default class okx extends Exchange {
             'instType': this.convertToInstrumentType(type),
         };
         if (type === 'option') {
-            const defaultUnderlying = this.safeValue(this.options, 'defaultUnderlying', 'BTC-USD');
-            const currencyId = this.safeString2(params, 'uly', 'marketId', defaultUnderlying);
-            if (currencyId === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets');
+            const optionsUnderlying = this.safeValue(this.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD']);
+            const promises = [];
+            for (let i = 0; i < optionsUnderlying.length; i++) {
+                const underlying = optionsUnderlying[i];
+                request['uly'] = underlying;
+                promises.push(this.publicGetPublicInstruments(this.extend(request, params)));
             }
-            else {
-                request['uly'] = currencyId;
+            const promisesResult = await Promise.all(promises);
+            let data = [];
+            for (let i = 0; i < promisesResult.length; i++) {
+                const res = this.safeValue(promisesResult, i, {});
+                const options = this.safeValue(res, 'data', []);
+                data = this.arrayConcat(data, options);
             }
+            return this.parseMarkets(data);
         }
         const response = await this.publicGetPublicInstruments(this.extend(request, params));
         //
@@ -2312,30 +2321,7 @@ export default class okx extends Exchange {
         //
         return this.parseBalanceByType(marketType, response);
     }
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name okx#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
-         * @param {bool} [params.postOnly] true to place a post only order
-         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
-         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
-         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
-         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets();
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2409,13 +2395,11 @@ export default class okx extends Exchange {
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
-        const defaultMethod = this.safeString(this.options, 'createOrder', 'privatePostTradeBatchOrders');
         const defaultTgtCcy = this.safeString(this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString(params, 'tgtCcy', defaultTgtCcy);
         if ((!contract) && (!margin)) {
             request['tgtCcy'] = tgtCcy;
         }
-        let method = defaultMethod;
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
             if (spot && (side === 'buy')) {
@@ -2546,13 +2530,11 @@ export default class okx extends Exchange {
             }
         }
         else if (trigger) {
-            method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision(symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision(symbol, price);
         }
         else if (conditional) {
-            method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'conditional';
             const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
             // if TP and SL are sent together
@@ -2571,9 +2553,6 @@ export default class okx extends Exchange {
                 request['slTriggerPxType'] = slTriggerPxType;
             }
         }
-        if ((type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
-            method = 'privatePostTradeOrderAlgo';
-        }
         if (clientOrderId === undefined) {
             const brokerId = this.safeString(this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -2585,20 +2564,52 @@ export default class okx extends Exchange {
             request['clOrdId'] = clientOrderId;
             params = this.omit(params, ['clOrdId', 'clientOrderId']);
         }
-        let extendedRequest = undefined;
-        if ((method === 'privatePostTradeOrder') || (method === 'privatePostTradeOrderAlgo')) {
-            extendedRequest = this.extend(request, params);
+        return this.extend(request, params);
+    }
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#createOrder
+         * @description create a trade order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
+         * @param {bool} [params.postOnly] true to place a post only order
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let request = this.createOrderRequest(symbol, type, side, amount, price, params);
+        let method = this.safeString(this.options, 'createOrder', 'privatePostTradeBatchOrders');
+        const requestOrdType = this.safeString(request, 'ordType');
+        if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
+            method = 'privatePostTradeOrderAlgo';
         }
-        else if (method === 'privatePostTradeBatchOrders') {
+        if ((method !== 'privatePostTradeOrder') && (method !== 'privatePostTradeOrderAlgo') && (method !== 'privatePostTradeBatchOrders')) {
+            throw new ExchangeError(this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
+        }
+        if (method === 'privatePostTradeBatchOrders') {
             // keep the request body the same
             // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
-            extendedRequest = [this.extend(request, params)];
+            request = [request];
         }
-        else {
-            throw new ExchangeError(this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder');
-        }
-        const response = await this[method](extendedRequest);
+        const response = await this[method](request);
         const data = this.safeValue(response, 'data', []);
         const first = this.safeValue(data, 0);
         const order = this.parseOrder(first, market);
@@ -2606,6 +2617,26 @@ export default class okx extends Exchange {
             'type': type,
             'side': side,
         });
+    }
+    editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        const request = {
+            'instId': this.marketId(symbol),
+        };
+        const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+        }
+        else {
+            request['ordId'] = id;
+        }
+        params = this.omit(params, ['clOrdId', 'clientOrderId']);
+        if (amount !== undefined) {
+            request['newSz'] = this.amountToPrecision(symbol, amount);
+        }
+        if (price !== undefined) {
+            request['newPx'] = this.priceToPrecision(symbol, price);
+        }
+        return this.extend(request, params);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
@@ -2627,27 +2658,8 @@ export default class okx extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
-            throw new NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
-        const request = {
-            'instId': market['id'],
-        };
-        const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clOrdId'] = clientOrderId;
-        }
-        else {
-            request['ordId'] = id;
-        }
-        params = this.omit(params, ['clOrdId', 'clientOrderId']);
-        if (amount !== undefined) {
-            request['newSz'] = this.amountToPrecision(symbol, amount);
-        }
-        if (price !== undefined) {
-            request['newPx'] = this.priceToPrecision(symbol, price);
-        }
-        const response = await this.privatePostTradeAmendOrder(this.extend(request, params));
+        const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
+        const response = await this.privatePostTradeAmendOrder(request);
         //
         //     {
         //        "code": "0",

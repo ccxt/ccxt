@@ -566,8 +566,9 @@ class deribit(ccxt.async_support.deribit):
         else:
             order = self.parse_order(data)
             orders = [order]
+        cachedOrders = self.orders
         for i in range(0, len(orders)):
-            self.orders.append(orders[i])
+            cachedOrders.append(orders[i])
         client.resolve(self.orders, channel)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):

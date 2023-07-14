@@ -49,11 +49,12 @@ class deribit extends deribit$1 {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchHistoricalVolatility': true,
                 'fetchDepositWithdrawFees': true,
+                'fetchHistoricalVolatility': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -412,6 +413,74 @@ class deribit extends deribit$1 {
         //     }
         //
         return this.safeInteger(response, 'result');
+    }
+    async fetchCurrencies(params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.deribit.com/#public-get_currencies
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetGetCurrencies(params);
+        //
+        //    {
+        //      "jsonrpc": "2.0",
+        //      "result": [
+        //        {
+        //          "withdrawal_priorities": [],
+        //          "withdrawal_fee": 0.01457324,
+        //          "min_withdrawal_fee": 0.000001,
+        //          "min_confirmations": 1,
+        //          "fee_precision": 8,
+        //          "currency_long": "Solana",
+        //          "currency": "SOL",
+        //          "coin_type": "SOL"
+        //        },
+        //        ...
+        //      ],
+        //      "usIn": 1688652701456124,
+        //      "usOut": 1688652701456390,
+        //      "usDiff": 266,
+        //      "testnet": true
+        //    }
+        //
+        const data = this.safeValue(response, 'result', {});
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const currencyId = this.safeString(currency, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const name = this.safeString(currency, 'currency_long');
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': name,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber(currency, 'withdrawal_fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'fee_precision'))),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': undefined,
+            };
+        }
+        return result;
     }
     codeFromOptions(methodName, params = {}) {
         const defaultCode = this.safeValue(this.options, 'code', 'BTC');

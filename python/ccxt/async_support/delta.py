@@ -50,6 +50,9 @@ class delta(Exchange, ImplicitAPI):
                 'fetchDeposit': None,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': True,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode': False,
@@ -637,13 +640,11 @@ class delta(Exchange, ImplicitAPI):
                         elif moveOptions:
                             letter = 'M'
                             optionType = 'move'
-                        symbol = symbol + ':' + strike + ':' + letter
+                        symbol = symbol + '-' + strike + '-' + letter
                     else:
                         type = 'future'
                 else:
                     type = 'swap'
-            else:
-                symbol = id
             state = self.safe_string(market, 'state')
             result.append({
                 'id': id,
@@ -700,58 +701,152 @@ class delta(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market=None):
         #
-        # fetchTicker, fetchTickers
+        # spot: fetchTicker, fetchTickers
         #
         #     {
-        #         "close":15837.5,
-        #         "high":16354,
-        #         "low":15751.5,
-        #         "mark_price":"15820.100867",
-        #         "open":16140.5,
-        #         "product_id":139,
-        #         "size":640552,
-        #         "spot_price":"15827.050000000001",
-        #         "symbol":"BTCUSDT",
-        #         "timestamp":1605373550208262,
-        #         "turnover":10298630.3735,
-        #         "turnover_symbol":"USDT",
-        #         "turnover_usd":10298630.3735,
-        #         "volume":640.5520000000001
+        #         "close": 30634.0,
+        #         "contract_type": "spot",
+        #         "greeks": null,
+        #         "high": 30780.0,
+        #         "low": 30340.5,
+        #         "mark_price": "48000",
+        #         "oi": "0.0000",
+        #         "oi_change_usd_6h": "0.0000",
+        #         "oi_contracts": "0",
+        #         "oi_value": "0.0000",
+        #         "oi_value_symbol": "BTC",
+        #         "oi_value_usd": "0.0000",
+        #         "open": 30464.0,
+        #         "price_band": null,
+        #         "product_id": 8320,
+        #         "quotes": {},
+        #         "size": 2.6816639999999996,
+        #         "spot_price": "30637.91465121",
+        #         "symbol": "BTC_USDT",
+        #         "timestamp": 1689139767621299,
+        #         "turnover": 2.6816639999999996,
+        #         "turnover_symbol": "BTC",
+        #         "turnover_usd": 81896.45613400004,
+        #         "volume": 2.6816639999999996
+        #     }
+        #
+        # swap: fetchTicker, fetchTickers
+        #
+        #     {
+        #         "close": 30600.5,
+        #         "contract_type": "perpetual_futures",
+        #         "funding_rate": "0.00602961",
+        #         "greeks": null,
+        #         "high": 30803.0,
+        #         "low": 30265.5,
+        #         "mark_basis": "-0.45601594",
+        #         "mark_price": "30600.10481568",
+        #         "oi": "469.9190",
+        #         "oi_change_usd_6h": "2226314.9900",
+        #         "oi_contracts": "469919",
+        #         "oi_value": "469.9190",
+        #         "oi_value_symbol": "BTC",
+        #         "oi_value_usd": "14385640.6802",
+        #         "open": 30458.5,
+        #         "price_band": {
+        #             "lower_limit": "29067.08312627",
+        #             "upper_limit": "32126.77608693"
+        #         },
+        #         "product_id": 139,
+        #         "quotes": {
+        #             "ask_iv": null,
+        #             "ask_size": "965",
+        #             "best_ask": "30600.5",
+        #             "best_bid": "30599.5",
+        #             "bid_iv": null,
+        #             "bid_size": "196",
+        #             "impact_mid_price": null,
+        #             "mark_iv": "-0.44931641"
+        #         },
+        #         "size": 1226303,
+        #         "spot_price": "30612.85362773",
+        #         "symbol": "BTCUSDT",
+        #         "timestamp": 1689136597460456,
+        #         "turnover": 37392218.45999999,
+        #         "turnover_symbol": "USDT",
+        #         "turnover_usd": 37392218.45999999,
+        #         "volume": 1226.3029999999485
+        #     }
+        #
+        # option: fetchTicker, fetchTickers
+        #
+        #     {
+        #         "contract_type": "call_options",
+        #         "greeks": {
+        #             "delta": "0.60873994",
+        #             "gamma": "0.00014854",
+        #             "rho": "7.71808010",
+        #             "spot": "30598.49040622",
+        #             "theta": "-30.44743017",
+        #             "vega": "24.83508248"
+        #         },
+        #         "mark_price": "1347.74819696",
+        #         "mark_vol": "0.39966303",
+        #         "oi": "2.7810",
+        #         "oi_change_usd_6h": "0.0000",
+        #         "oi_contracts": "2781",
+        #         "oi_value": "2.7810",
+        #         "oi_value_symbol": "BTC",
+        #         "oi_value_usd": "85127.4337",
+        #         "price_band": {
+        #             "lower_limit": "91.27423497",
+        #             "upper_limit": "7846.19454697"
+        #         },
+        #         "product_id": 107150,
+        #         "quotes": {
+        #             "ask_iv": "0.41023239",
+        #             "ask_size": "2397",
+        #             "best_ask": "1374",
+        #             "best_bid": "1322",
+        #             "bid_iv": "0.38929375",
+        #             "bid_size": "3995",
+        #             "impact_mid_price": null,
+        #             "mark_iv": "0.39965618"
+        #         },
+        #         "spot_price": "30598.43379314",
+        #         "strike_price": "30000",
+        #         "symbol": "C-BTC-30000-280723",
+        #         "timestamp": 1689136932893181,
+        #         "turnover_symbol": "USDT"
         #     }
         #
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.001)
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string(ticker, 'close')
-        open = self.safe_string(ticker, 'open')
-        baseVolume = self.safe_string(ticker, 'volume')
-        quoteVolume = self.safe_string(ticker, 'turnover')
+        quotes = self.safe_value(ticker, 'quotes', {})
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high'),
-            'low': self.safe_string(ticker, 'low'),
-            'bid': None,
-            'bidVolume': None,
-            'ask': None,
-            'askVolume': None,
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(quotes, 'best_bid'),
+            'bidVolume': self.safe_number(quotes, 'bid_size'),
+            'ask': self.safe_number(quotes, 'best_ask'),
+            'askVolume': self.safe_number(quotes, 'ask_size'),
             'vwap': None,
-            'open': open,
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_number(ticker, 'turnover'),
             'info': ticker,
         }, market)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -763,24 +858,127 @@ class delta(Exchange, ImplicitAPI):
         }
         response = await self.publicGetTickersSymbol(self.extend(request, params))
         #
+        # spot
+        #
         #     {
-        #         "result":{
-        #             "close":15837.5,
-        #             "high":16354,
-        #             "low":15751.5,
-        #             "mark_price":"15820.100867",
-        #             "open":16140.5,
-        #             "product_id":139,
-        #             "size":640552,
-        #             "spot_price":"15827.050000000001",
-        #             "symbol":"BTCUSDT",
-        #             "timestamp":1605373550208262,
-        #             "turnover":10298630.3735,
-        #             "turnover_symbol":"USDT",
-        #             "turnover_usd":10298630.3735,
-        #             "volume":640.5520000000001
+        #         "result": {
+        #             "close": 30634.0,
+        #             "contract_type": "spot",
+        #             "greeks": null,
+        #             "high": 30780.0,
+        #             "low": 30340.5,
+        #             "mark_price": "48000",
+        #             "oi": "0.0000",
+        #             "oi_change_usd_6h": "0.0000",
+        #             "oi_contracts": "0",
+        #             "oi_value": "0.0000",
+        #             "oi_value_symbol": "BTC",
+        #             "oi_value_usd": "0.0000",
+        #             "open": 30464.0,
+        #             "price_band": null,
+        #             "product_id": 8320,
+        #             "quotes": {},
+        #             "size": 2.6816639999999996,
+        #             "spot_price": "30637.91465121",
+        #             "symbol": "BTC_USDT",
+        #             "timestamp": 1689139767621299,
+        #             "turnover": 2.6816639999999996,
+        #             "turnover_symbol": "BTC",
+        #             "turnover_usd": 81896.45613400004,
+        #             "volume": 2.6816639999999996
         #         },
-        #         "success":true
+        #         "success": True
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "result": {
+        #             "close": 30600.5,
+        #             "contract_type": "perpetual_futures",
+        #             "funding_rate": "0.00602961",
+        #             "greeks": null,
+        #             "high": 30803.0,
+        #             "low": 30265.5,
+        #             "mark_basis": "-0.45601594",
+        #             "mark_price": "30600.10481568",
+        #             "oi": "469.9190",
+        #             "oi_change_usd_6h": "2226314.9900",
+        #             "oi_contracts": "469919",
+        #             "oi_value": "469.9190",
+        #             "oi_value_symbol": "BTC",
+        #             "oi_value_usd": "14385640.6802",
+        #             "open": 30458.5,
+        #             "price_band": {
+        #                 "lower_limit": "29067.08312627",
+        #                 "upper_limit": "32126.77608693"
+        #             },
+        #             "product_id": 139,
+        #             "quotes": {
+        #                 "ask_iv": null,
+        #                 "ask_size": "965",
+        #                 "best_ask": "30600.5",
+        #                 "best_bid": "30599.5",
+        #                 "bid_iv": null,
+        #                 "bid_size": "196",
+        #                 "impact_mid_price": null,
+        #                 "mark_iv": "-0.44931641"
+        #             },
+        #             "size": 1226303,
+        #             "spot_price": "30612.85362773",
+        #             "symbol": "BTCUSDT",
+        #             "timestamp": 1689136597460456,
+        #             "turnover": 37392218.45999999,
+        #             "turnover_symbol": "USDT",
+        #             "turnover_usd": 37392218.45999999,
+        #             "volume": 1226.3029999999485
+        #         },
+        #         "success": True
+        #     }
+        #
+        # option
+        #
+        #     {
+        #         "result": {
+        #             "contract_type": "call_options",
+        #             "greeks": {
+        #                 "delta": "0.60873994",
+        #                 "gamma": "0.00014854",
+        #                 "rho": "7.71808010",
+        #                 "spot": "30598.49040622",
+        #                 "theta": "-30.44743017",
+        #                 "vega": "24.83508248"
+        #             },
+        #             "mark_price": "1347.74819696",
+        #             "mark_vol": "0.39966303",
+        #             "oi": "2.7810",
+        #             "oi_change_usd_6h": "0.0000",
+        #             "oi_contracts": "2781",
+        #             "oi_value": "2.7810",
+        #             "oi_value_symbol": "BTC",
+        #             "oi_value_usd": "85127.4337",
+        #             "price_band": {
+        #                 "lower_limit": "91.27423497",
+        #                 "upper_limit": "7846.19454697"
+        #             },
+        #             "product_id": 107150,
+        #             "quotes": {
+        #                 "ask_iv": "0.41023239",
+        #                 "ask_size": "2397",
+        #                 "best_ask": "1374",
+        #                 "best_bid": "1322",
+        #                 "bid_iv": "0.38929375",
+        #                 "bid_size": "3995",
+        #                 "impact_mid_price": null,
+        #                 "mark_iv": "0.39965618"
+        #             },
+        #             "spot_price": "30598.43379314",
+        #             "strike_price": "30000",
+        #             "symbol": "C-BTC-30000-280723",
+        #             "timestamp": 1689136932893181,
+        #             "turnover_symbol": "USDT"
+        #         },
+        #         "success": True
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -789,6 +987,7 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://docs.delta.exchange/#get-tickers-for-products
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -797,23 +996,130 @@ class delta(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         #
+        # spot
+        #
         #     {
-        #         "result":[
+        #         "result": [
         #             {
-        #                 "close":0.003966,
-        #                 "high":0.004032,
-        #                 "low":0.003606,
-        #                 "mark_price":"0.00396328",
-        #                 "open":0.003996,
-        #                 "product_id":1327,
-        #                 "size":6242,
-        #                 "spot_price":"0.0039555",
-        #                 "symbol":"AAVEBTC",
-        #                 "timestamp":1605374143864107,
-        #                 "turnover":23.997904999999996,
-        #                 "turnover_symbol":"BTC",
-        #                 "turnover_usd":387957.4544782897,
-        #                 "volume":6242
+        #                 "close": 30634.0,
+        #                 "contract_type": "spot",
+        #                 "greeks": null,
+        #                 "high": 30780.0,
+        #                 "low": 30340.5,
+        #                 "mark_price": "48000",
+        #                 "oi": "0.0000",
+        #                 "oi_change_usd_6h": "0.0000",
+        #                 "oi_contracts": "0",
+        #                 "oi_value": "0.0000",
+        #                 "oi_value_symbol": "BTC",
+        #                 "oi_value_usd": "0.0000",
+        #                 "open": 30464.0,
+        #                 "price_band": null,
+        #                 "product_id": 8320,
+        #                 "quotes": {},
+        #                 "size": 2.6816639999999996,
+        #                 "spot_price": "30637.91465121",
+        #                 "symbol": "BTC_USDT",
+        #                 "timestamp": 1689139767621299,
+        #                 "turnover": 2.6816639999999996,
+        #                 "turnover_symbol": "BTC",
+        #                 "turnover_usd": 81896.45613400004,
+        #                 "volume": 2.6816639999999996
+        #             },
+        #         ],
+        #         "success":true
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "result": [
+        #             {
+        #                 "close": 30600.5,
+        #                 "contract_type": "perpetual_futures",
+        #                 "funding_rate": "0.00602961",
+        #                 "greeks": null,
+        #                 "high": 30803.0,
+        #                 "low": 30265.5,
+        #                 "mark_basis": "-0.45601594",
+        #                 "mark_price": "30600.10481568",
+        #                 "oi": "469.9190",
+        #                 "oi_change_usd_6h": "2226314.9900",
+        #                 "oi_contracts": "469919",
+        #                 "oi_value": "469.9190",
+        #                 "oi_value_symbol": "BTC",
+        #                 "oi_value_usd": "14385640.6802",
+        #                 "open": 30458.5,
+        #                 "price_band": {
+        #                     "lower_limit": "29067.08312627",
+        #                     "upper_limit": "32126.77608693"
+        #                 },
+        #                 "product_id": 139,
+        #                 "quotes": {
+        #                     "ask_iv": null,
+        #                     "ask_size": "965",
+        #                     "best_ask": "30600.5",
+        #                     "best_bid": "30599.5",
+        #                     "bid_iv": null,
+        #                     "bid_size": "196",
+        #                     "impact_mid_price": null,
+        #                     "mark_iv": "-0.44931641"
+        #                 },
+        #                 "size": 1226303,
+        #                 "spot_price": "30612.85362773",
+        #                 "symbol": "BTCUSDT",
+        #                 "timestamp": 1689136597460456,
+        #                 "turnover": 37392218.45999999,
+        #                 "turnover_symbol": "USDT",
+        #                 "turnover_usd": 37392218.45999999,
+        #                 "volume": 1226.3029999999485
+        #             },
+        #         ],
+        #         "success":true
+        #     }
+        #
+        # option
+        #
+        #     {
+        #         "result": [
+        #             {
+        #                 "contract_type": "call_options",
+        #                 "greeks": {
+        #                     "delta": "0.60873994",
+        #                     "gamma": "0.00014854",
+        #                     "rho": "7.71808010",
+        #                     "spot": "30598.49040622",
+        #                     "theta": "-30.44743017",
+        #                     "vega": "24.83508248"
+        #                 },
+        #                 "mark_price": "1347.74819696",
+        #                 "mark_vol": "0.39966303",
+        #                 "oi": "2.7810",
+        #                 "oi_change_usd_6h": "0.0000",
+        #                 "oi_contracts": "2781",
+        #                 "oi_value": "2.7810",
+        #                 "oi_value_symbol": "BTC",
+        #                 "oi_value_usd": "85127.4337",
+        #                 "price_band": {
+        #                     "lower_limit": "91.27423497",
+        #                     "upper_limit": "7846.19454697"
+        #                 },
+        #                 "product_id": 107150,
+        #                 "quotes": {
+        #                     "ask_iv": "0.41023239",
+        #                     "ask_size": "2397",
+        #                     "best_ask": "1374",
+        #                     "best_bid": "1322",
+        #                     "bid_iv": "0.38929375",
+        #                     "bid_size": "3995",
+        #                     "impact_mid_price": null,
+        #                     "mark_iv": "0.39965618"
+        #                 },
+        #                 "spot_price": "30598.43379314",
+        #                 "strike_price": "30000",
+        #                 "symbol": "C-BTC-30000-280723",
+        #                 "timestamp": 1689136932893181,
+        #                 "turnover_symbol": "USDT"
         #             },
         #         ],
         #         "success":true
@@ -1827,6 +2133,200 @@ class delta(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'memo'),
             'network': self.network_id_to_code(networkId),
             'info': depositAddress,
+        }
+
+    async def fetch_funding_rate(self, symbol: str, params={}):
+        """
+        fetch the current funding rate
+        see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetTickersSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "result": {
+        #             "close": 30600.5,
+        #             "contract_type": "perpetual_futures",
+        #             "funding_rate": "0.00602961",
+        #             "greeks": null,
+        #             "high": 30803.0,
+        #             "low": 30265.5,
+        #             "mark_basis": "-0.45601594",
+        #             "mark_price": "30600.10481568",
+        #             "oi": "469.9190",
+        #             "oi_change_usd_6h": "2226314.9900",
+        #             "oi_contracts": "469919",
+        #             "oi_value": "469.9190",
+        #             "oi_value_symbol": "BTC",
+        #             "oi_value_usd": "14385640.6802",
+        #             "open": 30458.5,
+        #             "price_band": {
+        #                 "lower_limit": "29067.08312627",
+        #                 "upper_limit": "32126.77608693"
+        #             },
+        #             "product_id": 139,
+        #             "quotes": {
+        #                 "ask_iv": null,
+        #                 "ask_size": "965",
+        #                 "best_ask": "30600.5",
+        #                 "best_bid": "30599.5",
+        #                 "bid_iv": null,
+        #                 "bid_size": "196",
+        #                 "impact_mid_price": null,
+        #                 "mark_iv": "-0.44931641"
+        #             },
+        #             "size": 1226303,
+        #             "spot_price": "30612.85362773",
+        #             "symbol": "BTCUSDT",
+        #             "timestamp": 1689136597460456,
+        #             "turnover": 37392218.45999999,
+        #             "turnover_symbol": "USDT",
+        #             "turnover_usd": 37392218.45999999,
+        #             "volume": 1226.3029999999485
+        #         },
+        #         "success": True
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_funding_rate(result, market)
+
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetch the funding rate for multiple markets
+        see https://docs.delta.exchange/#get-tickers-for-products
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request = {
+            'contract_types': 'perpetual_futures',
+        }
+        response = await self.publicGetTickers(self.extend(request, params))
+        #
+        #     {
+        #         "result": [
+        #             {
+        #                 "close": 30600.5,
+        #                 "contract_type": "perpetual_futures",
+        #                 "funding_rate": "0.00602961",
+        #                 "greeks": null,
+        #                 "high": 30803.0,
+        #                 "low": 30265.5,
+        #                 "mark_basis": "-0.45601594",
+        #                 "mark_price": "30600.10481568",
+        #                 "oi": "469.9190",
+        #                 "oi_change_usd_6h": "2226314.9900",
+        #                 "oi_contracts": "469919",
+        #                 "oi_value": "469.9190",
+        #                 "oi_value_symbol": "BTC",
+        #                 "oi_value_usd": "14385640.6802",
+        #                 "open": 30458.5,
+        #                 "price_band": {
+        #                     "lower_limit": "29067.08312627",
+        #                     "upper_limit": "32126.77608693"
+        #                 },
+        #                 "product_id": 139,
+        #                 "quotes": {
+        #                     "ask_iv": null,
+        #                     "ask_size": "965",
+        #                     "best_ask": "30600.5",
+        #                     "best_bid": "30599.5",
+        #                     "bid_iv": null,
+        #                     "bid_size": "196",
+        #                     "impact_mid_price": null,
+        #                     "mark_iv": "-0.44931641"
+        #                 },
+        #                 "size": 1226303,
+        #                 "spot_price": "30612.85362773",
+        #                 "symbol": "BTCUSDT",
+        #                 "timestamp": 1689136597460456,
+        #                 "turnover": 37392218.45999999,
+        #                 "turnover_symbol": "USDT",
+        #                 "turnover_usd": 37392218.45999999,
+        #                 "volume": 1226.3029999999485
+        #             },
+        #         ],
+        #         "success":true
+        #     }
+        #
+        rates = self.safe_value(response, 'result', [])
+        result = self.parse_funding_rates(rates)
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "close": 30600.5,
+        #         "contract_type": "perpetual_futures",
+        #         "funding_rate": "0.00602961",
+        #         "greeks": null,
+        #         "high": 30803.0,
+        #         "low": 30265.5,
+        #         "mark_basis": "-0.45601594",
+        #         "mark_price": "30600.10481568",
+        #         "oi": "469.9190",
+        #         "oi_change_usd_6h": "2226314.9900",
+        #         "oi_contracts": "469919",
+        #         "oi_value": "469.9190",
+        #         "oi_value_symbol": "BTC",
+        #         "oi_value_usd": "14385640.6802",
+        #         "open": 30458.5,
+        #         "price_band": {
+        #             "lower_limit": "29067.08312627",
+        #             "upper_limit": "32126.77608693"
+        #         },
+        #         "product_id": 139,
+        #         "quotes": {
+        #             "ask_iv": null,
+        #             "ask_size": "965",
+        #             "best_ask": "30600.5",
+        #             "best_bid": "30599.5",
+        #             "bid_iv": null,
+        #             "bid_size": "196",
+        #             "impact_mid_price": null,
+        #             "mark_iv": "-0.44931641"
+        #         },
+        #         "size": 1226303,
+        #         "spot_price": "30612.85362773",
+        #         "symbol": "BTCUSDT",
+        #         "timestamp": 1689136597460456,
+        #         "turnover": 37392218.45999999,
+        #         "turnover_symbol": "USDT",
+        #         "turnover_usd": 37392218.45999999,
+        #         "volume": 1226.3029999999485
+        #     }
+        #
+        timestamp = self.safe_integer_product(contract, 'timestamp', 0.001)
+        marketId = self.safe_string(contract, 'symbol')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market),
+            'markPrice': self.safe_number(contract, 'mark_price'),
+            'indexPrice': self.safe_number(contract, 'spot_price'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

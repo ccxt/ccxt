@@ -74,6 +74,7 @@ class kraken extends Exchange {
                 'fetchWithdrawals' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false, // Kraken only supports cross margin
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -184,6 +185,7 @@ class kraken extends Exchange {
                         'WithdrawCancel' => 3,
                         'WithdrawInfo' => 3,
                         'WithdrawStatus' => 3,
+                        'WalletTransfer' => 3,
                         // staking
                         'Stake' => 3,
                         'Unstake' => 3,
@@ -2419,6 +2421,95 @@ class kraken extends Exchange {
         $result = $this->safe_value($response, 'result');
         // todo unify parsePosition/parsePositions
         return $result;
+    }
+
+    public function parse_account($account) {
+        $accountByType = array(
+            'spot' => 'Spot Wallet',
+            'swap' => 'Futures Wallet',
+            'future' => 'Futures Wallet',
+        );
+        return $this->safe_string($accountByType, $account, $account);
+    }
+
+    public function transfer_out(string $code, $amount, $params = array ()) {
+        /**
+         * transfer from spot wallet to futures wallet
+         * @param {str} $code Unified currency $code
+         * @param {float} $amount Size of the transfer
+         * @param {dict} [$params] Exchange specific parameters
+         * @return a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         */
+        return $this->transfer($code, $amount, 'spot', 'swap', $params);
+    }
+
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+         * transfers currencies between sub-accounts (only spot->swap direction is supported)
+         * @param {string} $code Unified $currency $code
+         * @param {float} $amount Size of the $transfer
+         * @param {string} $fromAccount 'spot' or 'Spot Wallet'
+         * @param {string} $toAccount 'swap' or 'Futures Wallet'
+         * @param {array} [$params] Exchange specific parameters
+         * @return a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $fromAccount = $this->parse_account($fromAccount);
+        $toAccount = $this->parse_account($toAccount);
+        $request = array(
+            'amount' => $this->currency_to_precision($code, $amount),
+            'from' => $fromAccount,
+            'to' => $toAccount,
+            'asset' => $currency['id'],
+        );
+        if ($fromAccount !== 'Spot Wallet') {
+            throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount . '. Use krakenfutures instead to $transfer from the futures account.');
+        }
+        $response = $this->privatePostWalletTransfer (array_merge($request, $params));
+        //
+        //   {
+        //       "error":array(
+        //       ),
+        //       "result":{
+        //          "refid":"BOIUSIF-M7DLMN-UXZ3P5"
+        //       }
+        //   }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //    {
+        //        "error":array(
+        //        ),
+        //        "result":{
+        //           "refid":"BOIUSIF-M7DLMN-UXZ3P5"
+        //        }
+        //    }
+        //
+        $result = $this->safe_value($transfer, 'result', array());
+        $refid = $this->safe_string($result, 'refid');
+        return array(
+            'info' => $transfer,
+            'id' => $refid,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_string($currency, 'code'),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => 'sucess',
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

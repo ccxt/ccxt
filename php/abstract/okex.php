@@ -379,6 +379,9 @@ abstract class okex extends \ccxt\okx {
     public function private_get_account_position_tiers($params = array()) {
         return $this->request('account/position-tiers', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_get_account_mmp_config($params = array()) {
+        return $this->request('account/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -645,6 +648,9 @@ abstract class okex extends \ccxt\okx {
     }
     public function private_post_account_mmp_reset($params = array()) {
         return $this->request('account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_account_mmp_config($params = array()) {
+        return $this->request('account/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
     }
     public function private_post_users_subaccount_modify_apikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
@@ -1132,6 +1138,9 @@ abstract class okex extends \ccxt\okx {
     public function privateGetAccountPositionTiers($params = array()) {
         return $this->request('account/position-tiers', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateGetAccountMmpConfig($params = array()) {
+        return $this->request('account/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1398,6 +1407,9 @@ abstract class okex extends \ccxt\okx {
     }
     public function privatePostAccountMmpReset($params = array()) {
         return $this->request('account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostAccountMmpConfig($params = array()) {
+        return $this->request('account/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
     }
     public function privatePostUsersSubaccountModifyApikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));

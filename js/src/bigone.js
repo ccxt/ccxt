@@ -148,6 +148,7 @@ export default class bigone extends Exchange {
                 'fetchCurrencies': {
                     'webApiEnable': true,
                     'webApiRetries': 5,
+                    'webApiMuteFailure': true,
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {

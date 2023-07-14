@@ -1886,6 +1886,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             'PENDING': 'pending',
             'PENDING REVIEW': 'pending',
             'PENDING CANCELLATION': 'pending',
+            'SENDING': 'pending',
+            'USER APPROVED': 'pending',
         }
         return self.safe_string(statuses, status, status)
 

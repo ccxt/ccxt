@@ -51,6 +51,7 @@ class deribit extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -414,6 +415,75 @@ class deribit extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'result');
+        }) ();
+    }
+
+    public function fetch_currencies($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @see https://docs.deribit.com/#public-get_currencies
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            $response = Async\await($this->publicGetGetCurrencies ($params));
+            //
+            //    {
+            //      "jsonrpc" => "2.0",
+            //      "result" => array(
+            //        array(
+            //          "withdrawal_priorities" => array(),
+            //          "withdrawal_fee" => 0.01457324,
+            //          "min_withdrawal_fee" => 0.000001,
+            //          "min_confirmations" => 1,
+            //          "fee_precision" => 8,
+            //          "currency_long" => "Solana",
+            //          "currency" => "SOL",
+            //          "coin_type" => "SOL"
+            //        ),
+            //        ...
+            //      ),
+            //      "usIn" => 1688652701456124,
+            //      "usOut" => 1688652701456390,
+            //      "usDiff" => 266,
+            //      "testnet" => true
+            //    }
+            //
+            $data = $this->safe_value($response, 'result', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $currency = $data[$i];
+                $currencyId = $this->safe_string($currency, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $name = $this->safe_string($currency, 'currency_long');
+                $result[$code] = array(
+                    'info' => $currency,
+                    'code' => $code,
+                    'id' => $currencyId,
+                    'name' => $name,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => $this->safe_number($currency, 'withdrawal_fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'fee_precision'))),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'networks' => null,
+                );
+            }
+            return $result;
         }) ();
     }
 

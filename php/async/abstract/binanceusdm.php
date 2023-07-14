@@ -694,6 +694,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapi_post_margin_isolated_account($params = array()) {
         return $this->request('margin/isolated/account', 'sapi', 'POST', $params, null, null, array("cost" => 2.0001));
     }
+    public function sapi_post_margin_max_leverage($params = array()) {
+        return $this->request('margin/max-leverage', 'sapi', 'POST', $params, null, null, array("cost" => 300));
+    }
     public function sapi_post_bnbburn($params = array()) {
         return $this->request('bnbBurn', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -1332,6 +1335,18 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function fapiprivate_get_orderamendment($params = array()) {
         return $this->request('orderAmendment', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_get_order_asyn($params = array()) {
+        return $this->request('order/asyn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiprivate_get_order_asyn_id($params = array()) {
+        return $this->request('order/asyn/id', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiprivate_get_trade_asyn($params = array()) {
+        return $this->request('trade/asyn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiprivate_get_trade_asyn_id($params = array()) {
+        return $this->request('trade/asyn/id', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
     public function fapiprivate_post_batchorders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
@@ -2452,6 +2467,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapiPostMarginIsolatedAccount($params = array()) {
         return $this->request('margin/isolated/account', 'sapi', 'POST', $params, null, null, array("cost" => 2.0001));
     }
+    public function sapiPostMarginMaxLeverage($params = array()) {
+        return $this->request('margin/max-leverage', 'sapi', 'POST', $params, null, null, array("cost" => 300));
+    }
     public function sapiPostBnbBurn($params = array()) {
         return $this->request('bnbBurn', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -3090,6 +3108,18 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function fapiPrivateGetOrderAmendment($params = array()) {
         return $this->request('orderAmendment', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateGetOrderAsyn($params = array()) {
+        return $this->request('order/asyn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiPrivateGetOrderAsynId($params = array()) {
+        return $this->request('order/asyn/id', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiPrivateGetTradeAsyn($params = array()) {
+        return $this->request('trade/asyn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiPrivateGetTradeAsynId($params = array()) {
+        return $this->request('trade/asyn/id', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
     public function fapiPrivatePostBatchOrders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));

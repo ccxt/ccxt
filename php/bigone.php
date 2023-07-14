@@ -141,6 +141,7 @@ class bigone extends Exchange {
                 'fetchCurrencies' => array(
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 5,
+                    'webApiMuteFailure' => true,
                 ),
                 'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(

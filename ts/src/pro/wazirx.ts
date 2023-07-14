@@ -608,7 +608,8 @@ export default class wazirx extends wazirxRest {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        this.orders.append (parsedOrder);
+        const orders = this.orders;
+        orders.append (parsedOrder);
         let messageHash = 'orders';
         client.resolve (this.orders, messageHash);
         messageHash += ':' + parsedOrder['symbol'];
