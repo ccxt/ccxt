@@ -4,62 +4,45 @@ The ccxt library is a collection of available crypto *exchanges* or exchange cla
 
 The structure of the library can be outlined as follows:
 
-    ---------------------------------------------------------------
-    |                            CCXT|                            |
-    ---------------------------------------------------------------
-    |  [Public API](#public-api)   | [Private API](#private-api)  |
-    ---------------------------------------------------------------
-    |       loadMarkets            .           fetchBalance       |
-    |       fetchMarkets           .            createOrder       |
-    |       fetchCurrencies        .            cancelOrder       |
-    |       fetchTicker            .             fetchOrder       |
-    |       fetchTickers           .            fetchOrders       |
-    |       fetchOrderBook         .        fetchOpenOrders       |
-    |       fetchOHLCV             .      fetchClosedOrders       |
-    |       fetchStatus            .          fetchMyTrades       |
-    |       fetchTrades            .                deposit       |
-    |                              .               withdraw       |
-    ---------------------------------------------------------------
+<pre>
+<table width=80%>
+<tr><td colspan=2 align=center> User </td></tr>
+<tr><td colspan=2 align=center> CCXT </td></tr>
+	
+<tr><td>  <a href=#public-api><b>Public API</b></a></td><td>  <a href=#private-api><b>Private API</b></a> </td></tr>
+
+<tr><td>  <a href=></a>   </td><td><a href=></a>  </td></tr>
+
+<tr><td colspan=2 align=center>The Unified CCXT API</td></tr>
+
+<tr><td>  <a href=#loading-markets>loadMarkets</a>   </td><td><a href=#account-balance>fetchBalance</a>  </td></tr>
+<tr><td>  <a href=#loading-markets>fetchMarkets</a>   </td><td><a href=#placing-orders>createOrder</a>  </td></tr>
+<tr><td>  <a href=#currency-structure>fetchCurrencies</a>   </td><td><a href=#orders>cancelOrder</a>  </td></tr>
+<tr><td>  <a href=#price-tickers>fetchTicker</a>   </td><td><a href=#orders>fetchOrder</a>  </td></tr>
+<tr><td>  <a href=#price-tickers>fetchTickers</a>   </td><td><a href=#orders>fetchOrders</a>  </td></tr>
+<tr><td>  <a href=#order-book>fetchOrderBook</a>   </td><td><a href=#orders>fetchOpenOrders</a>  </td></tr>
+<tr><td>  <a href=#ohlcv-candlestick-charts>fetchOHLCV</a>   </td><td><a href=#orders>fetchClosedOrders</a>  </td></tr>
+<tr><td>  <a href=#exchange-status>fetchStatus</a>   </td><td><a href=></a>  </td></tr>
+<tr><td>  <a href=#public-trades>fetchTrades</a>   </td><td><a href=#personal-trades>fetchMyTrades</a>  </td></tr>
+<tr><td>  <a href=></a>   </td><td><a href=#deposit>deposit</a>  </td></tr>
+<tr><td>  <a href=></a>   </td><td><a href=#withdrawal>withdraw</a>  </td></tr>
+
+<tr><td>  <a href=></a>   </td><td><a href=></a>  </td></tr>
+
+<tr><td colspan=2 align=center>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Custom Exchange API (Derived Classes And Their Implicit Methods)&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
 
 
-```text
-                                 User
-    +-------------------------------------------------------------+
-    |                            CCXT                             |
-    +------------------------------+------------------------------+
-    |            Public            |           Private            |
-    +=============================================================+
-    │                              .                              |
-    │                    The Unified CCXT API                     |
-    │                              .                              |
-    |       loadMarkets            .           fetchBalance       |
-    |       fetchMarkets           .            createOrder       |
-    |       fetchCurrencies        .            cancelOrder       |
-    |       fetchTicker            .             fetchOrder       |
-    |       fetchTickers           .            fetchOrders       |
-    |       fetchOrderBook         .        fetchOpenOrders       |
-    |       fetchOHLCV             .      fetchClosedOrders       |
-    |       fetchStatus            .          fetchMyTrades       |
-    |       fetchTrades            .                deposit       |
-    |                              .               withdraw       |
-    │                              .                              |
-    +=============================================================+
-    │                              .                              |
-    |                     Custom Exchange API                     |
-    |         (Derived Classes And Their Implicit Methods)        |
-    │                              .                              |
-    |       publicGet...           .          privateGet...       |
-    |       publicPost...          .         privatePost...       |
-    |                              .          privatePut...       |
-    |                              .       privateDelete...       |
-    |                              .                   sign       |
-    │                              .                              |
-    +=============================================================+
-    │                              .                              |
-    |                      Base Exchange Class                    |
-    │                              .                              |
-    +=============================================================+
-```
+<tr><td>  <a href=>publicGet...</a>   </td><td><a href=>privateGet...</a>  </td></tr>
+<tr><td>  <a href=>publicPost...</a>   </td><td><a href=>privatePost...</a>  </td></tr>
+<tr><td>  <a href=></a>   </td><td><a href=>privatePut...</a>  </td></tr>
+<tr><td>  <a href=></a>   </td><td><a href=>privateDelete...</a>  </td></tr>
+<tr><td>  <a href=></a>   </td><td><a href=>sign</a>  </td></tr>
+
+<tr><td colspan=2 align=center></td></tr>
+<tr><td colspan=2 align=center>Base Exchange Class</td></tr>
+<tr><td colspan=2 align=center></td></tr>
+</table>
+</pre>
 
 Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
 
