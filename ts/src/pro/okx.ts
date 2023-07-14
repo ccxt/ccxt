@@ -24,6 +24,10 @@ export default class okx extends okxRest {
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'createOrderWs': true,
+                'editOrderWs': true,
+                'cancelOrderWs': true,
+                'cancelOrdersWs': true,
+                'cancelAllOrdersWs': true
             },
             'urls': {
                 'api': {
