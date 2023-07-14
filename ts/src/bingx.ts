@@ -488,7 +488,7 @@ export default class bingx extends Exchange {
             'active': isActive,
             'contract': swap,
             'linear': swap,
-            'inverse': false,
+            'inverse': (spot ? undefined : false),
             'taker': undefined,
             'maker': undefined,
             'contractSize': contractSize,
@@ -553,8 +553,8 @@ export default class bingx extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @param {string} [params].price "mark" or "index" for mark price and index price candles
-         * @param {int} [params].until timestamp in ms of the latest candle to fetch
+         * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
