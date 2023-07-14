@@ -4051,7 +4051,7 @@ export default class kucoin extends Exchange {
         };
         if (isIsolated) {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol parameter for isolated margin');
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol parameter for isolated margin');
             }
             const market = this.market (symbol);
             request['symbol'] = market['id'];
