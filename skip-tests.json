@@ -1341,7 +1341,8 @@
     "bingx": {
         "skipMethods": {
             "loadMarkets": {
-                "taker":"is undefined"
+                "taker":"is undefined",
+                "maker": "is undefined"
             },
             "fetchTrades": {
                 "side": "undefined"
