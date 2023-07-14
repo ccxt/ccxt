@@ -6,8 +6,8 @@ The structure of the library can be outlined as follows:
 
 <pre>
 <table width=80%>
-<tr><td colspan=2 align=center> User </td></tr>
-<tr><td colspan=2 align=center> CCXT </td></tr>
+<tr><th colspan=2 align=center> <h3>User</h3> </th></tr>
+<tr><th colspan=2 align=center> <h3>CCXT</h3> </th></tr>
 	
 <tr><td>  <a href=#public-api><b>Public API</b></a></td><td>  <a href=#private-api><b>Private API</b></a> </td></tr>
 
@@ -39,10 +39,11 @@ The structure of the library can be outlined as follows:
 <tr><td>  <a href=></a>   </td><td><a href=>sign</a>  </td></tr>
 
 <tr><td colspan=2 align=center></td></tr>
-<tr><td colspan=2 align=center>Base Exchange Class</td></tr>
+<tr><th colspan=2 align=center>  <h3>Base Exchange Class</h3>  </th></tr>
 <tr><td colspan=2 align=center></td></tr>
-</table>
-</pre>
+</table></pre>
+	
+
 
 Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
 
