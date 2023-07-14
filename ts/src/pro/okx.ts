@@ -1082,14 +1082,11 @@ export default class okx extends okxRest {
         const messageHash = this.nonce ().toString ();
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
-        let args = this.editOrderRequest ('599874870272434176', symbol, type, side, amount, price, params);
-        if (op === 'batch-amend-orders') {
-            args = [ args ];
-        }
+        const args = this.editOrderRequest ('599874870272434176', symbol, type, side, amount, price, params);
         const request = {
             'id': messageHash,
             'op': op,
-            'args': args,
+            'args': [ args ],
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
