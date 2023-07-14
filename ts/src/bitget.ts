@@ -1847,14 +1847,14 @@ export default class bitget extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const networkCode = this.safeString (params, 'network');
-        const networkId = this.networkCodeToId (networkCode, code);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const currency = this.currency (code);
         const request = {
             'coin': currency['code'],
         };
-        if (networkId !== undefined) {
-            request['chain'] = networkId;
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode, code);
         }
         const response = await this.privateSpotGetWalletDepositAddress (this.extend (request, params));
         //
