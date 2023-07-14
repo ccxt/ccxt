@@ -283,159 +283,88 @@ export default class ascendex extends Exchange {
                     'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'BEP20': 'BEP20 (BSC)',
-                    'GATHER': 'Gather',
+                    'GTH': 'Gather',
                     'LTO': 'LTONetwork',
-                    'PLCULTIMA': 'PLC-Ultima',
+                    'PLCU': 'PLC-Ultima',
                     'BAND': 'BandProtocol',
                     'SOLANA': 'Solana',
+                    'SOL': 'Solana',
                     'RIZON': 'rizon',
                     'BSV': 'Bitcoin SV',
                     'BCHA': 'Bitcoin Cash ABC',
-                    'GNOSIS': 'Gnosis',
                     'BEP2': 'BEP2',
-                    'RADIX': 'Radix DLT',
                     'KAVA': 'kava',
-                    'FANTOM': 'fantom',
+                    'FTM': 'fantom',
                     'POLYGON': 'Matic network',
-                    'AVALANCHE_C': 'avalanche C chain',
-                    'DOGECOING': 'dogechain',
-                    'ULTRA': 'ultra',
-                    'ZEROCASH': 'Zerocash',
+                    'MATIC': 'Matic network',
+                    'AVAX_C': 'avalanche C chain',
+                    'DOGECOIN': 'dogechain',
+                    'DOGE': 'dogechain',
                     'LTC': 'Litecoin',
-                    'AKASH': 'Akash',
+                    'AKT': 'Akash',
                     'DASH': 'Dash',
-                    'ECASH': 'eCash',
+                    'XEC': 'eCash',
                     'OPTIMISM': 'Optimism',
-                    'RAVENCOIN': 'Raven',
-                    'DIVI': 'Divi',
-                    'STAFI': 'Stafi',
-                    'EMONEY': 'e-Money',
-                    'VECHAIN': 'vechain',
-                    'GO20': 'GO20',
-                    'POLKADEX': 'Polkadex',
+                    'RVN': 'Raven',
+                    'VET': 'vechain',
+                    'PDEX': 'Polkadex',
                     'FUSE': 'Fuse',
-                    'PERSISTENCE': 'Persistence',
-                    'NEM': 'XEM',
+                    'XPRT': 'Persistence',
                     'ETC': 'Ethereum Classic',
                     'IOST': 'Iost chain',
-                    'ERC777': 'ERC777',
                     'OMNI': 'Omni',
-                    'ARBITRUM': 'arbitrum',
-                    'FILECOIN': 'Filecoin',
-                    'TERNOA': 'Ternoa',
-                    'THORCHAIN': 'Thorchain',
-                    'APTOS': 'Aptos',
-                    'BITCOINABC': 'Bitcoin ABC',
-                    'HERMEZ': 'hermez',
-                    'CONCORDIUM': 'Concordium',
+                    'ARB_ONE': 'arbitrum',
+                    'FIL': 'Filecoin',
+                    'APT': 'Aptos',
                     'ETHW': 'ETHPoW',
-                    'SIFCHAIN': 'sifchain',
-                    'ELROND': 'Elrond eGold',
-                    // 'BCH-SLP': 'BCH-SLP',
-                    'OSMOSIS': 'osmosis',
+                    'EGLD': 'Elrond eGold',
+                    'OSMO': 'osmosis',
                     'HPB': 'HPB',
-                    'FIOProtocol': 'FIOProtocol',
-                    'SENTINEL': 'sentinel',
-                    'RIPPLE': 'Ripple',
-                    'CUDOS': 'Cudos',
-                    // 'NEO N3': 'NEO N3',
-                    'HATHOR': 'Hathor',
+                    'XRP': 'Ripple',
+                    'NEON3': 'NEO N3',
+                    'HTR': 'Hathor',
                     'CARDANO': 'Cardano',
-                    'TEZOS': 'Tezos',
+                    'ADA': 'Cardano',
+                    'XTZ': 'Tezos',
                     'POLKADOT': 'polkadot',
-                    'NERVOS': 'nervos',
-                    'CASPER': 'casper',
-                    // 'bitclout': 'bitclout',
-                    'ONTOLOGY': 'Ontology',
-                    'ALGORAND': 'Algorand',
-                    'NIMIQ': 'Nimiq',
+                    'DOT': 'polkadot',
+                    'CKB': 'nervos',
+                    'CSPR': 'casper',
+                    'ONT': 'Ontology',
+                    'ALGO': 'Algorand',
                     'RSK': 'RSK Smart Bitcoin',
-                    'ZILLIQA': 'Zilliqa',
-                    'STELLAR': 'Stellar',
+                    'ZIL': 'Zilliqa',
+                    'XLM': 'Stellar',
                     'QTUM': 'Qtum',
                     'COSMOS': 'ATOM',
-                    'ONELEDGER': 'oneledger',
+                    'ATOM': 'ATOM',
                     'EOS': 'EOS',
-                    'HARMONY': 'Harmony',
+                    'ONE': 'Harmony',
                     'NEAR': 'Near',
-                },
-                'networksById': {
-                    'Bitcoin': 'BTC',
-                    'ERC20': 'ERC20',
-                    'TRC20': 'TRC20',
-                    'BEP20 (BSC)': 'BEP20',
-                    'Gather': 'GATHER',
-                    'LTONetwork': 'LTO',
-                    'PLC-Ultima': 'PLCULTIMA',
-                    'BandProtocol': 'BAND',
-                    'Solana': 'SOLANA',
-                    'rizon': 'RIZON',
-                    'Bitcoin SV': 'BSV',
-                    'Bitcoin Cash ABC': 'BCHA',
-                    'Gnosis': 'GNOSIS',
-                    'BEP2': 'BEP2',
-                    'Radix DLT': 'RADIX',
-                    'kava': 'KAVA',
-                    'fantom': 'FANTOM',
-                    'Matic network': 'POLYGON',
-                    'avalanche C chain': 'AVALANCHE_C',
-                    'dogechain': 'DOGECOING',
-                    'ultra': 'ULTRA',
-                    'Zerocash': 'ZEROCASH',
-                    'Litecoin': 'LTC',
-                    'Akash': 'AKASH',
-                    'Dash': 'DASH',
-                    'eCash': 'ECASH',
-                    'Optimism': 'OPTIMISM',
-                    'Raven': 'RAVENCOIN',
-                    'Divi': 'DIVI',
-                    'Stafi': 'STAFI',
-                    'e-Money': 'EMONEY',
-                    'vechain': 'VECHAIN',
-                    'GO20': 'GO20',
-                    'Polkadex': 'POLKADEX',
-                    'Fuse': 'FUSE',
-                    'Persistence': 'PERSISTENCE',
-                    'XEM': 'NEM',
-                    'Ethereum Classic': 'ETC',
-                    'Iost chain': 'IOST',
-                    'ERC777': 'ERC777',
-                    'Omni': 'OMNI',
-                    'arbitrum': 'ARBITRUM',
-                    'Filecoin': 'FILECOIN',
-                    'Ternoa': 'TERNOA',
-                    'Thorchain': 'THORCHAIN',
-                    'Aptos': 'APTOS',
-                    'Bitcoin ABC': 'BITCOINABC',
-                    'hermez': 'HERMEZ',
-                    'Concordium': 'CONCORDIUM',
-                    'ETHPoW': 'ETHW',
-                    'sifchain': 'SIFCHAIN',
-                    'Elrond eGold': 'ELROND',
-                    'osmosis': 'OSMOSIS',
-                    'HPB': 'HPB',
-                    'FIOProtocol': 'FIOProtocol',
-                    'sentinel': 'SENTINEL',
-                    'Ripple': 'RIPPLE',
-                    'Cudos': 'CUDOS',
-                    'Hathor': 'HATHOR',
-                    'Cardano': 'CARDANO',
-                    'Tezos': 'TEZOS',
-                    'polkadot': 'POLKADOT',
-                    'nervos': 'NERVOS',
-                    'casper': 'CASPER',
-                    'Ontology': 'ONTOLOGY',
-                    'Algorand': 'ALGORAND',
-                    'Nimiq': 'NIMIQ',
-                    'RSK Smart Bitcoin': 'RSK',
-                    'Zilliqa': 'ZILLIQA',
-                    'Stellar': 'STELLAR',
-                    'Qtum': 'QTUM',
-                    'ATOM': 'COSMOS',
-                    'oneledger': 'ONELEDGER',
-                    'EOS': 'EOS',
-                    'Harmony': 'HARMONY',
-                    'Near': 'NEAR',
+                    // todo: uncomment after consensus
+                    // 'ERC777': 'ERC777',
+                    // 'NEM': 'XEM',
+                    // 'GO20': 'GO20',
+                    // 'ULTRA': 'ultra',
+                    // 'RADIX': 'Radix DLT',
+                    // 'GNOSIS': 'Gnosis',
+                    // 'ZEROCASH': 'Zerocash',
+                    // 'DIVI': 'Divi',
+                    // 'STAFI': 'Stafi',
+                    // 'EMONEY': 'e-Money',
+                    // 'TERNOA': 'Ternoa',
+                    // 'THORCHAIN': 'Thorchain',
+                    // 'BITCOINABC': 'Bitcoin ABC',
+                    // 'HERMEZ': 'hermez',
+                    // 'CONCORDIUM': 'Concordium',
+                    // 'SIFCHAIN': 'sifchain',
+                    // // 'BCH-SLP': 'BCH-SLP',
+                    // 'FIOProtocol': 'FIOProtocol',
+                    // 'SENTINEL': 'sentinel',
+                    // 'CUDOS': 'Cudos',
+                    // // 'bitclout': 'bitclout',
+                    // 'NIMIQ': 'Nimiq',
+                    // 'ONELEDGER': 'oneledger',
                 },
             },
             'exceptions': {
@@ -681,7 +610,7 @@ export default class ascendex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': networks,
             };
         }
         return result;
@@ -2457,6 +2386,31 @@ export default class ascendex extends Exchange {
         };
     }
 
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchDepositAddressesByNetwork
+         * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the api endpoint
+         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+         */
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.v1PrivateGetWalletDepositAddress (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const chains = this.safeValue (data, 'address', []);
+        const coin = this.safeString (data, 'asset');
+        currency = this.safeCurrency (coin, currency);
+        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
+            'currency': currency['id'],
+        });
+        return this.indexBy (parsed, 'network');
+    }
+
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
@@ -2468,44 +2422,15 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
-            'asset': currency['id'],
-        };
-        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
+        const request = {};
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['blockchain'] = this.networkCodeToId (networkCode);
         }
-        const response = await this.v1PrivateGetWalletDepositAddress (this.extend (request, paramsOmitted));
-        //
-        //    {
-        //        "code": "0",
-        //        "data": {
-        //            "asset": "USDT",
-        //            "assetName": "Tether",
-        //            "address": [
-        //                {
-        //                    "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55712",
-        //                    "destTag": "",
-        //                    "blockchain": "ERC20"
-        //                },
-        //                {
-        //                    "address": "TXHUYdv22KkP2dpc2ERSaecUHZepLoD9Qr",
-        //                    "destTag": "",
-        //                    "blockchain": "TRC20"
-        //                },
-        //            ]
-        //        }
-        //    }
-        //
-        const data = this.safeValue (response, 'data', {});
-        const chains = this.safeValue (data, 'address', []);
-        const chainsIndexedById = this.indexBy (chains, 'blockchain');
-        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
-        const result = this.parseDepositAddress (addressObject, currency);
-        return this.extend (result, {
-            'info': response,
-        });
+        const chainsIndexedById = await this.fetchDepositAddressesByNetwork (currency['code'], this.extend (request, params));
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (currency['code'], networkCode, chainsIndexedById);
+        return chainsIndexedById[selectedNetworkId];
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
