@@ -3811,17 +3811,20 @@ class bybit extends bybit$1 {
         if ((type === 'market') && (side === 'buy')) {
             // for market buy it requires the amount of quote currency to spend
             if (this.options['createMarketBuyOrderRequiresPrice']) {
-                const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
-                if (price === undefined && cost === undefined) {
-                    throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                let cost = this.safeNumber2(params, 'cost', 'orderQty');
+                params = this.omit(params, ['cost', 'orderQty']);
+                if (cost !== undefined) {
+                    request['orderQty'] = this.costToPrecision(symbol, cost);
                 }
-                else {
+                else if (price !== undefined) {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
-                    const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
-                    request['orderQty'] = this.costToPrecision(symbol, amount);
+                    const costString = Precise["default"].stringMul(amountString, priceString);
+                    cost = this.parseNumber(costString);
+                    request['orderQty'] = this.costToPrecision(symbol, cost);
+                }
+                else {
+                    throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 }
             }
             else {
@@ -7144,7 +7147,7 @@ class bybit extends bybit$1 {
         const result = this.safeValue(response, 'result', {});
         const positions = this.safeValue2(result, 'list', 'dataList', []);
         const timestamp = this.safeInteger(response, 'time');
-        const first = this.safeValue(positions, 0);
+        const first = this.safeValue(positions, 0, {});
         const position = this.parsePosition(first, market);
         return this.extend(position, {
             'timestamp': timestamp,

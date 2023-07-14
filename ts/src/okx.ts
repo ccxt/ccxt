@@ -1329,13 +1329,21 @@ export default class okx extends Exchange {
             'instType': this.convertToInstrumentType (type),
         };
         if (type === 'option') {
-            const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
-            const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
-            if (currencyId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets');
-            } else {
-                request['uly'] = currencyId;
+            const optionsUnderlying = this.safeValue (this.options, 'defaultUnderlying', [ 'BTC-USD', 'ETH-USD' ]);
+            const promises = [];
+            for (let i = 0; i < optionsUnderlying.length; i++) {
+                const underlying = optionsUnderlying[i];
+                request['uly'] = underlying;
+                promises.push (this.publicGetPublicInstruments (this.extend (request, params)));
             }
+            const promisesResult = await Promise.all (promises);
+            let data = [];
+            for (let i = 0; i < promisesResult.length; i++) {
+                const res = this.safeValue (promisesResult, i, {});
+                const options = this.safeValue (res, 'data', []);
+                data = this.arrayConcat (data, options);
+            }
+            return this.parseMarkets (data);
         }
         const response = await this.publicGetPublicInstruments (this.extend (request, params));
         //
@@ -2648,7 +2656,7 @@ export default class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        const response = await (this as any).privatePostTradeAmendOrder (request);
+        const response = await this.privatePostTradeAmendOrder (request);
         //
         //     {
         //        "code": "0",

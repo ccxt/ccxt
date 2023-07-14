@@ -121,6 +121,45 @@ export default class delta extends Exchange {
         network: string;
         info: any;
     };
+    fetchFundingRate(symbol: string, params?: {}): Promise<{
+        info: any;
+        symbol: any;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    }>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

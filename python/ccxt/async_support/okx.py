@@ -1314,12 +1314,19 @@ class okx(Exchange, ImplicitAPI):
             'instType': self.convert_to_instrument_type(type),
         }
         if type == 'option':
-            defaultUnderlying = self.safe_value(self.options, 'defaultUnderlying', 'BTC-USD')
-            currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
-            if currencyId is None:
-                raise ArgumentsRequired(self.id + ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets')
-            else:
-                request['uly'] = currencyId
+            optionsUnderlying = self.safe_value(self.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD'])
+            promises = []
+            for i in range(0, len(optionsUnderlying)):
+                underlying = optionsUnderlying[i]
+                request['uly'] = underlying
+                promises.append(self.publicGetPublicInstruments(self.extend(request, params)))
+            promisesResult = await asyncio.gather(*promises)
+            data = []
+            for i in range(0, len(promisesResult)):
+                res = self.safe_value(promisesResult, i, {})
+                options = self.safe_value(res, 'data', [])
+                data = self.array_concat(data, options)
+            return self.parse_markets(data)
         response = await self.publicGetPublicInstruments(self.extend(request, params))
         #
         # spot, future, swap, option

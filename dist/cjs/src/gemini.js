@@ -260,7 +260,8 @@ class gemini extends gemini$1 {
                 },
                 'fetchCurrencies': {
                     'webApiEnable': true,
-                    'webApiRetries': 10,
+                    'webApiRetries': 5,
+                    'webApiMuteFailure': true,
                 },
                 'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],
                 'fetchTickerMethod': 'fetchTickerV1',

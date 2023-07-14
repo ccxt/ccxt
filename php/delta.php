@@ -35,6 +35,9 @@ class delta extends Exchange {
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => null,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => true,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode' => false,
@@ -632,15 +635,13 @@ class delta extends Exchange {
                             $letter = 'M';
                             $optionType = 'move';
                         }
-                        $symbol = $symbol . ':' . $strike . ':' . $letter;
+                        $symbol = $symbol . '-' . $strike . '-' . $letter;
                     } else {
                         $type = 'future';
                     }
                 } else {
                     $type = 'swap';
                 }
-            } else {
-                $symbol = $id;
             }
             $state = $this->safe_string($market, 'state');
             $result[] = array(
@@ -700,52 +701,145 @@ class delta extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        // fetchTicker, fetchTickers
+        // spot => fetchTicker, fetchTickers
         //
         //     {
-        //         "close":15837.5,
-        //         "high":16354,
-        //         "low":15751.5,
-        //         "mark_price":"15820.100867",
-        //         "open":16140.5,
-        //         "product_id":139,
-        //         "size":640552,
-        //         "spot_price":"15827.050000000001",
-        //         "symbol":"BTCUSDT",
-        //         "timestamp":1605373550208262,
-        //         "turnover":10298630.3735,
-        //         "turnover_symbol":"USDT",
-        //         "turnover_usd":10298630.3735,
-        //         "volume":640.5520000000001
+        //         "close" => 30634.0,
+        //         "contract_type" => "spot",
+        //         "greeks" => null,
+        //         "high" => 30780.0,
+        //         "low" => 30340.5,
+        //         "mark_price" => "48000",
+        //         "oi" => "0.0000",
+        //         "oi_change_usd_6h" => "0.0000",
+        //         "oi_contracts" => "0",
+        //         "oi_value" => "0.0000",
+        //         "oi_value_symbol" => "BTC",
+        //         "oi_value_usd" => "0.0000",
+        //         "open" => 30464.0,
+        //         "price_band" => null,
+        //         "product_id" => 8320,
+        //         "quotes" => array(),
+        //         "size" => 2.6816639999999996,
+        //         "spot_price" => "30637.91465121",
+        //         "symbol" => "BTC_USDT",
+        //         "timestamp" => 1689139767621299,
+        //         "turnover" => 2.6816639999999996,
+        //         "turnover_symbol" => "BTC",
+        //         "turnover_usd" => 81896.45613400004,
+        //         "volume" => 2.6816639999999996
+        //     }
+        //
+        // swap => fetchTicker, fetchTickers
+        //
+        //     {
+        //         "close" => 30600.5,
+        //         "contract_type" => "perpetual_futures",
+        //         "funding_rate" => "0.00602961",
+        //         "greeks" => null,
+        //         "high" => 30803.0,
+        //         "low" => 30265.5,
+        //         "mark_basis" => "-0.45601594",
+        //         "mark_price" => "30600.10481568",
+        //         "oi" => "469.9190",
+        //         "oi_change_usd_6h" => "2226314.9900",
+        //         "oi_contracts" => "469919",
+        //         "oi_value" => "469.9190",
+        //         "oi_value_symbol" => "BTC",
+        //         "oi_value_usd" => "14385640.6802",
+        //         "open" => 30458.5,
+        //         "price_band" => array(
+        //             "lower_limit" => "29067.08312627",
+        //             "upper_limit" => "32126.77608693"
+        //         ),
+        //         "product_id" => 139,
+        //         "quotes" => array(
+        //             "ask_iv" => null,
+        //             "ask_size" => "965",
+        //             "best_ask" => "30600.5",
+        //             "best_bid" => "30599.5",
+        //             "bid_iv" => null,
+        //             "bid_size" => "196",
+        //             "impact_mid_price" => null,
+        //             "mark_iv" => "-0.44931641"
+        //         ),
+        //         "size" => 1226303,
+        //         "spot_price" => "30612.85362773",
+        //         "symbol" => "BTCUSDT",
+        //         "timestamp" => 1689136597460456,
+        //         "turnover" => 37392218.45999999,
+        //         "turnover_symbol" => "USDT",
+        //         "turnover_usd" => 37392218.45999999,
+        //         "volume" => 1226.3029999999485
+        //     }
+        //
+        // option => fetchTicker, fetchTickers
+        //
+        //     {
+        //         "contract_type" => "call_options",
+        //         "greeks" => array(
+        //             "delta" => "0.60873994",
+        //             "gamma" => "0.00014854",
+        //             "rho" => "7.71808010",
+        //             "spot" => "30598.49040622",
+        //             "theta" => "-30.44743017",
+        //             "vega" => "24.83508248"
+        //         ),
+        //         "mark_price" => "1347.74819696",
+        //         "mark_vol" => "0.39966303",
+        //         "oi" => "2.7810",
+        //         "oi_change_usd_6h" => "0.0000",
+        //         "oi_contracts" => "2781",
+        //         "oi_value" => "2.7810",
+        //         "oi_value_symbol" => "BTC",
+        //         "oi_value_usd" => "85127.4337",
+        //         "price_band" => array(
+        //             "lower_limit" => "91.27423497",
+        //             "upper_limit" => "7846.19454697"
+        //         ),
+        //         "product_id" => 107150,
+        //         "quotes" => array(
+        //             "ask_iv" => "0.41023239",
+        //             "ask_size" => "2397",
+        //             "best_ask" => "1374",
+        //             "best_bid" => "1322",
+        //             "bid_iv" => "0.38929375",
+        //             "bid_size" => "3995",
+        //             "impact_mid_price" => null,
+        //             "mark_iv" => "0.39965618"
+        //         ),
+        //         "spot_price" => "30598.43379314",
+        //         "strike_price" => "30000",
+        //         "symbol" => "C-BTC-30000-280723",
+        //         "timestamp" => 1689136932893181,
+        //         "turnover_symbol" => "USDT"
         //     }
         //
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string($ticker, 'close');
-        $open = $this->safe_string($ticker, 'open');
-        $baseVolume = $this->safe_string($ticker, 'volume');
-        $quoteVolume = $this->safe_string($ticker, 'turnover');
+        $quotes = $this->safe_value($ticker, 'quotes', array());
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($ticker, 'high'),
-            'low' => $this->safe_string($ticker, 'low'),
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($quotes, 'best_bid'),
+            'bidVolume' => $this->safe_number($quotes, 'bid_size'),
+            'ask' => $this->safe_number($quotes, 'best_ask'),
+            'askVolume' => $this->safe_number($quotes, 'ask_size'),
             'vwap' => null,
-            'open' => $open,
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'turnover'),
             'info' => $ticker,
         ), $market);
     }
@@ -753,6 +847,7 @@ class delta extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the delta api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -764,24 +859,127 @@ class delta extends Exchange {
         );
         $response = $this->publicGetTickersSymbol (array_merge($request, $params));
         //
+        // spot
+        //
         //     {
-        //         "result":array(
-        //             "close":15837.5,
-        //             "high":16354,
-        //             "low":15751.5,
-        //             "mark_price":"15820.100867",
-        //             "open":16140.5,
-        //             "product_id":139,
-        //             "size":640552,
-        //             "spot_price":"15827.050000000001",
-        //             "symbol":"BTCUSDT",
-        //             "timestamp":1605373550208262,
-        //             "turnover":10298630.3735,
-        //             "turnover_symbol":"USDT",
-        //             "turnover_usd":10298630.3735,
-        //             "volume":640.5520000000001
+        //         "result" => array(
+        //             "close" => 30634.0,
+        //             "contract_type" => "spot",
+        //             "greeks" => null,
+        //             "high" => 30780.0,
+        //             "low" => 30340.5,
+        //             "mark_price" => "48000",
+        //             "oi" => "0.0000",
+        //             "oi_change_usd_6h" => "0.0000",
+        //             "oi_contracts" => "0",
+        //             "oi_value" => "0.0000",
+        //             "oi_value_symbol" => "BTC",
+        //             "oi_value_usd" => "0.0000",
+        //             "open" => 30464.0,
+        //             "price_band" => null,
+        //             "product_id" => 8320,
+        //             "quotes" => array(),
+        //             "size" => 2.6816639999999996,
+        //             "spot_price" => "30637.91465121",
+        //             "symbol" => "BTC_USDT",
+        //             "timestamp" => 1689139767621299,
+        //             "turnover" => 2.6816639999999996,
+        //             "turnover_symbol" => "BTC",
+        //             "turnover_usd" => 81896.45613400004,
+        //             "volume" => 2.6816639999999996
         //         ),
-        //         "success":true
+        //         "success" => true
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "result" => array(
+        //             "close" => 30600.5,
+        //             "contract_type" => "perpetual_futures",
+        //             "funding_rate" => "0.00602961",
+        //             "greeks" => null,
+        //             "high" => 30803.0,
+        //             "low" => 30265.5,
+        //             "mark_basis" => "-0.45601594",
+        //             "mark_price" => "30600.10481568",
+        //             "oi" => "469.9190",
+        //             "oi_change_usd_6h" => "2226314.9900",
+        //             "oi_contracts" => "469919",
+        //             "oi_value" => "469.9190",
+        //             "oi_value_symbol" => "BTC",
+        //             "oi_value_usd" => "14385640.6802",
+        //             "open" => 30458.5,
+        //             "price_band" => array(
+        //                 "lower_limit" => "29067.08312627",
+        //                 "upper_limit" => "32126.77608693"
+        //             ),
+        //             "product_id" => 139,
+        //             "quotes" => array(
+        //                 "ask_iv" => null,
+        //                 "ask_size" => "965",
+        //                 "best_ask" => "30600.5",
+        //                 "best_bid" => "30599.5",
+        //                 "bid_iv" => null,
+        //                 "bid_size" => "196",
+        //                 "impact_mid_price" => null,
+        //                 "mark_iv" => "-0.44931641"
+        //             ),
+        //             "size" => 1226303,
+        //             "spot_price" => "30612.85362773",
+        //             "symbol" => "BTCUSDT",
+        //             "timestamp" => 1689136597460456,
+        //             "turnover" => 37392218.45999999,
+        //             "turnover_symbol" => "USDT",
+        //             "turnover_usd" => 37392218.45999999,
+        //             "volume" => 1226.3029999999485
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "result" => array(
+        //             "contract_type" => "call_options",
+        //             "greeks" => array(
+        //                 "delta" => "0.60873994",
+        //                 "gamma" => "0.00014854",
+        //                 "rho" => "7.71808010",
+        //                 "spot" => "30598.49040622",
+        //                 "theta" => "-30.44743017",
+        //                 "vega" => "24.83508248"
+        //             ),
+        //             "mark_price" => "1347.74819696",
+        //             "mark_vol" => "0.39966303",
+        //             "oi" => "2.7810",
+        //             "oi_change_usd_6h" => "0.0000",
+        //             "oi_contracts" => "2781",
+        //             "oi_value" => "2.7810",
+        //             "oi_value_symbol" => "BTC",
+        //             "oi_value_usd" => "85127.4337",
+        //             "price_band" => array(
+        //                 "lower_limit" => "91.27423497",
+        //                 "upper_limit" => "7846.19454697"
+        //             ),
+        //             "product_id" => 107150,
+        //             "quotes" => array(
+        //                 "ask_iv" => "0.41023239",
+        //                 "ask_size" => "2397",
+        //                 "best_ask" => "1374",
+        //                 "best_bid" => "1322",
+        //                 "bid_iv" => "0.38929375",
+        //                 "bid_size" => "3995",
+        //                 "impact_mid_price" => null,
+        //                 "mark_iv" => "0.39965618"
+        //             ),
+        //             "spot_price" => "30598.43379314",
+        //             "strike_price" => "30000",
+        //             "symbol" => "C-BTC-30000-280723",
+        //             "timestamp" => 1689136932893181,
+        //             "turnover_symbol" => "USDT"
+        //         ),
+        //         "success" => true
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -791,6 +989,7 @@ class delta extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.delta.exchange/#get-$tickers-for-products
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the delta api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -799,23 +998,130 @@ class delta extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetTickers ($params);
         //
+        // spot
+        //
         //     {
-        //         "result":array(
+        //         "result" => array(
         //             array(
-        //                 "close":0.003966,
-        //                 "high":0.004032,
-        //                 "low":0.003606,
-        //                 "mark_price":"0.00396328",
-        //                 "open":0.003996,
-        //                 "product_id":1327,
-        //                 "size":6242,
-        //                 "spot_price":"0.0039555",
-        //                 "symbol":"AAVEBTC",
-        //                 "timestamp":1605374143864107,
-        //                 "turnover":23.997904999999996,
-        //                 "turnover_symbol":"BTC",
-        //                 "turnover_usd":387957.4544782897,
-        //                 "volume":6242
+        //                 "close" => 30634.0,
+        //                 "contract_type" => "spot",
+        //                 "greeks" => null,
+        //                 "high" => 30780.0,
+        //                 "low" => 30340.5,
+        //                 "mark_price" => "48000",
+        //                 "oi" => "0.0000",
+        //                 "oi_change_usd_6h" => "0.0000",
+        //                 "oi_contracts" => "0",
+        //                 "oi_value" => "0.0000",
+        //                 "oi_value_symbol" => "BTC",
+        //                 "oi_value_usd" => "0.0000",
+        //                 "open" => 30464.0,
+        //                 "price_band" => null,
+        //                 "product_id" => 8320,
+        //                 "quotes" => array(),
+        //                 "size" => 2.6816639999999996,
+        //                 "spot_price" => "30637.91465121",
+        //                 "symbol" => "BTC_USDT",
+        //                 "timestamp" => 1689139767621299,
+        //                 "turnover" => 2.6816639999999996,
+        //                 "turnover_symbol" => "BTC",
+        //                 "turnover_usd" => 81896.45613400004,
+        //                 "volume" => 2.6816639999999996
+        //             ),
+        //         ),
+        //         "success":true
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "result" => array(
+        //             array(
+        //                 "close" => 30600.5,
+        //                 "contract_type" => "perpetual_futures",
+        //                 "funding_rate" => "0.00602961",
+        //                 "greeks" => null,
+        //                 "high" => 30803.0,
+        //                 "low" => 30265.5,
+        //                 "mark_basis" => "-0.45601594",
+        //                 "mark_price" => "30600.10481568",
+        //                 "oi" => "469.9190",
+        //                 "oi_change_usd_6h" => "2226314.9900",
+        //                 "oi_contracts" => "469919",
+        //                 "oi_value" => "469.9190",
+        //                 "oi_value_symbol" => "BTC",
+        //                 "oi_value_usd" => "14385640.6802",
+        //                 "open" => 30458.5,
+        //                 "price_band" => array(
+        //                     "lower_limit" => "29067.08312627",
+        //                     "upper_limit" => "32126.77608693"
+        //                 ),
+        //                 "product_id" => 139,
+        //                 "quotes" => array(
+        //                     "ask_iv" => null,
+        //                     "ask_size" => "965",
+        //                     "best_ask" => "30600.5",
+        //                     "best_bid" => "30599.5",
+        //                     "bid_iv" => null,
+        //                     "bid_size" => "196",
+        //                     "impact_mid_price" => null,
+        //                     "mark_iv" => "-0.44931641"
+        //                 ),
+        //                 "size" => 1226303,
+        //                 "spot_price" => "30612.85362773",
+        //                 "symbol" => "BTCUSDT",
+        //                 "timestamp" => 1689136597460456,
+        //                 "turnover" => 37392218.45999999,
+        //                 "turnover_symbol" => "USDT",
+        //                 "turnover_usd" => 37392218.45999999,
+        //                 "volume" => 1226.3029999999485
+        //             ),
+        //         ),
+        //         "success":true
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "result" => array(
+        //             array(
+        //                 "contract_type" => "call_options",
+        //                 "greeks" => array(
+        //                     "delta" => "0.60873994",
+        //                     "gamma" => "0.00014854",
+        //                     "rho" => "7.71808010",
+        //                     "spot" => "30598.49040622",
+        //                     "theta" => "-30.44743017",
+        //                     "vega" => "24.83508248"
+        //                 ),
+        //                 "mark_price" => "1347.74819696",
+        //                 "mark_vol" => "0.39966303",
+        //                 "oi" => "2.7810",
+        //                 "oi_change_usd_6h" => "0.0000",
+        //                 "oi_contracts" => "2781",
+        //                 "oi_value" => "2.7810",
+        //                 "oi_value_symbol" => "BTC",
+        //                 "oi_value_usd" => "85127.4337",
+        //                 "price_band" => array(
+        //                     "lower_limit" => "91.27423497",
+        //                     "upper_limit" => "7846.19454697"
+        //                 ),
+        //                 "product_id" => 107150,
+        //                 "quotes" => array(
+        //                     "ask_iv" => "0.41023239",
+        //                     "ask_size" => "2397",
+        //                     "best_ask" => "1374",
+        //                     "best_bid" => "1322",
+        //                     "bid_iv" => "0.38929375",
+        //                     "bid_size" => "3995",
+        //                     "impact_mid_price" => null,
+        //                     "mark_iv" => "0.39965618"
+        //                 ),
+        //                 "spot_price" => "30598.43379314",
+        //                 "strike_price" => "30000",
+        //                 "symbol" => "C-BTC-30000-280723",
+        //                 "timestamp" => 1689136932893181,
+        //                 "turnover_symbol" => "USDT"
         //             ),
         //         ),
         //         "success":true
@@ -1882,6 +2188,204 @@ class delta extends Exchange {
             'tag' => $this->safe_string($depositAddress, 'memo'),
             'network' => $this->network_id_to_code($networkId),
             'info' => $depositAddress,
+        );
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the delta api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetTickersSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "result" => array(
+        //             "close" => 30600.5,
+        //             "contract_type" => "perpetual_futures",
+        //             "funding_rate" => "0.00602961",
+        //             "greeks" => null,
+        //             "high" => 30803.0,
+        //             "low" => 30265.5,
+        //             "mark_basis" => "-0.45601594",
+        //             "mark_price" => "30600.10481568",
+        //             "oi" => "469.9190",
+        //             "oi_change_usd_6h" => "2226314.9900",
+        //             "oi_contracts" => "469919",
+        //             "oi_value" => "469.9190",
+        //             "oi_value_symbol" => "BTC",
+        //             "oi_value_usd" => "14385640.6802",
+        //             "open" => 30458.5,
+        //             "price_band" => array(
+        //                 "lower_limit" => "29067.08312627",
+        //                 "upper_limit" => "32126.77608693"
+        //             ),
+        //             "product_id" => 139,
+        //             "quotes" => array(
+        //                 "ask_iv" => null,
+        //                 "ask_size" => "965",
+        //                 "best_ask" => "30600.5",
+        //                 "best_bid" => "30599.5",
+        //                 "bid_iv" => null,
+        //                 "bid_size" => "196",
+        //                 "impact_mid_price" => null,
+        //                 "mark_iv" => "-0.44931641"
+        //             ),
+        //             "size" => 1226303,
+        //             "spot_price" => "30612.85362773",
+        //             "symbol" => "BTCUSDT",
+        //             "timestamp" => 1689136597460456,
+        //             "turnover" => 37392218.45999999,
+        //             "turnover_symbol" => "USDT",
+        //             "turnover_usd" => 37392218.45999999,
+        //             "volume" => 1226.3029999999485
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_funding_rate($result, $market);
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+        /**
+         * fetch the funding rate for multiple markets
+         * @see https://docs.delta.exchange/#get-tickers-for-products
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the delta api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-$rates-structure funding $rates structures~, indexe by market $symbols
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $request = array(
+            'contract_types' => 'perpetual_futures',
+        );
+        $response = $this->publicGetTickers (array_merge($request, $params));
+        //
+        //     {
+        //         "result" => array(
+        //             array(
+        //                 "close" => 30600.5,
+        //                 "contract_type" => "perpetual_futures",
+        //                 "funding_rate" => "0.00602961",
+        //                 "greeks" => null,
+        //                 "high" => 30803.0,
+        //                 "low" => 30265.5,
+        //                 "mark_basis" => "-0.45601594",
+        //                 "mark_price" => "30600.10481568",
+        //                 "oi" => "469.9190",
+        //                 "oi_change_usd_6h" => "2226314.9900",
+        //                 "oi_contracts" => "469919",
+        //                 "oi_value" => "469.9190",
+        //                 "oi_value_symbol" => "BTC",
+        //                 "oi_value_usd" => "14385640.6802",
+        //                 "open" => 30458.5,
+        //                 "price_band" => array(
+        //                     "lower_limit" => "29067.08312627",
+        //                     "upper_limit" => "32126.77608693"
+        //                 ),
+        //                 "product_id" => 139,
+        //                 "quotes" => array(
+        //                     "ask_iv" => null,
+        //                     "ask_size" => "965",
+        //                     "best_ask" => "30600.5",
+        //                     "best_bid" => "30599.5",
+        //                     "bid_iv" => null,
+        //                     "bid_size" => "196",
+        //                     "impact_mid_price" => null,
+        //                     "mark_iv" => "-0.44931641"
+        //                 ),
+        //                 "size" => 1226303,
+        //                 "spot_price" => "30612.85362773",
+        //                 "symbol" => "BTCUSDT",
+        //                 "timestamp" => 1689136597460456,
+        //                 "turnover" => 37392218.45999999,
+        //                 "turnover_symbol" => "USDT",
+        //                 "turnover_usd" => 37392218.45999999,
+        //                 "volume" => 1226.3029999999485
+        //             ),
+        //         ),
+        //         "success":true
+        //     }
+        //
+        $rates = $this->safe_value($response, 'result', array());
+        $result = $this->parse_funding_rates($rates);
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //     {
+        //         "close" => 30600.5,
+        //         "contract_type" => "perpetual_futures",
+        //         "funding_rate" => "0.00602961",
+        //         "greeks" => null,
+        //         "high" => 30803.0,
+        //         "low" => 30265.5,
+        //         "mark_basis" => "-0.45601594",
+        //         "mark_price" => "30600.10481568",
+        //         "oi" => "469.9190",
+        //         "oi_change_usd_6h" => "2226314.9900",
+        //         "oi_contracts" => "469919",
+        //         "oi_value" => "469.9190",
+        //         "oi_value_symbol" => "BTC",
+        //         "oi_value_usd" => "14385640.6802",
+        //         "open" => 30458.5,
+        //         "price_band" => array(
+        //             "lower_limit" => "29067.08312627",
+        //             "upper_limit" => "32126.77608693"
+        //         ),
+        //         "product_id" => 139,
+        //         "quotes" => array(
+        //             "ask_iv" => null,
+        //             "ask_size" => "965",
+        //             "best_ask" => "30600.5",
+        //             "best_bid" => "30599.5",
+        //             "bid_iv" => null,
+        //             "bid_size" => "196",
+        //             "impact_mid_price" => null,
+        //             "mark_iv" => "-0.44931641"
+        //         ),
+        //         "size" => 1226303,
+        //         "spot_price" => "30612.85362773",
+        //         "symbol" => "BTCUSDT",
+        //         "timestamp" => 1689136597460456,
+        //         "turnover" => 37392218.45999999,
+        //         "turnover_symbol" => "USDT",
+        //         "turnover_usd" => 37392218.45999999,
+        //         "volume" => 1226.3029999999485
+        //     }
+        //
+        $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.001);
+        $marketId = $this->safe_string($contract, 'symbol');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => $this->safe_number($contract, 'mark_price'),
+            'indexPrice' => $this->safe_number($contract, 'spot_price'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 

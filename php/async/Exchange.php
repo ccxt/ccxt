@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.18';
+$version = '4.0.22';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.18';
+    const VERSION = '4.0.22';
 
     public $browser;
     public $marketsLoading = null;
@@ -1389,8 +1389,9 @@ class Exchange extends \ccxt\Exchange {
     public function fetch_web_endpoint($method, $endpointMethod, $returnAsJson, $startRegex = null, $endRegex = null) {
         return Async\async(function () use ($method, $endpointMethod, $returnAsJson, $startRegex, $endRegex) {
             $errorMessage = '';
+            $options = $this->safe_value($this->options, $method, array());
+            $muteOnFailure = $this->safe_value($options, 'webApiMuteFailure', true);
             try {
-                $options = $this->safe_value($this->options, $method, array());
                 // if it was not explicitly disabled, then don't fetch
                 if ($this->safe_value($options, 'webApiEnable', true) !== true) {
                     return null;
@@ -1422,14 +1423,20 @@ class Exchange extends \ccxt\Exchange {
                     $jsoned = $this->parse_json(trim($content)); // $content should be trimmed before json parsing
                     if ($jsoned) {
                         return $jsoned; // if parsing was not successfull, exception should be thrown
+                    } else {
+                        throw new BadResponse('could not parse the $response into json');
                     }
                 } else {
                     return $content;
                 }
             } catch (Exception $e) {
-                $errorMessage = (string) $e;
+                $errorMessage = $this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
             }
-            throw new NotSupported($this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' . $errorMessage);
+            if ($muteOnFailure) {
+                return null;
+            } else {
+                throw new BadResponse($errorMessage);
+            }
         }) ();
     }
 

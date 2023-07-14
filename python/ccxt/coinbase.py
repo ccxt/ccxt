@@ -32,6 +32,7 @@ class coinbase(Exchange, ImplicitAPI):
             'id': 'coinbase',
             'name': 'Coinbase',
             'countries': ['US'],
+            'pro': True,
             'rateLimit': 400,  # 10k calls per hour
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
@@ -302,6 +303,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchTicker': 'fetchTickerV3',  # 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3',  # 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts': 'fetchAccountsV3',  # 'fetchAccountsV3' or 'fetchAccountsV2'
+                'user_native_currency': 'USD',  # needed to get fees for v3
             },
         })
 

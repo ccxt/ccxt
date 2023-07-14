@@ -263,7 +263,8 @@ export default class gemini extends Exchange {
                 },
                 'fetchCurrencies': {
                     'webApiEnable': true,
-                    'webApiRetries': 10,
+                    'webApiRetries': 5,
+                    'webApiMuteFailure': true,
                 },
                 'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],
                 'fetchTickerMethod': 'fetchTickerV1',

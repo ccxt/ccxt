@@ -1321,14 +1321,21 @@ export default class okx extends Exchange {
             'instType': this.convertToInstrumentType(type),
         };
         if (type === 'option') {
-            const defaultUnderlying = this.safeValue(this.options, 'defaultUnderlying', 'BTC-USD');
-            const currencyId = this.safeString2(params, 'uly', 'marketId', defaultUnderlying);
-            if (currencyId === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets');
+            const optionsUnderlying = this.safeValue(this.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD']);
+            const promises = [];
+            for (let i = 0; i < optionsUnderlying.length; i++) {
+                const underlying = optionsUnderlying[i];
+                request['uly'] = underlying;
+                promises.push(this.publicGetPublicInstruments(this.extend(request, params)));
             }
-            else {
-                request['uly'] = currencyId;
+            const promisesResult = await Promise.all(promises);
+            let data = [];
+            for (let i = 0; i < promisesResult.length; i++) {
+                const res = this.safeValue(promisesResult, i, {});
+                const options = this.safeValue(res, 'data', []);
+                data = this.arrayConcat(data, options);
             }
+            return this.parseMarkets(data);
         }
         const response = await this.publicGetPublicInstruments(this.extend(request, params));
         //

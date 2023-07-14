@@ -1349,30 +1349,51 @@ class bitget extends bitget$1 {
             const code = this.safeCurrencyCode(this.safeString(entry, 'coinName'));
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
+            let deposit = false;
+            let withdraw = false;
+            let minWithdrawString = undefined;
+            let minDepositString = undefined;
+            let minWithdrawFeeString = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 const network = this.safeCurrencyCode(networkId);
                 const withdrawEnabled = this.safeString(chain, 'withdrawable');
+                const canWithdraw = withdrawEnabled === 'true';
+                withdraw = (canWithdraw) ? canWithdraw : withdraw;
                 const depositEnabled = this.safeString(chain, 'rechargeable');
+                const canDeposit = depositEnabled === 'true';
+                deposit = (canDeposit) ? canDeposit : deposit;
+                const networkWithdrawFeeString = this.safeString(chain, 'withdrawFee');
+                if (networkWithdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? networkWithdrawFeeString : Precise["default"].stringMin(networkWithdrawFeeString, minWithdrawFeeString);
+                }
+                const networkMinWithdrawString = this.safeString(chain, 'minWithdrawAmount');
+                if (networkMinWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? networkMinWithdrawString : Precise["default"].stringMin(networkMinWithdrawString, minWithdrawString);
+                }
+                const networkMinDepositString = this.safeString(chain, 'minDepositAmount');
+                if (networkMinDepositString !== undefined) {
+                    minDepositString = (minDepositString === undefined) ? networkMinDepositString : Precise["default"].stringMin(networkMinDepositString, minDepositString);
+                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'limits': {
                         'withdraw': {
-                            'min': this.safeNumber(chain, 'minWithdrawAmount'),
+                            'min': this.parseNumber(networkMinWithdrawString),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber(chain, 'minDepositAmount'),
+                            'min': this.parseNumber(networkMinDepositString),
                             'max': undefined,
                         },
                     },
-                    'active': undefined,
-                    'withdraw': withdrawEnabled === 'true',
-                    'deposit': depositEnabled === 'true',
-                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'active': canWithdraw && canDeposit,
+                    'withdraw': canWithdraw,
+                    'deposit': canDeposit,
+                    'fee': this.parseNumber(networkWithdrawFeeString),
                     'precision': undefined,
                 };
             }
@@ -1383,14 +1404,24 @@ class bitget extends bitget$1 {
                 'networks': networks,
                 'type': undefined,
                 'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'active': deposit && withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': this.parseNumber(minWithdrawFeeString),
                 'precision': undefined,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.parseNumber(minWithdrawString),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.parseNumber(minDepositString),
+                        'max': undefined,
+                    },
                 },
             };
         }
@@ -3830,7 +3861,9 @@ class bitget extends bitget$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        return this.parsePositions(data);
+        const first = this.safeValue(data, 0, {});
+        const position = this.parsePosition(first, market);
+        return position;
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
