@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.0.11';
+$version = '4.0.24';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.0.11';
+    const VERSION = '4.0.24';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -365,6 +365,7 @@ class Exchange {
         'binancecoinm',
         'binanceus',
         'binanceusdm',
+        'bingx',
         'bit2c',
         'bitbank',
         'bitbay',
@@ -2215,13 +2216,14 @@ class Exchange {
             $result = [ ];
             for ($i = 0; $i < count($parsedArray); $i++) {
                 $entry = $parsedArray[$i];
-                if ((is_array($entry) && array_key_exists($key, $entry)) && ($entry[$key] >= $since)) {
+                $value = $this->safe_value($entry, $key);
+                if ($value && ($value >= $since)) {
                     $result[] = $entry;
                 }
             }
         }
         if ($tail) {
-            return mb_substr($result, -$limit);
+            return $this->arraySlice ($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
     }
@@ -2238,7 +2240,8 @@ class Exchange {
                 $entry = $parsedArray[$i];
                 $entryFiledEqualValue = $entry[$field] === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
-                $entryKeyGESince = (is_array($entry) && array_key_exists($key, $entry)) && $since && ($entry[$key] >= $since);
+                $entryKeyValue = $this->safe_value($entry, $key);
+                $entryKeyGESince = ($entryKeyValue) && $since && ($entryKeyValue >= $since);
                 $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;
@@ -2246,7 +2249,7 @@ class Exchange {
             }
         }
         if ($tail) {
-            return mb_substr($result, -$limit);
+            return $this->arraySlice ($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
     }
@@ -3211,8 +3214,9 @@ class Exchange {
 
     public function fetch_web_endpoint($method, $endpointMethod, $returnAsJson, $startRegex = null, $endRegex = null) {
         $errorMessage = '';
+        $options = $this->safe_value($this->options, $method, array());
+        $muteOnFailure = $this->safe_value($options, 'webApiMuteFailure', true);
         try {
-            $options = $this->safe_value($this->options, $method, array());
             // if it was not explicitly disabled, then don't fetch
             if ($this->safe_value($options, 'webApiEnable', true) !== true) {
                 return null;
@@ -3244,14 +3248,20 @@ class Exchange {
                 $jsoned = $this->parse_json(trim($content)); // $content should be trimmed before json parsing
                 if ($jsoned) {
                     return $jsoned; // if parsing was not successfull, exception should be thrown
+                } else {
+                    throw new BadResponse('could not parse the $response into json');
                 }
             } else {
                 return $content;
             }
         } catch (Exception $e) {
-            $errorMessage = (string) $e;
+            $errorMessage = $this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        throw new NotSupported($this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' . $errorMessage);
+        if ($muteOnFailure) {
+            return null;
+        } else {
+            throw new BadResponse($errorMessage);
+        }
     }
 
     public function market_ids($symbols) {
@@ -4301,6 +4311,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
     }
 
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+    }
+
     public function parse_last_price($price, $market = null) {
         throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }
@@ -4417,7 +4431,7 @@ class Exchange {
         $market = $this->market ($symbol);
         $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
-            throw new ArgumentsRequired($this->id . ' $price of ' . $market['symbol'] . ' must be greater than minimum $price precision of ' . $this->number_to_string($market['precision']['price']));
+            throw new InvalidOrder($this->id . ' $price of ' . $market['symbol'] . ' must be greater than minimum $price precision of ' . $this->number_to_string($market['precision']['price']));
         }
         return $result;
     }
@@ -4426,7 +4440,7 @@ class Exchange {
         $market = $this->market ($symbol);
         $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
-            throw new ArgumentsRequired($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
         }
         return $result;
     }

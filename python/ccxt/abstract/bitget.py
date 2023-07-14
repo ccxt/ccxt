@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    public_spot_get_notice_queryallnotices = publicSpotGetNoticeQueryAllNotices = Entry('notice/queryAllNotices', ['public', 'spot'], 'GET', {'cost': 1})
     public_spot_get_public_time = publicSpotGetPublicTime = Entry('public/time', ['public', 'spot'], 'GET', {'cost': 1})
     public_spot_get_public_currencies = publicSpotGetPublicCurrencies = Entry('public/currencies', ['public', 'spot'], 'GET', {'cost': 6.6667})
     public_spot_get_public_products = publicSpotGetPublicProducts = Entry('public/products', ['public', 'spot'], 'GET', {'cost': 1})

@@ -1238,6 +1238,7 @@ export default class bitmex extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
+            'Confirmed': 'pending',
             'Canceled': 'canceled',
             'Completed': 'ok',
             'Pending': 'pending',
@@ -1285,7 +1286,8 @@ export default class bitmex extends Exchange {
             addressFrom = this.safeString (transaction, 'tx');
         }
         const amountString = this.safeString (transaction, 'amount');
-        const amount = this.convertToRealAmount (currency['code'], amountString);
+        const amountStringAbs = Precise.stringAbs (amountString);
+        const amount = this.convertToRealAmount (currency['code'], amountStringAbs);
         const feeCostString = this.safeString (transaction, 'fee');
         const feeCost = this.convertToRealAmount (currency['code'], feeCostString);
         let status = this.safeString (transaction, 'transactStatus');
@@ -1298,7 +1300,7 @@ export default class bitmex extends Exchange {
             'txid': this.safeString (transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': this.safeString (transaction, 'network'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network'), currency['code']),
             'amount': amount,
             'status': status,
             'timestamp': transactTime,

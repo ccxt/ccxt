@@ -145,6 +145,7 @@ class bigone extends bigone$1 {
                 'fetchCurrencies': {
                     'webApiEnable': true,
                     'webApiRetries': 5,
+                    'webApiMuteFailure': true,
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {

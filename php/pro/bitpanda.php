@@ -526,7 +526,8 @@ class bitpanda extends \ccxt\async\bitpanda {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         $order = $this->parse_trading_order($message);
-        $this->orders.append ($order);
+        $orders = $this->orders;
+        $orders->append ($order);
         $client->resolve ($this->orders, 'orders:' . $order['symbol']);
         $client->resolve ($this->orders, 'orders');
     }
@@ -726,10 +727,11 @@ class bitpanda extends \ccxt\async\bitpanda {
         if ($rawOrdersLength === 0) {
             return;
         }
+        $orders = $this->orders;
         for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $this->parse_order($rawOrders[$i]);
             $symbol = $this->safe_string($order, 'symbol', '');
-            $this->orders.append ($order);
+            $orders->append ($order);
             $client->resolve ($this->orders, 'orders:' . $symbol);
             $rawTrades = $this->safe_value($rawOrders[$i], 'trades', array());
             for ($ii = 0; $ii < count($rawTrades); $ii++) {
@@ -974,6 +976,7 @@ class bitpanda extends \ccxt\async\bitpanda {
             $this->myTrades = new ArrayCacheBySymbolById ($limit);
         }
         $symbol = null;
+        $orders = $this->orders;
         $update = $this->safe_value($message, 'update', array());
         $updateType = $this->safe_string($update, 'type');
         if ($updateType === 'ORDER_REJECTED' || $updateType === 'ORDER_CLOSED' || $updateType === 'STOP_ORDER_TRIGGERED') {
@@ -987,7 +990,7 @@ class bitpanda extends \ccxt\async\bitpanda {
             if ($updateType === 'ORDER_CLOSED' && $filled === 0) {
                 $status = 'canceled';
             }
-            $this->orders.append (array(
+            $orders->append (array(
                 'id' => $orderId,
                 'symbol' => $symbol,
                 'status' => $status,
@@ -997,7 +1000,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         } else {
             $parsed = $this->parse_order($update);
             $symbol = $this->safe_string($parsed, 'symbol', '');
-            $this->orders.append ($parsed);
+            $orders->append ($parsed);
         }
         $client->resolve ($this->orders, 'orders:' . $symbol);
         $client->resolve ($this->orders, 'orders');

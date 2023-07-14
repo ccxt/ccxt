@@ -211,7 +211,7 @@ class kraken(ccxt.async_support.kraken):
         """
         see https://docs.kraken.com/websockets/#message-cancelOrder
         cancel multiple orders
-        :param [str] ids: order ids
+        :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -271,7 +271,7 @@ class kraken(ccxt.async_support.kraken):
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is not None:
             raise NotSupported(self.id + ' cancelAllOrdersWs() does not support cancelling orders in a specific market.')

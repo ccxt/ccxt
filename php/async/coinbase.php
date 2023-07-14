@@ -22,6 +22,7 @@ class coinbase extends Exchange {
             'id' => 'coinbase',
             'name' => 'Coinbase',
             'countries' => array( 'US' ),
+            'pro' => true,
             'rateLimit' => 400, // 10k calls per hour
             'version' => 'v2',
             'userAgent' => $this->userAgents['chrome'],
@@ -292,6 +293,7 @@ class coinbase extends Exchange {
                 'fetchTicker' => 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers' => 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts' => 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
+                'user_native_currency' => 'USD', // needed to get fees for v3
             ),
         ));
     }
@@ -2848,8 +2850,8 @@ class coinbase extends Exchange {
             /**
              * fetches the bid and ask price and volume for multiple markets
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the coinbase api endpoint
              * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());

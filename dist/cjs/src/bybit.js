@@ -31,7 +31,7 @@ class bybit extends bybit$1 {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -77,6 +77,7 @@ class bybit extends bybit$1 {
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
+                'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -224,6 +225,7 @@ class bybit extends bybit$1 {
                         'derivatives/v3/public/open-interest': 1,
                         'derivatives/v3/public/insurance': 1,
                         // v5
+                        'v5/market/time': 1,
                         'v5/market/kline': 1,
                         'v5/market/mark-price-kline': 1,
                         'v5/market/index-price-kline': 1,
@@ -1089,6 +1091,8 @@ class bybit extends bybit$1 {
                 'recvWindow': 5 * 1000,
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
+                'loadAllOptions': false,
+                'loadExpiredOptions': false,
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1396,27 +1400,26 @@ class bybit extends bybit$1 {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchMarkets', undefined, params);
         const promisesUnresolved = [
             this.fetchSpotMarkets(params),
-            this.fetchDerivativesMarkets({ 'category': 'linear' }),
-            this.fetchDerivativesMarkets({ 'category': 'inverse' }),
+            this.fetchFutureMarkets({ 'category': 'linear' }),
+            this.fetchFutureMarkets({ 'category': 'inverse' }),
+            this.fetchOptionMarkets({ 'baseCoin': 'BTC' }),
+            this.fetchOptionMarkets({ 'baseCoin': 'ETH' }),
+            this.fetchOptionMarkets({ 'baseCoin': 'SOL' }),
         ];
-        if (type === 'option') {
-            promisesUnresolved.push(this.fetchDerivativesMarkets({ 'category': 'option' }));
-        }
         const promises = await Promise.all(promisesUnresolved);
         const spotMarkets = promises[0];
         const linearMarkets = promises[1];
         const inverseMarkets = promises[2];
-        let markets = spotMarkets;
-        markets = this.arrayConcat(markets, linearMarkets);
-        if (type === 'option') {
-            const optionMarkets = promises[3];
-            markets = this.arrayConcat(markets, optionMarkets);
-        }
-        return this.arrayConcat(markets, inverseMarkets);
+        const btcOptionMarkets = promises[3];
+        const ethOptionMarkets = promises[4];
+        const solOptionMarkets = promises[5];
+        const futureMarkets = this.arrayConcat(linearMarkets, inverseMarkets);
+        let optionMarkets = this.arrayConcat(btcOptionMarkets, ethOptionMarkets);
+        optionMarkets = this.arrayConcat(optionMarkets, solOptionMarkets);
+        const derivativeMarkets = this.arrayConcat(futureMarkets, optionMarkets);
+        return this.arrayConcat(spotMarkets, derivativeMarkets);
     }
     async fetchSpotMarkets(params) {
         const request = {
@@ -1525,7 +1528,7 @@ class bybit extends bybit$1 {
         }
         return result;
     }
-    async fetchDerivativesMarkets(params) {
+    async fetchFutureMarkets(params) {
         params = this.extend(params);
         params['limit'] = 1000; // minimize number of requests
         const response = await this.publicGetV5MarketInstrumentsInfo(params);
@@ -1546,8 +1549,6 @@ class bybit extends bybit$1 {
                 paginationCursor = this.safeString(dataNew, 'nextPageCursor');
             }
         }
-        //
-        // linear response
         //
         //     {
         //         "retCode": 0,
@@ -1592,43 +1593,6 @@ class bybit extends bybit$1 {
         //         "time": 1672712495660
         //     }
         //
-        // option response
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "category": "option",
-        //             "nextPageCursor": "",
-        //             "list": [
-        //                 {
-        //                     "category": "option",
-        //                     "symbol": "ETH-3JAN23-1250-P",
-        //                     "status": "ONLINE",
-        //                     "baseCoin": "ETH",
-        //                     "quoteCoin": "USD",
-        //                     "settleCoin": "USDC",
-        //                     "optionsType": "Put",
-        //                     "launchTime": "1672560000000",
-        //                     "deliveryTime": "1672732800000",
-        //                     "deliveryFeeRate": "0.00015",
-        //                     "priceFilter": {
-        //                         "minPrice": "0.1",
-        //                         "maxPrice": "10000000",
-        //                         "tickSize": "0.1"
-        //                     },
-        //                     "lotSizeFilter": {
-        //                         "maxOrderQty": "1500",
-        //                         "minOrderQty": "0.1",
-        //                         "qtyStep": "0.1"
-        //                     }
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672712537130
-        //     }
-        //
         const result = [];
         let category = this.safeString(data, 'category');
         for (let i = 0; i < markets.length; i++) {
@@ -1662,19 +1626,14 @@ class bybit extends bybit$1 {
             const priceFilter = this.safeValue(market, 'priceFilter', {});
             const leverage = this.safeValue(market, 'leverageFilter', {});
             const status = this.safeString(market, 'status');
-            const active = (status === 'Trading');
             const swap = linearPerpetual || inversePerpetual;
             const future = inverseFutures || linearFutures;
-            const option = (category === 'option');
             let type = undefined;
             if (swap) {
                 type = 'swap';
             }
             else if (future) {
                 type = 'future';
-            }
-            else if (option) {
-                type = 'option';
             }
             let expiry = undefined;
             // some swaps have deliveryTime meaning delisting time
@@ -1685,23 +1644,9 @@ class bybit extends bybit$1 {
                 }
             }
             const expiryDatetime = this.iso8601(expiry);
-            let strike = undefined;
-            let optionType = undefined;
             symbol = symbol + ':' + settle;
             if (expiry !== undefined) {
                 symbol = symbol + '-' + this.yymmdd(expiry);
-                if (option) {
-                    const splitId = id.split('-');
-                    strike = this.safeString(splitId, 2);
-                    const optionLetter = this.safeString(splitId, 3);
-                    symbol = symbol + '-' + strike + '-' + optionLetter;
-                    if (optionLetter === 'P') {
-                        optionType = 'put';
-                    }
-                    else if (optionLetter === 'C') {
-                        optionType = 'call';
-                    }
-                }
             }
             const contractSize = inverse ? this.safeNumber2(lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber('1');
             result.push({
@@ -1718,8 +1663,8 @@ class bybit extends bybit$1 {
                 'margin': undefined,
                 'swap': swap,
                 'future': future,
-                'option': option,
-                'active': active,
+                'option': false,
+                'active': (status === 'Trading'),
                 'contract': true,
                 'linear': linear,
                 'inverse': inverse,
@@ -1728,8 +1673,8 @@ class bybit extends bybit$1 {
                 'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
-                'strike': strike,
-                'optionType': optionType,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
                     'amount': this.safeNumber(lotSizeFilter, 'qtyStep'),
                     'price': this.safeNumber(priceFilter, 'tickSize'),
@@ -1754,6 +1699,139 @@ class bybit extends bybit$1 {
                 },
                 'info': market,
             });
+        }
+        return result;
+    }
+    async fetchOptionMarkets(params) {
+        const request = {
+            'category': 'option',
+        };
+        const response = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, params));
+        const data = this.safeValue(response, 'result', {});
+        let markets = this.safeValue(data, 'list', []);
+        if (this.options['loadAllOptions']) {
+            request['limit'] = 1000;
+            let paginationCursor = this.safeString(data, 'nextPageCursor');
+            if (paginationCursor !== undefined) {
+                while (paginationCursor !== undefined) {
+                    request['cursor'] = paginationCursor;
+                    const responseInner = await this.publicGetDerivativesV3PublicInstrumentsInfo(this.extend(request, params));
+                    const dataNew = this.safeValue(responseInner, 'result', {});
+                    const rawMarkets = this.safeValue(dataNew, 'list', []);
+                    const rawMarketsLength = rawMarkets.length;
+                    if (rawMarketsLength === 0) {
+                        break;
+                    }
+                    markets = this.arrayConcat(rawMarkets, markets);
+                    paginationCursor = this.safeString(dataNew, 'nextPageCursor');
+                }
+            }
+        }
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "category": "option",
+        //             "nextPageCursor": "0%2C2",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTC-29DEC23-80000-C",
+        //                     "status": "Trading",
+        //                     "baseCoin": "BTC",
+        //                     "quoteCoin": "USD",
+        //                     "settleCoin": "USDC",
+        //                     "optionsType": "Call",
+        //                     "launchTime": "1688630400000",
+        //                     "deliveryTime": "1703836800000",
+        //                     "deliveryFeeRate": "0.00015",
+        //                     "priceFilter": {
+        //                         "minPrice": "5",
+        //                         "maxPrice": "10000000",
+        //                         "tickSize": "5"
+        //                     },
+        //                     "lotSizeFilter": {
+        //                         "maxOrderQty": "500",
+        //                         "minOrderQty": "0.01",
+        //                         "qtyStep": "0.01"
+        //                     }
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1688873094448
+        //     }
+        //
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString(market, 'symbol');
+            const baseId = this.safeString(market, 'baseCoin');
+            const quoteId = this.safeString(market, 'quoteCoin');
+            const settleId = this.safeString(market, 'settleCoin');
+            const base = this.safeCurrencyCode(baseId);
+            const quote = this.safeCurrencyCode(quoteId);
+            const settle = this.safeCurrencyCode(settleId);
+            const lotSizeFilter = this.safeValue(market, 'lotSizeFilter', {});
+            const priceFilter = this.safeValue(market, 'priceFilter', {});
+            const status = this.safeString(market, 'status');
+            const expiry = this.safeInteger(market, 'deliveryTime');
+            const splitId = id.split('-');
+            const strike = this.safeString(splitId, 2);
+            const optionLetter = this.safeString(splitId, 3);
+            const isActive = (status === 'Trading');
+            if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
+                result.push({
+                    'id': id,
+                    'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
+                    'base': base,
+                    'quote': quote,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': 'option',
+                    'spot': false,
+                    'margin': false,
+                    'swap': false,
+                    'future': false,
+                    'option': true,
+                    'active': isActive,
+                    'contract': true,
+                    'linear': undefined,
+                    'inverse': undefined,
+                    'taker': this.safeNumber(market, 'takerFee', this.parseNumber('0.0006')),
+                    'maker': this.safeNumber(market, 'makerFee', this.parseNumber('0.0001')),
+                    'contractSize': this.safeNumber(lotSizeFilter, 'minOrderQty'),
+                    'expiry': expiry,
+                    'expiryDatetime': this.iso8601(expiry),
+                    'strike': this.parseNumber(strike),
+                    'optionType': this.safeStringLower(market, 'optionsType'),
+                    'precision': {
+                        'amount': this.safeNumber(lotSizeFilter, 'qtyStep'),
+                        'price': this.safeNumber(priceFilter, 'tickSize'),
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'amount': {
+                            'min': this.safeNumber(lotSizeFilter, 'minOrderQty'),
+                            'max': this.safeNumber(lotSizeFilter, 'maxOrderQty'),
+                        },
+                        'price': {
+                            'min': this.safeNumber(priceFilter, 'minPrice'),
+                            'max': this.safeNumber(priceFilter, 'maxPrice'),
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'info': market,
+                });
+            }
         }
         return result;
     }
@@ -3607,11 +3685,11 @@ class bybit extends bybit$1 {
         if (market['spot']) {
             request['category'] = 'spot';
         }
-        else if (market['linear']) {
-            request['category'] = 'linear';
-        }
         else if (market['option']) {
             request['category'] = 'option';
+        }
+        else if (market['linear']) {
+            request['category'] = 'linear';
         }
         else {
             throw new errors.NotSupported(this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
@@ -3733,17 +3811,20 @@ class bybit extends bybit$1 {
         if ((type === 'market') && (side === 'buy')) {
             // for market buy it requires the amount of quote currency to spend
             if (this.options['createMarketBuyOrderRequiresPrice']) {
-                const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
-                if (price === undefined && cost === undefined) {
-                    throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                let cost = this.safeNumber2(params, 'cost', 'orderQty');
+                params = this.omit(params, ['cost', 'orderQty']);
+                if (cost !== undefined) {
+                    request['orderQty'] = this.costToPrecision(symbol, cost);
                 }
-                else {
+                else if (price !== undefined) {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
-                    const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
-                    request['orderQty'] = this.costToPrecision(symbol, amount);
+                    const costString = Precise["default"].stringMul(amountString, priceString);
+                    cost = this.parseNumber(costString);
+                    request['orderQty'] = this.costToPrecision(symbol, cost);
+                }
+                else {
+                    throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 }
             }
             else {
@@ -4169,11 +4250,11 @@ class bybit extends bybit$1 {
             // Valid for option only.
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
-        if (market['linear']) {
-            request['category'] = 'linear';
-        }
-        else {
+        if (market['option']) {
             request['category'] = 'option';
+        }
+        else if (market['linear']) {
+            request['category'] = 'linear';
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -7066,7 +7147,7 @@ class bybit extends bybit$1 {
         const result = this.safeValue(response, 'result', {});
         const positions = this.safeValue2(result, 'list', 'dataList', []);
         const timestamp = this.safeInteger(response, 'time');
-        const first = this.safeValue(positions, 0);
+        const first = this.safeValue(positions, 0, {});
         const position = this.parsePosition(first, market);
         return this.extend(position, {
             'timestamp': timestamp,
@@ -8610,6 +8691,98 @@ class bybit extends bybit$1 {
         const data = this.safeValue(response, 'result', {});
         const rows = this.safeValue(data, 'rows', []);
         return this.parseDepositWithdrawFees(rows, codes, 'coin');
+    }
+    async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://bybit-exchange.github.io/docs/v5/market/delivery-price
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [settlement history objects]
+         */
+        await this.loadMarkets();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
+        if (type === 'option') {
+            request['category'] = 'option';
+        }
+        else {
+            let subType = undefined;
+            [subType, params] = this.handleSubTypeAndParams('fetchSettlementHistory', market, params, 'linear');
+            request['category'] = subType;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV5MarketDeliveryPrice(this.extend(request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "category": "option",
+        //             "nextPageCursor": "0%2C3",
+        //             "list": [
+        //                 {
+        //                     "symbol": "SOL-27JUN23-20-C",
+        //                     "deliveryPrice": "16.62258889",
+        //                     "deliveryTime": "1687852800000"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1689043527231
+        //     }
+        //
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'list', []);
+        const settlements = this.parseSettlements(data, market);
+        const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseSettlement(settlement, market) {
+        //
+        //     {
+        //         "symbol": "SOL-27JUN23-20-C",
+        //         "deliveryPrice": "16.62258889",
+        //         "deliveryTime": "1687852800000"
+        //     }
+        //
+        const timestamp = this.safeInteger(settlement, 'deliveryTime');
+        const marketId = this.safeString(settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol(marketId, market),
+            'price': this.safeNumber(settlement, 'deliveryPrice'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    parseSettlements(settlements, market) {
+        //
+        //     [
+        //         {
+        //             "symbol": "SOL-27JUN23-20-C",
+        //             "deliveryPrice": "16.62258889",
+        //             "deliveryTime": "1687852800000"
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push(this.parseSettlement(settlements[i], market));
+        }
+        return result;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;

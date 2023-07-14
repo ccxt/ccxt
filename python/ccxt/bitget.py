@@ -158,6 +158,7 @@ class bitget(Exchange, ImplicitAPI):
                 'public': {
                     'spot': {
                         'get': {
+                            'notice/queryAllNotices': 1,  # 20 times/1s(IP) => 20/20 = 1
                             'public/time': 1,
                             'public/currencies': 6.6667,  # 3 times/1s(IP) => 20/3 = 6.6667
                             'public/products': 1,
@@ -886,6 +887,7 @@ class bitget(Exchange, ImplicitAPI):
                     '41114': OnMaintenance,  # {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder,  # The parameter does not meet the specification executePrice <= 0
                     '43025': InvalidOrder,  # Plan order does not exist
+                    '43115': OnMaintenance,  # {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
@@ -1349,30 +1351,48 @@ class bitget(Exchange, ImplicitAPI):
             code = self.safe_currency_code(self.safe_string(entry, 'coinName'))
             chains = self.safe_value(entry, 'chains', [])
             networks = {}
+            deposit = False
+            withdraw = False
+            minWithdrawString = None
+            minDepositString = None
+            minWithdrawFeeString = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.safe_currency_code(networkId)
                 withdrawEnabled = self.safe_string(chain, 'withdrawable')
+                canWithdraw = withdrawEnabled == 'true'
+                withdraw = canWithdraw if (canWithdraw) else withdraw
                 depositEnabled = self.safe_string(chain, 'rechargeable')
+                canDeposit = depositEnabled == 'true'
+                deposit = canDeposit if (canDeposit) else deposit
+                networkWithdrawFeeString = self.safe_string(chain, 'withdrawFee')
+                if networkWithdrawFeeString is not None:
+                    minWithdrawFeeString = networkWithdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(networkWithdrawFeeString, minWithdrawFeeString)
+                networkMinWithdrawString = self.safe_string(chain, 'minWithdrawAmount')
+                if networkMinWithdrawString is not None:
+                    minWithdrawString = networkMinWithdrawString if (minWithdrawString is None) else Precise.string_min(networkMinWithdrawString, minWithdrawString)
+                networkMinDepositString = self.safe_string(chain, 'minDepositAmount')
+                if networkMinDepositString is not None:
+                    minDepositString = networkMinDepositString if (minDepositString is None) else Precise.string_min(networkMinDepositString, minDepositString)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'limits': {
                         'withdraw': {
-                            'min': self.safe_number(chain, 'minWithdrawAmount'),
+                            'min': self.parse_number(networkMinWithdrawString),
                             'max': None,
                         },
                         'deposit': {
-                            'min': self.safe_number(chain, 'minDepositAmount'),
+                            'min': self.parse_number(networkMinDepositString),
                             'max': None,
                         },
                     },
-                    'active': None,
-                    'withdraw': withdrawEnabled == 'true',
-                    'deposit': depositEnabled == 'true',
-                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'active': canWithdraw and canDeposit,
+                    'withdraw': canWithdraw,
+                    'deposit': canDeposit,
+                    'fee': self.parse_number(networkWithdrawFeeString),
                     'precision': None,
                 }
             result[code] = {
@@ -1382,14 +1402,24 @@ class bitget(Exchange, ImplicitAPI):
                 'networks': networks,
                 'type': None,
                 'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'active': deposit and withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': self.parse_number(minWithdrawFeeString),
                 'precision': None,
                 'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.parse_number(minWithdrawString),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.parse_number(minDepositString),
+                        'max': None,
+                    },
                 },
             }
         return result
@@ -3631,7 +3661,9 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data)
+        first = self.safe_value(data, 0, {})
+        position = self.parse_position(first, market)
+        return position
 
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """

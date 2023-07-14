@@ -18,6 +18,7 @@ class coinbase extends coinbase$1 {
             'id': 'coinbase',
             'name': 'Coinbase',
             'countries': ['US'],
+            'pro': true,
             'rateLimit': 400,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
@@ -287,7 +288,8 @@ class coinbase extends coinbase$1 {
                 'fetchMarkets': 'fetchMarketsV3',
                 'fetchTicker': 'fetchTickerV3',
                 'fetchTickers': 'fetchTickersV3',
-                'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
+                'fetchAccounts': 'fetchAccountsV3',
+                'user_native_currency': 'USD', // needed to get fees for v3
             },
         });
     }
@@ -2782,8 +2784,8 @@ class coinbase extends coinbase$1 {
          * @name coinbase#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets();

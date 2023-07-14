@@ -137,6 +137,7 @@ export default class bitget extends Exchange {
                 'public': {
                     'spot': {
                         'get': {
+                            'notice/queryAllNotices': 1, // 20 times/1s (IP) => 20/20 = 1
                             'public/time': 1,
                             'public/currencies': 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
                             'public/products': 1,
@@ -865,6 +866,7 @@ export default class bitget extends Exchange {
                     '41114': OnMaintenance, // {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder, // The parameter does not meet the specification executePrice <= 0
                     '43025': InvalidOrder, // Plan order does not exist
+                    '43115': OnMaintenance, // {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     // spot
                     'invalid sign': AuthenticationError,
@@ -1002,183 +1004,99 @@ export default class bitget extends Exchange {
                     'ETH': 'ETH', // EVMOSETH is different
                     'ERC20': 'ERC20',
                     'BSC': 'BEP20',
-                    'ABBC': 'ABBCCoin',
                     'COSMOS': 'ATOM',
-                    'ALEPHZERO': 'AZERO',
-                    'ACALA': 'AcalaToken',
-                    'APTOS': 'Aptos',
-                    'ARBITRUM_ONE': 'ArbitrumOne',
-                    'ARBITRUM_NOVA': 'ArbitrumNova',
-                    'ARWEAVE': 'Arweave',
+                    'ATOM': 'ATOM',
+                    'ACA': 'AcalaToken',
+                    'APT': 'Aptos',
+                    'ARB_ONE': 'ArbitrumOne',
+                    'ARB_NOVA': 'ArbitrumNova',
+                    'AR': 'Arweave',
                     'BCH': 'BCH',
                     'BCHA': 'BCHA',
                     'BEP20': 'BEP20',
                     'BITCI': 'BITCI',
                     'BTC': 'BTC',
-                    'AVALANCHE_C': 'C-Chain',
-                    'CANTO': 'CANTO',
+                    'AVAX_C': 'C-Chain',
+                    'AVAX_X': 'X-Chain',
                     'CELO': 'CELO',
-                    'CERE': 'CERE',
-                    'CONFLUX': 'CFX', // CFXeSpace is different
-                    'CADUCEUS': 'CMP',
-                    'CASPER': 'CSPR',
-                    'CUBENETWORK': 'CUBE',
+                    'CSPR': 'CSPR',
                     'CARDANO': 'Cardano',
-                    'CHILIZ': 'ChilizChain',
+                    'ADA': 'Cardano',
+                    'CHZ': 'ChilizChain',
                     'CRC20': 'CronosChain',
                     'DOGECOIN': 'DOGE',
+                    'DOGE': 'DOGE',
                     'POLKADOT': 'DOT',
+                    'DOT': 'DOT',
                     'EOS': 'EOS',
                     'ETHF': 'ETHFAIR',
                     'ETHW': 'ETHW',
                     'ETC': 'ETC',
-                    'ELROND': 'Elrond',
-                    'FETCH_AI': 'FETCH',
-                    'FILECOIN': 'FIL',
+                    'EGLD': 'Elrond',
+                    'FIL': 'FIL',
                     'FIO': 'FIO',
-                    'FANTOM': 'Fantom',
+                    'FTM': 'Fantom',
                     'HRC20': 'HECO',
-                    'HARMONY': 'Harmony',
-                    'HELIUM': 'Helium',
-                    'INTERNETCOMPUTER': 'ICP',
-                    'IOTEX': 'IoTeX',
-                    'JUNO': 'JUNO',
-                    'KARDIACHAIN': 'KAI',
+                    'ONE': 'Harmony',
+                    'HNT': 'Helium',
+                    'ICP': 'ICP',
+                    'IOTX': 'IoTeX',
+                    'KARDIA': 'KAI',
                     'KAVA': 'KAVA',
-                    'KADENA': 'KDA',
-                    'KLAYTN': 'Klaytn',
-                    'KUSAMA': 'Kusama',
-                    'PLATON': 'LAT',
+                    'KDA': 'KDA',
+                    'KLAY': 'Klaytn',
+                    'KSM': 'Kusama',
+                    'LAT': 'LAT',
                     'LTC': 'LTC',
                     'MINA': 'MINA',
-                    'MOONRIVER': 'MOVR',
+                    'MOVR': 'MOVR',
                     'METIS': 'MetisToken',
-                    'MOONBEAM': 'Moonbeam',
+                    'GLMR': 'Moonbeam',
                     'NEAR': 'NEARProtocol',
-                    'NEM': 'NEM',
                     'NULS': 'NULS',
                     'OASYS': 'OASYS',
+                    'OASIS': 'ROSE',
                     'OMNI': 'OMNI',
-                    'ONTOLOGY': 'Ontology',
+                    'ONT': 'Ontology',
                     'OPTIMISM': 'Optimism',
-                    'OSMOSIS': 'Osmosis',
-                    'POCKET': 'PocketNetwork',
+                    'OSMO': 'Osmosis',
+                    'POKT': 'PocketNetwork',
                     'POLYGON': 'Polygon',
+                    'MATIC': 'Polygon',
                     'QTUM': 'QTUM',
                     'REEF': 'REEF',
-                    'REI': 'REINetwork',
-                    'OASIS': 'ROSE',
                     'SOLANA': 'SOL',
-                    'SYSCOIN': 'SYS', // SyscoinNEVM is different
-                    'SOLAR': 'Solar',
-                    'SYMBOL': 'Symbol',
+                    'SOL': 'SOL',
+                    'SYS': 'SYS', // SyscoinNEVM is different
+                    'SXP': 'Solar',
+                    'XYM': 'Symbol',
                     'TON': 'TON',
-                    'THUNDERCORE': 'TT',
-                    'TELOS': 'Telos',
-                    'TERRACLASSIC': 'Terra', // tbd, that network id is also assigned to TERRANEW network
+                    'TT': 'TT',
+                    'TLOS': 'Telos',
                     'THETA': 'ThetaToken',
                     'VITE': 'VITE',
                     'WAVES': 'WAVES',
                     'WAX': 'WAXP',
                     'WEMIX': 'WEMIXMainnet',
-                    'AVALANCHE_X': 'X-Chain',
                     'XDC': 'XDCNetworkXDC',
-                    'RIPPLE': 'XRP',
-                    'ZILLIQA': 'ZIL',
+                    'XRP': 'XRP',
+                    'ZIL': 'ZIL',
                     'RSK': 'RSK',
                     'TRC10': 'TRC10',
                     // undetected: USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
-                },
-                'networksById': {
-                    'TRX': 'TRX',
-                    'TRC20': 'TRC20',
-                    'ETH': 'ETH',
-                    'ERC20': 'ERC20',
-                    'BEP20': 'BEP20',
-                    'ABBCCoin': 'ABBC',
-                    'ATOM': 'COSMOS',
-                    'AZERO': 'ALEPHZERO',
-                    'AcalaToken': 'ACALA',
-                    'Aptos': 'APTOS',
-                    'ArbitrumOne': 'ARBITRUM_ONE',
-                    'ArbitrumNova': 'ARBITRUM_NOVA',
-                    'Arweave': 'ARWEAVE',
-                    'BCH': 'BCH',
-                    'BCHA': 'BCHA',
-                    'BITCI': 'BITCI',
-                    'BTC': 'BTC',
-                    'C-Chain': 'AVALANCHE_C',
-                    'CANTO': 'CANTO',
-                    'CELO': 'CELO',
-                    'CERE': 'CERE',
-                    'CFX': 'CONFLUX',
-                    'CMP': 'CADUCEUS',
-                    'CSPR': 'CASPER',
-                    'CUBE': 'CUBENETWORK',
-                    'Cardano': 'CARDANO',
-                    'ChilizChain': 'CHILIZ',
-                    'CronosChain': 'CRC20',
-                    'DOGE': 'DOGECOIN',
-                    'DOT': 'POLKADOT',
-                    'EOS': 'EOS',
-                    'ETHFAIR': 'ETHF',
-                    'ETHW': 'ETHW',
-                    'ETC': 'ETC',
-                    'Elrond': 'ELROND',
-                    'FETCH': 'FETCH_AI',
-                    'FIL': 'FILECOIN',
-                    'FIO': 'FIO',
-                    'Fantom': 'FANTOM',
-                    'HECO': 'HRC20',
-                    'Harmony': 'HARMONY',
-                    'Helium': 'HELIUM',
-                    'ICP': 'INTERNETCOMPUTER',
-                    'IoTeX': 'IOTEX',
-                    'JUNO': 'JUNO',
-                    'KAI': 'KARDIACHAIN',
-                    'KAVA': 'KAVA',
-                    'KDA': 'KADENA',
-                    'Klaytn': 'KLAYTN',
-                    'Kusama': 'KUSAMA',
-                    'LAT': 'PLATON',
-                    'LTC': 'LTC',
-                    'MINA': 'MINA',
-                    'MOVR': 'MOONRIVER',
-                    'MetisToken': 'METIS',
-                    'Moonbeam': 'MOONBEAM',
-                    'NEARProtocol': 'NEAR',
+                    // todo: uncomment below after unification
+                    'TERRACLASSIC': 'Terra', // tbd, that network id is also assigned to TERRANEW network
+                    'REI': 'REINetwork',
                     'NEM': 'NEM',
-                    'NULS': 'NULS',
-                    'OASYS': 'OASYS',
-                    'OMNI': 'OMNI',
-                    'Ontology': 'ONTOLOGY',
-                    'Optimism': 'OPTIMISM',
-                    'Osmosis': 'OSMOSIS',
-                    'PocketNetwork': 'POCKET',
-                    'Polygon': 'POLYGON',
-                    'QTUM': 'QTUM',
-                    'REEF': 'REEF',
-                    'REINetwork': 'REI',
-                    'ROSE': 'OASIS',
-                    'SOL': 'SOLANA',
-                    'SYS': 'SYSCOIN',
-                    'Solar': 'SOLAR',
-                    'Symbol': 'SYMBOL',
-                    'TON': 'TON',
-                    'TT': 'THUNDERCORE',
-                    'Telos': 'TELOS',
-                    'Terra': 'TERRACLASSIC',
-                    'ThetaToken': 'THETA',
-                    'VITE': 'VITE',
-                    'WAVES': 'WAVES',
-                    'WAXP': 'WAX',
-                    'WEMIXMainnet': 'WEMIX',
-                    'X-Chain': 'AVALANCHE_X',
-                    'XDCNetworkXDC': 'XDC',
-                    'XRP': 'RIPPLE',
-                    'ZIL': 'ZILLIQA',
-                    'RSK': 'RSK',
-                    'TRC10': 'TRC10',
+                    'JUNO': 'JUNO',
+                    'FETCH_AI': 'FETCH',
+                    'CUBENETWORK': 'CUBE',
+                    'CADUCEUS': 'CMP',
+                    'CONFLUX': 'CFX', // CFXeSpace is different
+                    'CERE': 'CERE',
+                    'CANTO': 'CANTO',
+                    'ALEPHZERO': 'AZERO',
+                    'ABBC': 'ABBCCoin',
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
@@ -1527,30 +1445,51 @@ export default class bitget extends Exchange {
             const code = this.safeCurrencyCode (this.safeString (entry, 'coinName'));
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
+            let deposit = false;
+            let withdraw = false;
+            let minWithdrawString = undefined;
+            let minDepositString = undefined;
+            let minWithdrawFeeString = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
                 const networkCode = this.networkIdToCode (networkId);
                 const withdrawEnabled = this.safeString (chain, 'withdrawable');
+                const canWithdraw = withdrawEnabled === 'true';
+                withdraw = (canWithdraw) ? canWithdraw : withdraw;
                 const depositEnabled = this.safeString (chain, 'rechargeable');
+                const canDeposit = depositEnabled === 'true';
+                deposit = (canDeposit) ? canDeposit : deposit;
+                const networkWithdrawFeeString = this.safeString (chain, 'withdrawFee');
+                if (networkWithdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? networkWithdrawFeeString : Precise.stringMin (networkWithdrawFeeString, minWithdrawFeeString);
+                }
+                const networkMinWithdrawString = this.safeString (chain, 'minWithdrawAmount');
+                if (networkMinWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? networkMinWithdrawString : Precise.stringMin (networkMinWithdrawString, minWithdrawString);
+                }
+                const networkMinDepositString = this.safeString (chain, 'minDepositAmount');
+                if (networkMinDepositString !== undefined) {
+                    minDepositString = (minDepositString === undefined) ? networkMinDepositString : Precise.stringMin (networkMinDepositString, minDepositString);
+                }
                 networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
                     'network': networkCode,
                     'limits': {
                         'withdraw': {
-                            'min': this.safeNumber (chain, 'minWithdrawAmount'),
+                            'min': this.parseNumber (networkMinWithdrawString),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber (chain, 'minDepositAmount'),
+                            'min': this.parseNumber (networkMinDepositString),
                             'max': undefined,
                         },
                     },
-                    'active': undefined,
-                    'withdraw': withdrawEnabled === 'true',
-                    'deposit': depositEnabled === 'true',
-                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'active': canWithdraw && canDeposit,
+                    'withdraw': canWithdraw,
+                    'deposit': canDeposit,
+                    'fee': this.parseNumber (networkWithdrawFeeString),
                     'precision': undefined,
                 };
             }
@@ -1561,14 +1500,24 @@ export default class bitget extends Exchange {
                 'networks': networks,
                 'type': undefined,
                 'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'active': deposit && withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': this.parseNumber (minWithdrawFeeString),
                 'precision': undefined,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.parseNumber (minWithdrawString),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.parseNumber (minDepositString),
+                        'max': undefined,
+                    },
                 },
             };
         }
@@ -1723,10 +1672,11 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const networkId = this.networkCodeToId (networkCode);
         const request = {
             'coin': currency['code'],
             'address': address,
-            'chain': this.networkCodeToId (networkCode),
+            'chain': networkId,
             'amount': amount,
         };
         if (tag !== undefined) {
@@ -1815,6 +1765,8 @@ export default class bitget extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
+        // fetchWithdrawals, fetchDeposits, fetchWithdrawalDeposits ...
+        //
         //     {
         //         "id": "925607360021839872",
         //         "txId": "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
@@ -1829,6 +1781,12 @@ export default class bitget extends Exchange {
         //         "tag": null,
         //         "cTime": "1656407912259",
         //         "uTime": "1656407940148"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "data": "13......", // id to retrieve withdrawal details
         //     }
         //
         const currencyId = this.safeString (transaction, 'coin');
@@ -3990,7 +3948,9 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePositions (data);
+        const first = this.safeValue (data, 0, {});
+        const position = this.parsePosition (first, market);
+        return position;
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {

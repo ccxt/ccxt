@@ -132,6 +132,7 @@ class bitget extends Exchange {
                 'public' => array(
                     'spot' => array(
                         'get' => array(
+                            'notice/queryAllNotices' => 1, // 20 times/1s (IP) => 20/20 = 1
                             'public/time' => 1,
                             'public/currencies' => 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
                             'public/products' => 1,
@@ -860,6 +861,7 @@ class bitget extends Exchange {
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
                     '43025' => '\\ccxt\\InvalidOrder', // Plan order does not exist
+                    '43115' => '\\ccxt\\OnMaintenance', // array("code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null)
                     '45110' => '\\ccxt\\InvalidOrder', // array("code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null)
                     // spot
                     'invalid sign' => '\\ccxt\\AuthenticationError',
@@ -1341,30 +1343,51 @@ class bitget extends Exchange {
             $code = $this->safe_currency_code($this->safe_string($entry, 'coinName'));
             $chains = $this->safe_value($entry, 'chains', array());
             $networks = array();
+            $deposit = false;
+            $withdraw = false;
+            $minWithdrawString = null;
+            $minDepositString = null;
+            $minWithdrawFeeString = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
                 $network = $this->safe_currency_code($networkId);
                 $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
+                $canWithdraw = $withdrawEnabled === 'true';
+                $withdraw = ($canWithdraw) ? $canWithdraw : $withdraw;
                 $depositEnabled = $this->safe_string($chain, 'rechargeable');
+                $canDeposit = $depositEnabled === 'true';
+                $deposit = ($canDeposit) ? $canDeposit : $deposit;
+                $networkWithdrawFeeString = $this->safe_string($chain, 'withdrawFee');
+                if ($networkWithdrawFeeString !== null) {
+                    $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
+                }
+                $networkMinWithdrawString = $this->safe_string($chain, 'minWithdrawAmount');
+                if ($networkMinWithdrawString !== null) {
+                    $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
+                }
+                $networkMinDepositString = $this->safe_string($chain, 'minDepositAmount');
+                if ($networkMinDepositString !== null) {
+                    $minDepositString = ($minDepositString === null) ? $networkMinDepositString : Precise::string_min($networkMinDepositString, $minDepositString);
+                }
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
                     'network' => $network,
                     'limits' => array(
                         'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'minWithdrawAmount'),
+                            'min' => $this->parse_number($networkMinWithdrawString),
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $this->safe_number($chain, 'minDepositAmount'),
+                            'min' => $this->parse_number($networkMinDepositString),
                             'max' => null,
                         ),
                     ),
-                    'active' => null,
-                    'withdraw' => $withdrawEnabled === 'true',
-                    'deposit' => $depositEnabled === 'true',
-                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'active' => $canWithdraw && $canDeposit,
+                    'withdraw' => $canWithdraw,
+                    'deposit' => $canDeposit,
+                    'fee' => $this->parse_number($networkWithdrawFeeString),
                     'precision' => null,
                 );
             }
@@ -1375,14 +1398,24 @@ class bitget extends Exchange {
                 'networks' => $networks,
                 'type' => null,
                 'name' => null,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
+                'active' => $deposit && $withdraw,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
+                'fee' => $this->parse_number($minWithdrawFeeString),
                 'precision' => null,
                 'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array( 'min' => null, 'max' => null ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->parse_number($minWithdrawString),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->parse_number($minDepositString),
+                        'max' => null,
+                    ),
                 ),
             );
         }
@@ -3731,10 +3764,10 @@ class bitget extends Exchange {
 
     public function fetch_position(string $symbol, $params = array ()) {
         /**
-         * fetch $data on a single open contract trade position
-         * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+         * fetch $data on a single open contract trade $position
+         * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3772,7 +3805,9 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data);
+        $first = $this->safe_value($data, 0, array());
+        $position = $this->parse_position($first, $market);
+        return $position;
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
