@@ -1116,13 +1116,13 @@ export default class okx extends okxRest {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const messageHash = this.nonce ().toString ();
-        const clientOrderId = this.safeString (params, 'clOrdId');
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
         const arg = {
             'instId': this.marketId (symbol),
         };
         if (clientOrderId !== undefined) {
             arg['clOrdId'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdId' ]);
         } else {
             arg['ordId'] = id;
         }
