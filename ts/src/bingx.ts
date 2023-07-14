@@ -339,6 +339,7 @@ export default class bingx extends Exchange {
             for (let j = 0; j < networkList.length; j++) {
                 const rawNetwork = networkList[j];
                 const network = this.safeString (rawNetwork, 'network');
+                const networkCode = this.networkIdToCode (network);
                 const isDefault = this.safeValue (rawNetwork, 'isDefault');
                 withdrawEnabled = this.safeValue (rawNetwork, 'withdrawEnable');
                 const limits = {
@@ -349,10 +350,10 @@ export default class bingx extends Exchange {
                     active = withdrawEnabled;
                     defaultLimits = limits;
                 }
-                networks[network] = {
+                networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
-                    'network': network,
+                    'network': networkCode,
                     'fee': fee,
                     'active': active,
                     'deposit': undefined,
@@ -2343,7 +2344,7 @@ export default class bingx extends Exchange {
             'txid': this.safeString (transaction, 'txId'),
             'type': type,
             'currency': code,
-            'network': network,
+            'network': this.networkIdToCode (network),
             'amount': this.safeNumber (transaction, 'amount'),
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
@@ -2675,7 +2676,7 @@ export default class bingx extends Exchange {
         };
         const network = this.safeStringUpper (params, 'network');
         if (network !== undefined) {
-            request['network'] = network;
+            request['network'] = this.networkCodeToId (network);
         }
         params = this.omit (params, [ 'walletType', 'network' ]);
         const response = await this.walletsV1PrivatePostCapitalWithdrawApply (this.extend (request, params));
