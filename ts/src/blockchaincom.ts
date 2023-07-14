@@ -174,6 +174,7 @@ export default class blockchaincom extends Exchange {
             'options': {
                 'fetchCurrencies': {
                     'webApiEnable': true,
+                    'webApiMuteFailure': true,
                     'webApiRetries': 5,
                 },
             },
