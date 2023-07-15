@@ -2615,38 +2615,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name okx#editOrder
-         * @description edit a trade order
-         * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @param {string} [params.clientOrderId] client order id, uses id if not passed
-         * @param {float} [params.stopLossPrice] stop loss trigger price
-         * @param {float} [params.newSlOrdPx] the stop loss order price, set to stopLossPrice if the type is market
-         * @param {string} [params.newSlTriggerPxType] 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
-         * @param {float} [params.takeProfitPrice] take profit trigger price
-         * @param {float} [params.newTpOrdPx] the take profit order price, set to takeProfitPrice if the type is market
-         * @param {string} [params.newTpTriggerPxType] 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
-         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
-         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
-         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
-         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
-         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
-         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        this.checkRequiredSymbol ('editOrder', symbol);
-        await this.loadMarkets ();
+    editOrderRequest (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -2700,6 +2669,42 @@ export default class okx extends Exchange {
             request['newPx'] = this.priceToPrecision (symbol, price);
         }
         params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ]);
+        return this.extend (request, params);
+    }
+
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#editOrder
+         * @description edit a trade order
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] client order id, uses id if not passed
+         * @param {float} [params.stopLossPrice] stop loss trigger price
+         * @param {float} [params.newSlOrdPx] the stop loss order price, set to stopLossPrice if the type is market
+         * @param {string} [params.newSlTriggerPxType] 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
+         * @param {float} [params.takeProfitPrice] take profit trigger price
+         * @param {float} [params.newTpOrdPx] the take profit order price, set to takeProfitPrice if the type is market
+         * @param {string} [params.newTpTriggerPxType] 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         const response = await this.privatePostTradeAmendOrder (this.extend (request, params));
         //
         //     {
