@@ -2616,8 +2616,9 @@ class okx extends okx$1 {
         });
     }
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        const market = this.market(symbol);
         const request = {
-            'instId': this.marketId(symbol),
+            'instId': market['id'],
         };
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -2626,13 +2627,49 @@ class okx extends okx$1 {
         else {
             request['ordId'] = id;
         }
-        params = this.omit(params, ['clOrdId', 'clientOrderId']);
+        let stopLossTriggerPrice = this.safeValue2(params, 'stopLossPrice', 'newSlTriggerPx');
+        let stopLossPrice = this.safeValue(params, 'newSlOrdPx');
+        const stopLossTriggerPriceType = this.safeString(params, 'newSlTriggerPxType', 'last');
+        let takeProfitTriggerPrice = this.safeValue2(params, 'takeProfitPrice', 'newTpTriggerPx');
+        let takeProfitPrice = this.safeValue(params, 'newTpOrdPx');
+        const takeProfitTriggerPriceType = this.safeString(params, 'newTpTriggerPxType', 'last');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
+        const stopLossDefined = (stopLoss !== undefined);
+        const takeProfitDefined = (takeProfit !== undefined);
+        if (stopLossTriggerPrice !== undefined) {
+            request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+            request['newSlOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
+            request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+        }
+        if (takeProfitTriggerPrice !== undefined) {
+            request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+            request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
+            request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+        }
+        if (stopLossDefined) {
+            stopLossTriggerPrice = this.safeValue(stopLoss, 'triggerPrice');
+            stopLossPrice = this.safeValue(stopLoss, 'price');
+            const stopLossType = this.safeString(stopLoss, 'type');
+            request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+            request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
+            request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+        }
+        if (takeProfitDefined) {
+            takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
+            takeProfitPrice = this.safeValue(takeProfit, 'price');
+            const takeProfitType = this.safeString(takeProfit, 'type');
+            request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+            request['newTpOrdPx'] = (takeProfitType === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
+            request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+        }
         if (amount !== undefined) {
             request['newSz'] = this.amountToPrecision(symbol, amount);
         }
         if (price !== undefined) {
             request['newPx'] = this.priceToPrecision(symbol, price);
         }
+        params = this.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit']);
         return this.extend(request, params);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -2648,15 +2685,27 @@ class okx extends okx$1 {
          * @param {float} amount how much of the currency you want to trade in units of the base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] client order id, uses id if not passed
+         * @param {float} [params.stopLossPrice] stop loss trigger price
+         * @param {float} [params.newSlOrdPx] the stop loss order price, set to stopLossPrice if the type is market
+         * @param {string} [params.newSlTriggerPxType] 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
+         * @param {float} [params.takeProfitPrice] take profit trigger price
+         * @param {float} [params.newTpOrdPx] the take profit order price, set to takeProfitPrice if the type is market
+         * @param {string} [params.newTpTriggerPxType] 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
-        const response = await this.privatePostTradeAmendOrder(request);
+        const response = await this.privatePostTradeAmendOrder(this.extend(request, params));
         //
         //     {
         //        "code": "0",

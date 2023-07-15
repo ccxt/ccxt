@@ -202,7 +202,12 @@ export default class kucoin extends Exchange {
                         'hf/orders/done': 2,
                         'hf/orders/{orderId}': 1,
                         'hf/orders/client-order/{clientOid}': 2,
-                        'hf/fills': 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
+                        'hf/fills': 6.67,
+                        'margin/repay': 1,
+                        'project/list': 1,
+                        'project/marketInterestRate': 1,
+                        'redeem/orders': 1,
+                        'purchase/orders': 1,
                     },
                     'post': {
                         'accounts': 1,
@@ -230,7 +235,11 @@ export default class kucoin extends Exchange {
                         'hf/orders/sync': 1.33,
                         'hf/orders/multi': 20,
                         'hf/orders/multi/sync': 20,
-                        'hf/orders/alter': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
+                        'hf/orders/alter': 1,
+                        'margin/repay': 1,
+                        'purchase': 1,
+                        'redeem': 1,
+                        'lend/purchase/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -354,6 +363,18 @@ export default class kucoin extends Exchange {
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied,
                     '103000': InvalidOrder,
+                    '130101': BadRequest,
+                    '130102': ExchangeError,
+                    '130103': OrderNotFound,
+                    '130104': ExchangeError,
+                    '130105': InsufficientFunds,
+                    '130106': NotSupported,
+                    '130107': ExchangeError,
+                    '130108': OrderNotFound,
+                    '130201': PermissionDenied,
+                    '130202': ExchangeError,
+                    '130203': InsufficientFunds,
+                    '130204': BadRequest,
                     '200004': InsufficientFunds,
                     '210014': InvalidOrder,
                     '210021': InsufficientFunds,
@@ -374,6 +395,7 @@ export default class kucoin extends Exchange {
                     '400200': InvalidOrder,
                     '400350': InvalidOrder,
                     '400370': InvalidOrder,
+                    '400400': BadRequest,
                     '400500': InvalidOrder,
                     '400600': BadSymbol,
                     '400760': InvalidOrder,
@@ -482,6 +504,12 @@ export default class kucoin extends Exchange {
                             'hf/orders/{orderId}': 'v1',
                             'hf/orders/client-order/{clientOid}': 'v1',
                             'hf/fills': 'v1',
+                            'margin/borrow': 'v3',
+                            'margin/repay': 'v3',
+                            'project/list': 'v3',
+                            'project/marketInterestRate': 'v3',
+                            'redeem/orders': 'v3',
+                            'purchase/orders': 'v3',
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
@@ -492,6 +520,11 @@ export default class kucoin extends Exchange {
                             'hf/orders/multi': 'v1',
                             'hf/orders/multi/sync': 'v1',
                             'hf/orders/alter': 'v1',
+                            'margin/borrow': 'v3',
+                            'margin/repay': 'v3',
+                            'purchase': 'v3',
+                            'redeem': 'v3',
+                            'lend/purchase/update': 'v3',
                         },
                         'DELETE': {
                             'hf/orders/{orderId}': 'v1',
@@ -3828,8 +3861,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#borrowMargin
          * @description create a loan to borrow margin
-         * @see https://docs.kucoin.com/#post-borrow-order
-         * @see https://docs.kucoin.com/#isolated-margin-borrowing
+         * @see https://docs.kucoin.com/#1-margin-borrowing
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {string} symbol unified market symbol, required for isolated margin
@@ -3839,6 +3871,7 @@ export default class kucoin extends Exchange {
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         const marginMode = this.safeString(params, 'marginMode'); // cross or isolated
+        const isIsolated = marginMode === 'isolated';
         params = this.omit(params, 'marginMode');
         this.checkRequiredMarginArgument('borrowMargin', symbol, marginMode);
         await this.loadMarkets();
@@ -3847,41 +3880,27 @@ export default class kucoin extends Exchange {
             'currency': currency['id'],
             'size': this.currencyToPrecision(code, amount),
         };
-        let method = undefined;
         const timeInForce = this.safeStringN(params, ['timeInForce', 'type', 'borrowStrategy'], 'IOC');
-        let timeInForceRequest = undefined;
-        if (symbol === undefined) {
-            method = 'privatePostMarginBorrow';
-            timeInForceRequest = 'type';
-        }
-        else {
+        if (isIsolated) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' borrowMargin() requires a symbol parameter for isolated margin');
+            }
             const market = this.market(symbol);
             request['symbol'] = market['id'];
-            timeInForceRequest = 'borrowStrategy';
-            method = 'privatePostIsolatedBorrow';
+            request['isIsolated'] = true;
         }
-        request[timeInForceRequest] = timeInForce;
         params = this.omit(params, ['timeInForce', 'type', 'borrowStrategy']);
-        const response = await this[method](this.extend(request, params));
-        //
-        // Cross
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "orderId": "62df422ccde938000115290a",
-        //             "currency": "USDT"
-        //         }
-        //     }
-        //
-        // Isolated
+        request['timeInForce'] = timeInForce;
+        const response = await this.privatePostMarginBorrow(this.extend(request, params));
         //
         //     {
-        //         "code": "200000",
+        //         "success": true,
+        //         "code": "200",
+        //         "msg": "success",
+        //         "retry": false,
         //         "data": {
-        //             "orderId": "62df44a1c65f300001bc32a8",
-        //             "currency": "USDT",
-        //             "actualSize": "100"
+        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //             "actualSize": 10
         //         }
         //     }
         //
@@ -3893,18 +3912,16 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://docs.kucoin.com/#one-click-repayment
-         * @see https://docs.kucoin.com/#quick-repayment
+         * @see https://docs.kucoin.com/#2-repayment
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kucoin api endpoints
-         * @param {string} [params.sequence] cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
-         * @param {string} [params.seqStrategy] isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
          * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         const marginMode = this.safeString(params, 'marginMode'); // cross or isolated
+        const isIsolated = marginMode === 'isolated';
         params = this.omit(params, 'marginMode');
         this.checkRequiredMarginArgument('repayMargin', symbol, marginMode);
         await this.loadMarkets();
@@ -3912,61 +3929,42 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
             'size': this.currencyToPrecision(code, amount),
-            // 'sequence': 'RECENTLY_EXPIRE_FIRST',  // Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-            // 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  // Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         };
-        let method = undefined;
-        const sequence = this.safeString2(params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
-        let sequenceRequest = undefined;
-        if (symbol === undefined) {
-            method = 'privatePostMarginRepayAll';
-            sequenceRequest = 'sequence';
-        }
-        else {
+        if (isIsolated) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' repayMargin() requires a symbol parameter for isolated margin');
+            }
             const market = this.market(symbol);
             request['symbol'] = market['id'];
-            sequenceRequest = 'seqStrategy';
-            method = 'privatePostIsolatedRepayAll';
+            request['isIsolated'] = true;
         }
-        request[sequenceRequest] = sequence;
-        params = this.omit(params, ['sequence', 'seqStrategy']);
-        const response = await this[method](this.extend(request, params));
+        const response = await this.privatePostMarginRepay(this.extend(request, params));
         //
         //     {
-        //         "code": "200000",
-        //         "data": null
+        //         "success": true,
+        //         "code": "200",
+        //         "msg": "success",
+        //         "retry": false,
+        //         "data": {
+        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //             "actualSize": 10
+        //         }
         //     }
         //
-        return this.parseMarginLoan(response, currency);
+        const data = this.safeValue(response, 'data', {});
+        return this.parseMarginLoan(data, currency);
     }
     parseMarginLoan(info, currency = undefined) {
         //
-        // borrowMargin cross
-        //
         //     {
-        //         "orderId": "62df422ccde938000115290a",
-        //         "currency": "USDT"
-        //     }
-        //
-        // borrowMargin isolated
-        //
-        //     {
-        //         "orderId": "62df44a1c65f300001bc32a8",
-        //         "currency": "USDT",
-        //         "actualSize": "100"
-        //     }
-        //
-        // repayMargin
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": null
+        //         "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //         "actualSize": 10
         //     }
         //
         const timestamp = this.milliseconds();
         const currencyId = this.safeString(info, 'currency');
         return {
-            'id': this.safeString(info, 'orderId'),
+            'id': this.safeString(info, 'orderNo'),
             'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.safeNumber(info, 'actualSize'),
             'symbol': undefined,

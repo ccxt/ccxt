@@ -2583,8 +2583,9 @@ class okx extends Exchange {
     }
 
     public function edit_order_request(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
         $request = array(
-            'instId' => $this->market_id($symbol),
+            'instId' => $market['id'],
         );
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -2592,13 +2593,49 @@ class okx extends Exchange {
         } else {
             $request['ordId'] = $id;
         }
-        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
+        $stopLossTriggerPrice = $this->safe_value_2($params, 'stopLossPrice', 'newSlTriggerPx');
+        $stopLossPrice = $this->safe_value($params, 'newSlOrdPx');
+        $stopLossTriggerPriceType = $this->safe_string($params, 'newSlTriggerPxType', 'last');
+        $takeProfitTriggerPrice = $this->safe_value_2($params, 'takeProfitPrice', 'newTpTriggerPx');
+        $takeProfitPrice = $this->safe_value($params, 'newTpOrdPx');
+        $takeProfitTriggerPriceType = $this->safe_string($params, 'newTpTriggerPxType', 'last');
+        $stopLoss = $this->safe_value($params, 'stopLoss');
+        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $stopLossDefined = ($stopLoss !== null);
+        $takeProfitDefined = ($takeProfit !== null);
+        if ($stopLossTriggerPrice !== null) {
+            $request['newSlTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+            $request['newSlOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
+            $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
+        }
+        if ($takeProfitTriggerPrice !== null) {
+            $request['newTpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+            $request['newTpOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
+            $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
+        }
+        if ($stopLossDefined) {
+            $stopLossTriggerPrice = $this->safe_value($stopLoss, 'triggerPrice');
+            $stopLossPrice = $this->safe_value($stopLoss, 'price');
+            $stopLossType = $this->safe_string($stopLoss, 'type');
+            $request['newSlTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+            $request['newSlOrdPx'] = ($stopLossType === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
+            $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
+        }
+        if ($takeProfitDefined) {
+            $takeProfitTriggerPrice = $this->safe_value($takeProfit, 'triggerPrice');
+            $takeProfitPrice = $this->safe_value($takeProfit, 'price');
+            $takeProfitType = $this->safe_string($takeProfit, 'type');
+            $request['newTpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+            $request['newTpOrdPx'] = ($takeProfitType === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
+            $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
+        }
         if ($amount !== null) {
             $request['newSz'] = $this->amount_to_precision($symbol, $amount);
         }
         if ($price !== null) {
             $request['newPx'] = $this->price_to_precision($symbol, $price);
         }
+        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ));
         return array_merge($request, $params);
     }
 
@@ -2613,15 +2650,27 @@ class okx extends Exchange {
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
          * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {string} [$params->clientOrderId] client $order $id, uses $id if not passed
+         * @param {float} [$params->stopLossPrice] stop loss trigger $price
+         * @param {float} [$params->newSlOrdPx] the stop loss $order $price, set to stopLossPrice if the $type is $market
+         * @param {string} [$params->newSlTriggerPxType] 'last', 'index' or 'mark' used to specify the stop loss trigger $price $type, default is 'last'
+         * @param {float} [$params->takeProfitPrice] take profit trigger $price
+         * @param {float} [$params->newTpOrdPx] the take profit $order $price, set to takeProfitPrice if the $type is $market
+         * @param {string} [$params->newTpTriggerPxType] 'last', 'index' or 'mark' used to specify the take profit trigger $price $type, default is 'last'
+         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
+         * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+         * @param {float} [$params->stopLoss.price] used for stop loss limit orders, not used for stop loss $market $price orders
+         * @param {string} [$params->stopLoss.type] 'market' or 'limit' used to specify the stop loss $price $type
+         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered
+         * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+         * @param {float} [$params->takeProfit.price] used for take profit limit orders, not used for take profit $market $price orders
+         * @param {string} [$params->takeProfit.type] 'market' or 'limit' used to specify the take profit $price $type
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-        $response = $this->privatePostTradeAmendOrder ($request);
+        $response = $this->privatePostTradeAmendOrder (array_merge($request, $params));
         //
         //     {
         //        "code" => "0",

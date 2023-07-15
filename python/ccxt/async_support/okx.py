@@ -2492,19 +2492,52 @@ class okx(Exchange, ImplicitAPI):
         })
 
     def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        market = self.market(symbol)
         request = {
-            'instId': self.market_id(symbol),
+            'instId': market['id'],
         }
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdId'] = clientOrderId
         else:
             request['ordId'] = id
-        params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        stopLossTriggerPrice = self.safe_value_2(params, 'stopLossPrice', 'newSlTriggerPx')
+        stopLossPrice = self.safe_value(params, 'newSlOrdPx')
+        stopLossTriggerPriceType = self.safe_string(params, 'newSlTriggerPxType', 'last')
+        takeProfitTriggerPrice = self.safe_value_2(params, 'takeProfitPrice', 'newTpTriggerPx')
+        takeProfitPrice = self.safe_value(params, 'newTpOrdPx')
+        takeProfitTriggerPriceType = self.safe_string(params, 'newTpTriggerPxType', 'last')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
+        stopLossDefined = (stopLoss is not None)
+        takeProfitDefined = (takeProfit is not None)
+        if stopLossTriggerPrice is not None:
+            request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+            request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+            request['newSlTriggerPxType'] = stopLossTriggerPriceType
+        if takeProfitTriggerPrice is not None:
+            request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+            request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+            request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+        if stopLossDefined:
+            stopLossTriggerPrice = self.safe_value(stopLoss, 'triggerPrice')
+            stopLossPrice = self.safe_value(stopLoss, 'price')
+            stopLossType = self.safe_string(stopLoss, 'type')
+            request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+            request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
+            request['newSlTriggerPxType'] = stopLossTriggerPriceType
+        if takeProfitDefined:
+            takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
+            takeProfitPrice = self.safe_value(takeProfit, 'price')
+            takeProfitType = self.safe_string(takeProfit, 'type')
+            request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+            request['newTpOrdPx'] = '-1' if (takeProfitType == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+            request['newTpTriggerPxType'] = takeProfitTriggerPriceType
         if amount is not None:
             request['newSz'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['newPx'] = self.price_to_precision(symbol, price)
+        params = self.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
@@ -2518,14 +2551,27 @@ class okx(Exchange, ImplicitAPI):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.clientOrderId]: client order id, uses id if not passed
+        :param float [params.stopLossPrice]: stop loss trigger price
+        :param float [params.newSlOrdPx]: the stop loss order price, set to stopLossPrice if the type is market
+        :param str [params.newSlTriggerPxType]: 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
+        :param float [params.takeProfitPrice]: take profit trigger price
+        :param float [params.newTpOrdPx]: the take profit order price, set to takeProfitPrice if the type is market
+        :param str [params.newTpTriggerPxType]: 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
+        :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param float [params.takeProfit.price]: used for take profit limit orders, not used for take profit market price orders
+        :param str [params.takeProfit.type]: 'market' or 'limit' used to specify the take profit price type
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
-        response = await self.privatePostTradeAmendOrder(request)
+        response = await self.privatePostTradeAmendOrder(self.extend(request, params))
         #
         #     {
         #        "code": "0",
