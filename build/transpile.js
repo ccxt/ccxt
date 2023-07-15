@@ -267,7 +267,7 @@ class Transpiler {
             [ /\.networkCodeToId\s/g, '.network_code_to_id'],
             [ /\.networkIdToCode\s/g, '.network_id_to_code'],
             [ /\.defaultNetworkCode\s/g, '.default_network_code'],
-            [ /\.selectNetworkCodeFromUnifiedNetworks\s/g, '.select_network_coded_from_unified_networks'],
+            [ /\.selectNetworkCodeFromUnifiedNetworks\s/g, '.select_network_code_from_unified_networks'],
             [ /\.selectNetworkIdFromRawNetworks\s/g, '.select_network_id_from_raw_networks'],
             [ /\.selectNetworkKeyFromNetworks\s/g, '.select_network_key_from_networks'],
             [ /\.createNetworksByIdObject\s/g, '.create_networks_by_id_object'],
