@@ -86,8 +86,7 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
-                'referral': {
-                },
+                'referral': 'https://bingx.com/invite/OHETOM',
                 'fees': {
                     'trading': {
                         'tierBased': True,
