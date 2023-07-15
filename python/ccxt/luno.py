@@ -117,33 +117,35 @@ class luno(Exchange, ImplicitAPI):
                         'funding_address': 1,
                         'listorders': 1,
                         'listtrades': 1,
+                        'send_fee': 1,
                         'orders/{id}': 1,
-                        'quotes/{id}': 1,
                         'withdrawals': 1,
                         'withdrawals/{id}': 1,
                         'transfers': 1,
+                        # GET /api/exchange/1/move
+                        # GET /api/exchange/1/move/list_moves
+                        # GET /api/exchange/1/candles
+                        # GET /api/exchange/1/transfers
                         # GET /api/exchange/2/listorders
                         # GET /api/exchange/2/orders/{id}
                         # GET /api/exchange/3/order
                     },
                     'post': {
                         'accounts': 1,
-                        'accounts/{id}/name': 1,
+                        'address/validate': 1,
                         'postorder': 1,
                         'marketorder': 1,
                         'stoporder': 1,
                         'funding_address': 1,
                         'withdrawals': 1,
                         'send': 1,
-                        'quotes': 1,
                         'oauth2/grant': 1,
+                        # POST /api/exchange/1/move
                     },
                     'put': {
                         'accounts/{id}/name': 1,
-                        'quotes/{id}': 1,
                     },
                     'delete': {
-                        'quotes/{id}': 1,
                         'withdrawals/{id}': 1,
                     },
                 },

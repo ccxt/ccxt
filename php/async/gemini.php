@@ -264,7 +264,8 @@ class gemini extends Exchange {
                 ),
                 'fetchCurrencies' => array(
                     'webApiEnable' => true, // fetches from WEB
-                    'webApiRetries' => 10,
+                    'webApiRetries' => 5,
+                    'webApiMuteFailure' => true,
                 ),
                 'fetchUsdtMarkets' => array( 'btcusdt', 'ethusdt' ), // keep this list updated (not available trough web api)
                 'fetchTickerMethod' => 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2

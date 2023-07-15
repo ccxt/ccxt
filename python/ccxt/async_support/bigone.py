@@ -155,6 +155,7 @@ class bigone(Exchange, ImplicitAPI):
                 'fetchCurrencies': {
                     'webApiEnable': True,  # fetches from WEB
                     'webApiRetries': 5,
+                    'webApiMuteFailure': True,
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {

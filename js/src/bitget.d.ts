@@ -103,8 +103,8 @@ export default class bitget extends Exchange {
         status: string;
         updated: number;
         tagFrom: any;
-        tag: any;
-        tagTo: any;
+        tag: string;
+        tagTo: string;
         comment: any;
         fee: any;
     };

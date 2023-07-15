@@ -172,6 +172,8 @@ class cryptocom extends Exchange {
                             'private/get-currency-networks' => 10 / 3,
                             'private/get-deposit-address' => 10 / 3,
                             'private/get-accounts' => 10 / 3,
+                            'private/get-withdrawal-history' => 10 / 3,
+                            'private/get-deposit-history' => 10 / 3,
                         ),
                     ),
                 ),
@@ -378,6 +380,7 @@ class cryptocom extends Exchange {
                     '50001' => '\\ccxt\\BadRequest',
                     '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
+                'broad' => array(),
             ),
         ));
     }
@@ -1009,6 +1012,108 @@ class cryptocom extends Exchange {
         }) ();
     }
 
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $uppercaseType = strtoupper($type);
+        $request = array(
+            'instrument_name' => $market['id'],
+            'side' => strtoupper($side),
+            'quantity' => $this->amount_to_precision($symbol, $amount),
+        );
+        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        if ($clientOrderId === null) {
+            $clientOrderId = $broker . $this->uuid22();
+        }
+        $request['client_oid'] = $clientOrderId;
+        $marketType = null;
+        $marginMode = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        list($marginMode, $params) = $this->custom_handle_margin_mode_and_params('createOrder', $params);
+        if (($marketType === 'margin') || ($marginMode !== null)) {
+            $request['spot_margin'] = 'MARGIN';
+        } elseif ($marketType === 'spot') {
+            $request['spot_margin'] = 'SPOT';
+        }
+        $timeInForce = $this->safe_string_upper_2($params, 'timeInForce', 'time_in_force');
+        if ($timeInForce !== null) {
+            if ($timeInForce === 'GTC') {
+                $request['time_in_force'] = 'GOOD_TILL_CANCEL';
+            } elseif ($timeInForce === 'IOC') {
+                $request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+            } elseif ($timeInForce === 'FOK') {
+                $request['time_in_force'] = 'FILL_OR_KILL';
+            } else {
+                $request['time_in_force'] = $timeInForce;
+            }
+        }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if (($postOnly) || ($timeInForce === 'PO')) {
+            $request['exec_inst'] = 'POST_ONLY';
+            $request['time_in_force'] = 'GOOD_TILL_CANCEL';
+        }
+        $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
+        $isTrigger = ($triggerPrice !== null);
+        $isStopLossTrigger = ($stopLossPrice !== null);
+        $isTakeProfitTrigger = ($takeProfitPrice !== null);
+        if ($isTrigger) {
+            $request['ref_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $price = (string) $price;
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        $request['type'] = 'STOP_LIMIT';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LIMIT';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT';
+                    } else {
+                        $request['type'] = 'STOP_LOSS';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LOSS';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+        } elseif ($isStopLossTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
+                $request['type'] = 'STOP_LIMIT';
+            } else {
+                $request['type'] = 'STOP_LOSS';
+            }
+            $request['ref_price'] = $this->price_to_precision($symbol, $stopLossPrice);
+        } elseif ($isTakeProfitTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                $request['type'] = 'TAKE_PROFIT_LIMIT';
+            } else {
+                $request['type'] = 'TAKE_PROFIT';
+            }
+            $request['ref_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        } else {
+            $request['type'] = $uppercaseType;
+        }
+        $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        return array_merge($request, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1029,104 +1134,8 @@ class cryptocom extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $uppercaseType = strtoupper($type);
-            $request = array(
-                'instrument_name' => $market['id'],
-                'side' => strtoupper($side),
-                'quantity' => $this->amount_to_precision($symbol, $amount),
-            );
-            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-            if ($clientOrderId === null) {
-                $clientOrderId = $broker . $this->uuid22();
-            }
-            $request['client_oid'] = $clientOrderId;
-            $marketType = null;
-            $marginMode = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
-            list($marginMode, $params) = $this->custom_handle_margin_mode_and_params('createOrder', $params);
-            if (($marketType === 'margin') || ($marginMode !== null)) {
-                $request['spot_margin'] = 'MARGIN';
-            } elseif ($marketType === 'spot') {
-                $request['spot_margin'] = 'SPOT';
-            }
-            $timeInForce = $this->safe_string_upper_2($params, 'timeInForce', 'time_in_force');
-            if ($timeInForce !== null) {
-                if ($timeInForce === 'GTC') {
-                    $request['time_in_force'] = 'GOOD_TILL_CANCEL';
-                } elseif ($timeInForce === 'IOC') {
-                    $request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
-                } elseif ($timeInForce === 'FOK') {
-                    $request['time_in_force'] = 'FILL_OR_KILL';
-                } else {
-                    $request['time_in_force'] = $timeInForce;
-                }
-            }
-            $postOnly = $this->safe_value($params, 'postOnly', false);
-            if (($postOnly) || ($timeInForce === 'PO')) {
-                $request['exec_inst'] = 'POST_ONLY';
-                $request['time_in_force'] = 'GOOD_TILL_CANCEL';
-            }
-            $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
-            $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
-            $isTrigger = ($triggerPrice !== null);
-            $isStopLossTrigger = ($stopLossPrice !== null);
-            $isTakeProfitTrigger = ($takeProfitPrice !== null);
-            if ($isTrigger) {
-                $request['ref_price'] = $this->price_to_precision($symbol, $triggerPrice);
-                $price = (string) $price;
-                if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                    if ($side === 'buy') {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'TAKE_PROFIT_LIMIT';
-                        } else {
-                            $request['type'] = 'STOP_LIMIT';
-                        }
-                    } else {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'STOP_LIMIT';
-                        } else {
-                            $request['type'] = 'TAKE_PROFIT_LIMIT';
-                        }
-                    }
-                } else {
-                    if ($side === 'buy') {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'TAKE_PROFIT';
-                        } else {
-                            $request['type'] = 'STOP_LOSS';
-                        }
-                    } else {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'STOP_LOSS';
-                        } else {
-                            $request['type'] = 'TAKE_PROFIT';
-                        }
-                    }
-                }
-            } elseif ($isStopLossTrigger) {
-                if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
-                    $request['type'] = 'STOP_LIMIT';
-                } else {
-                    $request['type'] = 'STOP_LOSS';
-                }
-                $request['ref_price'] = $this->price_to_precision($symbol, $stopLossPrice);
-            } elseif ($isTakeProfitTrigger) {
-                if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                    $request['type'] = 'TAKE_PROFIT_LIMIT';
-                } else {
-                    $request['type'] = 'TAKE_PROFIT';
-                }
-                $request['ref_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
-            } else {
-                $request['type'] = $uppercaseType;
-            }
-            $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-            $response = Async\await($this->v1PrivatePostPrivateCreateOrder (array_merge($request, $params)));
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->v1PrivatePostPrivateCreateOrder ($request));
             //
             //     {
             //         "id" => 1686804664362,
@@ -1150,7 +1159,7 @@ class cryptocom extends Exchange {
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
              * @param {string} $symbol unified $market $symbol of the orders to cancel
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} Returns exchange raw messagearray(@link https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1169,7 +1178,7 @@ class cryptocom extends Exchange {
              * cancels an open order
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
              * @param {string} $id the order $id of the order to cancel
-             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {string} [$symbol] unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1491,10 +1500,12 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -1511,26 +1522,34 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->v2PrivatePostPrivateGetDepositHistory (array_merge($request, $params)));
-            // {
-            //     "id" => 11,
-            //     "method" => "private/get-deposit-history",
-            //     "code" => 0,
-            //     "result" => {
-            //       "deposit_list" => array(
-            //         {
-            //           "currency" => "XRP",
-            //           "fee" => 1.0,
-            //           "create_time" => 1607063412000,
-            //           "id" => "2220",
-            //           "update_time" => 1607063460000,
-            //           "amount" => 100,
-            //           "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-            //           "status" => "1"
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            $params = $this->omit($params, array( 'until', 'till' ));
+            if ($until !== null) {
+                $request['end_ts'] = $until;
+            }
+            $response = Async\await($this->v1PrivatePostPrivateGetDepositHistory (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => 1688701375714,
+            //         "method" => "private/get-deposit-history",
+            //         "code" => 0,
+            //         "result" => {
+            //             "deposit_list" => array(
+            //                 array(
+            //                     "currency" => "BTC",
+            //                     "fee" => 0,
+            //                     "create_time" => 1688023659000,
+            //                     "id" => "6201135",
+            //                     "update_time" => 1688178509000,
+            //                     "amount" => 0.00114571,
+            //                     "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+            //                     "status" => "1",
+            //                     "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
+            //                 ),
+            //             )
             //         }
-            //       )
             //     }
-            // }
+            //
             $data = $this->safe_value($response, 'result', array());
             $depositList = $this->safe_value($data, 'deposit_list', array());
             return $this->parse_transactions($depositList, $currency, $since, $limit);
@@ -1541,10 +1560,12 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -1561,28 +1582,34 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->v2PrivatePostPrivateGetWithdrawalHistory (array_merge($request, $params)));
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            $params = $this->omit($params, array( 'until', 'till' ));
+            if ($until !== null) {
+                $request['end_ts'] = $until;
+            }
+            $response = Async\await($this->v1PrivatePostPrivateGetWithdrawalHistory (array_merge($request, $params)));
             //
             //     {
-            //       id => 1640704829096,
-            //       method => 'private/get-withdrawal-history',
-            //       $code => 0,
-            //       result => {
-            //         withdrawal_list => array(
-            //           {
-            //             $currency => 'DOGE',
-            //             client_wid => '',
-            //             fee => 50,
-            //             create_time => 1640425168000,
-            //             id => '3180557',
-            //             update_time => 1640425168000,
-            //             amount => 1102.64092,
-            //             address => 'DDrGGqmp5Ddo1QH9tUvDfoL4u4rqys5975',
-            //             status => '5',
-            //             txid => 'ce23e9e21b6c38eef953070a05110e6dca2fd2bcc76d3381000547b9ff5290b2/0'
-            //           }
-            //         )
-            //       }
+            //         "id" => 1688613879534,
+            //         "method" => "private/get-withdrawal-history",
+            //         "code" => 0,
+            //         "result" => {
+            //             "withdrawal_list" => array(
+            //                 {
+            //                     "currency" => "BTC",
+            //                     "client_wid" => "",
+            //                     "fee" => 0.0005,
+            //                     "create_time" => 1688613850000,
+            //                     "id" => "5275977",
+            //                     "update_time" => 1688613850000,
+            //                     "amount" => 0.0005,
+            //                     "address" => "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+            //                     "status" => "1",
+            //                     "txid" => "",
+            //                     "network_id" => "BTC"
+            //                 }
+            //             )
+            //         }
             //     }
             //
             $data = $this->safe_value($response, 'result', array());
@@ -2038,28 +2065,31 @@ class cryptocom extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "currency" => "XRP",
-        //         "fee" => 1.0,
-        //         "create_time" => 1607063412000,
-        //         "id" => "2220",
-        //         "update_time" => 1607063460000,
-        //         "amount" => 100,
-        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //         "status" => "1"
+        //         "currency" => "BTC",
+        //         "fee" => 0,
+        //         "create_time" => 1688023659000,
+        //         "id" => "6201135",
+        //         "update_time" => 1688178509000,
+        //         "amount" => 0.00114571,
+        //         "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //         "status" => "1",
+        //         "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "currency" => "XRP",
-        //         "client_wid" => "my_withdrawal_002",
-        //         "fee" => 1.0,
-        //         "create_time" => 1607063412000,
-        //         "id" => "2220",
-        //         "update_time" => 1607063460000,
-        //         "amount" => 100,
-        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //         "status" => "1"
+        //         "currency" => "BTC",
+        //         "client_wid" => "",
+        //         "fee" => 0.0005,
+        //         "create_time" => 1688613850000,
+        //         "id" => "5775977",
+        //         "update_time" => 1688613850000,
+        //         "amount" => 0.0005,
+        //         "address" => "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+        //         "status" => "1",
+        //         "txid" => "",
+        //         "network_id" => "BTC"
         //     }
         //
         // withdraw
@@ -2084,24 +2114,20 @@ class cryptocom extends Exchange {
             $type = 'deposit';
             $status = $this->parse_deposit_status($rawStatus);
         }
-        $id = $this->safe_string($transaction, 'id');
         $addressString = $this->safe_string($transaction, 'address');
         list($address, $tag) = $this->parse_address($addressString);
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_integer($transaction, 'create_time');
-        $amount = $this->safe_number($transaction, 'amount');
-        $txId = $this->safe_string($transaction, 'txid');
         $feeCost = $this->safe_number($transaction, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $updated = $this->safe_integer($transaction, 'update_time');
         return array(
             'info' => $transaction,
-            'id' => $id,
-            'txid' => $txId,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => null,
@@ -2112,10 +2138,10 @@ class cryptocom extends Exchange {
             'tagTo' => $tag,
             'tagFrom' => null,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
             'status' => $status,
-            'updated' => $updated,
+            'updated' => $this->safe_integer($transaction, 'update_time'),
             'internal' => null,
             'fee' => $fee,
         );

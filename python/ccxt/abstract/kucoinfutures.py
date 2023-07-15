@@ -169,4 +169,5 @@ class ImplicitAPI:
     futuresprivate_delete_orders = futuresPrivateDeleteOrders = Entry('orders', 'futuresPrivate', 'DELETE', {'cost': 4.44})
     futuresprivate_delete_stoporders = futuresPrivateDeleteStopOrders = Entry('stopOrders', 'futuresPrivate', 'DELETE', {'cost': 1})
     futuresprivate_delete_sub_api_key = futuresPrivateDeleteSubApiKey = Entry('sub/api-key', 'futuresPrivate', 'DELETE', {'cost': 1})
-    webfront_get_contract_symbol_funding_rates = webFrontGetContractSymbolFundingRates = Entry('contract/{symbol}/funding-rates', 'webFront', 'GET', {'cost': 1})
+    webexchange_get_currency_currency_chain_info = webExchangeGetCurrencyCurrencyChainInfo = Entry('currency/currency/chain-info', 'webExchange', 'GET', {'cost': 1})
+    webexchange_get_contract_symbol_funding_rates = webExchangeGetContractSymbolFundingRates = Entry('contract/{symbol}/funding-rates', 'webExchange', 'GET', {'cost': 1})

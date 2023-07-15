@@ -1,5 +1,5 @@
 import cryptocomRest from '../cryptocom.js';
-import { Int } from '../base/types.js';
+import { Int, OrderSide, OrderType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cryptocom extends cryptocomRest {
     describe(): any;
@@ -17,9 +17,16 @@ export default class cryptocom extends cryptocomRest {
     handleOrders(client: Client, message: any, subscription?: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
+    handleOrder(client: Client, message: any): void;
+    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
+    handleCancelAllOrders(client: Client, message: any): void;
     watchPublic(messageHash: any, params?: {}): Promise<any>;
-    watchPrivate(messageHash: any, params?: {}): Promise<any>;
+    watchPrivateRequest(nonce: any, params?: {}): Promise<any>;
+    watchPrivateSubscribe(messageHash: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): boolean;
+    handleSubscribe(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     authenticate(params?: {}): any;
     handlePing(client: Client, message: any): void;

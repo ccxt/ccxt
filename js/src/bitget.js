@@ -95,7 +95,7 @@ export default class bitget extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -138,6 +138,7 @@ export default class bitget extends Exchange {
                 'public': {
                     'spot': {
                         'get': {
+                            'notice/queryAllNotices': 1,
                             'public/time': 1,
                             'public/currencies': 6.6667,
                             'public/products': 1,
@@ -866,6 +867,7 @@ export default class bitget extends Exchange {
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
                     '43025': InvalidOrder,
+                    '43115': OnMaintenance,
                     '45110': InvalidOrder,
                     // spot
                     'invalid sign': AuthenticationError,
@@ -1350,30 +1352,51 @@ export default class bitget extends Exchange {
             const code = this.safeCurrencyCode(this.safeString(entry, 'coinName'));
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
+            let deposit = false;
+            let withdraw = false;
+            let minWithdrawString = undefined;
+            let minDepositString = undefined;
+            let minWithdrawFeeString = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 const network = this.safeCurrencyCode(networkId);
                 const withdrawEnabled = this.safeString(chain, 'withdrawable');
+                const canWithdraw = withdrawEnabled === 'true';
+                withdraw = (canWithdraw) ? canWithdraw : withdraw;
                 const depositEnabled = this.safeString(chain, 'rechargeable');
+                const canDeposit = depositEnabled === 'true';
+                deposit = (canDeposit) ? canDeposit : deposit;
+                const networkWithdrawFeeString = this.safeString(chain, 'withdrawFee');
+                if (networkWithdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? networkWithdrawFeeString : Precise.stringMin(networkWithdrawFeeString, minWithdrawFeeString);
+                }
+                const networkMinWithdrawString = this.safeString(chain, 'minWithdrawAmount');
+                if (networkMinWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? networkMinWithdrawString : Precise.stringMin(networkMinWithdrawString, minWithdrawString);
+                }
+                const networkMinDepositString = this.safeString(chain, 'minDepositAmount');
+                if (networkMinDepositString !== undefined) {
+                    minDepositString = (minDepositString === undefined) ? networkMinDepositString : Precise.stringMin(networkMinDepositString, minDepositString);
+                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'limits': {
                         'withdraw': {
-                            'min': this.safeNumber(chain, 'minWithdrawAmount'),
+                            'min': this.parseNumber(networkMinWithdrawString),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber(chain, 'minDepositAmount'),
+                            'min': this.parseNumber(networkMinDepositString),
                             'max': undefined,
                         },
                     },
-                    'active': undefined,
-                    'withdraw': withdrawEnabled === 'true',
-                    'deposit': depositEnabled === 'true',
-                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'active': canWithdraw && canDeposit,
+                    'withdraw': canWithdraw,
+                    'deposit': canDeposit,
+                    'fee': this.parseNumber(networkWithdrawFeeString),
                     'precision': undefined,
                 };
             }
@@ -1384,14 +1407,24 @@ export default class bitget extends Exchange {
                 'networks': networks,
                 'type': undefined,
                 'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'active': deposit && withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': this.parseNumber(minWithdrawFeeString),
                 'precision': undefined,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.parseNumber(minWithdrawString),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.parseNumber(minDepositString),
+                        'max': undefined,
+                    },
                 },
             };
         }
@@ -1660,37 +1693,48 @@ export default class bitget extends Exchange {
         //         "amount": "19.44800000",
         //         "status": "success",
         //         "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
-        //         "fee": null,
+        //         "fee": "-3.06388160",
         //         "chain": "TRC20",
         //         "confirm": null,
+        //         "tag": null,
         //         "cTime": "1656407912259",
         //         "uTime": "1656407940148"
         //     }
         //
+        const currencyId = this.safeString(transaction, 'coin');
+        const code = this.safeCurrencyCode(currencyId);
+        let amountString = this.safeString(transaction, 'amount');
         const timestamp = this.safeInteger(transaction, 'cTime');
         const networkId = this.safeString(transaction, 'chain');
-        const currencyId = this.safeString(transaction, 'coin');
         const status = this.safeString(transaction, 'status');
+        const tag = this.safeString(transaction, 'tag');
+        const feeCostString = this.safeString(transaction, 'fee');
+        const feeCostAbsString = Precise.stringAbs(feeCostString);
+        let fee = undefined;
+        if (feeCostAbsString !== undefined) {
+            fee = { 'currency': code, 'cost': this.parseNumber(feeCostAbsString) };
+            amountString = Precise.stringSub(amountString, feeCostAbsString);
+        }
         return {
             'id': this.safeString(transaction, 'id'),
             'info': transaction,
             'txid': this.safeString(transaction, 'txId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': networkId,
+            'network': this.networkIdToCode(networkId),
             'addressFrom': undefined,
             'address': this.safeString(transaction, 'toAddress'),
             'addressTo': this.safeString(transaction, 'toAddress'),
-            'amount': this.safeNumber(transaction, 'amount'),
+            'amount': this.parseNumber(amountString),
             'type': this.safeString(transaction, 'type'),
-            'currency': this.safeCurrencyCode(currencyId),
+            'currency': code,
             'status': this.parseTransactionStatus(status),
-            'updated': this.safeNumber(transaction, 'uTime'),
+            'updated': this.safeInteger(transaction, 'uTime'),
             'tagFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
+            'tag': tag,
+            'tagTo': tag,
             'comment': undefined,
-            'fee': undefined,
+            'fee': fee,
         };
     }
     parseTransactionStatus(status) {
@@ -3820,7 +3864,9 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        return this.parsePositions(data);
+        const first = this.safeValue(data, 0, {});
+        const position = this.parsePosition(first, market);
+        return position;
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**

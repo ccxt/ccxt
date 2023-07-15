@@ -9,6 +9,7 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    publicSpotGetNoticeQueryAllNotices (params?: {}): Promise<implicitReturnType>;
     publicSpotGetPublicTime (params?: {}): Promise<implicitReturnType>;
     publicSpotGetPublicCurrencies (params?: {}): Promise<implicitReturnType>;
     publicSpotGetPublicProducts (params?: {}): Promise<implicitReturnType>;

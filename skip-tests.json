@@ -489,6 +489,7 @@
         }
     },
     "bybit": {
+        "skip": "2023-07-13 exchange not available with 403 forbidden error code",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
@@ -668,6 +669,7 @@
     "deribit": {
         "skipWs": true,
         "skipMethods": {
+            "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
             "fetchTickers": "something wrong"
         }
@@ -912,6 +914,9 @@
     "kucoin": {
         "skipWs": true,
         "skipMethods":{
+            "fetchCurrencies": {
+                "networks": "not yet implemented"
+            },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
             },
@@ -1313,6 +1318,7 @@
         }
     },
     "zaif": {
+        "skip": "2023-07-13 403 Forbidden",
         "skipMethods": {
             "fetchCurrencies": {
                 "info": "key is missing"
@@ -1329,6 +1335,23 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
+            }
+        }
+    },
+    "bingx": {
+        "skipMethods": {
+            "loadMarkets": "some coins not detected",
+            "fetchTrades": {
+                "side": "undefined"
+            },
+            "fetchTicker": "spot not supported",
+            "fetchTickers": {
+                "quoteVolume": "not supported"
+            },
+            "fetchOHLCV": "spot not supported",
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "precision": "not provided"
             }
         }
     }

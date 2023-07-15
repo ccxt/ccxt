@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kucoin import ImplicitAPI
+import asyncio
 import hashlib
 import math
 import json
@@ -120,12 +121,14 @@ class kucoin(Exchange, ImplicitAPI):
                     'private': 'https://api.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
                     'private': 'https://openapi-sandbox.kucoin.com',
                     'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
                     'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
+                    'webExchange': 'https://kucoin.com/_api',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -328,6 +331,11 @@ class kucoin(Exchange, ImplicitAPI):
                         'stopOrders': 1.3953,
                     },
                 },
+                'webExchange': {
+                    'get': {
+                        'currency/currency/chain-info': 1,  # self is temporary from webApi
+                    },
+                },
             },
             'timeframes': {
                 '1m': '1min',
@@ -457,6 +465,11 @@ class kucoin(Exchange, ImplicitAPI):
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'fetchCurrencies': {
+                    'webApiEnable': True,  # fetches from WEB
+                    'webApiRetries': 5,
+                    'webApiMuteFailure': True,
+                },
                 'fetchMarkets': {
                     'fetchTickersFees': True,
                 },
@@ -549,18 +562,215 @@ class kucoin(Exchange, ImplicitAPI):
                     'hf': 'trade_hf',
                 },
                 'networks': {
-                    'Native': 'bech32',
-                    'BTC-Segwit': 'btc',
+                    'BTC': 'btc',
+                    'BTCNATIVESEGWIT': 'bech32',
+                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'BEP20': 'bsc',
+                    'TRX': 'trx',
                     'TRC20': 'trx',
-                    'TERRA': 'luna',
-                    'BNB': 'bsc',
+                    'HECO': 'heco',
                     'HRC20': 'heco',
-                    'HT': 'heco',
-                },
-                'networksById': {
-                    'BEP20': 'BSC',
+                    'MATIC': 'matic',
+                    'POLYGON': 'matic',
+                    'KCC': 'kcc',  # kucoin community chain
+                    'SOL': 'sol',
+                    'ALGO': 'algo',
+                    'EOS': 'eos',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bnb',
+                    'ARB_ONE': 'arbitrum',
+                    'TLOS': 'tlos',  # tlosevm is different
+                    'CFX': 'cfx',
+                    'ACA': 'aca',
+                    'OPTIMISM': 'optimism',
+                    'ONT': 'ont',
+                    'GLMR': 'glmr',
+                    'CSPR': 'cspr',
+                    'KLAY': 'klay',
+                    'XRD': 'xrd',
+                    'RVN': 'rvn',
+                    'NEAR': 'near',
+                    'APT': 'aptos',
+                    'ETHW': 'ethw',
+                    'TON': 'ton',
+                    'BCH': 'bch',
+                    'BSV': 'bchsv',
+                    'BCHA': 'bchabc',
+                    'OSMO': 'osmo',
+                    'NANO': 'nano',
+                    'XLM': 'xlm',
+                    'VET': 'vet',
+                    'IOST': 'iost',
+                    'ZIL': 'zil',
+                    'XRP': 'xrp',
+                    'TOMO': 'tomo',
+                    'XMR': 'xmr',
+                    'COTI': 'coti',
+                    'XTZ': 'xtz',
+                    'ADA': 'ada',
+                    'WAX': 'waxp',
+                    'THETA': 'theta',
+                    'ONE': 'one',
+                    'IOTEX': 'iotx',
+                    'NULS': 'nuls',
+                    'KSM': 'ksm',
+                    'LTC': 'ltc',
+                    'WAVES': 'waves',
+                    'DOT': 'dot',
+                    'STEEM': 'steem',
+                    'QTUM': 'qtum',
+                    'DOGE': 'doge',
+                    'FIL': 'fil',
+                    'AVAX_X': 'avax',
+                    'AVAX_C': 'avaxc',
+                    'XYM': 'xym',
+                    'FLUX': 'flux',
+                    'ATOM': 'atom',
+                    'XDC': 'xdc',
+                    'KDA': 'kda',
+                    'ICP': 'icp',
+                    'CELO': 'celo',
+                    'LSK': 'lsk',
+                    'VSYS': 'vsys',
+                    'KAR': 'kar',
+                    'XCH': 'xch',
+                    'FLOW': 'flow',
+                    'BAND': 'band',
+                    'EGLD': 'egld',
+                    'HBAR': 'hbar',
+                    'XPR': 'xpr',
+                    'AR': 'ar',
+                    'FTM': 'ftm',
+                    'KAVA': 'kava',
+                    'KMA': 'kma',
+                    'XEC': 'xec',
+                    'IOTA': 'iota',
+                    'HNT': 'hnt',
+                    'ASTR': 'astr',
+                    'PDEX': 'pdex',
+                    'METIS': 'metis',
+                    'ZEC': 'zec',
+                    'POKT': 'pokt',
+                    'OASYS': 'oas',
+                    'OASIS': 'oasis',  # a.k.a. ROSE
+                    'ETC': 'etc',
+                    'AKT': 'akt',
+                    'FSN': 'fsn',
+                    'SCRT': 'scrt',
+                    'CFG': 'cfg',
+                    'ICX': 'icx',
+                    'KMD': 'kmd',
+                    'NEM': 'NEM',
+                    'STX': 'stx',
+                    'DGB': 'dgb',
+                    'DCR': 'dcr',
+                    'CKB': 'ckb',  # ckb2 is just odd entry
+                    'ELA': 'ela',  # esc might be another chain elastos smart chain
+                    'HYDRA': 'hydra',
+                    'BTM': 'btm',
+                    'KARDIA': 'kai',
+                    'SXP': 'sxp',  # a.k.a. solar swipe
+                    'NEBL': 'nebl',
+                    'ZEN': 'zen',
+                    'SDN': 'sdn',
+                    'AURORA': 'aurora',
+                    'LTO': 'lto',
+                    'WEMIX': 'wemix',
+                    # 'BOBA': 'boba',  # tbd
+                    'EVER': 'ever',
+                    'PHA': 'pha',  # a.k.a. khala
+                    'BNC': 'bnc',
+                    'BNCDOT': 'bncdot',
+                    'CMP': 'cmp',
+                    'AION': 'aion',
+                    'PAL': 'pal',
+                    'GRIN': 'grin',
+                    'LOKI': 'loki',
+                    'QKC': 'qkc',
+                    'RSK': 'rbtc',
+                    'NIX': 'nix',
+                    'TT': 'TT',
+                    'NIM': 'nim',
+                    'NRG': 'nrg',
+                    'RFOX': 'rfox',
+                    'PIVX': 'pivx',
+                    'SERO': 'sero',
+                    'METER': 'meter',
+                    'STATEMINE': 'statemine',  # a.k.a. RMRK
+                    'DVPN': 'dvpn',
+                    'XPRT': 'xprt',
+                    'NDAU': 'ndau',
+                    'MOVR': 'movr',
+                    'ERGO': 'ergo',
+                    'ABBC': 'abbc',
+                    'DIVI': 'divi',
+                    'PURA': 'pura',
+                    'DFI': 'dfi',
+                    # 'NEO': 'neo',  # tbd neo legacy
+                    'NEON3': 'neon3',
+                    'DOCK': 'dock',
+                    'AXE': 'axe',
+                    'TRUE': 'true',
+                    'CS': 'cs',
+                    'HTR': 'htr',
+                    'ORAI': 'orai',
+                    'DEROHE': 'derohe',
+                    'HPB': 'hpb',
+                    # below will be uncommented after consensus
+                    # 'BITCOINDIAMON': 'bcd',
+                    # 'BITCOINGOLD': 'btg',
+                    # 'BITCOINPRIVATE': 'btcp',
+                    # 'EDGEWARE': 'edg',
+                    # 'JUPITER': 'jup',
+                    # 'VELAS': 'vlx',  # vlxevm is different
+                    #  # 'terra' luna lunc TBD
+                    # 'DIGITALBITS': 'xdb',
+                    #  # fra is fra-emv on kucoin
+                    # 'PASTEL': 'psl',
+                    #  # sysevm
+                    # 'CONCORDIUM': 'ccd',
+                    # 'PIONEER': 'neer',
+                    # 'PIXIE': 'pix',
+                    # 'ALEPHZERO': 'azero',
+                    # 'ACHAIN': 'act',  # actevm is different
+                    # 'BOSCOIN': 'bos',
+                    # 'ELECTRONEUM': 'etn',
+                    # 'GOCHAIN': 'go',
+                    # 'SOPHIATX': 'sphtx',
+                    # 'WANCHAIN': 'wan',
+                    # 'ZEEPIN': 'zpt',
+                    # 'MATRIXAI': 'man',
+                    # 'METADIUM': 'meta',
+                    # 'METAHASH': 'mhc',
+                    #  # eosc --"eosforce" tbd
+                    # 'IOTCHAIN': 'itc',
+                    # 'CONTENTOS': 'cos',
+                    # 'CPCHAIN': 'cpc',
+                    # 'INTCHAIN': 'int',
+                    #  # 'DASH': 'dash', tbd digita-cash
+                    # 'WALTONCHAIN': 'wtc',
+                    # 'CONSTELLATION': 'dag',
+                    # 'ONELEDGER': 'olt',
+                    # 'AIRDAO': 'amb',  # a.k.a. AMBROSUS
+                    # 'ENERGYWEB': 'ewt',
+                    # 'WAVESENTERPRISE': 'west',
+                    # 'HYPERCASH': 'hc',
+                    # 'ENECUUM': 'enq',
+                    # 'HAVEN': 'xhv',
+                    # 'CHAINX': 'pcx',
+                    #  # 'FLUXOLD': 'zel',  # zel seems old chain(with uppercase FLUX in kucoin UI and with id 'zel')
+                    # 'BUMO': 'bu',
+                    # 'DEEPONION': 'onion',
+                    # 'ULORD': 'ut',
+                    # 'ASCH': 'xas',
+                    # 'SOLARIS': 'xlr',
+                    # 'APOLLO': 'apl',
+                    # 'PIRATECHAIN': 'arrr',
+                    # 'ULTRA': 'uos',
+                    # 'EMONEY': 'ngm',
+                    # 'AURORACHAIN': 'aoa',
+                    # 'KLEVER': 'klv',
+                    # undetermined: xns(insolar), rhoc, luk(luniverse), kts(klimatas), bchn(bitcoin cash node), god(shallow entry), lit(litmus),
                 },
                 'marginModes': {
                     'cross': 'MARGIN_TRADE',
@@ -752,11 +962,11 @@ class kucoin(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        see https://docs.kucoin.com/#get-currencies
-        :param dict [params]: extra parameters specific to the kucoin api endpoint
+        :param dict params: extra parameters specific to the kucoin api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = await self.publicGetCurrencies(params)
+        promises = []
+        promises.append(self.publicGetCurrencies(params))
         #
         #     {
         #         "currency": "OMG",
@@ -772,7 +982,48 @@ class kucoin(Exchange, ImplicitAPI):
         #         "isDebitEnabled": False
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        promises.append(self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', True))
+        #
+        #    {
+        #        "success": True,
+        #        "code": "200",
+        #        "msg": "success",
+        #        "retry": False,
+        #        "data": [
+        #            {
+        #                "withdrawMinFee": "0.0005",
+        #                "chainName": "BTC",
+        #                "preDepositTipEnabled": "false",
+        #                "chain": "btc",
+        #                "isChainEnabled": "true",
+        #                "withdrawDisabledTip": "",
+        #                "walletPrecision": "8",
+        #                "chainFullName": "Bitcoin",
+        #                "orgAddress": "",
+        #                "isDepositEnabled": "true",
+        #                "withdrawMinSize": "0.001",
+        #                "depositDisabledTip": "",
+        #                "userAddressName": "",
+        #                "txUrl": "https://blockchain.info/tx/{txId}",
+        #                "preWithdrawTipEnabled": "false",
+        #                "withdrawFeeRate": "0",
+        #                "confirmationCount": "2",
+        #                "currency": "BTC",
+        #                "depositMinSize": "0.00005",
+        #                "isWithdrawEnabled": "true",
+        #                "preDepositTip": "",
+        #                "preWithdrawTip": "",
+        #                "status": "enabled"
+        #            },
+        #        ]
+        #    }
+        #
+        responses = await asyncio.gather(*promises)
+        responseCurrencies = responses[0]
+        responseChains = responses[1]
+        data = self.safe_value(responseCurrencies, 'data', [])
+        chainsData = self.safe_value(responseChains, 'data', [])
+        currencyChains = self.group_by(chainsData, 'currency')
         result = {}
         for i in range(0, len(data)):
             entry = data[i]
@@ -783,6 +1034,35 @@ class kucoin(Exchange, ImplicitAPI):
             isDepositEnabled = self.safe_value(entry, 'isDepositEnabled', False)
             fee = self.safe_number(entry, 'withdrawalMinFee')
             active = (isWithdrawEnabled and isDepositEnabled)
+            networks = {}
+            chains = self.safe_value(currencyChains, id, [])
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                chainId = self.safe_string(chain, 'chain')
+                isChainEnabled = self.safe_string(chain, 'isChainEnabled')  # better than 'status'
+                if isChainEnabled == 'true':
+                    networkCode = self.network_id_to_code(chainId)
+                    chainWithdrawEnabled = self.safe_value(chain, 'isWithdrawEnabled', False)
+                    chainDepositEnabled = self.safe_value(chain, 'isDepositEnabled', False)
+                    networks[networkCode] = {
+                        'info': chain,
+                        'id': chainId,
+                        'name': self.safe_string_2(chain, 'chainFullName', 'chainName'),
+                        'code': networkCode,
+                        'active': chainWithdrawEnabled and chainDepositEnabled,
+                        'fee': self.safe_number(chain, 'withdrawMinFee'),
+                        'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'walletPrecision'))),
+                        'limits': {
+                            'withdraw': {
+                                'min': self.safe_number(chain, 'withdrawMinSize'),
+                                'max': None,
+                            },
+                            'deposit': {
+                                'min': self.safe_number(chain, 'depositMinSize'),
+                                'max': None,
+                            },
+                        },
+                    }
             result[code] = {
                 'id': id,
                 'name': name,
@@ -794,7 +1074,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': self.limits,
-                'networks': {},
+                'networks': networks,
             }
         return result
 
@@ -846,27 +1126,23 @@ class kucoin(Exchange, ImplicitAPI):
 
     async def fetch_transaction_fee(self, code: str, params={}):
         """
-         * @deprecated
-        please use fetchDepositWithdrawFee instead
+        *DEPRECATED* please use fetchDepositWithdrawFee instead
         see https://docs.kucoin.com/#get-withdrawal-quotas
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
         }
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper_2(params, 'network', 'chain')
-        network = self.safe_string_lower(networks, network, network)
-        if network is not None:
-            network = network.lower()
-            request['chain'] = network.lower()
-            params = self.omit(params, ['network', 'chain'])
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chain'] = self.network_code_to_id(networkCode).lower()
         response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
-        data = response['data']
+        data = self.safe_value(response, 'data')
         withdrawFees = {}
         withdrawFees[code] = self.safe_number(data, 'withdrawMinFee')
         return {
@@ -889,11 +1165,10 @@ class kucoin(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        networkCode = self.safe_string_upper(params, 'network')
-        network = self.network_code_to_id(networkCode, code)
-        if network is not None:
-            request['chain'] = network.lower()
-            params = self.omit(params, ['network'])
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chain'] = self.network_code_to_id(networkCode).lower()
         response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
         #
         #    {
@@ -946,7 +1221,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         isWithdrawEnabled = self.safe_value(fee, 'isWithdrawEnabled')
         if isWithdrawEnabled:
-            result['withdraw']['fee'] = self.safe_number(fee, 'withdrawalMinFee')
+            result['withdraw']['fee'] = self.safe_number_2(fee, 'withdrawalMinFee', 'withdrawMinFee')
             result['withdraw']['percentage'] = False
             networkId = self.safe_string(fee, 'chain')
             if networkId:
@@ -1236,33 +1511,16 @@ class kucoin(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper_2(params, 'chain', 'network')
-        network = self.safe_string_lower(networks, network, network)
-        if network is not None:
-            network = network.lower()
-            request['chain'] = network
-            params = self.omit(params, ['chain', 'network'])
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chain'] = self.network_code_to_id(networkCode).lower()
         response = await self.privatePostDepositAddresses(self.extend(request, params))
         # {"code":"260000","msg":"Deposit address already exists."}
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
-        address = self.safe_string(data, 'address')
-        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        if address is not None:
-            address = address.replace('bitcoincash:', '')
-        tag = self.safe_string(data, 'memo')
-        if code != 'NIM':
-            # contains spaces
-            self.check_address(address)
-        return {
-            'info': response,
-            'currency': code,
-            'network': self.safe_string(data, 'chain'),
-            'address': address,
-            'tag': tag,
-        }
+        return self.parse_deposit_address(data, currency)
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
@@ -1280,35 +1538,38 @@ class kucoin(Exchange, ImplicitAPI):
             # for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             # 'chain': 'ERC20',  # optional
         }
-        # same withdraw
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper_2(params, 'chain', 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
-        if network is not None:
-            network = network.lower()
-            request['chain'] = network
-            params = self.omit(params, ['chain', 'network'])
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chain'] = self.network_code_to_id(networkCode).lower()
         version = self.options['versions']['private']['GET']['deposit-addresses']
         self.options['versions']['private']['GET']['deposit-addresses'] = 'v1'
         response = await self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         self.options['versions']['private']['GET']['deposit-addresses'] = version
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_value(response, 'data')
+        if data is None:
+            raise ExchangeError(self.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again')
         return self.parse_deposit_address(data, currency)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         address = self.safe_string(depositAddress, 'address')
-        code = currency['id']
-        if code != 'NIM':
-            # contains spaces
-            self.check_address(address)
+        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        if address is not None:
+            address = address.replace('bitcoincash:', '')
+        code = None
+        if currency is not None:
+            code = currency['id']
+            if code != 'NIM':
+                # contains spaces
+                self.check_address(address)
         return {
             'info': depositAddress,
             'currency': code,
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
-            'network': self.safe_string(depositAddress, 'chain'),
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain')),
         }
 
     async def fetch_deposit_addresses_by_network(self, code: str, params={}):
@@ -1343,32 +1604,11 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         self.options['versions']['private']['GET']['deposit-addresses'] = version
-        data = self.safe_value(response, 'data', [])
-        return self.parse_deposit_addresses_by_network(data, currency)
-
-    def parse_deposit_addresses_by_network(self, depositAddresses, currency=None):
-        #
-        #     [
-        #         {
-        #             "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
-        #             "memo": "",
-        #             "chain": "BTC-Segwit",
-        #             "contractAddress": ""
-        #         },
-        #         ...
-        #     ]
-        #
-        result = []
-        for i in range(0, len(depositAddresses)):
-            entry = depositAddresses[i]
-            result.append({
-                'info': entry,
-                'currency': self.safe_currency_code(currency['id'], currency),
-                'network': self.safe_string(entry, 'chain'),
-                'address': self.safe_string(entry, 'address'),
-                'tag': self.safe_string(entry, 'memo'),
-            })
-        return result
+        chains = self.safe_value(response, 'data', [])
+        parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
+            'currency': currency['id'],
+        })
+        return self.index_by(parsed, 'network')
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -2371,15 +2611,12 @@ class kucoin(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['memo'] = tag
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
-        if network is not None:
-            network = network.lower()
-            request['chain'] = network
-            params = self.omit(params, 'network')
-        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chain'] = self.network_code_to_id(networkCode).lower()
+        includeFee = None
+        includeFee, params = self.handle_option_and_params(params, 'withdraw', 'includeFee', False)
         if includeFee:
             request['feeDeductType'] = 'INTERNAL'
         response = await self.privatePostWithdrawals(self.extend(request, params))
@@ -2485,13 +2722,12 @@ class kucoin(Exchange, ImplicitAPI):
             if updated is not None:
                 updated = updated * 1000
         tag = self.safe_string(transaction, 'memo')
-        network = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': network,
+            'network': self.network_id_to_code(self.safe_string(transaction, 'chain')),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -3554,7 +3790,7 @@ class kucoin(Exchange, ImplicitAPI):
         version = self.safe_string(params, 'version', defaultVersion)
         params = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
-        if api == 'webFront':
+        if api == 'webExchange':
             endpoint = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''

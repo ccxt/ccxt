@@ -631,12 +631,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $limit = $this->safe_integer($this->options, 'ordersLimit');
         $this->orders = new ArrayCacheBySymbolById ($limit);
         $symbols = array();
+        $cachedOrders = $this->orders;
         for ($i = 0; $i < count($orders); $i++) {
             $order = $orders[$i];
             $parsed = $this->parse_ws_order($order);
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
-            $this->orders.append ($parsed);
+            $cachedOrders->append ($parsed);
         }
         if (strlen($this->orders) > 0) {
             $client->resolve ($this->orders, 'orders');

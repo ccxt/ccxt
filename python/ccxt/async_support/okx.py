@@ -185,24 +185,26 @@ class okx(Exchange, ImplicitAPI):
                         'market/tickers': 1,
                         'market/ticker': 1,
                         'market/index-tickers': 1,
-                        'market/books': 1,
-                        'market/books-lite': 1.66,
-                        'market/candles': 0.5,
+                        'market/books': 1 / 2,
+                        'market/books-lite': 5 / 3,
+                        'market/candles': 1 / 2,
                         'market/history-candles': 1,
-                        'market/history-mark-price-candles': 2,
-                        'market/history-index-candles': 2,
                         'market/index-candles': 1,
+                        'market/history-index-candles': 2,
                         'market/mark-price-candles': 1,
-                        'market/trades': 1,
+                        'market/history-mark-price-candles': 2,
+                        'market/trades': 1 / 5,
                         'market/history-trades': 2,
-                        'market/platform-24-volume': 10,
-                        'market/open-oracle': 40,
-                        'market/index-components': 1,
                         'market/option/instrument-family-trades': 1,
-                        # 'market/oracle',
+                        'market/platform-24-volume': 10,
+                        'market/open-oracle': 50,
+                        'market/exchange-rate': 20,
+                        'market/index-components': 1,
+                        'market/block-tickers': 1,
+                        'market/block-ticker': 1,
+                        'market/block-trades': 1,
                         'public/instruments': 1,
-                        'public/instrument-tick-bands': 4,
-                        'public/delivery-exercise-history': 0.5,
+                        'public/delivery-exercise-history': 1 / 2,
                         'public/open-interest': 1,
                         'public/funding-rate': 1,
                         'public/funding-rate-history': 1,
@@ -211,14 +213,15 @@ class okx(Exchange, ImplicitAPI):
                         'public/estimated-price': 2,
                         'public/discount-rate-interest-free-quota': 10,
                         'public/time': 2,
-                        'public/liquidation-orders': 0.5,
                         'public/mark-price': 2,
-                        'public/option-trades': 1,
-                        # 'public/tier',
                         'public/position-tiers': 2,
-                        'public/underlying': 1,
                         'public/interest-rate-loan-quota': 10,
                         'public/vip-interest-rate-loan-quota': 10,
+                        'public/underlying': 1,
+                        'public/insurance-fund': 2,
+                        'public/convert-contract-coin': 2,
+                        'public/option-trades': 1,
+                        'public/instrument-tick-bands': 4,
                         'rubik/stat/trading-data/support-coin': 4,
                         'rubik/stat/taker-volume': 4,
                         'rubik/stat/margin/loan-ratio': 4,
@@ -231,181 +234,237 @@ class okx(Exchange, ImplicitAPI):
                         'rubik/stat/option/open-interest-volume-expiry': 4,
                         'rubik/stat/option/open-interest-volume-strike': 4,
                         'rubik/stat/option/taker-block-volume': 4,
-                        'system/status': 100,
+                        'system/status': 50,
+                        # public api
+                        'sprd/spreads': 1,
+                        'sprd/books': 1 / 2,
+                        'sprd/ticker': 1,
+                        'sprd/public-trades': 1 / 5,
+                        'tradingBot/grid/ai-param': 1,
+                        'tradingBot/grid/min-investment': 1,
+                        'tradingBot/public/rsi-back-testing': 1,
                         'finance/savings/lending-rate-summary': 5 / 3,
                         'finance/savings/lending-rate-history': 5 / 3,
-                        'market/exchange-rate': 20,
+                        # public broker
+                        'finance/sfp/dcd/products': 2 / 3,
                     },
                 },
                 'private': {
                     'get': {
-                        'account/account-position-risk': 2,
-                        'account/balance': 2,
-                        'account/positions': 2,
-                        'account/positions-history': 2,
-                        'account/bills': 5 / 3,
-                        'account/bills-archive': 5 / 3,
-                        'account/config': 4,
-                        'account/max-size': 1,
-                        'account/max-avail-size': 1,
-                        'account/leverage-info': 1,
-                        'account/max-loan': 1,
-                        'account/trade-fee': 4,
-                        'account/interest-accrued': 4,
-                        'account/interest-rate': 4,
-                        'account/max-withdrawal': 1,
-                        'account/risk-state': 2,
-                        'account/borrow-repay-history': 4,
-                        'account/quick-margin-borrow-repay-history': 4,
-                        'account/interest-limits': 4,
-                        'account/vip-interest-accrued': 4,
-                        'account/vip-loan-order-list': 4,
-                        'account/vip-loan-order-detail': 4,
-                        'asset/asset-valuation': 1 / 5,
-                        'asset/deposit-address': 5 / 3,
-                        'asset/balances': 5 / 3,
-                        'asset/transfer-state': 10,
-                        'asset/transfer-record': 10,
-                        'asset/deposit-history': 5 / 3,
-                        'asset/withdrawal-history': 5 / 3,
-                        'asset/deposit-withdraw-status': 20,
-                        'asset/currencies': 5 / 3,
-                        'asset/bills': 5 / 3,
-                        'asset/piggy-balance': 5 / 3,
-                        'asset/deposit-lightning': 5,
-                        'asset/non-tradable-assets': 5 / 3,
-                        'trade/order': 1 / 3,
-                        'trade/orders-pending': 1,
-                        'trade/orders-history': 0.5,
-                        'trade/orders-history-archive': 1,
-                        'trade/fills': 1 / 3,
-                        'trade/fills-history': 2,
-                        'trade/orders-algo-pending': 1,
-                        'trade/orders-algo-history': 1,
-                        'trade/order-algo': 1,
-                        'account/subaccount/balances': 10,
-                        'account/subaccount/interest-limits': 4,
-                        'asset/subaccount/bills': 5 / 3,
-                        'asset/subaccount/managed-subaccount-bills': 5 / 3,
-                        'users/subaccount/list': 10,
-                        'users/subaccount/apikey': 10,
-                        'users/entrust-subaccount-list': 10,
-                        # broker
-                        'broker/nd/info': 10,
-                        'broker/nd/subaccount-info': 10,
-                        'asset/broker/nd/subaccount-deposit-address': 4,
-                        'asset/broker/nd/subaccount-deposit-history': 4,
-                        'broker/nd/rebate-daily': 1,
-                        'broker/nd/subaccount/apikey': 10,
-                        'broker/nd/rebate-per-orders': 300,
-                        'asset/broker/nd/subaccount-withdrawal-history': 4,
-                        # convert
-                        'asset/convert/currencies': 5 / 3,
-                        'asset/convert/currency-pair': 5 / 3,
-                        'asset/convert/estimate-quote': 5,
-                        'asset/convert/trade': 5,
-                        'asset/convert/history': 5 / 3,
-                        # options
-                        'account/greeks': 2,
-                        # earn
-                        'finance/staking-defi/offers': 1,
-                        'finance/staking-defi/orders-active': 1,
-                        'finance/staking-defi/orders-history': 1,
-                        'finance/savings/balance': 5 / 3,
-                        'finance/savings/lending-history': 5 / 3,
+                        # rfq
                         'rfq/counterparties': 4,
                         'rfq/maker-instrument-settings': 4,
                         'rfq/rfqs': 10,
                         'rfq/quotes': 10,
                         'rfq/trades': 4,
                         'rfq/public-trades': 4,
-                        # copytrading
-                        'copytrading/current-subpositions': 10,
-                        'copytrading/subpositions-history': 10,
-                        'copytrading/instruments': 10,
-                        'copytrading/profit-sharing-details': 10,
-                        'copytrading/total-profit-sharing': 10,
-                        'copytrading/unrealized-profit-sharing-details': 10,
+                        # sprd
+                        'sprd/order': 1 / 3,
+                        'sprd/orders-pending': 1 / 3,
+                        'sprd/orders-history': 1 / 2,
+                        'sprd/trades': 1 / 3,
+                        # trade
+                        'trade/order': 1 / 3,
+                        'trade/orders-pending': 1 / 3,
+                        'trade/orders-history': 1 / 2,
+                        'trade/orders-history-archive': 1,
+                        'trade/fills': 1 / 3,
+                        'trade/fills-history': 2,
+                        'trade/order-algo': 1,
+                        'trade/orders-algo-pending': 1,
+                        'trade/orders-algo-history': 1,
+                        'trade/easy-convert-currency-list': 20,
+                        'trade/easy-convert-history': 20,
+                        'trade/one-click-repay-currency-list': 20,
+                        'trade/one-click-repay-history': 20,
+                        # asset
+                        'asset/currencies': 5 / 3,
+                        'asset/balances': 5 / 3,
+                        'asset/non-tradable-assets': 5 / 3,
+                        'asset/asset-valuation': 10,
+                        'asset/transfer-state': 10,
+                        'asset/bills': 5 / 3,
+                        'asset/deposit-lightning': 5,
+                        'asset/deposit-address': 5 / 3,
+                        'asset/deposit-history': 5 / 3,
+                        'asset/withdrawal-history': 5 / 3,
+                        'asset/deposit-withdraw-status': 20,
+                        'asset/convert/currencies': 5 / 3,
+                        'asset/convert/currency-pair': 5 / 3,
+                        'asset/convert/history': 5 / 3,
+                        # account
+                        'account/balance': 2,
+                        'account/positions': 2,
+                        'account/positions-history': 100,
+                        'account/account-position-risk': 2,
+                        'account/bills': 5 / 3,
+                        'account/bills-archive': 5 / 3,
+                        'account/config': 4,
+                        'account/max-size': 1,
+                        'account/max-avail-size': 1,
+                        'account/leverage-info': 1,
+                        'account/adjust-leverage-info': 4,
+                        'account/max-loan': 1,
+                        'account/trade-fee': 4,
+                        'account/interest-accrued': 4,
+                        'account/interest-rate': 4,
+                        'account/max-withdrawal': 1,
+                        'account/risk-state': 2,
+                        'account/quick-margin-borrow-repay-history': 4,
+                        'account/borrow-repay-history': 4,
+                        'account/vip-interest-accrued': 4,
+                        'account/vip-interest-deducted': 4,
+                        'account/vip-loan-order-list': 4,
+                        'account/vip-loan-order-detail': 4,
+                        'account/interest-limits': 4,
+                        'account/greeks': 2,
+                        'account/position-tiers': 2,
+                        'account/mmp-config': 4,
+                        # subaccount
+                        'users/subaccount/list': 10,
+                        'account/subaccount/balances': 10 / 3,
+                        'asset/subaccount/balances': 10 / 3,
+                        'account/subaccount/max-withdrawal': 1,
+                        'asset/subaccount/bills': 5 / 3,
+                        'asset/subaccount/managed-subaccount-bills': 5 / 3,
+                        'users/entrust-subaccount-list': 10,
+                        'users/partner/if-rebate': 1,
+                        'account/subaccount/interest-limits': 4,
                         # grid trading
                         'tradingBot/grid/orders-algo-pending': 1,
                         'tradingBot/grid/orders-algo-history': 1,
                         'tradingBot/grid/orders-algo-details': 1,
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
-                        'tradingBot/grid/ai-param': 1,
+                        'tradingBot/recurring/orders-algo-pending': 1,
+                        'tradingBot/recurring/orders-algo-history': 1,
+                        'tradingBot/recurring/orders-algo-details': 1,
+                        'tradingBot/recurring/sub-orders': 1,
+                        # earn
+                        'finance/savings/balance': 5 / 3,
+                        'finance/savings/lending-history': 5 / 3,
+                        'finance/staking-defi/offers': 10 / 3,
+                        'finance/staking-defi/orders-active': 10 / 3,
+                        'finance/staking-defi/orders-history': 10 / 3,
+                        # copytrading
+                        'copytrading/current-subpositions': 4,
+                        'copytrading/subpositions-history': 10,
+                        'copytrading/instruments': 10,
+                        'copytrading/profit-sharing-details': 10,
+                        'copytrading/total-profit-sharing': 10,
+                        'copytrading/unrealized-profit-sharing-details': 10,
+                        # broker
+                        'broker/nd/info': 10,
+                        'broker/nd/subaccount-info': 10,
+                        'broker/nd/subaccount/apikey': 10,
+                        'asset/broker/nd/subaccount-deposit-address': 5 / 3,
+                        'asset/broker/nd/subaccount-deposit-history': 4,
+                        'asset/broker/nd/subaccount-withdrawal-history': 4,
+                        'broker/nd/rebate-daily': 100,
+                        'broker/nd/rebate-per-orders': 300,
+                        'finance/sfp/dcd/order': 2,
+                        'finance/sfp/dcd/orders': 2,
+                        'broker/fd/rebate-per-orders': 300,
+                        'broker/fd/if-rebate': 5,
                     },
                     'post': {
-                        'account/set-position-mode': 4,
-                        'account/set-leverage': 1,
-                        'account/position/margin-balance': 1,
-                        'account/set-greeks': 4,
-                        'account/set-isolated-mode': 4,
-                        'account/set-riskOffset-type': 2,
-                        'account/simulated_margin': 10,
-                        'account/borrow-repay': 5 / 3,
-                        'account/quick-margin-borrow-repay': 4,
-                        'account/activate-option': 4,
-                        'account/set-auto-loan': 4,
-                        'account/subaccount/set-loan-allocation': 4,
-                        'asset/transfer': 10,
-                        'asset/withdrawal': 5 / 3,
-                        'asset/withdrawal-lightning': 5,
-                        'asset/cancel-withdrawal': 5 / 3,
-                        'asset/convert-dust-assets': 10,
-                        'trade/order': 1 / 3,
-                        'trade/batch-orders': 1 / 15,
-                        'trade/cancel-order': 1 / 3,
-                        'trade/cancel-batch-orders': 1 / 15,
-                        'trade/amend-order': 1 / 3,
-                        'trade/amend-batch-orders': 1 / 3,
-                        'trade/amend-algos': 1,
-                        'trade/close-position': 1,
-                        'trade/order-algo': 1,
-                        'trade/cancel-algos': 1,
-                        'trade/cancel-advance-algos': 1,
-                        'users/subaccount/delete-apikey': 10,
-                        'users/subaccount/modify-apikey': 10,
-                        'users/subaccount/apikey': 10,
-                        'users/subaccount/set-transfer-out': 10,
-                        'asset/subaccount/transfer': 10,
-                        # broker
-                        'broker/nd/create-subaccount': 10,
-                        'broker/nd/delete-subaccount': 10,
-                        'broker/nd/set-subaccount-level': 4,
-                        'broker/nd/set-subaccount-fee-rate': 4,
-                        'asset/broker/nd/subaccount-deposit-address': 4,
-                        'broker/nd/subaccount/apikey': 10,
-                        'broker/nd/subaccount/delete-apikey': 10,
-                        'broker/nd/subaccount/modify-apikey': 10,
-                        'broker/nd/rebate-per-orders': 36000,
-                        # earn
-                        'finance/staking-defi/purchase': 3,
-                        'finance/staking-defi/redeem': 3,
-                        'finance/staking-defi/cancel': 3,
-                        'finance/savings/purchase-redempt': 5 / 3,
-                        'finance/savings/set-lending-rate': 5 / 3,
+                        # rfq
                         'rfq/create-rfq': 4,
                         'rfq/cancel-rfq': 4,
                         'rfq/cancel-batch-rfqs': 10,
                         'rfq/cancel-all-rfqs': 10,
-                        'rfq/execute-quote': 10,
+                        'rfq/execute-quote': 15,
                         'rfq/maker-instrument-settings': 4,
                         'rfq/mmp-reset': 4,
                         'rfq/create-quote': 0.4,
                         'rfq/cancel-quote': 0.4,
                         'rfq/cancel-batch-quotes': 10,
                         'rfq/cancel-all-quotes': 10,
-                        # copytrading
-                        'copytrading/algo-order': 20,
-                        'copytrading/close-subposition': 10,
-                        'copytrading/set-instruments': 10,
+                        # sprd
+                        'sprd/order': 1,
+                        'sprd/cancel-order': 1,
+                        'sprd/mass-cancel': 1,
+                        # trade
+                        'trade/order': 1 / 3,
+                        'trade/batch-orders': 1 / 15,
+                        'trade/cancel-order': 1 / 3,
+                        'trade/cancel-batch-orders': 1 / 15,
+                        'trade/amend-order': 1 / 3,
+                        'trade/amend-batch-orders': 1 / 150,
+                        'trade/close-position': 1,
+                        'trade/order-algo': 1,
+                        'trade/cancel-algos': 1,
+                        'trade/amend-algos': 1,
+                        'trade/cancel-advance-algos': 1,
+                        'trade/easy-convert': 20,
+                        'trade/one-click-repay': 20,
+                        'trade/mass-cancel': 4,
+                        'trade/cancel-all-after': 10,
+                        # asset
+                        'asset/transfer': 10,
+                        'asset/withdrawal': 5 / 3,
+                        'asset/withdrawal-lightning': 5,
+                        'asset/cancel-withdrawal': 5 / 3,
+                        'asset/convert-dust-assets': 10,
+                        'asset/convert/estimate-quote': 1,
+                        'asset/convert/trade': 1,
+                        # account
+                        'account/set-position-mode': 4,
+                        'account/set-leverage': 1,
+                        'account/position/margin-balance': 1,
+                        'account/set-greeks': 4,
+                        'account/set-isolated-mode': 4,
+                        'account/quick-margin-borrow-repay': 4,
+                        'account/borrow-repay': 5 / 3,
+                        'account/simulated_margin': 10,
+                        'account/set-riskOffset-type': 2,
+                        'account/activate-option': 4,
+                        'account/set-auto-loan': 4,
+                        'account/mmp-reset': 4,
+                        'account/mmp-config': 100,
+                        # subaccount
+                        'users/subaccount/modify-apikey': 10,
+                        'asset/subaccount/transfer': 10,
+                        'users/subaccount/set-transfer-out': 10,
+                        'account/subaccount/set-loan-allocation': 4,
                         # grid trading
                         'tradingBot/grid/order-algo': 1,
                         'tradingBot/grid/amend-order-algo': 1,
                         'tradingBot/grid/stop-order-algo': 1,
+                        'tradingBot/grid/close-position': 1,
+                        'tradingBot/grid/cancel-close-order': 1,
+                        'tradingBot/grid/order-instant-trigger': 1,
                         'tradingBot/grid/withdraw-income': 1,
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
+                        'tradingBot/grid/min-investment': 1,
+                        'tradingBot/recurring/order-algo': 1,
+                        'tradingBot/recurring/amend-order-algo': 1,
+                        'tradingBot/recurring/stop-order-algo': 1,
+                        # earn
+                        'finance/savings/purchase-redempt': 5 / 3,
+                        'finance/savings/set-lending-rate': 5 / 3,
+                        'finance/staking-defi/purchase': 3,
+                        'finance/staking-defi/redeem': 3,
+                        'finance/staking-defi/cancel': 3,
+                        # copytrading
+                        'copytrading/algo-order': 20,
+                        'copytrading/close-subposition': 4,
+                        'copytrading/set-instruments': 10,
+                        # broker
+                        'broker/nd/create-subaccount': 0.25,
+                        'broker/nd/delete-subaccount': 1,
+                        'broker/nd/subaccount/apikey': 0.25,
+                        'broker/nd/subaccount/modify-apikey': 1,
+                        'broker/nd/subaccount/delete-apikey': 1,
+                        'broker/nd/set-subaccount-level': 4,
+                        'broker/nd/set-subaccount-fee-rate': 4,
+                        'asset/broker/nd/subaccount-deposit-address': 1,
+                        'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3,
+                        'broker/nd/rebate-per-orders': 36000,
+                        'finance/sfp/dcd/quote': 10,
+                        'finance/sfp/dcd/order': 10,
+                        'broker/fd/rebate-per-orders': 36000,
                     },
                 },
             },
@@ -1255,12 +1314,19 @@ class okx(Exchange, ImplicitAPI):
             'instType': self.convert_to_instrument_type(type),
         }
         if type == 'option':
-            defaultUnderlying = self.safe_value(self.options, 'defaultUnderlying', 'BTC-USD')
-            currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
-            if currencyId is None:
-                raise ArgumentsRequired(self.id + ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets')
-            else:
-                request['uly'] = currencyId
+            optionsUnderlying = self.safe_value(self.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD'])
+            promises = []
+            for i in range(0, len(optionsUnderlying)):
+                underlying = optionsUnderlying[i]
+                request['uly'] = underlying
+                promises.append(self.publicGetPublicInstruments(self.extend(request, params)))
+            promisesResult = await asyncio.gather(*promises)
+            data = []
+            for i in range(0, len(promisesResult)):
+                res = self.safe_value(promisesResult, i, {})
+                options = self.safe_value(res, 'data', [])
+                data = self.array_concat(data, options)
+            return self.parse_markets(data)
         response = await self.publicGetPublicInstruments(self.extend(request, params))
         #
         # spot, future, swap, option
@@ -2186,28 +2252,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return self.parse_balance_by_type(marketType, response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
-        """
-        create a trade order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the okx api endpoint
-        :param bool [params.reduceOnly]: MARGIN orders only, or swap/future orders in net mode
-        :param bool [params.postOnly]: True to place a post only order
-        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
-        :param float [params.takeProfit.triggerPrice]: take profit trigger price
-        :param float [params.takeProfit.price]: used for take profit limit orders, not used for take profit market price orders
-        :param str [params.takeProfit.type]: 'market' or 'limit' used to specify the take profit price type
-        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
-        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
-        :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
-        :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        await self.load_markets()
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2276,12 +2321,10 @@ class okx(Exchange, ImplicitAPI):
         trigger = (triggerPrice is not None) or (type == 'trigger')
         conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         marketIOC = (isMarketOrder and ioc) or (type == 'optimal_limit_ioc')
-        defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
         if (not contract) and (not margin):
             request['tgtCcy'] = tgtCcy
-        method = defaultMethod
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
             if spot and (side == 'buy'):
@@ -2373,12 +2416,10 @@ class okx(Exchange, ImplicitAPI):
                         raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"')
                     request['tpTriggerPxType'] = takeProfitTriggerPriceType
         elif trigger:
-            method = 'privatePostTradeOrderAlgo'
             request['ordType'] = 'trigger'
             request['triggerPx'] = self.price_to_precision(symbol, triggerPrice)
             request['orderPx'] = '-1' if isMarketOrder else self.price_to_precision(symbol, price)
         elif conditional:
-            method = 'privatePostTradeOrderAlgo'
             request['ordType'] = 'conditional'
             twoWayCondition = ((takeProfitPrice is not None) and (stopLossPrice is not None))
             # if TP and SL are sent together
@@ -2393,8 +2434,6 @@ class okx(Exchange, ImplicitAPI):
                 request['slTriggerPx'] = self.price_to_precision(symbol, stopLossPrice)
                 request['slOrdPx'] = '-1' if (slOrdPx is None) else self.price_to_precision(symbol, slOrdPx)
                 request['slTriggerPxType'] = slTriggerPxType
-        if (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
-            method = 'privatePostTradeOrderAlgo'
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
             if brokerId is not None:
@@ -2403,17 +2442,47 @@ class okx(Exchange, ImplicitAPI):
         else:
             request['clOrdId'] = clientOrderId
             params = self.omit(params, ['clOrdId', 'clientOrderId'])
-        extendedRequest = None
-        if (method == 'privatePostTradeOrder') or (method == 'privatePostTradeOrderAlgo'):
-            extendedRequest = self.extend(request, params)
-        elif method == 'privatePostTradeBatchOrders':
+        return self.extend(request, params)
+
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        create a trade order
+        see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+        see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+        see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param bool [params.reduceOnly]: MARGIN orders only, or swap/future orders in net mode
+        :param bool [params.postOnly]: True to place a post only order
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param float [params.takeProfit.price]: used for take profit limit orders, not used for take profit market price orders
+        :param str [params.takeProfit.type]: 'market' or 'limit' used to specify the take profit price type
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
+        :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        method = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
+        requestOrdType = self.safe_string(request, 'ordType')
+        if (requestOrdType == 'trigger') or (requestOrdType == 'conditional') or (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
+            method = 'privatePostTradeOrderAlgo'
+        if (method != 'privatePostTradeOrder') and (method != 'privatePostTradeOrderAlgo') and (method != 'privatePostTradeBatchOrders'):
+            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo')
+        if method == 'privatePostTradeBatchOrders':
             # keep the request body the same
             # submit a single order in an array to the batch order endpoint
             # because it has a lower ratelimit
-            extendedRequest = [self.extend(request, params)]
-        else:
-            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder')
-        response = await getattr(self, method)(extendedRequest)
+            request = [request]
+        response = await getattr(self, method)(request)
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
@@ -2421,6 +2490,22 @@ class okx(Exchange, ImplicitAPI):
             'type': type,
             'side': side,
         })
+
+    def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        request = {
+            'instId': self.market_id(symbol),
+        }
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+        else:
+            request['ordId'] = id
+        params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        if amount is not None:
+            request['newSz'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['newPx'] = self.price_to_precision(symbol, price)
+        return self.extend(request, params)
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
@@ -2439,22 +2524,8 @@ class okx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
-            'instId': market['id'],
-        }
-        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clOrdId'] = clientOrderId
-        else:
-            request['ordId'] = id
-        params = self.omit(params, ['clOrdId', 'clientOrderId'])
-        if amount is not None:
-            request['newSz'] = self.amount_to_precision(symbol, amount)
-        if price is not None:
-            request['newPx'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostTradeAmendOrder(self.extend(request, params))
+        request = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        response = await self.privatePostTradeAmendOrder(request)
         #
         #     {
         #        "code": "0",

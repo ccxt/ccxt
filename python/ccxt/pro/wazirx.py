@@ -565,7 +565,8 @@ class wazirx(ccxt.async_support.wazirx):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
-        self.orders.append(parsedOrder)
+        orders = self.orders
+        orders.append(parsedOrder)
         messageHash = 'orders'
         client.resolve(self.orders, messageHash)
         messageHash += ':' + parsedOrder['symbol']

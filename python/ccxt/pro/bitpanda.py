@@ -489,7 +489,8 @@ class bitpanda(ccxt.async_support.bitpanda):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         order = self.parse_trading_order(message)
-        self.orders.append(order)
+        orders = self.orders
+        orders.append(order)
         client.resolve(self.orders, 'orders:' + order['symbol'])
         client.resolve(self.orders, 'orders')
 
@@ -683,10 +684,11 @@ class bitpanda(ccxt.async_support.bitpanda):
         rawOrdersLength = len(rawOrders)
         if rawOrdersLength == 0:
             return
+        orders = self.orders
         for i in range(0, len(rawOrders)):
             order = self.parse_order(rawOrders[i])
             symbol = self.safe_string(order, 'symbol', '')
-            self.orders.append(order)
+            orders.append(order)
             client.resolve(self.orders, 'orders:' + symbol)
             rawTrades = self.safe_value(rawOrders[i], 'trades', [])
             for ii in range(0, len(rawTrades)):
@@ -926,6 +928,7 @@ class bitpanda(ccxt.async_support.bitpanda):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         symbol = None
+        orders = self.orders
         update = self.safe_value(message, 'update', {})
         updateType = self.safe_string(update, 'type')
         if updateType == 'ORDER_REJECTED' or updateType == 'ORDER_CLOSED' or updateType == 'STOP_ORDER_TRIGGERED':
@@ -938,7 +941,7 @@ class bitpanda(ccxt.async_support.bitpanda):
             status = self.parse_ws_order_status(updateType)
             if updateType == 'ORDER_CLOSED' and filled == 0:
                 status = 'canceled'
-            self.orders.append({
+            orders.append({
                 'id': orderId,
                 'symbol': symbol,
                 'status': status,
@@ -948,7 +951,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         else:
             parsed = self.parse_order(update)
             symbol = self.safe_string(parsed, 'symbol', '')
-            self.orders.append(parsed)
+            orders.append(parsed)
         client.resolve(self.orders, 'orders:' + symbol)
         client.resolve(self.orders, 'orders')
         # update balance

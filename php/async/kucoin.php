@@ -13,6 +13,7 @@ use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 
 class kucoin extends Exchange {
 
@@ -103,12 +104,14 @@ class kucoin extends Exchange {
                     'private' => 'https://api.kucoin.com',
                     'futuresPrivate' => 'https://api-futures.kucoin.com',
                     'futuresPublic' => 'https://api-futures.kucoin.com',
+                    'webExchange' => 'https://kucoin.com/_api',
                 ),
                 'test' => array(
                     'public' => 'https://openapi-sandbox.kucoin.com',
                     'private' => 'https://openapi-sandbox.kucoin.com',
                     'futuresPrivate' => 'https://api-sandbox-futures.kucoin.com',
                     'futuresPublic' => 'https://api-sandbox-futures.kucoin.com',
+                    'webExchange' => 'https://kucoin.com/_api',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -311,6 +314,11 @@ class kucoin extends Exchange {
                         'stopOrders' => 1.3953,
                     ),
                 ),
+                'webExchange' => array(
+                    'get' => array(
+                        'currency/currency/chain-info' => 1, // this is temporary from webApi
+                    ),
+                ),
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -440,6 +448,11 @@ class kucoin extends Exchange {
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
+                'fetchCurrencies' => array(
+                    'webApiEnable' => true, // fetches from WEB
+                    'webApiRetries' => 5,
+                    'webApiMuteFailure' => true,
+                ),
                 'fetchMarkets' => array(
                     'fetchTickersFees' => true,
                 ),
@@ -532,18 +545,215 @@ class kucoin extends Exchange {
                     'hf' => 'trade_hf',
                 ),
                 'networks' => array(
-                    'Native' => 'bech32',
-                    'BTC-Segwit' => 'btc',
+                    'BTC' => 'btc',
+                    'BTCNATIVESEGWIT' => 'bech32',
+                    'ETH' => 'eth',
                     'ERC20' => 'eth',
-                    'BEP20' => 'bsc',
+                    'TRX' => 'trx',
                     'TRC20' => 'trx',
-                    'TERRA' => 'luna',
-                    'BNB' => 'bsc',
+                    'HECO' => 'heco',
                     'HRC20' => 'heco',
-                    'HT' => 'heco',
-                ),
-                'networksById' => array(
-                    'BEP20' => 'BSC',
+                    'MATIC' => 'matic',
+                    'POLYGON' => 'matic',
+                    'KCC' => 'kcc', // kucoin community chain
+                    'SOL' => 'sol',
+                    'ALGO' => 'algo',
+                    'EOS' => 'eos',
+                    'BEP20' => 'bsc',
+                    'BEP2' => 'bnb',
+                    'ARB_ONE' => 'arbitrum',
+                    'TLOS' => 'tlos', // tlosevm is different
+                    'CFX' => 'cfx',
+                    'ACA' => 'aca',
+                    'OPTIMISM' => 'optimism',
+                    'ONT' => 'ont',
+                    'GLMR' => 'glmr',
+                    'CSPR' => 'cspr',
+                    'KLAY' => 'klay',
+                    'XRD' => 'xrd',
+                    'RVN' => 'rvn',
+                    'NEAR' => 'near',
+                    'APT' => 'aptos',
+                    'ETHW' => 'ethw',
+                    'TON' => 'ton',
+                    'BCH' => 'bch',
+                    'BSV' => 'bchsv',
+                    'BCHA' => 'bchabc',
+                    'OSMO' => 'osmo',
+                    'NANO' => 'nano',
+                    'XLM' => 'xlm',
+                    'VET' => 'vet',
+                    'IOST' => 'iost',
+                    'ZIL' => 'zil',
+                    'XRP' => 'xrp',
+                    'TOMO' => 'tomo',
+                    'XMR' => 'xmr',
+                    'COTI' => 'coti',
+                    'XTZ' => 'xtz',
+                    'ADA' => 'ada',
+                    'WAX' => 'waxp',
+                    'THETA' => 'theta',
+                    'ONE' => 'one',
+                    'IOTEX' => 'iotx',
+                    'NULS' => 'nuls',
+                    'KSM' => 'ksm',
+                    'LTC' => 'ltc',
+                    'WAVES' => 'waves',
+                    'DOT' => 'dot',
+                    'STEEM' => 'steem',
+                    'QTUM' => 'qtum',
+                    'DOGE' => 'doge',
+                    'FIL' => 'fil',
+                    'AVAX_X' => 'avax',
+                    'AVAX_C' => 'avaxc',
+                    'XYM' => 'xym',
+                    'FLUX' => 'flux',
+                    'ATOM' => 'atom',
+                    'XDC' => 'xdc',
+                    'KDA' => 'kda',
+                    'ICP' => 'icp',
+                    'CELO' => 'celo',
+                    'LSK' => 'lsk',
+                    'VSYS' => 'vsys',
+                    'KAR' => 'kar',
+                    'XCH' => 'xch',
+                    'FLOW' => 'flow',
+                    'BAND' => 'band',
+                    'EGLD' => 'egld',
+                    'HBAR' => 'hbar',
+                    'XPR' => 'xpr',
+                    'AR' => 'ar',
+                    'FTM' => 'ftm',
+                    'KAVA' => 'kava',
+                    'KMA' => 'kma',
+                    'XEC' => 'xec',
+                    'IOTA' => 'iota',
+                    'HNT' => 'hnt',
+                    'ASTR' => 'astr',
+                    'PDEX' => 'pdex',
+                    'METIS' => 'metis',
+                    'ZEC' => 'zec',
+                    'POKT' => 'pokt',
+                    'OASYS' => 'oas',
+                    'OASIS' => 'oasis', // a.k.a. ROSE
+                    'ETC' => 'etc',
+                    'AKT' => 'akt',
+                    'FSN' => 'fsn',
+                    'SCRT' => 'scrt',
+                    'CFG' => 'cfg',
+                    'ICX' => 'icx',
+                    'KMD' => 'kmd',
+                    'NEM' => 'NEM',
+                    'STX' => 'stx',
+                    'DGB' => 'dgb',
+                    'DCR' => 'dcr',
+                    'CKB' => 'ckb', // ckb2 is just odd entry
+                    'ELA' => 'ela', // esc might be another chain elastos smart chain
+                    'HYDRA' => 'hydra',
+                    'BTM' => 'btm',
+                    'KARDIA' => 'kai',
+                    'SXP' => 'sxp', // a.k.a. solar swipe
+                    'NEBL' => 'nebl',
+                    'ZEN' => 'zen',
+                    'SDN' => 'sdn',
+                    'AURORA' => 'aurora',
+                    'LTO' => 'lto',
+                    'WEMIX' => 'wemix',
+                    // 'BOBA' => 'boba', // tbd
+                    'EVER' => 'ever',
+                    'PHA' => 'pha', // a.k.a. khala
+                    'BNC' => 'bnc',
+                    'BNCDOT' => 'bncdot',
+                    'CMP' => 'cmp',
+                    'AION' => 'aion',
+                    'PAL' => 'pal',
+                    'GRIN' => 'grin',
+                    'LOKI' => 'loki',
+                    'QKC' => 'qkc',
+                    'RSK' => 'rbtc',
+                    'NIX' => 'nix',
+                    'TT' => 'TT',
+                    'NIM' => 'nim',
+                    'NRG' => 'nrg',
+                    'RFOX' => 'rfox',
+                    'PIVX' => 'pivx',
+                    'SERO' => 'sero',
+                    'METER' => 'meter',
+                    'STATEMINE' => 'statemine', // a.k.a. RMRK
+                    'DVPN' => 'dvpn',
+                    'XPRT' => 'xprt',
+                    'NDAU' => 'ndau',
+                    'MOVR' => 'movr',
+                    'ERGO' => 'ergo',
+                    'ABBC' => 'abbc',
+                    'DIVI' => 'divi',
+                    'PURA' => 'pura',
+                    'DFI' => 'dfi',
+                    // 'NEO' => 'neo', // tbd neo legacy
+                    'NEON3' => 'neon3',
+                    'DOCK' => 'dock',
+                    'AXE' => 'axe',
+                    'TRUE' => 'true',
+                    'CS' => 'cs',
+                    'HTR' => 'htr',
+                    'ORAI' => 'orai',
+                    'DEROHE' => 'derohe',
+                    'HPB' => 'hpb',
+                    // below will be uncommented after consensus
+                    // 'BITCOINDIAMON' => 'bcd',
+                    // 'BITCOINGOLD' => 'btg',
+                    // 'BITCOINPRIVATE' => 'btcp',
+                    // 'EDGEWARE' => 'edg',
+                    // 'JUPITER' => 'jup',
+                    // 'VELAS' => 'vlx', // vlxevm is different
+                    // // 'terra' luna lunc TBD
+                    // 'DIGITALBITS' => 'xdb',
+                    // // fra is fra-emv on kucoin
+                    // 'PASTEL' => 'psl',
+                    // // sysevm
+                    // 'CONCORDIUM' => 'ccd',
+                    // 'PIONEER' => 'neer',
+                    // 'PIXIE' => 'pix',
+                    // 'ALEPHZERO' => 'azero',
+                    // 'ACHAIN' => 'act', // actevm is different
+                    // 'BOSCOIN' => 'bos',
+                    // 'ELECTRONEUM' => 'etn',
+                    // 'GOCHAIN' => 'go',
+                    // 'SOPHIATX' => 'sphtx',
+                    // 'WANCHAIN' => 'wan',
+                    // 'ZEEPIN' => 'zpt',
+                    // 'MATRIXAI' => 'man',
+                    // 'METADIUM' => 'meta',
+                    // 'METAHASH' => 'mhc',
+                    // // eosc --"eosforce" tbd
+                    // 'IOTCHAIN' => 'itc',
+                    // 'CONTENTOS' => 'cos',
+                    // 'CPCHAIN' => 'cpc',
+                    // 'INTCHAIN' => 'int',
+                    // // 'DASH' => 'dash', tbd digita-cash
+                    // 'WALTONCHAIN' => 'wtc',
+                    // 'CONSTELLATION' => 'dag',
+                    // 'ONELEDGER' => 'olt',
+                    // 'AIRDAO' => 'amb', // a.k.a. AMBROSUS
+                    // 'ENERGYWEB' => 'ewt',
+                    // 'WAVESENTERPRISE' => 'west',
+                    // 'HYPERCASH' => 'hc',
+                    // 'ENECUUM' => 'enq',
+                    // 'HAVEN' => 'xhv',
+                    // 'CHAINX' => 'pcx',
+                    // // 'FLUXOLD' => 'zel', // zel seems old chain (with uppercase FLUX in kucoin UI and with id 'zel')
+                    // 'BUMO' => 'bu',
+                    // 'DEEPONION' => 'onion',
+                    // 'ULORD' => 'ut',
+                    // 'ASCH' => 'xas',
+                    // 'SOLARIS' => 'xlr',
+                    // 'APOLLO' => 'apl',
+                    // 'PIRATECHAIN' => 'arrr',
+                    // 'ULTRA' => 'uos',
+                    // 'EMONEY' => 'ngm',
+                    // 'AURORACHAIN' => 'aoa',
+                    // 'KLEVER' => 'klv',
+                    // undetermined => xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus),
                 ),
                 'marginModes' => array(
                     'cross' => 'MARGIN_TRADE',
@@ -749,11 +959,11 @@ class kucoin extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
-             * @see https://docs.kucoin.com/#get-currencies
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} $params extra parameters specific to the kucoin api endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetCurrencies ($params));
+            $promises = array();
+            $promises[] = $this->publicGetCurrencies ($params);
             //
             //     {
             //         "currency" => "OMG",
@@ -769,7 +979,48 @@ class kucoin extends Exchange {
             //         "isDebitEnabled" => false
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $promises[] = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true);
+            //
+            //    {
+            //        "success" => true,
+            //        "code" => "200",
+            //        "msg" => "success",
+            //        "retry" => false,
+            //        "data" => array(
+            //            array(
+            //                "withdrawMinFee" => "0.0005",
+            //                "chainName" => "BTC",
+            //                "preDepositTipEnabled" => "false",
+            //                "chain" => "btc",
+            //                "isChainEnabled" => "true",
+            //                "withdrawDisabledTip" => "",
+            //                "walletPrecision" => "8",
+            //                "chainFullName" => "Bitcoin",
+            //                "orgAddress" => "",
+            //                "isDepositEnabled" => "true",
+            //                "withdrawMinSize" => "0.001",
+            //                "depositDisabledTip" => "",
+            //                "userAddressName" => "",
+            //                "txUrl" => "https://blockchain.info/tx/{txId}",
+            //                "preWithdrawTipEnabled" => "false",
+            //                "withdrawFeeRate" => "0",
+            //                "confirmationCount" => "2",
+            //                "currency" => "BTC",
+            //                "depositMinSize" => "0.00005",
+            //                "isWithdrawEnabled" => "true",
+            //                "preDepositTip" => "",
+            //                "preWithdrawTip" => "",
+            //                "status" => "enabled"
+            //            ),
+            //        )
+            //    }
+            //
+            $responses = Async\await(Promise\all($promises));
+            $responseCurrencies = $responses[0];
+            $responseChains = $responses[1];
+            $data = $this->safe_value($responseCurrencies, 'data', array());
+            $chainsData = $this->safe_value($responseChains, 'data', array());
+            $currencyChains = $this->group_by($chainsData, 'currency');
             $result = array();
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
@@ -780,6 +1031,37 @@ class kucoin extends Exchange {
                 $isDepositEnabled = $this->safe_value($entry, 'isDepositEnabled', false);
                 $fee = $this->safe_number($entry, 'withdrawalMinFee');
                 $active = ($isWithdrawEnabled && $isDepositEnabled);
+                $networks = array();
+                $chains = $this->safe_value($currencyChains, $id, array());
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $chainId = $this->safe_string($chain, 'chain');
+                    $isChainEnabled = $this->safe_string($chain, 'isChainEnabled'); // better than 'status'
+                    if ($isChainEnabled === 'true') {
+                        $networkCode = $this->network_id_to_code($chainId);
+                        $chainWithdrawEnabled = $this->safe_value($chain, 'isWithdrawEnabled', false);
+                        $chainDepositEnabled = $this->safe_value($chain, 'isDepositEnabled', false);
+                        $networks[$networkCode] = array(
+                            'info' => $chain,
+                            'id' => $chainId,
+                            'name' => $this->safe_string_2($chain, 'chainFullName', 'chainName'),
+                            'code' => $networkCode,
+                            'active' => $chainWithdrawEnabled && $chainDepositEnabled,
+                            'fee' => $this->safe_number($chain, 'withdrawMinFee'),
+                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'walletPrecision'))),
+                            'limits' => array(
+                                'withdraw' => array(
+                                    'min' => $this->safe_number($chain, 'withdrawMinSize'),
+                                    'max' => null,
+                                ),
+                                'deposit' => array(
+                                    'min' => $this->safe_number($chain, 'depositMinSize'),
+                                    'max' => null,
+                                ),
+                            ),
+                        );
+                    }
+                }
                 $result[$code] = array(
                     'id' => $id,
                     'name' => $name,
@@ -791,7 +1073,7 @@ class kucoin extends Exchange {
                     'withdraw' => $isWithdrawEnabled,
                     'fee' => $fee,
                     'limits' => $this->limits,
-                    'networks' => array(),
+                    'networks' => $networks,
                 );
             }
             return $result;
@@ -851,28 +1133,24 @@ class kucoin extends Exchange {
     public function fetch_transaction_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
-             * @deprecated
-             * please use fetchDepositWithdrawFee instead
+             * *DEPRECATED* please use fetchDepositWithdrawFee instead
              * @see https://docs.kucoin.com/#get-withdrawal-quotas
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+             * @param {array} $params extra parameters specific to the kucoin api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper_2($params, 'network', 'chain');
-            $network = $this->safe_string_lower($networks, $network, $network);
-            if ($network !== null) {
-                $network = strtolower($network);
-                $request['chain'] = strtolower($network);
-                $params = $this->omit($params, array( 'network', 'chain' ));
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['chain'] = strtolower($this->network_code_to_id($networkCode));
             }
             $response = Async\await($this->privateGetWithdrawalsQuotas (array_merge($request, $params)));
-            $data = $response['data'];
+            $data = $this->safe_value($response, 'data');
             $withdrawFees = array();
             $withdrawFees[$code] = $this->safe_number($data, 'withdrawMinFee');
             return array(
@@ -898,11 +1176,10 @@ class kucoin extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $networkCode = $this->safe_string_upper($params, 'network');
-            $network = $this->network_code_to_id($networkCode, $code);
-            if ($network !== null) {
-                $request['chain'] = strtolower($network);
-                $params = $this->omit($params, array( 'network' ));
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['chain'] = strtolower($this->network_code_to_id($networkCode));
             }
             $response = Async\await($this->privateGetWithdrawalsQuotas (array_merge($request, $params)));
             //
@@ -958,7 +1235,7 @@ class kucoin extends Exchange {
         );
         $isWithdrawEnabled = $this->safe_value($fee, 'isWithdrawEnabled');
         if ($isWithdrawEnabled) {
-            $result['withdraw']['fee'] = $this->safe_number($fee, 'withdrawalMinFee');
+            $result['withdraw']['fee'] = $this->safe_number_2($fee, 'withdrawalMinFee', 'withdrawMinFee');
             $result['withdraw']['percentage'] = false;
             $networkId = $this->safe_string($fee, 'chain');
             if ($networkId) {
@@ -1258,48 +1535,29 @@ class kucoin extends Exchange {
     public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
-             * @see https://docs.kucoin.com/#create-deposit-$address
-             * create a $currency deposit $address
-             * @param {string} $code unified $currency $code of the $currency for the deposit $address
+             * @see https://docs.kucoin.com/#create-deposit-address
+             * create a $currency deposit address
+             * @param {string} $code unified $currency $code of the $currency for the deposit address
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @param {string} [$params->network] the blockchain $network name
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @param {string} [$params->network] the blockchain network name
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper_2($params, 'chain', 'network');
-            $network = $this->safe_string_lower($networks, $network, $network);
-            if ($network !== null) {
-                $network = strtolower($network);
-                $request['chain'] = $network;
-                $params = $this->omit($params, array( 'chain', 'network' ));
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['chain'] = strtolower($this->network_code_to_id($networkCode));
             }
             $response = Async\await($this->privatePostDepositAddresses (array_merge($request, $params)));
-            // array("code":"260000","msg":"Deposit $address already exists.")
+            // array("code":"260000","msg":"Deposit address already exists.")
             // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
             // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
             $data = $this->safe_value($response, 'data', array());
-            $address = $this->safe_string($data, 'address');
-            // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
-            if ($address !== null) {
-                $address = str_replace('bitcoincash:', '', $address);
-            }
-            $tag = $this->safe_string($data, 'memo');
-            if ($code !== 'NIM') {
-                // contains spaces
-                $this->check_address($address);
-            }
-            return array(
-                'info' => $response,
-                'currency' => $code,
-                'network' => $this->safe_string($data, 'chain'),
-                'address' => $address,
-                'tag' => $tag,
-            );
+            return $this->parse_deposit_address($data, $currency);
         }) ();
     }
 
@@ -1309,7 +1567,7 @@ class kucoin extends Exchange {
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @param {string} [$params->network] the blockchain $network name
+             * @param {string} [$params->network] the blockchain network name
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
@@ -1320,14 +1578,10 @@ class kucoin extends Exchange {
                 // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
                 // 'chain' => 'ERC20', // optional
             );
-            // same withdraw
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper_2($params, 'chain', 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
-            if ($network !== null) {
-                $network = strtolower($network);
-                $request['chain'] = $network;
-                $params = $this->omit($params, array( 'chain', 'network' ));
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['chain'] = strtolower($this->network_code_to_id($networkCode));
             }
             $version = $this->options['versions']['private']['GET']['deposit-addresses'];
             $this->options['versions']['private']['GET']['deposit-addresses'] = 'v1';
@@ -1335,24 +1589,34 @@ class kucoin extends Exchange {
             // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
             // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
             $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_value($response, 'data');
+            if ($data === null) {
+                throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty $response, you might try to run createDepositAddress() first and try again');
+            }
             return $this->parse_deposit_address($data, $currency);
         }) ();
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
         $address = $this->safe_string($depositAddress, 'address');
-        $code = $currency['id'];
-        if ($code !== 'NIM') {
-            // contains spaces
-            $this->check_address($address);
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
+        if ($address !== null) {
+            $address = str_replace('bitcoincash:', '', $address);
+        }
+        $code = null;
+        if ($currency !== null) {
+            $code = $currency['id'];
+            if ($code !== 'NIM') {
+                // contains spaces
+                $this->check_address($address);
+            }
         }
         return array(
             'info' => $depositAddress,
             'currency' => $code,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
-            'network' => $this->safe_string($depositAddress, 'chain'),
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chain')),
         );
     }
 
@@ -1389,35 +1653,12 @@ class kucoin extends Exchange {
             //     }
             //
             $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_deposit_addresses_by_network($data, $currency);
+            $chains = $this->safe_value($response, 'data', array());
+            $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
+                'currency' => $currency['id'],
+            ));
+            return $this->index_by($parsed, 'network');
         }) ();
-    }
-
-    public function parse_deposit_addresses_by_network($depositAddresses, $currency = null) {
-        //
-        //     array(
-        //         array(
-        //             "address" => "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
-        //             "memo" => "",
-        //             "chain" => "BTC-Segwit",
-        //             "contractAddress" => ""
-        //         ),
-        //         ...
-        //     )
-        //
-        $result = array();
-        for ($i = 0; $i < count($depositAddresses); $i++) {
-            $entry = $depositAddresses[$i];
-            $result[] = array(
-                'info' => $entry,
-                'currency' => $this->safe_currency_code($currency['id'], $currency),
-                'network' => $this->safe_string($entry, 'chain'),
-                'address' => $this->safe_string($entry, 'address'),
-                'tag' => $this->safe_string($entry, 'memo'),
-            );
-        }
-        return $result;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
@@ -2522,16 +2763,13 @@ class kucoin extends Exchange {
             if ($tag !== null) {
                 $request['memo'] = $tag;
             }
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
-            if ($network !== null) {
-                $network = strtolower($network);
-                $request['chain'] = $network;
-                $params = $this->omit($params, 'network');
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['chain'] = strtolower($this->network_code_to_id($networkCode));
             }
-            $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
-            $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+            $includeFee = null;
+            list($includeFee, $params) = $this->handle_option_and_params($params, 'withdraw', 'includeFee', false);
             if ($includeFee) {
                 $request['feeDeductType'] = 'INTERNAL';
             }
@@ -2650,13 +2888,12 @@ class kucoin extends Exchange {
             }
         }
         $tag = $this->safe_string($transaction, 'memo');
-        $network = $this->safe_string($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'withdrawalId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $network,
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'chain')),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -3799,7 +4036,7 @@ class kucoin extends Exchange {
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $params = $this->omit($params, 'version');
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
-        if ($api === 'webFront') {
+        if ($api === 'webExchange') {
             $endpoint = '/' . $this->implode_params($path, $params);
         }
         $query = $this->omit($params, $this->extract_params($path));

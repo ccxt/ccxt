@@ -85,7 +85,6 @@ class gate extends Exchange {
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'createDepositAddress' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -164,15 +163,23 @@ class gate extends Exchange {
                             'order_book' => 1,
                             'trades' => 1,
                             'candlesticks' => 1,
+                            'time' => 1,
                         ),
                     ),
                     'margin' => array(
                         'get' => array(
                             'currency_pairs' => 1,
                             'currency_pairs/{currency_pair}' => 1,
+                            'funding_book' => 1,
                             'cross/currencies' => 1,
                             'cross/currencies/{currency}' => 1,
-                            'funding_book' => 1,
+                            'uni/currency_pairs' => 1,
+                            'uni/currency_pairs/{currency_pair}' => 1,
+                        ),
+                    ),
+                    'flash_swap' => array(
+                        'get' => array(
+                            'currencies' => 1,
                         ),
                     ),
                     'futures' => array(
@@ -182,10 +189,12 @@ class gate extends Exchange {
                             '{settle}/order_book' => 1.5,
                             '{settle}/trades' => 1.5,
                             '{settle}/candlesticks' => 1.5,
+                            '{settle}/premium_index' => 1.5,
                             '{settle}/tickers' => 1.5,
                             '{settle}/funding_rate' => 1.5,
                             '{settle}/insurance' => 1.5,
                             '{settle}/contract_stats' => 1.5,
+                            '{settle}/index_constituents/{index}' => 1.5,
                             '{settle}/liq_orders' => 1.5,
                         ),
                     ),
@@ -240,12 +249,17 @@ class gate extends Exchange {
                             'sub_account_transfers' => 300,
                             'withdraw_status' => 300,
                             'sub_account_balances' => 300,
+                            'sub_account_margin_balances' => 300,
+                            'sub_account_futures_balances' => 300,
+                            'sub_account_cross_margin_balances' => 300,
+                            'saved_address' => 300,
                             'fee' => 300,
                             'total_balance' => 300,
                         ),
                         'post' => array(
                             'transfers' => 300,
                             'sub_account_transfers' => 300,
+                            'sub_account_to_sub_account' => 300,
                         ),
                     ),
                     'subAccounts' => array(
@@ -270,6 +284,8 @@ class gate extends Exchange {
                     ),
                     'spot' => array(
                         'get' => array(
+                            'fee' => 1,
+                            'batch_fee' => 1,
                             'accounts' => 1,
                             'account_book' => 1,
                             'open_orders' => 1,
@@ -281,8 +297,10 @@ class gate extends Exchange {
                         ),
                         'post' => array(
                             'batch_orders' => 1,
+                            'cross_liquidate_orders' => 1,
                             'orders' => 1,
                             'cancel_batch_orders' => 1,
+                            'countdown_cancel_all' => 1,
                             'price_orders' => 1,
                         ),
                         'delete' => array(
@@ -300,32 +318,37 @@ class gate extends Exchange {
                             'accounts' => 1.5,
                             'account_book' => 1.5,
                             'funding_accounts' => 1.5,
+                            'auto_repay' => 1.5,
+                            'transferable' => 1.5,
                             'loans' => 1.5,
                             'loans/{loan_id}' => 1.5,
                             'loans/{loan_id}/repayment' => 1.5,
                             'loan_records' => 1.5,
-                            'loan_records/{load_record_id}' => 1.5,
-                            'auto_repay' => 1.5,
-                            'transferable' => 1.5,
+                            'loan_records/{loan_record_id}' => 1.5,
+                            'borrowable' => 1.5,
                             'cross/accounts' => 1.5,
                             'cross/account_book' => 1.5,
                             'cross/loans' => 1.5,
                             'cross/loans/{loan_id}' => 1.5,
-                            'cross/loans/repayments' => 1.5,
-                            'cross/transferable' => 1.5,
-                            'loan_records/{loan_record_id}' => 1.5,
-                            'borrowable' => 1.5,
                             'cross/repayments' => 1.5,
+                            'cross/interest_records' => 1.5,
+                            'cross/transferable' => 1.5,
+                            'cross/estimate_rate' => 1.5,
                             'cross/borrowable' => 1.5,
+                            'uni/estimate_rate' => 1.5,
+                            'uni/loans' => 1.5,
+                            'uni/loan_records' => 1.5,
+                            'uni/interest_records' => 1.5,
+                            'uni/borrowable' => 1.5,
                         ),
                         'post' => array(
+                            'auto_repay' => 1.5,
                             'loans' => 1.5,
                             'merged_loans' => 1.5,
                             'loans/{loan_id}/repayment' => 1.5,
-                            'auto_repay' => 1.5,
                             'cross/loans' => 1.5,
-                            'cross/loans/repayments' => 1.5,
                             'cross/repayments' => 1.5,
+                            'uni/loans' => 1.5,
                         ),
                         'patch' => array(
                             'loans/{loan_id}' => 1.5,
@@ -335,34 +358,50 @@ class gate extends Exchange {
                             'loans/{loan_id}' => 1.5,
                         ),
                     ),
+                    'flash_swap' => array(
+                        'get' => array(
+                            'orders' => 1.5,
+                            'orders/{order_id}' => 1.5,
+                        ),
+                        'post' => array(
+                            'orders' => 1.5,
+                            'orders/preview' => 1.5,
+                        ),
+                    ),
                     'futures' => array(
                         'get' => array(
                             '{settle}/accounts' => 1.5,
                             '{settle}/account_book' => 1.5,
                             '{settle}/positions' => 1.5,
                             '{settle}/positions/{contract}' => 1.5,
+                            '{settle}/dual_comp/positions/{contract}' => 1.5,
                             '{settle}/orders' => 1.5,
+                            '{settle}/orders_timerange' => 1.5,
                             '{settle}/orders/{order_id}' => 1.5,
                             '{settle}/my_trades' => 1.5,
                             '{settle}/my_trades_timerange' => 1.5,
                             '{settle}/position_close' => 1.5,
                             '{settle}/liquidates' => 1.5,
+                            '{settle}/auto_deleverages' => 1.5,
+                            '{settle}/fee' => 1.5,
                             '{settle}/price_orders' => 1.5,
                             '{settle}/price_orders/{order_id}' => 1.5,
-                            '{settle}/dual_comp/positions/{contract}' => 1.5,
-                            '{settle}/auto_deleverages' => 1.5,
                         ),
                         'post' => array(
                             '{settle}/positions/{contract}/margin' => 1.5,
                             '{settle}/positions/{contract}/leverage' => 1.5,
                             '{settle}/positions/{contract}/risk_limit' => 1.5,
                             '{settle}/dual_mode' => 1.5,
-                            '{settle}/dual_comp/positions/{contract}' => 1.5,
                             '{settle}/dual_comp/positions/{contract}/margin' => 1.5,
                             '{settle}/dual_comp/positions/{contract}/leverage' => 1.5,
                             '{settle}/dual_comp/positions/{contract}/risk_limit' => 1.5,
                             '{settle}/orders' => 1.5,
+                            '{settle}/batch_orders' => 1.5,
+                            '{settle}/countdown_cancel_all' => 1.5,
                             '{settle}/price_orders' => 1.5,
+                        ),
+                        'put' => array(
+                            '{settle}/orders/{order_id}' => 1.5,
                         ),
                         'delete' => array(
                             '{settle}/orders' => 1.5,
@@ -382,9 +421,9 @@ class gate extends Exchange {
                             '{settle}/my_trades' => 1.5,
                             '{settle}/position_close' => 1.5,
                             '{settle}/liquidates' => 1.5,
+                            '{settle}/settlements' => 1.5,
                             '{settle}/price_orders' => 1.5,
                             '{settle}/price_orders/{order_id}' => 1.5,
-                            '{settle}/settlements' => 1.5,
                         ),
                         'post' => array(
                             '{settle}/positions/{contract}/margin' => 1.5,
@@ -402,6 +441,7 @@ class gate extends Exchange {
                     ),
                     'options' => array(
                         'get' => array(
+                            'my_settlements' => 1.5,
                             'accounts' => 1.5,
                             'account_book' => 1.5,
                             'positions' => 1.5,
@@ -419,12 +459,6 @@ class gate extends Exchange {
                             'orders/{order_id}' => 1.5,
                         ),
                     ),
-                    'rebate' => array(
-                        'get' => array(
-                            'agency/transaction_history' => 1.5,
-                            'agency/commission_history' => 1.5,
-                        ),
-                    ),
                     'earn' => array(
                         'get' => array(
                             'uni/lends' => 1.5,
@@ -437,6 +471,23 @@ class gate extends Exchange {
                         ),
                         'patch' => array(
                             'uni/lends' => 1.5,
+                        ),
+                    ),
+                    'account' => array(
+                        'get' => array(
+                            'detail' => 1.5,
+                            'stp_groups' => 1.5,
+                            'stp_groups/{stp_id}/users' => 1.5,
+                        ),
+                        'post' => array(
+                            'stp_groups' => 1.5,
+                            'stp_groups/{stp_id}/users' => 1.5,
+                        ),
+                    ),
+                    'rebate' => array(
+                        'get' => array(
+                            'agency/transaction_history' => 1.5,
+                            'agency/commission_history' => 1.5,
                         ),
                     ),
                 ),
@@ -1715,19 +1766,6 @@ class gate extends Exchange {
                 );
             }
             return $result;
-        }) ();
-    }
-
-    public function create_deposit_address(string $code, $params = array ()) {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * create a currency deposit address
-             * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
-             * @param {string} $code unified currency $code of the currency for the deposit address
-             * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
-             */
-            return Async\await($this->fetch_deposit_address($code, $params));
         }) ();
     }
 

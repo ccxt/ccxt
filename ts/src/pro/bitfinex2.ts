@@ -78,7 +78,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name biftfinex2#watchOHLCV
+         * @name bitfinex2#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.8'
+__version__ = '4.0.26'
 
 # -----------------------------------------------------------------------------
 
@@ -596,10 +596,11 @@ class Exchange(BaseExchange):
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
-                if entry[key] >= since:
+                value = self.safe_value(entry, key)
+                if value and (value >= since):
                     result.append(entry)
         if tail:
-            return result[-limit:]
+            return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
     def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp', tail=False):
@@ -614,12 +615,13 @@ class Exchange(BaseExchange):
                 entry = parsedArray[i]
                 entryFiledEqualValue = entry[field] == value
                 firstCondition = entryFiledEqualValue if valueIsDefined else True
-                entryKeyGESince = entry[key] and since and (entry[key] >= since)
+                entryKeyValue = self.safe_value(entry, key)
+                entryKeyGESince = (entryKeyValue) and since and (entryKeyValue >= since)
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
         if tail:
-            return result[-limit:]
+            return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
     def set_sandbox_mode(self, enabled):
@@ -649,6 +651,9 @@ class Exchange(BaseExchange):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchTrades() is not supported yet')
+
+    async def fetch_trades_ws(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchTradesWs() is not supported yet')
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
@@ -743,6 +748,14 @@ class Exchange(BaseExchange):
         stringifiedNumber = str(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
+
+    def after_construct(self):
+        self.create_networks_by_id_object()
+
+    def create_networks_by_id_object(self):
+        # automatically generate network-id-to-code mappings
+        networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))  # invert defined networks dictionary
+        self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))  # support manually overriden "networksById" dictionary too
 
     def get_default_options(self):
         return {
@@ -1249,6 +1262,16 @@ class Exchange(BaseExchange):
         trade['cost'] = self.parse_number(cost)
         return trade
 
+    def invert_flat_string_dictionary(self, dict):
+        reversed = {}
+        keys = list(dict.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = dict[key]
+            if isinstance(value, str):
+                reversed[value] = key
+        return reversed
+
     def reduce_fees_by_currency(self, fees):
         #
         # self function takes a list of fee structures having the following format
@@ -1420,8 +1443,9 @@ class Exchange(BaseExchange):
 
     async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
         errorMessage = ''
+        options = self.safe_value(self.options, method, {})
+        muteOnFailure = self.safe_value(options, 'webApiMuteFailure', True)
         try:
-            options = self.safe_value(self.options, method, {})
             # if it was not explicitly disabled, then don't fetch
             if self.safe_value(options, 'webApiEnable', True) is not True:
                 return None
@@ -1447,11 +1471,16 @@ class Exchange(BaseExchange):
                 jsoned = self.parse_json(content.strip())  # content should be trimmed before json parsing
                 if jsoned:
                     return jsoned  # if parsing was not successfull, exception should be thrown
+                else:
+                    raise BadResponse('could not parse the response into json')
             else:
                 return content
         except Exception as e:
-            errorMessage = str(e)
-        raise NotSupported(self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage)
+            errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
+        if muteOnFailure:
+            return None
+        else:
+            raise BadResponse(errorMessage)
 
     def market_ids(self, symbols):
         if symbols is None:
@@ -2027,6 +2056,9 @@ class Exchange(BaseExchange):
     async def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetchBalance() is not supported yet')
 
+    async def fetch_balance_ws(self, params={}):
+        raise NotSupported(self.id + ' fetchBalanceWs() is not supported yet')
+
     def parse_balance(self, response):
         raise NotSupported(self.id + ' parseBalance() is not supported yet')
 
@@ -2223,6 +2255,9 @@ class Exchange(BaseExchange):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
+    async def fetch_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderWs() is not supported yet')
+
     async def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
         # TODO: TypeScript: change method signature by replacing
         # Promise<string> with Promise<Order['status']>.
@@ -2250,8 +2285,8 @@ class Exchange(BaseExchange):
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
-    async def cancel_all_order_ws(self, symbol: Optional[str] = None, params={}):
-        raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
+    async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')
 
     async def cancel_unified_order(self, order, params={}):
         return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
@@ -2268,11 +2303,17 @@ class Exchange(BaseExchange):
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
+    async def fetch_open_orders_ws(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOpenOrdersWs() is not supported yet')
+
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
+
+    async def fetch_my_trades_ws(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchMyTradesWs() is not supported yet')
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
@@ -2285,6 +2326,9 @@ class Exchange(BaseExchange):
 
     async def fetch_withdrawals(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
+
+    async def fetch_open_interest(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
@@ -2374,14 +2418,14 @@ class Exchange(BaseExchange):
         market = self.market(symbol)
         result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
         if result == '0':
-            raise ArgumentsRequired(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(market['precision']['price']))
+            raise InvalidOrder(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(market['precision']['price']))
         return result
 
     def amount_to_precision(self, symbol: str, amount):
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
         if result == '0':
-            raise ArgumentsRequired(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
         return result
 
     def fee_to_precision(self, symbol: str, fee):

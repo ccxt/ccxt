@@ -51,9 +51,11 @@ class deribit extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFees' => true,
                 'fetchHistoricalVolatility' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
@@ -413,6 +415,75 @@ class deribit extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'result');
+        }) ();
+    }
+
+    public function fetch_currencies($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @see https://docs.deribit.com/#public-get_currencies
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            $response = Async\await($this->publicGetGetCurrencies ($params));
+            //
+            //    {
+            //      "jsonrpc" => "2.0",
+            //      "result" => array(
+            //        array(
+            //          "withdrawal_priorities" => array(),
+            //          "withdrawal_fee" => 0.01457324,
+            //          "min_withdrawal_fee" => 0.000001,
+            //          "min_confirmations" => 1,
+            //          "fee_precision" => 8,
+            //          "currency_long" => "Solana",
+            //          "currency" => "SOL",
+            //          "coin_type" => "SOL"
+            //        ),
+            //        ...
+            //      ),
+            //      "usIn" => 1688652701456124,
+            //      "usOut" => 1688652701456390,
+            //      "usDiff" => 266,
+            //      "testnet" => true
+            //    }
+            //
+            $data = $this->safe_value($response, 'result', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $currency = $data[$i];
+                $currencyId = $this->safe_string($currency, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $name = $this->safe_string($currency, 'currency_long');
+                $result[$code] = array(
+                    'info' => $currency,
+                    'code' => $code,
+                    'id' => $currencyId,
+                    'name' => $name,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => $this->safe_number($currency, 'withdrawal_fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'fee_precision'))),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'networks' => null,
+                );
+            }
+            return $result;
         }) ();
     }
 
@@ -2644,6 +2715,71 @@ class deribit extends Exchange {
             }
             $response = Async\await($this->privateGetWithdraw (array_merge($request, $params)));
             return $this->parse_transaction($response, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //      "withdrawal_priorities" => array(),
+        //      "withdrawal_fee" => 0.01457324,
+        //      "min_withdrawal_fee" => 0.000001,
+        //      "min_confirmations" => 1,
+        //      "fee_precision" => 8,
+        //      "currency_long" => "Solana",
+        //      "currency" => "SOL",
+        //      "coin_type" => "SOL"
+        //    }
+        //
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'withdrawal_fee'),
+                'percentage' => false,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://docs.deribit.com/#public-get_currencies
+             * @param {string[]|null} $codes list of unified currency $codes
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetGetCurrencies ($params));
+            //
+            //    {
+            //      "jsonrpc" => "2.0",
+            //      "result" => array(
+            //        array(
+            //          "withdrawal_priorities" => array(),
+            //          "withdrawal_fee" => 0.01457324,
+            //          "min_withdrawal_fee" => 0.000001,
+            //          "min_confirmations" => 1,
+            //          "fee_precision" => 8,
+            //          "currency_long" => "Solana",
+            //          "currency" => "SOL",
+            //          "coin_type" => "SOL"
+            //        ),
+            //        ...
+            //      ),
+            //      "usIn" => 1688652701456124,
+            //      "usOut" => 1688652701456390,
+            //      "usDiff" => 266,
+            //      "testnet" => true
+            //    }
+            //
+            $data = $this->safe_value($response, 'result', array());
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
         }) ();
     }
 
