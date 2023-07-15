@@ -34,7 +34,7 @@ PAD_WITH_ZERO = 6
 
 
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
-    numPrecisionDigits = precision
+    numPrecisionDigits = precision # just temporary variable name for clarity comparison between js/php/py
     assert numPrecisionDigits is not None, 'precision should not be None'
     
     if isinstance(numPrecisionDigits, str):
