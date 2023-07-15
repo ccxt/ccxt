@@ -1177,12 +1177,6 @@ class Exchange {
             }
         }
 
-        $this->generate_network_data();
-
-        if ($this->api) {
-            $this->define_rest_api($this->api, 'request');
-        }
-
         if ($this->markets) {
             $this->set_markets($this->markets);
         }
