@@ -1637,23 +1637,23 @@ class Exchange {
     }
 
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
+        assert($numPrecisionDigits !== null, 'numPrecisionDigits should not be null');
+        
         if (is_string($numPrecisionDigits)) {
             $numPrecisionDigits = (float) $numPrecisionDigits;
         }
+        assert(is_numeric($numPrecisionDigits), 'numPrecisionDigits has an invalid number');
+
         if ($countingMode === TICK_SIZE) {
-            if ($numPrecisionDigits <= 0) {
-                throw new BaseError ('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
-            }
-            if (!is_numeric($x)) {
-                throw new BaseError('Invalid number');
-            }
+            assert($numPrecisionDigits > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode');
         } else {
-            if (!is_int($numPrecisionDigits)) {
-                throw new BaseError('Precision must be an integer');
-            }
+            assert(is_int($numPrecisionDigits), 'numPrecisionDigits must be an integer with DECIMAL_PLACES or SIGNIFICANT_DIGITS precisionMode');
         }
 
-        assert(($roundingMode === ROUND) || ($roundingMode === TRUNCATE));
+        assert(($roundingMode === ROUND) || ($roundingMode === TRUNCATE), 'invalid roundingMode provided');
+        assert($countingMode === DECIMAL_PLACES || $countingMode === SIGNIFICANT_DIGITS || $countingMode === TICK_SIZE, 'invalid countingMode provided');
+        assert($paddingMode === NO_PADDING || $paddingMode === PAD_WITH_ZERO, 'invalid paddingMode provided');
+        // end of checks
 
         $result = '';
 

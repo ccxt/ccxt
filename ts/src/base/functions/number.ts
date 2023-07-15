@@ -98,6 +98,12 @@ function precisionFromString (str) {
 
 /*  ------------------------------------------------------------------------ */
 
+const assert = (condition, message = undefined) => {
+    if (!condition) {
+        throw new Error (message || 'Assertion failed');
+    }
+};
+
 const decimalToPrecision = (
     x,
     roundingMode,
@@ -105,22 +111,23 @@ const decimalToPrecision = (
     countingMode = DECIMAL_PLACES,
     paddingMode = NO_PADDING
 ) => {
+    assert (numPrecisionDigits !== undefined && numPrecisionDigits !== null, 'numPrecisionDigits should not be null');
+
     if (typeof numPrecisionDigits === 'string') {
-        numPrecisionDigits = parseFloat(numPrecisionDigits)
+        numPrecisionDigits = parseFloat (numPrecisionDigits)
     }
+    assert (Number.isFinite (numPrecisionDigits), 'numPrecisionDigits has an invalid number');
+
     if (countingMode === TICK_SIZE) {
-        if (numPrecisionDigits <= 0) {
-            throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
-        }
+        assert (numPrecisionDigits > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode');
     } else {
-        if (!Number.isInteger (numPrecisionDigits)) {
-            throw new Error ('Precision must be an integer');
-        }
+        assert (Number.isInteger (numPrecisionDigits), 'numPrecisionDigits must be an integer with DECIMAL_PLACES or SIGNIFICANT_DIGITS precisionMode');
     }
 
-    if ((roundingMode !== ROUND) && (roundingMode !== TRUNCATE)) {
-        throw new Error ('roundingMode should be either "ROUND" or "TRUNCATE" constants');
-    }
+    assert((roundingMode === ROUND) || (roundingMode === TRUNCATE), 'invalid roundingMode provided');
+    assert(countingMode === DECIMAL_PLACES || countingMode === SIGNIFICANT_DIGITS || countingMode === TICK_SIZE, 'invalid countingMode provided');
+    assert(paddingMode === NO_PADDING || paddingMode === PAD_WITH_ZERO, 'invalid paddingMode provided');
+    // end of checks
 
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
