@@ -2639,45 +2639,6 @@ export default class Exchange {
         return ohlcv;
     }
 
-    getNetwork (network: string, code: string): string {
-        network = network.toUpperCase ();
-        const aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
-        };
-        if (network === code) {
-            return network;
-        } else if (network in aliases) {
-            return aliases[network];
-        } else {
-            throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
-        }
-    }
-
     networkCodeToId (networkCode, currencyCode = undefined) {
         /**
          * @ignore
