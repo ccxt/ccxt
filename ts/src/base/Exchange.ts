@@ -735,8 +735,6 @@ export default class Exchange {
             this.setMarkets (this.markets)
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
-
-        this.afterConstruct ();
     }
 
     encodeURIComponent (...args) {
