@@ -78,8 +78,7 @@ class bingx extends Exchange {
                 ),
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
-                'referral' => array(
-                ),
+                'referral' => 'https://bingx.com/invite/OHETOM',
                 'fees' => array(
                     'trading' => array(
                         'tierBased' => true,
