@@ -282,7 +282,6 @@ class Transpiler {
             [ /\.networkIdIsDefined\s/g, '.network_id_is_defined'],
             [ /\.defaultNetworkCode\s/g, '.default_network_code'],
             [ /\.selectNetworkKeyFromNetworks\s/g, '.select_network_key_from_networks'],
-            [ /\.invertStringDictionary\s/g, '.invert_string_dictionary'],
         ].concat(this.getTypescriptRemovalRegexes())
     }
 

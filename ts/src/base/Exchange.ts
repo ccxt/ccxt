@@ -2270,36 +2270,6 @@ export default class Exchange {
         return trade as Trade;
     }
 
-    invertStringDictionary (dict) {
-        const reversed = {};
-        const keys = Object.keys (dict);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = dict[key];
-            // if key has a value of array i.e. 'a': [ 'b', 'c'] instead of a string i.e. 'a': 'b'
-            let checkKeys = [];
-            if (Array.isArray (value)) {
-                checkKeys = value;
-            } else if (typeof value === 'string') {
-                checkKeys.push (value);
-            }
-            for (let j = 0; j < checkKeys.length; j++) {
-                const currentKey = checkKeys[j];
-                // if it was already in keys
-                if (!(currentKey in reversed)) {
-                    reversed[currentKey] = key;
-                } else {
-                    if (Array.isArray (reversed[currentKey])) {
-                        reversed[currentKey].push (key);
-                    } else {
-                        reversed[currentKey] = [ reversed[currentKey], key ];
-                    }
-                }
-            }
-        }
-        return reversed;
-    }
-
     reduceFeesByCurrency (fees) {
         //
         // this function takes a list of fee structures having the following format
@@ -2697,14 +2667,14 @@ export default class Exchange {
             // define id-to-code automatic relations
             //
             const networkCodesToIds = this.safeValue (this.options, 'networks', {});
-            const networkIdsToCodesAuto = this.invertStringDictionary (networkCodesToIds);
+            const networkIdsToCodesAuto = this.invertFlatStringDictionary (networkCodesToIds);
             const idsFromOptions = this.safeValue (this.options, 'networkIdsToCodes', {}); // support for override, if user sets
             const networkIdsToCodes = this.extend (networkIdsToCodesAuto, idsFromOptions);
             this.optionNetworkData['idsOrTitlesToCodes'] = networkIdsToCodes;
             //
             // to make a quick lookup later, define reversed dictionary for aliases: { 'BEP20': 'BEP20', 'BSC': 'BEP20', ... }
             const aliases = this.safeValue (this.options, 'unifiedNetworkCodesAndAliases');
-            this.optionNetworkData['aliasCodeToPrimary'] = this.invertStringDictionary (aliases);
+            this.optionNetworkData['aliasCodeToPrimary'] = this.invertFlatStringDictionary (aliases);
             // re-create unified-network-codes & unified-alias-codes to IDs
             const keys = Object.keys (aliases);
             for (let i = 0; i < keys.length; i++) {
