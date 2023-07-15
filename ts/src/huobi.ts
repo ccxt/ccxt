@@ -2986,10 +2986,10 @@ export default class huobi extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
-                const title = this.safeString (chainEntry, 'displayName');
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
-                const networkCode = this.networkIdToCode (title, code);
+                const networkTitle = this.safeString (chainEntry, 'displayName');
+                this.options['networkChainIdsByNames'][code][networkTitle] = uniqueChainId;
+                this.options['networkNamesByChainIds'][uniqueChainId] = networkTitle;
+                const networkCode = this.networkIdToCode (networkTitle, code);
                 minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
