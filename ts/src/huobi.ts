@@ -953,7 +953,7 @@ export default class huobi extends Exchange {
                     // 'CARDANO': [ 'CARDANO', 'ADA', 'ADATOKEN' ], // todo: after unification
                     // 'CHILIZ': [ 'CHZCHAIN', 'CHZ20', 'CRC20' ], // 'CRC20' is used by houbi for Chiliz, not CRONOS network // todo: after unification
                     'XLM': 'XLM',
-                    'TERRA': 'LUNA', // LUNA is used by huobi only for LUNA coin. New Terra network is only for LUNA
+                    // todo: 'TERRA': 'LUNA', // LUNA is used by huobi only for LUNA coin. New Terra network is only for LUNA
                     // 'TERRACLASSIC': [ 'USTC', 'LUNC', 'TERRA' ], // Huobi uses 'TERRA' network name for Terra classic // todo: after unification
                     'ACA': 'ACA',
                     'ZIL': 'ZIL',
@@ -1055,38 +1055,41 @@ export default class huobi extends Exchange {
                     'EVMOS': 'EVMOS',
                     'ETHF': 'ETHFAIR',
                     'ERGO': 'ERG',
+                    'CTXC': 'CTXC',
+                    'NODL': 'NODL',
+                    'IRIS': 'IRIS',
+                    'DGB': 'DGB',
+                    'AZERO': 'AZERO',
+                    'POLYX': 'POLYX',
+                    'RSK': 'RBTC', // ROOTSTOCK
+                    // 'COSMOS': 'ATOM1',
+                    // 'ATOM': 'ATOM1', todo calrify
+                    'FIO': 'FIO',
+                    'QI': 'QI',
+                    'DFI': 'DFI',
+                    'NEON3': 'NEON3',
                     // below will be uncommented after consensus
-                    // 'POLYMESH': 'POLYX',
                     // 'BITCOINDIAMOND': 'BCD',
                     // 'BITCOINHD': 'BHD',
                     // 'BITCOINGOLD': 'BTG',
                     // 'BITCOINX': 'BCX',
                     // 'SUPERBITCOIN': 'SBTC',
                     // 'UNIQUENETWORK': 'UNQ',
-                    // 'CORTEX': 'CTXC',
-                    // 'DIGIBYTE': 'DGB',
                     // 'SOLOGENIC': 'SOLO',
-                    // 'NODLE': 'NODL',
-                    // 'IRISNET': 'IRIS',
                     // 'ACHAIN': 'ACT',
                     // 'ARDOR': 'ARDR',
                     // 'AELF': 'ELF',
                     // 'EMINER': 'EM',
                     // 'AURORY': 'AURY',
-                    // 'ALEPHZERO': 'AZERO',
                     // 'TOPNETWORK': 'TOP',
-                    // 'RSK': 'RBTC', // ROOTSTOCK
-                    // 'QISWAP': 'QI',
                     // 'WGREENPAY': 'WGP',
                     // 'DOUBLEACHAIN': 'AAC',
                     // 'AGORIC': 'BLD',
                     // 'CONSCIOUSVALUENETWORK': 'CVNT',
                     // 'CELLODOLAR': 'CUSD',
                     // 'CYBERMILES': 'CMT',
-                    // 'COSMOS': 'ATOM1',
                     // 'DECIMATED': 'DIO',
                     // 'DEEPBRAIN': 'DBC1',
-                    // 'DEFICHAIN': 'DFI',
                     // 'PNETWORK': 'XPNT',
                     // 'WALTONCHAIN': 'WTC',
                     // 'WAYKICHAIN': 'WICC',
@@ -1100,14 +1103,13 @@ export default class huobi extends Exchange {
                     // 'BITSHARESNEW': 'NBS',
                     // 'MOVIEBLOC': 'MBL',
                     // 'ELECTRONEUM': 'ETN',
-                    // 'FIO': 'FIO',
                     // 'STAFI': 'FIS',
                     // 'GROESTLCOIN': 'GRS',
                     // 'HYPERCASH': 'HC',
                     // 'FIRO': 'XZC',
                     // dead projects:  "BCV" (BitCapitalVendor ), "PAI" (Project Pai), BIFI (bitcoin file)
                     // excluded: GBP, EUR BRL
-                    // unknown networks: KIP7, BSCFACE1, OEP4, NEON3, GASN3, EOSS, LUK
+                    // unknown networks: KIP7, BSCFACE1, OEP4, GASN3, EOSS, LUK
                     // several other coins with network name prefixed HRC20 i.e. "HRC20AAVE", "HRC20AXS" ... but all other chains on heco are just with HECO name. another single exception is that ht coin has "HECOHT" as network name
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
