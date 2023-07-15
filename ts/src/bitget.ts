@@ -1085,18 +1085,18 @@ export default class bitget extends Exchange {
                     'TRC10': 'TRC10',
                     // undetected: USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
                     // todo: uncomment below after unification
-                    'TERRACLASSIC': 'Terra', // tbd, that network id is also assigned to TERRANEW network
-                    'REI': 'REINetwork',
-                    'NEM': 'NEM',
-                    'JUNO': 'JUNO',
-                    'FETCH_AI': 'FETCH',
-                    'CUBENETWORK': 'CUBE',
-                    'CADUCEUS': 'CMP',
-                    'CONFLUX': 'CFX', // CFXeSpace is different
-                    'CERE': 'CERE',
-                    'CANTO': 'CANTO',
-                    'ALEPHZERO': 'AZERO',
-                    'ABBC': 'ABBCCoin',
+                    // 'TERRACLASSIC': 'Terra', // tbd, that network id is also assigned to TERRANEW network
+                    // 'REI': 'REINetwork',
+                    // 'NEM': 'NEM',
+                    // 'JUNO': 'JUNO',
+                    // 'FETCH_AI': 'FETCH',
+                    // 'CUBENETWORK': 'CUBE',
+                    // 'CADUCEUS': 'CMP',
+                    // 'CONFLUX': 'CFX', // CFXeSpace is different
+                    // 'CERE': 'CERE',
+                    // 'CANTO': 'CANTO',
+                    // 'ALEPHZERO': 'AZERO',
+                    // 'ABBC': 'ABBCCoin',
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
