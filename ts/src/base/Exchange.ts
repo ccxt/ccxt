@@ -735,6 +735,8 @@ export default class Exchange {
             this.setMarkets (this.markets)
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
+
+        this.afterConstruct ();
     }
 
     encodeURIComponent (...args) {
@@ -1685,6 +1687,16 @@ export default class Exchange {
         return parseInt (convertedNumber);
     }
 
+    afterConstruct () {
+        this.createNetworksByIdObject ();
+    }
+
+    createNetworksByIdObject () {
+        // automatically generate network-id-to-code mappings
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
+        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
+    }
+
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
@@ -2284,6 +2296,19 @@ export default class Exchange {
         trade['price'] = this.parseNumber (price);
         trade['cost'] = this.parseNumber (cost);
         return trade as Trade;
+    }
+
+    invertFlatStringDictionary (dict) {
+        const reversed = {};
+        const keys = Object.keys (dict);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = dict[key];
+            if (typeof value === 'string') {
+                reversed[value] = key;
+            }
+        }
+        return reversed;
     }
 
     reduceFeesByCurrency (fees) {
