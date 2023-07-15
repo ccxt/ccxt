@@ -1181,8 +1181,6 @@ class Exchange {
         if ($this->markets) {
             $this->set_markets($this->markets);
         }
-
-        $this->after_construct();
     }
 
     public static function underscore($camelcase) {
