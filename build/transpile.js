@@ -273,15 +273,11 @@ class Transpiler {
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
             [ /\.checkIfMainnetReplacementNeeded\s/g, '.check_if_mainnet_replacement_needed'],
-            [ /\.networkCodeToId\s/g, '.network_code_to_id'],
-            [ /\.networkIdToCode\s/g, '.network_id_to_code'],
             [ /\.networkCodeToCurrencyId\s/g, '.network_code_to_currency_id'],
             [ /\.generateNetworkData\s/g, '.generate_network_data'],
             [ /\.getCurrencyPartFromCurrencyJunction\s/g, '.get_currency_part_from_currency_junction'],
             [ /\.getNetworkPartFromCurrencyJunction\s/g, '.get_network_part_from_currency_junction'],
             [ /\.networkIdIsDefined\s/g, '.network_id_is_defined'],
-            [ /\.defaultNetworkCode\s/g, '.default_network_code'],
-            [ /\.selectNetworkKeyFromNetworks\s/g, '.select_network_key_from_networks'],
         ].concat(this.getTypescriptRemovalRegexes())
     }
 
