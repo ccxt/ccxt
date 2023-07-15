@@ -846,10 +846,16 @@ export default class okx extends Exchange {
                 'brokerId': 'e847386590ce4dBC',
             },
             'commonCurrencies': {
+                // the exchange refers to ERC20 version of Aeternity (AEToken)
+                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
+                'BOX': 'DefiBox',
+                'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
+                'MAG': 'Maggie',
+                'SBTC': 'Super Bitcoin',
                 'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
-                'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
+                'WIN': 'WinToken', //  https://github.com/ccxt/ccxt/issues/5701
             },
         });
     }
