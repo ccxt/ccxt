@@ -11,6 +11,7 @@ from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -76,7 +77,7 @@ class bingx(Exchange, ImplicitAPI):
             },
             'hostname': 'bingx.com',
             'urls': {
-                'logo': '',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
@@ -2282,9 +2283,11 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: parameters specific to the bingx api endpoint
         :returns dict: A `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
-        type = self.safe_integer(params, 'type')  #  1 increase margin 2 decrease margin
+        type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
+        if type is None:
+            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1(increase margin) or 2(decrease margin)')
         if not self.in_array(type, [1, 2]):
-            raise BadRequest(self.id + ' setMargin() requires either 1(increase margin) or 2(decrease margin) for type')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1(increase margin) or 2(decrease margin)')
         self.load_markets()
         market = self.market(symbol)
         request = {

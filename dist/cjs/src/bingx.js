@@ -59,7 +59,7 @@ class bingx extends bingx$1 {
             },
             'hostname': 'bingx.com',
             'urls': {
-                'logo': '',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
@@ -2392,9 +2392,12 @@ class bingx extends bingx$1 {
          * @param {object} [params] parameters specific to the bingx api endpoint
          * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
-        const type = this.safeInteger(params, 'type'); //  1 increase margin 2 decrease margin
+        const type = this.safeInteger(params, 'type'); // 1 increase margin 2 decrease margin
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
+        }
         if (!this.inArray(type, [1, 2])) {
-            throw new errors.BadRequest(this.id + ' setMargin() requires either 1 (increase margin) or 2 (decrease margin) for type');
+            throw new errors.ArgumentsRequired(this.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
