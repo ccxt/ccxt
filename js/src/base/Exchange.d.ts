@@ -551,6 +551,8 @@ export default class Exchange {
     createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
+    afterConstruct(): void;
+    createNetworksByIdObject(): void;
     getDefaultOptions(): {
         defaultNetworkCodeReplacements: {
             ETH: {
@@ -593,6 +595,7 @@ export default class Exchange {
         cost: number;
     };
     safeTrade(trade: object, market?: object): Trade;
+    invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: object, market?: any): Ticker;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

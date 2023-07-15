@@ -749,6 +749,14 @@ class Exchange(BaseExchange):
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
 
+    def after_construct(self):
+        self.create_networks_by_id_object()
+
+    def create_networks_by_id_object(self):
+        # automatically generate network-id-to-code mappings
+        networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))  # invert defined networks dictionary
+        self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))  # support manually overriden "networksById" dictionary too
+
     def get_default_options(self):
         return {
             'defaultNetworkCodeReplacements': {
@@ -1253,6 +1261,16 @@ class Exchange(BaseExchange):
         trade['price'] = self.parse_number(price)
         trade['cost'] = self.parse_number(cost)
         return trade
+
+    def invert_flat_string_dictionary(self, dict):
+        reversed = {}
+        keys = list(dict.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = dict[key]
+            if isinstance(value, str):
+                reversed[value] = key
+        return reversed
 
     def reduce_fees_by_currency(self, fees):
         #
