@@ -379,7 +379,6 @@ export default class bitmart extends Exchange {
                     'USDT': 'ERC20',
                 },
                 'networks': {
-                    'TRX': 'TRC20',
                     'ERC20': 'ERC20',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
