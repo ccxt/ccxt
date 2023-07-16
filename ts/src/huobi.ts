@@ -982,7 +982,6 @@ export default class huobi extends Exchange {
                     'XEC': 'ECASH',
                     'ELA': 'ELA',
                     'EOS': 'EOS',
-                    'CRONOS': 'CRO',
                     'CRC20': 'CRO',
                     'ETC': 'ETC',
                     'ETHW': 'ETHW',
