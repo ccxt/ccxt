@@ -22,6 +22,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadResponse
 
 # -----------------------------------------------------------------------------
 
