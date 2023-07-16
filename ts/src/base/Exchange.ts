@@ -1699,16 +1699,14 @@ export default class Exchange {
 
     getDefaultOptions () {
         return {
-            // replacements for specific mainnet currencies
             'defaultNetworkCodeReplacements': {
-                // { mainnetCurrencyCode : {networkCodeProtocol : networkCodeMainnet} }
                 // i.e. if user provides "currencyCode=ETH & networkCode=ERC20" then we replace networkCode with "ETH"
-                'ETH': { 'ERC20': 'ETH' },
+                'ETH': { 'ERC20': 'ETH' }, // { mainnetCurrencyCode : {networkCodeProtocol : networkCodeMainnet} }
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
                 // for rest of tokens, if user provides "currencyCode=XYZ & networkCode=ETH" then we replace networkCode with "ERC20"
                 '*': {
-                    'ETH': 'ERC20',
+                    'ETH': 'ERC20', // { networkCodeMainnet : networkCodeProtocol }
                     'TRX': 'TRC20',
                     'CRONOS': 'CRC20',
                 },
@@ -2827,19 +2825,29 @@ export default class Exchange {
         // - currency=USDT & network=ETH  <---- we might need to replace `ETH` networkCode with `ERC20`, because USDT is not a mainnet currency
         // - currency=ETH & network=ERC20 <---- we might need to replace `ERC20` networkCode with `ETH`, because ETH is a mainnet currency
         let networkCodeReplacement = networkCode;
+        const definedNetworks = this.safeValue (this.options, 'networks', {});
         const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+        const asteriskReplacements = this.safeValue (defaultNetworkCodeReplacements, '*');
+        // if passed currecyCode is mainnet (i.e. ETH, TRX)
         if (currencyCode in defaultNetworkCodeReplacements) {
-            // if passed currecyCode is mainnet (i.e. ETH, TRX)
-            const replacementPair = defaultNetworkCodeReplacements[currencyCode]; // get pair i.e. { 'ERC20': 'ETH' }
-            // if networkCode found in pair keys (i.e. ERC20 networkCode pas passed by user)
+            // get dict i.e. { 'ERC20': 'ETH' }
+            const replacementPair = defaultNetworkCodeReplacements[currencyCode];
             if (networkCode in replacementPair) {
+                // if networkCode (i.e. ERC20 was passed by user) found in dict keys , then replace with its value
                 networkCodeReplacement = this.safeString (replacementPair, networkCode);
+            } else {
+                // if networkCode (i.e. ETH was passed by user) not found in dict keys ...
+                if (!(networkCode in definedNetworks)) {
+                    // and if networkCode (i.e. ETH) was not defined in options['networks'] by developer , then it means that exchange probably uses protocol networCode (i.e. ERC20) instead of mainnet networkCode (i.e. ETH)
+                    if (currencyCode in asteriskReplacements) {
+                        networkCodeReplacement = this.safeString (asteriskReplacements, networkCode);
+                    }
+                }
             }
         } else {
             // if currencyCode was not found in mainnet currencies (i.e. USDT or other token was passed), but user had assigned mainnet networkCode (i.e. ETH instead of ERC20), then search in asterisk object
-            const asteriskReplacements = this.safeValue (defaultNetworkCodeReplacements, '*');
-            // if networkCode found in pair keys (i.e. ETH networkCode pas passed by user)
             if (networkCode in asteriskReplacements) {
+                // if networkCode found in pair keys (i.e. ETH networkCode pas passed by user)
                 networkCodeReplacement = this.safeString (asteriskReplacements, networkCode);
             }
         }
