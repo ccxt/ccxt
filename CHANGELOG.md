@@ -1,3 +1,31 @@
+## 4.0.28 (2023-07-16)
+
+*  huobi error handling PermissionDenied on withdraw [2257f8690d](https://github.com/ccxt/ccxt/commits/2257f8690d7a49ed4e9d9f7ac98548930169cefb)
+*  4.0.28 [a9825dbe8f](https://github.com/ccxt/ccxt/commits/a9825dbe8fbcb508cb5af22a45625b54cc76930b)
+
+
+## 4.0.27 (2023-07-15)
+
+*  perihpericals [1bac5281c0](https://github.com/ccxt/ccxt/commits/1bac5281c02e50045051f28822148577aede4b6e)
+*  revert [afa86709c9](https://github.com/ccxt/ccxt/commits/afa86709c94ea7d851a27c85a54cce7782fdb9a6)
+*  rename [d6abe01c36](https://github.com/ccxt/ccxt/commits/d6abe01c36bb405ec1133a27a4a5ce69d314e31e)
+*  final [908beafc0d](https://github.com/ccxt/ccxt/commits/908beafc0dc92ab6fbad37812fc2c272d96038a7)
+*  typo [66e9c96683](https://github.com/ccxt/ccxt/commits/66e9c9668393d5ecbc83d03f9279648f5de18f52)
+*  kucoin: update borrowMargin to v3 [9d52d735a2](https://github.com/ccxt/ccxt/commits/9d52d735a2c47f2a856bd892f5e494f3a60d4ca7)
+*  kucoin: update repayMargin to v3 [08f12fa6eb](https://github.com/ccxt/ccxt/commits/08f12fa6eba9060c0c93edc577c9aef3608a7dbc)
+*  kucoin: update error code [354bc77d88](https://github.com/ccxt/ccxt/commits/354bc77d88a127a32a88d914a96197e5275e5fcd)
+*  minify [1f447cf6e7](https://github.com/ccxt/ccxt/commits/1f447cf6e7239eb695a515c422a7663b00911b3e)
+*  rename methods [62a4754524](https://github.com/ccxt/ccxt/commits/62a4754524c35a83cfa8324aac3ce705435e2208)
+*  simplify invertFlatStringDictionary [32616e0d47](https://github.com/ccxt/ccxt/commits/32616e0d47fb726b0226ebbe13e1e3080a74a50f)
+*  transpile changes [79b1e8048a](https://github.com/ccxt/ccxt/commits/79b1e8048ab357e41b367b1104d1c265e9fb572d)
+*  kucoin: update borrowMargin & repayMargin ArgumentsRequired error [1d81bddc23](https://github.com/ccxt/ccxt/commits/1d81bddc23516c9fb2d314cf9c431aabb544aa75)
+*  kucoin: update repayMargin ArgumentsRequired error [19e29afec3](https://github.com/ccxt/ccxt/commits/19e29afec371e891903b9a253b317499924fc523)
+*  bingx reflink #17924 [b1265b705a](https://github.com/ccxt/ccxt/commits/b1265b705a412720bf26ddc3b64cfe224c70a3b5)
+*  feat(okx): editOrder, remove market type restriction [2bce0c7768](https://github.com/ccxt/ccxt/commits/2bce0c776843edb79d51adf7cbedc782ee33479f)
+*  restore edit order [084c91e66f](https://github.com/ccxt/ccxt/commits/084c91e66f515b3bb0a108416dee117de9f93743)
+*  4.0.27 [af9e6a8407](https://github.com/ccxt/ccxt/commits/af9e6a8407caf096db7cb2f455e85e80e1515857)
+
+
 ## 4.0.26 (2023-07-15)
 
 *  bingx logo [d36f1fed8d](https://github.com/ccxt/ccxt/commits/d36f1fed8d344c6c285e8178fc45702d2ea935a8)
