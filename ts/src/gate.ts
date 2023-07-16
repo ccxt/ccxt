@@ -535,16 +535,11 @@ export default class gate extends Exchange {
                 },
                 'networks': {
                     'BTC': 'BTC',
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'SOLANA': 'SOL',
                     'SOL': 'SOL',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'BEP2': 'BNB',
-                    'POLKADOT': 'DOT',
                     'DOT': 'DOTSM', // todo: DOT vs DOTSM
-                    'POLYGON': 'MATIC',
                     'MATIC': 'MATIC',
                     'ALGO': 'ALGO',
                     'ARB_NOVA': 'ARBNOVA',
@@ -557,23 +552,19 @@ export default class gate extends Exchange {
                     // 'GATECHAIN': 'GT', // todo: GT vs GTEVM (same as GRC20)
                     'HECO': 'HT',
                     'HRC20': 'HT',
-                    'KUSAMA': 'KSMSM',
                     'KSM': 'KSMSM', // todo: KSM vs KSMSM
                     'NEAR': 'NEAR',
                     'OKC': 'OKT',
                     'OPTIMISM': 'OPETH',
                     'CRC20': 'CRO',
                     'LTC': 'LTC',
-                    'DOGECOIN': 'DOGE',
                     'DOGE': 'DOGE', // DOGEEVM is different
-                    'COSMOS': 'ATOM',
                     'ATOM': 'ATOM',
                     'ETC': 'ETC',
                     // 'TERRA': 'LUNA', todo
                     // 'TERRACLASSIC': 'LUNC',
                     'WAVES': 'WAVES',
                     'XLM': 'XLM',
-                    'CARDANO': 'ADA',
                     'ADA': 'ADA',
                     'EGLD': 'EGLD',
                     'CELO': 'CELO',
