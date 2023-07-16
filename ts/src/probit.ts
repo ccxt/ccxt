@@ -197,11 +197,6 @@ export default class probit extends Exchange {
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
                 },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
-                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
