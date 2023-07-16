@@ -1703,7 +1703,7 @@ export default class Exchange {
             'defaultNetworkCodeReplacements': {
                 // { mainnetCurrencyCode : {networkCodeProtocol : networkCodeMainnet} }
                 // i.e. if user provides "currencyCode=ETH & networkCode=ERC20" then we replace networkCode with "ETH"
-                'ETH': { 'ERC20': 'ETH' }, 
+                'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
                 // for rest of tokens, if user provides "currencyCode=XYZ & networkCode=ETH" then we replace networkCode with "ERC20"
@@ -1711,7 +1711,7 @@ export default class Exchange {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'CRONOS': 'CRC20',
-                }
+                },
             },
             // this list is for common reserved CCXT unified network codes, the primary and supported secondary unified network codes
             'unifiedNetworkCodesAndAliases': {
@@ -1749,7 +1749,7 @@ export default class Exchange {
                 'SOLAR': 'SXP',
                 'FILECOIN': 'FIL',
                 'KLAYTN': 'KLAY',
-                'PROTON': 'XPR', 
+                'PROTON': 'XPR',
                 'HARMONY': 'ONE',
                 'BITCOIN_LIGHTNING': 'BTCLN',
                 'KARURA': 'KAR',
@@ -1798,7 +1798,7 @@ export default class Exchange {
                 'BYTOM': 'BTM2',
                 'PLCULTIMA': 'PLCU',
                 'KINTSUGI': 'KINT',
-                'FINDORA': 'FRA', 
+                'FINDORA': 'FRA',
                 'BITGERT': 'BRISE',
                 'DATA': 'DTA',
                 'AETERNITY': 'AE',
@@ -1820,7 +1820,7 @@ export default class Exchange {
                 'CLOVER': 'CLV',
                 'VERGE': 'XVG',
                 'NERVOS': 'CKB',
-                'CHIA': 'XCH', 
+                'CHIA': 'XCH',
                 'LISK': 'LSK',
                 'VSYSTEMS': 'vsys',
                 'IOTEX': 'IOTX',
@@ -1846,7 +1846,7 @@ export default class Exchange {
                 'HORIZEN': 'ZEN',
                 'STACKS': 'STX',
                 'KOMODO': 'KMD',
-                'ICON': 'ICX',	
+                'ICON': 'ICX',
             },
         };
     }
@@ -2833,14 +2833,14 @@ export default class Exchange {
             const replacementPair = defaultNetworkCodeReplacements[currencyCode]; // get pair i.e. { 'ERC20': 'ETH' }
             // if networkCode found in pair keys (i.e. ERC20 networkCode pas passed by user)
             if (networkCode in replacementPair) {
-                networkCodeReplacement = this.safeString (replacementPair, networkCode); 
+                networkCodeReplacement = this.safeString (replacementPair, networkCode);
             }
         } else {
             // if currencyCode was not found in mainnet currencies (i.e. USDT or other token was passed), but user had assigned mainnet networkCode (i.e. ETH instead of ERC20), then search in asterisk object
             const asteriskReplacements = this.safeValue (defaultNetworkCodeReplacements, '*');
             // if networkCode found in pair keys (i.e. ETH networkCode pas passed by user)
             if (networkCode in asteriskReplacements) {
-                networkCodeReplacement = this.safeString (asteriskReplacements, networkCode); 
+                networkCodeReplacement = this.safeString (asteriskReplacements, networkCode);
             }
         }
         return networkCodeReplacement;
