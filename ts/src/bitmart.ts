@@ -380,7 +380,6 @@ export default class bitmart extends Exchange {
                 },
                 'networks': {
                     'TRX': 'TRC20',
-                    'ETH': 'ERC20',
                     'ERC20': 'ERC20',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
@@ -405,12 +404,9 @@ export default class bitmart extends Exchange {
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
                     'SOL': 'SOL',
-                    'ALGO': 'ALGO', // todo: ALGORAND
-                    'COSMOS': 'ATOM',
+                    'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
-                    'POLKADOT': 'DOT',
                     'DOT': 'DOT',
-                    'CARDANO': 'ADA',
                     'ADA': 'ADA',
                     'DOGE': 'DOGE',
                     'XYM': 'XYM',
