@@ -940,11 +940,9 @@ export default class huobi extends Exchange {
                     'BSC': 'BEP20',
                     // 'BEP20': [ 'BEP20', 'BEP20BNB' ], // 'BEP20BNB' is exceptionary for BNB coin, // todo: after unification
                     'AVAX_C': 'AVAXCCHAIN',
-                    'HECO': 'HECO',
+                    'AVAX_X': 'AVAX',
                     'HRC20': 'HECO',
                     'ARB_ONE': 'ARB',
-                    'AVAX_X': 'AVAX',
-                    'DOGECOIN': 'DOGE',
                     'DOGE': 'DOGE',
                     // 'SOL': [ 'SOLANA', 'SOL', 'SOLUSDC' ], // Some tokens has SOLANA as network-names and some has 'SOL' (SOLUSDC is exception) // todo: after unification
                     'PRC20': 'PRC20',
@@ -999,7 +997,6 @@ export default class huobi extends Exchange {
                     'NEAR': 'NEAR',
                     'ONT': 'ONTOLOGY',
                     'OPTIMISM': 'OP',
-                    'POLKADOT': 'DOT',
                     'DOT': 'DOT',
                     'XZT': 'XZT',
                     'TON': 'TON',
