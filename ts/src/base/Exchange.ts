@@ -1699,10 +1699,19 @@ export default class Exchange {
 
     getDefaultOptions () {
         return {
+            // replacements for specific mainnet currencies
             'defaultNetworkCodeReplacements': {
-                'ETH': { 'ERC20': 'ETH' },
+                // { mainnetCurrencyCode : {networkCodeProtocol : networkCodeMainnet} }
+                // i.e. if user provides "currencyCode=ETH & networkCode=ERC20" then we replace networkCode with "ETH"
+                'ETH': { 'ERC20': 'ETH' }, 
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
+                // for rest of tokens, if user provides "currencyCode=XYZ & networkCode=ETH" then we replace networkCode with "ERC20"
+                '*': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'CRONOS': 'CRC20',
+                }
             },
         };
     }
@@ -2678,6 +2687,30 @@ export default class Exchange {
         }
     }
 
+    checkMainnetNetworkCodeReplacement (networkCode, currencyCode = undefined) {
+        // This method checks if user called a possibly wrong combinatin, i.e:
+        // - currency=USDT & network=ETH  <---- we might need to replace `ETH` networkCode with `ERC20`, because USDT is not a mainnet currency
+        // - currency=ETH & network=ERC20 <---- we might need to replace `ERC20` networkCode with `ETH`, because ETH is a mainnet currency
+        let networkCodeReplacement = networkCode;
+        const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+        if (currencyCode in defaultNetworkCodeReplacements) {
+            // if passed currecyCode is mainnet (i.e. ETH, TRX)
+            const replacementPair = defaultNetworkCodeReplacements[currencyCode]; // get pair i.e. { 'ERC20': 'ETH' }
+            // if networkCode found in pair keys (i.e. ERC20 networkCode pas passed by user)
+            if (networkCode in replacementPair) {
+                networkCodeReplacement = this.safeString (replacementPair, networkCode); 
+            }
+        } else {
+            // if currencyCode was not found in mainnet currencies (i.e. USDT or other token was passed), but user had assigned mainnet networkCode (i.e. ETH instead of ERC20), then search in asterisk object
+            const asteriskReplacements = this.safeValue (defaultNetworkCodeReplacements, '*');
+            // if networkCode found in pair keys (i.e. ETH networkCode pas passed by user)
+            if (networkCode in asteriskReplacements) {
+                networkCodeReplacement = this.safeString (asteriskReplacements, networkCode); 
+            }
+        }
+        return networkCodeReplacement;
+    }
+
     networkCodeToId (networkCode, currencyCode = undefined) {
         /**
          * @ignore
@@ -2688,30 +2721,19 @@ export default class Exchange {
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
-        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        let networkId = this.safeString (networkIdsByCodes, networkCode);
-        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
+        // check if Mainnet<>Protocol replacement is needed (i.e. ETH<>ERC20) depending on currencyCode
+        networkCode = this.checkMainnetNetworkCodeReplacement (networkCode, currencyCode);
+        // get the exchange-specific network-id from mappings
+        const networkCodesToIds = this.safeValue (this.options, 'networks', {});
+        let networkId = this.safeString (networkCodesToIds, networkCode);
+        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options['networks']` object
         if (networkId === undefined) {
             if (currencyCode === undefined) {
                 // if currencyCode was not provided, then we just set passed value to networkId
                 networkId = networkCode;
             } else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
-                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-                if (currencyCode in defaultNetworkCodeReplacements) {
-                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
-                    const keys = Object.keys (replacementObject);
-                    for (let i = 0; i < keys.length; i++) {
-                        const key = keys[i];
-                        const value = replacementObject[key];
-                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if (value === networkCode) {
-                            networkId = this.safeString (networkIdsByCodes, key);
-                            break;
-                        }
-                    }
-                }
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement networkCode (i.e. ERC20 instead of ETH)
+                networkId = this.checkMainnetNetworkCodeReplacement (networkCode, currencyCode);
                 // if it wasn't found, we just set the provided value to network-id
                 if (networkId === undefined) {
                     networkId = networkCode;
