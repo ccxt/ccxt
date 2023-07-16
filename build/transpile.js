@@ -265,6 +265,7 @@ class Transpiler {
             [ /\.omitZero\s/g, '.omit_zero'],
             [ /\.afterConstruct\s/g, '.after_construct'],
             [ /\.createNetworksByIdObject\s/g, '.create_networks_by_id_object'],
+            [ /\.checkMainnetNetworkCodeReplacement\s/g, '.check_mainnet_network_code_replacement'],
             [ /\.invertFlatStringDictionary\s/g, '.invert_flat_string_dictionary'],
             [ /\.safeCurrencyStructure\s/g, '.safe_currency_structure'],
             [ /\.isTickPrecision\s/g, '.is_tick_precision'],

@@ -2859,8 +2859,6 @@ export default class Exchange {
         // check if alias replacement is needed (i.e. POLYGON>MATIC)
         const unifiedNetworkCodesAndAliases = this.safeValue (this.options, 'unifiedNetworkCodesAndAliases', {});
         networkCode = this.safeString (unifiedNetworkCodesAndAliases, networkCode, networkCode);
-        // check if Mainnet<>Protocol replacement is needed (i.e. ETH<>ERC20) depending on currencyCode
-        networkCode = this.checkMainnetNetworkCodeReplacement (networkCode, currencyCode);
         // get the exchange-specific network-id from mappings
         const networkCodesToIds = this.safeValue (this.options, 'networks', {});
         let networkId = this.safeString (networkCodesToIds, networkCode);
@@ -2870,7 +2868,7 @@ export default class Exchange {
                 // if currencyCode was not provided, then we just set passed value to networkId
                 networkId = networkCode;
             } else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement networkCode (i.e. ERC20 instead of ETH)
+                // check if Mainnet<>Protocol replacement is needed (i.e. ETH<>ERC20) depending on currencyCode
                 networkId = this.checkMainnetNetworkCodeReplacement (networkCode, currencyCode);
                 // if it wasn't found, we just set the provided value to network-id
                 if (networkId === undefined) {
