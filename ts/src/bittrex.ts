@@ -251,7 +251,6 @@ export default class bittrex extends Exchange {
                     // 'ETH': 'ETH', // ETC also has this id, so we can't reliable determine
                     'ERC20': 'ETH_CONTRACT',
                     'EOS': 'EOS',
-                    'CARDANO': 'ADA',
                     'ADA': 'ADA',
                     'BITTREXPOOLED': 'BITTREXPOOLED',
                     'BITTREXMEMO': 'BITTREXMEMO',
@@ -263,7 +262,6 @@ export default class bittrex extends Exchange {
                     'KLAY': 'KLAYTN',
                     'BTC': 'BITCOIN',
                     // 'BITCOIN16': 'BITCOIN16',
-                    'BYTOM': 'BYTOM', // backwards compatibility
                     'BTM': 'BYTOM',
                     // 'BITSHAREX': 'BITSHAREX',
                     // 'Award': 'Award',
@@ -283,10 +281,10 @@ export default class bittrex extends Exchange {
                     // 'CRYPTO_NOTE_PAYMENTID': 'CRYPTO_NOTE_PAYMENTID',
                     'QRL': 'QRL',
                     'SC': 'SIA',
-                    'STRATIS': 'STRATIS',
-                    'VERIBLOCK': 'VERIBLOCK',
+                    // 'STRATIS': 'STRATIS', // todo consensus
+                    // 'VERIBLOCK': 'VERIBLOCK', // todo consensus
                     'VET': 'VECHAIN',
-                    'VELAS': 'VELAS',
+                    // 'VELAS': 'VELAS', // todo consensus
                     'NEM': 'NEM',
                     'ZIL': 'ZIL',
                 },
