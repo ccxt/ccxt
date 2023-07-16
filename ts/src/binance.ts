@@ -1074,16 +1074,12 @@ export default class binance extends Exchange {
                 'useUnifiedNetworkCodes': false, // temporarily disable this to avoid immediate breaking changes. Soon after announcement we would enable this by default
                 'networks': {
                     'BTC': 'BTC',
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'BEP2': 'BNB',
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
-                    'SOLANA': 'SOL',
-                    'SPL': 'SOL', // keep temporarily
                     'SOL': 'SOL',
                     // 'FIAT': 'FIAT_MONEY', // not unified atm
                     // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
@@ -1101,7 +1097,6 @@ export default class binance extends Exchange {
                     'AVAX_X': 'AVAX',
                     'ARB_ONE': 'ARBITRUM',
                     'NEO': 'NEO',
-                    'NEO3': 'NEO3',
                     'VITE': 'VITE',
                     'FLR': 'FLR',
                     'BCX': 'BCX',
@@ -1112,11 +1107,9 @@ export default class binance extends Exchange {
                     'MINA': 'MINA',
                     'VET': 'VET',
                     'REI': 'REI',
-                    'CARDANO': 'ADA',
                     'ADA': 'ADA',
                     'WAVES': 'WAVES',
                     'XRP': 'XRP',
-                    'POLYGON': 'MATIC',
                     'MATIC': 'MATIC',
                     'SCRT': 'SCRT',
                     'KAVA': 'KAVA',
@@ -1128,10 +1121,8 @@ export default class binance extends Exchange {
                     'XVG': 'XVG',
                     'FLOW': 'FLOW',
                     'STEEM': 'STEEM',
-                    'POLKADOT': 'DOT',
                     'DOT': 'DOT',
                     'FTM': 'FTM',
-                    'COSMOS': 'ATOM',
                     'ATOM': 'ATOM',
                     'OPTIMISM': 'OPTIMISM',
                     'GLMR': 'GLMR',
@@ -1161,7 +1152,6 @@ export default class binance extends Exchange {
                     'ZEC': 'ZEC',
                     'ICX': 'ICX',
                     'ZEN': 'ZEN',
-                    'DOGECOIN': 'DOGE',
                     'DOGE': 'DOGE',
                     'HBAR': 'HBAR',
                     'RVN': 'RVN',
@@ -1188,6 +1178,7 @@ export default class binance extends Exchange {
                     // todo: below will be uncommented after consensus
                     // 'AELF': 'ELF',
                     // 'OASIS': 'ROSE',
+                    // 'NEO3': 'NEO3',
                     // 'PARALLELFINANCE': 'PARA',
                     // 'EFINITY': 'EFI',
                     // 'TERRA': 'LUNA',
