@@ -2831,14 +2831,18 @@ export default class Exchange {
         // if passed currecyCode is mainnet (i.e. ETH, TRX)
         if (currencyCode in defaultNetworkCodeReplacements) {
             // get dict i.e. { 'ERC20': 'ETH' }
-            const replacementPair = defaultNetworkCodeReplacements[currencyCode];
-            if (networkCode in replacementPair) {
-                // if networkCode (i.e. ERC20 was passed by user) found in dict keys , then replace with its value
-                networkCodeReplacement = this.safeString (replacementPair, networkCode);
+            const replacementDict = defaultNetworkCodeReplacements[currencyCode];
+            // if networkCode (i.e. ERC20 was passed by user) found in dict keys ...
+            if (networkCode in replacementDict) {
+                const mainnetNetworkCode = this.safeString (replacementDict, networkCode);
+                // and if networkCode (i.e. ETH) was defined in options['networks'] by developer, then it means that exchange probably uses distint networCode for mainnet (i.e. Ether)
+                if (mainnetNetworkCode in definedNetworks) {
+                    networkCodeReplacement = this.safeString (replacementDict, networkCode);
+                }
             } else {
                 // if networkCode (i.e. ETH was passed by user) not found in dict keys ...
                 if (!(networkCode in definedNetworks)) {
-                    // and if networkCode (i.e. ETH) was not defined in options['networks'] by developer , then it means that exchange probably uses protocol networCode (i.e. ERC20) instead of mainnet networkCode (i.e. ETH)
+                    // and if networkCode (i.e. ETH) was not defined in options['networks'] by developer, then it means that exchange probably uses protocol networCode (i.e. Erc-20) instead of mainnet networkCode (i.e. Ether)
                     if (currencyCode in asteriskReplacements) {
                         networkCodeReplacement = this.safeString (asteriskReplacements, networkCode);
                     }
