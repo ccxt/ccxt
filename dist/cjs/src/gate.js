@@ -77,7 +77,6 @@ class gate extends gate$1 {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -1747,18 +1746,6 @@ class gate extends gate$1 {
             };
         }
         return result;
-    }
-    async createDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name gate#createDepositAddress
-         * @description create a currency deposit address
-         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
-        return await this.fetchDepositAddress(code, params);
     }
     async fetchDepositAddress(code, params = {}) {
         /**
