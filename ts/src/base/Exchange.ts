@@ -1692,9 +1692,15 @@ export default class Exchange {
     }
 
     createNetworksByIdObject () {
+        // from now and onwards, we need to have 'networks' prop existent for any exchange, even if they are empty, in unified structure they are now expected to be present, to avoid endless checks in implementations, like: if ('networks' in this.options)"
+        if (!('networks' in this.options)) {
+            this.options['networks'] = {};
+        }
         // automatically generate network-id-to-code mappings
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.options['networks']); // invert defined networks dictionary
         this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
+        // also add the property for approving the network-code conflicts:
+        this.options['networkCodeConflictApproved'] = {};
     }
 
     getDefaultOptions () {
@@ -2820,6 +2826,32 @@ export default class Exchange {
         }
     }
 
+    checkNetworkCodeConflict (networkCode) {
+        // if conflicting id was provided. if exchange has options['networks'] like this:
+        //  {
+        //    'ADA': 'Cardano',
+        //    'ADAMANT': 'ADA',
+        //    ...
+        //  }
+        // then if user runs `withdraw ('XyzCoin', {network: 'ADA'})` we should ask him for explicit approval, because we don't know if s/he means an "unified networkCode" ADA or "exchange networkId" ADA
+        // (note, this is a simplified method, more complex cases can be added in future if there is a need)
+        //
+        const networkId = this.safeString (this.options['networks'], networkCode, networkCode);
+        // check if provided network-value (i.e. ADA) gets a different networkId value (i.e. Cardano)
+        if (networkId !== networkCode) {
+            // now check if provided network-value also exist in IDs
+            const assignedNetworkCodeToThisNetworkId = this.safeString (this.options['networksById'], networkCode);
+            if (assignedNetworkCodeToThisNetworkId !== undefined) {
+                // if so, it means that there is a conflict (user provided i.e. ADA in above-like dictionary)
+                const userApprovals = this.safeValue (this.options, 'networkCodeConflictApproved', {});
+                // if this conflict was not approved by user:
+                if (!(networkCode in userApprovals)) {
+                    throw new ArgumentsRequired (this.id + ' networkCodeToId() : this exchange has conflicting network-ids for "' + networkCode + '". If you are trying to refer to ' + networkId + ', set `instance.options["networkCodeConflictApproved"]["' + networkCode + '"] = true` to avoid this warning, but if you were trying to refer to "' + assignedNetworkCodeToThisNetworkId + '" network, then use it instead');
+                }
+            }
+        }
+    }
+
     checkMainnetNetworkCodeReplacement (networkCode, currencyCode = undefined) {
         // This method checks if user called a possibly wrong combinatin, i.e:
         // - currency=USDT & network=ETH  <---- we might need to replace `ETH` networkCode with `ERC20`, because USDT is not a mainnet currency
@@ -2873,6 +2905,12 @@ export default class Exchange {
         const networkCodeDeAliased = this.safeString (unifiedNetworkCodesAndAliases, networkCode, networkCode);
         // check if Mainnet<>Protocol replacement is needed (i.e. ETH<>ERC20) depending on currencyCode
         const networkCodeDeAliasedAndMainnetCorrected = this.checkMainnetNetworkCodeReplacement (networkCodeDeAliased, currencyCode);
+        // check for conflicts
+        this.checkNetworkCodeConflict (networkCode);
+        if (networkCode !== networkCodeDeAliasedAndMainnetCorrected) {
+            // if there was a alias replacement, then check the original alias for conflict too
+            this.checkNetworkCodeConflict (networkCodeDeAliasedAndMainnetCorrected);
+        }
         // get the exchange-specific network-id from mappings
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
         let networkId = this.safeString (networkIdsByCodes, networkCodeDeAliasedAndMainnetCorrected);
