@@ -155,10 +155,6 @@ export default class Exchange {
         [key: string]: any;
     }
 
-    optionNetworkData: any;
-    generatedNetworkData: any;
-    networksIdsDependOnCurrencies: any;
-
     api = undefined
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
@@ -709,7 +705,6 @@ export default class Exchange {
                 this[property] = value
             }
         }
-        this.generateNetworkData ();
         // http client options
         const agentOptions = {
             'keepAlive': true,
@@ -1679,6 +1674,29 @@ export default class Exchange {
         return parseInt (convertedNumber);
     }
 
+    getDefaultOptions () {	
+        return {	
+            'defaultNetworkCodeReplacements': {	
+                'ETH': { 'ERC20': 'ETH' },	
+                'TRX': { 'TRC20': 'TRX' },	
+                'CRO': { 'CRC20': 'CRONOS' },
+                '*': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'CRONOS': 'CRC20',
+                },
+            },
+            'unifiedNetworkCodesAndAliases': {
+                'BEP20': 'BSC',
+                .......
+            },
+            // below field needs to be s set to `true` for some exceptional exchanges. Setting it to `true` means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through 'titleToId' && 'idToTitleWithoutCurrency'. To see examples, check OKX/HUOBI implementations
+            'networksAreTitlesInsteadOfIds': false,
+            'networksAreIncludedInCurrencyIds': false,
+            'networkCodesConflictsApproved': {}, // this is overrided by user
+        };	
+    }
+
     safeLedgerEntry (entry: object, currency: object = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
@@ -2630,45 +2648,6 @@ export default class Exchange {
         }
     }
 
-    getDefaultOptions () {
-        return {
-            'defaultNetworkCodeReplacements': {
-                // mainnetCurrencyCode : { tokenNetworkCode: mainnetNetworkCode }
-                'ETH': { 'ERC20': 'ETH' },
-                'TRX': { 'TRC20': 'TRX' },
-                'CRO': { 'CRC20': 'CRONOS' },
-                '*': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
-                    'CRONOS': 'CRC20',
-                },
-            },
-            // this list is for common reserved CCXT unified network codes, the primary and supported secondary unified network codes
-            'unifiedNetworkCodesAndAliases': {
-                'BEP20': 'BSC',
-                'CRC20': 'CRO',
-                'HRC20': 'HECO',
-                'CARDANO': 'ADA',
-                // 'BNB': 'BEP2', // BNB is risky, as some exchanges are undeliberately calling 'BNB' network for BINANCE smart chain
-                'DOGECOIN': 'DOGE',
-                'SOLANA': 'SOL',
-                'POLYGON': 'MATIC',
-                'COSMOS': 'ATOM',
-                'POLKADOT': 'DOT',
-                'ONTOLOGY': 'ONT',
-                'THORCHAIN': 'RUNE',
-                'ECASH': 'XEC',
-                'ZCASH': 'ZEC',
-                'RIPPLE': 'XRP',
-                'STELLAR': 'XLM',
-            },
-            // below field needs to be s set to `true` for some exceptional exchanges. Setting it to `true` means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through 'titleToId' && 'idToTitleWithoutCurrency'. To see examples, check OKX/HUOBI implementations
-            'networksAreTitlesInsteadOfIds': false,
-            'networksAreIncludedInCurrencyIds': false,
-            'networkCodesConflictsApproved': {}, // this is overrided by user
-        };
-    }
-
     generateNetworkData () {
         //
         // In case of some exchanges, we might have three different entities:
@@ -2735,25 +2714,6 @@ export default class Exchange {
                 }
             }
         }
-    }
-
-    checkIfMainnetReplacementNeeded (networkCode, currencyCode) {
-        let networkCodeReplacement = undefined;
-        const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-        // Alias support : if user calls `networkCodeToId('ETH', 'USDT')` or `networkCodeToId('ERC20', 'ETH')` then we have to replace the networkCode accordingly in such cases, depending if the currencyCode is mainnet or not (to either ETH or ERC20)
-        if (currencyCode in defaultNetworkCodeReplacements) {
-            // if the mainnet currencyCode was passed, and if ERC20 was passed instead of ETH, then replace it with ETH
-            const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
-            networkCodeReplacement = this.safeString (replacementObject, networkCode, networkCode);
-        } else {
-            // if currencyCode was not found in mainnet currencies (i.e. USDT instead of ETH), but had assigned mainnet networkCode (i.e. ETH instead of ERC20)
-            networkCodeReplacement = this.safeString (this.options['defaultNetworkCodeReplacements']['*'], networkCode, networkCode);
-        }
-        // at this stage we are ensure that mainnet<>token replacements were not happened inside above if/else clause
-        if (networkCodeReplacement === undefined) {
-            networkCodeReplacement = networkCode;
-        }
-        return networkCodeReplacement;
     }
 
     defineNetworkCodeNameIdMappings (currencyCode, currencyId, networkTitle, networkId) {
