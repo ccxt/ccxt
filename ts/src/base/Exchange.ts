@@ -2637,11 +2637,11 @@ export default class Exchange {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
-            },
-            'mainnetAndTokenNetworkCodes': {
-                'ETH': 'ERC20',
-                'TRX': 'TRC20',
-                'CRONOS': 'CRC20',
+                '*': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'CRONOS': 'CRC20',
+                },
             },
             // this list is for common reserved CCXT unified network codes, the primary and supported secondary unified network codes
             'unifiedNetworkCodesAndAliases': {
@@ -2747,7 +2747,7 @@ export default class Exchange {
             networkCodeReplacement = this.safeString (replacementObject, networkCode, networkCode);
         } else {
             // if currencyCode was not found in mainnet currencies (i.e. USDT instead of ETH), but had assigned mainnet networkCode (i.e. ETH instead of ERC20)
-            networkCodeReplacement = this.safeString (this.options['mainnetAndTokenNetworkCodes'], networkCode, networkCode);
+            networkCodeReplacement = this.safeString (this.options['defaultNetworkCodeReplacements']['*'], networkCode, networkCode);
         }
         // at this stage we are ensure that mainnet<>token replacements were not happened inside above if/else clause
         if (networkCodeReplacement === undefined) {
@@ -2916,7 +2916,7 @@ export default class Exchange {
         if (currencyCode !== undefined) {
             const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
             const isMainnetCurrency = (currencyCode in defaultNetworkCodeReplacements);
-            const mainnetNetworkCodes = this.options['mainnetAndTokenNetworkCodes'];
+            const mainnetNetworkCodes = this.options['defaultNetworkCodeReplacements']['*'];
             const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
             // "networkCode" is an array at this stage, then we have to find whether mainnet coin & networks match or not i.e. if currency is ETH and network is ETH or ERC20, then we set networkCode to ETH, otherwise we set it to ERC20
             if (Array.isArray (networkCode)) {
