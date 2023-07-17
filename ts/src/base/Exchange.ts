@@ -2760,18 +2760,6 @@ export default class Exchange {
         const networkCodeMainnetCorrected = this.checkIfMainnetReplacementNeeded (networkCode, currencyCode);
         // if alias is provided (i.e. SOL), replace it with primary networkCode (i.e. SOLANA)
         const networkCodePrimary = this.safeString (aliases, networkCodeMainnetCorrected, networkCodeMainnetCorrected);
-        // if conflicting object was found
-        if (networkCodePrimary in this.generatedNetworkData['networkCodesConflicts']) {
-            // check if conflicting id was provided
-            const conflictingObject = this.safeValue (this.generatedNetworkData['networkCodesConflicts'], networkCodePrimary);
-            const userApprovals = this.safeValue (this.options, 'networkCodesConflictsApproved', {});
-            // if this conflict was not approved by user
-            if (!(networkCodePrimary in userApprovals)) {
-                const exchangeSpecificUnifiedNetworkCode = conflictingObject['exchangeSpecificCode'];
-                const errorMessage = this.id + ' networkCodeToId() : your provided network code (' + networkCodePrimary + ') is in the list of unified CCXT networkCodes, but specifically this exchange has accidentaly chosen that name to refer to a different network (which should be referred by ' + exchangeSpecificUnifiedNetworkCode + ' through CCXT). So, if you meant to use that ' + networkCodePrimary + ' as unified CCXT networkCode (instead of ' + exchangeSpecificUnifiedNetworkCode + ' network) then express your approval by setting `exchange.options["networkCodesConflictsApproved"]["' + networkCodePrimary + '"] = true` so this exception will not be thrown for you.';
-                throw new ArgumentsRequired (errorMessage);
-            }
-        }
         // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids (i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
         if (this.safeValue (this.options, 'networksAreTitlesInsteadOfIds', false)) {
             if (currencyCode === undefined) {
