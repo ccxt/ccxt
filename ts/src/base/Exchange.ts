@@ -2817,6 +2817,9 @@ export default class Exchange {
         // This method checks if user called a possibly wrong combinatin, i.e:
         // - currency=USDT & network=ETH  <---- we might need to replace `ETH` networkCode with `ERC20`, because USDT is not a mainnet currency
         // - currency=ETH & network=ERC20 <---- we might need to replace `ERC20` networkCode with `ETH`, because ETH is a mainnet currency
+        if (currencyCode === undefined) {
+            return networkCode;
+        }
         let networkCodeReplacement = networkCode;
         const definedNetworks = this.safeValue (this.options, 'networks', {});
         const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
