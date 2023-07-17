@@ -135,34 +135,34 @@ export default class wavesexchange extends Exchange {
                         'matcher/debug/status',
                         'matcher/debug/address/{address}/check',
                         'matcher/orderbook',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/publicKey/{publicKey}',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/{orderId}',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/info',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/status',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/tradableBalance/{address}',
+                        'matcher/orderbook/{baseId}/{quoteId}',
+                        'matcher/orderbook/{baseId}/{quoteId}/publicKey/{publicKey}',
+                        'matcher/orderbook/{baseId}/{quoteId}/{orderId}',
+                        'matcher/orderbook/{baseId}/{quoteId}/info',
+                        'matcher/orderbook/{baseId}/{quoteId}/status',
+                        'matcher/orderbook/{baseId}/{quoteId}/tradableBalance/{address}',
                         'matcher/orderbook/{publicKey}',
                         'matcher/orderbook/{publicKey}/{orderId}',
                         'matcher/orders/{address}',
                         'matcher/orders/{address}/{orderId}',
                         'matcher/transactions/{orderId}',
-                        'api/v1/orderbook/{amountAsset}/{priceAsset}',
+                        'api/v1/orderbook/{baseId}/{quoteId}',
                     ],
                     'post': [
                         'matcher/orderbook',
                         'matcher/orderbook/market',
                         'matcher/orderbook/cancel',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/cancel',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/calculateFee',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/delete',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/cancelAll',
+                        'matcher/orderbook/{baseId}/{quoteId}/cancel',
+                        'matcher/orderbook/{baseId}/{quoteId}/calculateFee',
+                        'matcher/orderbook/{baseId}/{quoteId}/delete',
+                        'matcher/orderbook/{baseId}/{quoteId}/cancelAll',
                         'matcher/debug/saveSnapshots',
                         'matcher/orders/{address}/cancel',
                         'matcher/orders/cancel/{orderId}',
                         'matcher/orders/serialize',
                     ],
                     'delete': [
-                        'matcher/orderbook/{amountAsset}/{priceAsset}',
+                        'matcher/orderbook/{baseId}/{quoteId}',
                         'matcher/settings/rates/{assetId}',
                     ],
                     'put': [
@@ -385,7 +385,7 @@ export default class wavesexchange extends Exchange {
             'amount': amount,
             'price': price,
         }, params);
-        return await this.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
+        return await this.matcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee (request);
     }
 
     async customCalculateFee (symbol: string, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -607,7 +607,7 @@ export default class wavesexchange extends Exchange {
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
         }, params);
-        const response = await this.matcherGetMatcherOrderbookAmountAssetPriceAsset (request);
+        const response = await this.matcherGetMatcherOrderbookBaseIdQuoteId (request);
         const timestamp = this.safeInteger (response, 'timestamp');
         const bids = this.parseOrderBookSide (this.safeValue (response, 'bids'), market, limit);
         const asks = this.parseOrderBookSide (this.safeValue (response, 'asks'), market, limit);
