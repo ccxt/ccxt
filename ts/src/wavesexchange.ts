@@ -379,8 +379,8 @@ export default class wavesexchange extends Exchange {
         amount = this.customAmountToPrecision (symbol, amount);
         price = this.customPriceToPrecision (symbol, price);
         const request = this.extend ({
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
             'orderType': side,
             'amount': amount,
             'price': price,
@@ -1365,22 +1365,6 @@ export default class wavesexchange extends Exchange {
         }
         amount = this.customAmountToPrecision (symbol, amount);
         price = this.customPriceToPrecision (symbol, price);
-        const byteArray = [
-            this.numberToBE (3, 1),
-            this.base58ToBinary (this.apiKey),
-            this.base58ToBinary (matcherPublicKey),
-            this.getAssetBytes (market['baseId']),
-            this.getAssetBytes (market['quoteId']),
-            this.numberToBE (orderType, 1),
-            this.numberToBE (price, 8),
-            this.numberToBE (amount, 8),
-            this.numberToBE (timestamp, 8),
-            this.numberToBE (expiration, 8),
-            this.numberToBE (matcherFee, 8),
-            this.getAssetBytes (matcherFeeAssetId),
-        ];
-        const binary = this.binaryConcatArray (byteArray);
-        const signature = eddsa (this.binaryToBase16 (binary), this.binaryToBase16 (this.base58ToBinary (this.secret)), ed25519);
         const assetPair = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
@@ -1395,12 +1379,18 @@ export default class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'expiration': expiration,
             'matcherFee': parseInt (matcherFee),
-            'signature': signature,
-            'version': 3,
+            'priceMode': 'fixedDecimals',
+            'version': 4,
         };
         if (matcherFeeAssetId !== 'WAVES') {
             body['matcherFeeAssetId'] = matcherFeeAssetId;
         }
+        let serializedOrder = await this.matcherPostMatcherOrdersSerialize(body);
+        if (serializedOrder[0] === '"' && serializedOrder[serializedOrder.length - 1] === '"') {
+            serializedOrder = serializedOrder.substr(1, serializedOrder.length - 2);
+        }
+        const signature = eddsa(this.binaryToBase16(this.base58ToBinary(serializedOrder)), this.binaryToBase16(this.base58ToBinary(this.secret)), ed25519);
+        body['signature'] = signature;
         //
         //     {
         //         "success":true,
