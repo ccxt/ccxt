@@ -2870,21 +2870,14 @@ export default class Exchange {
          */
         // check if alias replacement is needed (i.e. POLYGON>MATIC)
         const unifiedNetworkCodesAndAliases = this.safeValue (this.options, 'unifiedNetworkCodesAndAliases', {});
-        networkCode = this.safeString (unifiedNetworkCodesAndAliases, networkCode, networkCode);
+        const networkCodeDeAliased = this.safeString (unifiedNetworkCodesAndAliases, networkCode, networkCode);
         // check if Mainnet<>Protocol replacement is needed (i.e. ETH<>ERC20) depending on currencyCode
-        const reversedMainnetNetworkCode = this.checkMainnetNetworkCodeReplacement (networkCode, currencyCode);
+        const networkCodeDeAliasedAndMainnetCorrected = this.checkMainnetNetworkCodeReplacement (networkCodeDeAliased, currencyCode);
         // get the exchange-specific network-id from mappings
         const networkCodesToIds = this.safeValue (this.options, 'networks', {});
-        let networkId = this.safeString (networkCodesToIds, reversedMainnetNetworkCode);
-        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options['networks']` object
+        let networkId = this.safeString (networkCodesToIds, networkCodeDeAliasedAndMainnetCorrected);
         if (networkId === undefined) {
-            if (currencyCode === undefined) {
-                // if currencyCode was not provided, then we just set passed value to networkId
-                networkId = networkCode;
-            } else {
-                // if it wasn't found, we just set the provided value to network-id
-                networkId = networkCode;
-            }
+            networkId = networkCode;
         }
         return networkId;
     }
@@ -2894,20 +2887,17 @@ export default class Exchange {
          * @ignore
          * @method
          * @name exchange#networkIdToCode
-         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
-         * @param {string} networkId unified network code
-         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have "options['networksIdsToCodes']" defined.
+         * @param {string} networkId exchange specific network id, can be common title or whatever i.e. TRON, Trc-20, usdt-erc20, etc
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
-        const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
-        let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
+        const networksByIds = this.safeValue (this.options, 'networksById', {});
+        let networkCode = this.safeString (networksByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
-            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-            if (currencyCode in defaultNetworkCodeReplacements) {
-                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
-                networkCode = this.safeString (replacementObject, networkCode, networkCode);
-            }
+            // networkCode with Mainnet correction
+            networkCode = this.checkMainnetNetworkCodeReplacement (networkCode, currencyCode);
         }
         return networkCode;
     }
