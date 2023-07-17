@@ -2874,8 +2874,8 @@ export default class Exchange {
         // check if Mainnet<>Protocol replacement is needed (i.e. ETH<>ERC20) depending on currencyCode
         const networkCodeDeAliasedAndMainnetCorrected = this.checkMainnetNetworkCodeReplacement (networkCodeDeAliased, currencyCode);
         // get the exchange-specific network-id from mappings
-        const networkCodesToIds = this.safeValue (this.options, 'networks', {});
-        let networkId = this.safeString (networkCodesToIds, networkCodeDeAliasedAndMainnetCorrected);
+        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
+        let networkId = this.safeString (networkIdsByCodes, networkCodeDeAliasedAndMainnetCorrected);
         if (networkId === undefined) {
             networkId = networkCode;
         }
