@@ -1693,7 +1693,6 @@ export default class Exchange {
             // below field needs to be s set to `true` for some exceptional exchanges. Setting it to `true` means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through 'titleToId' && 'idToTitleWithoutCurrency'. To see examples, check OKX/HUOBI implementations
             'networksAreTitlesInsteadOfIds': false,
             'networksAreIncludedInCurrencyIds': false,
-            'networkCodesConflictsApproved': {}, // this is overrided by user
         };	
     }
 
@@ -2674,31 +2673,10 @@ export default class Exchange {
             'currencyCodesByCurrencyIds': {},
             'networkIdsByCurrencyIds': {},
             // other data-containers
-            'networkCodesConflicts': {},
             'isLoaded': false,
         };
         if ('networks' in this.options) {
             this.optionNetworkData['idsOrTitlesToCodes'] = this.invertFlatStringDictionary (this.options['network']); // define id-to-code automatic relations
-            // now define conflicts - find network-ids which might conflict with unified networkCodes
-            const networkIds = Object.keys (networkIdsToCodes);
-            for (let i = 0; i < networkIds.length; i++) {
-                const networkId = networkIds[i];
-                const unifiedCodeForThisId = networkIdsToCodes[networkId];
-                // if networkId also matches any key in unified networkCodes, only in such case  we need to check if it's assigned to other unified code in implementation
-                if (networkId in this.options['networks'] || networkId in aliasCodes) {
-                    const valueOfUnifiedCode = this.safeValue (aliasCodes, networkId);
-                    // we check, if that networkId is not same as that unified networkCode, then it means there is a conflict
-                    const isEqualString = (typeof valueOfUnifiedCode === 'string') && (valueOfUnifiedCode === networkId);
-                    const isInArray = Array.isArray (valueOfUnifiedCode) && this.inArray (networkId, valueOfUnifiedCode);
-                    // if that network id and code are linked to each other, add it into conflicting list
-                    if (!isEqualString && !isInArray) {
-                        this.generatedNetworkData['networkCodesConflicts'][networkId] = {
-                            'exchangeSpecificCode': unifiedCodeForThisId,
-                            'aliasCode': this.safeString (aliases, networkId),
-                        };
-                    }
-                }
-            }
         }
     }
 
