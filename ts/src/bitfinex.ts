@@ -64,7 +64,7 @@ export default class bitfinex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'transfer': true,
                 'withdraw': true,
             },
@@ -1407,15 +1407,14 @@ export default class bitfinex extends Exchange {
         };
     }
 
-    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name bitfinex#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name bitfinex#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} code unified currency code for the currency of the deposit/withdrawals
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitfinex api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -1425,7 +1424,7 @@ export default class bitfinex extends Exchange {
         let currency = undefined;
         if (currencyId === undefined) {
             if (code === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency `code` argument or a `currency` parameter');
+                throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a currency `code` argument or a `currency` parameter');
             } else {
                 currency = this.currency (code);
                 currencyId = currency['id'];

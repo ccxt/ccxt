@@ -2787,45 +2787,6 @@ export default class Exchange {
         return ohlcv;
     }
 
-    getNetwork (network: string, code: string): string {
-        network = network.toUpperCase ();
-        const aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
-        };
-        if (network === code) {
-            return network;
-        } else if (network in aliases) {
-            return aliases[network];
-        } else {
-            throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
-        }
-    }
-
     checkNetworkCodeConflict (networkCode) {
         // if conflicting id was provided. if exchange has options['networks'] like this:
         //  {
@@ -2925,8 +2886,8 @@ export default class Exchange {
          * @ignore
          * @method
          * @name exchange#networkIdToCode
-         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have "options['networksIdsToCodes']" defined.
-         * @param {string} networkId exchange specific network id, can be common title or whatever i.e. TRON, Trc-20, usdt-erc20, etc
+         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have "options['networksById']" defined.
+         * @param {string} networkId exchange specific network id/title, like: TRON, Trc-20, usdt-erc20, etc
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
@@ -3792,8 +3753,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
     }
 
-    async fetchTransactions (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
-        throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name exchange#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        throw new NotSupported (this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
 
     async fetchDeposits (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
@@ -4592,21 +4563,22 @@ export default class Exchange {
         return market;
     }
 
-    async fetchDepositsWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         /**
          * @method
-         * @name exchange#fetchDepositsWithdrawals
-         * @description fetch history of deposits and withdrawals
+         * @name exchange#fetchTransactions
+         * @deprecated
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
-        if (this.has['fetchTransactions']) {
-            return await this.fetchTransactions (code, since, limit, params);
+        if (this.has['fetchDepositsWithdrawals']) {
+            return await this.fetchDepositsWithdrawals (code, since, limit, params);
         } else {
-            throw new NotSupported (this.id + ' fetchDepositsWithdrawals () is not supported yet');
+            throw new NotSupported (this.id + ' fetchTransactions () is not supported yet');
         }
     }
 }
