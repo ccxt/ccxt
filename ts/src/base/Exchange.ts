@@ -2702,18 +2702,8 @@ export default class Exchange {
         };
         this.networksIdsDependOnCurrencies = this.safeValue (this.options, 'networksAreTitlesInsteadOfIds', false);
         if ('networks' in this.options) {
-            //
-            // define id-to-code automatic relations
-            //
-            const networkCodesToIds = this.safeValue (this.options, 'networks', {});
-            const networkIdsToCodesAuto = this.invertFlatStringDictionary (networkCodesToIds);
-            const idsFromOptions = this.safeValue (this.options, 'networkIdsToCodes', {}); // support for override, if user sets
-            const networkIdsToCodes = this.extend (networkIdsToCodesAuto, idsFromOptions);
-            this.optionNetworkData['idsOrTitlesToCodes'] = networkIdsToCodes;
-            //
-            // to make a quick lookup later, define reversed dictionary for aliases: { 'BEP20': 'BEP20', 'BSC': 'BEP20', ... }
-            const aliases = this.safeValue (this.options, 'unifiedNetworkCodesAndAliases');
-            this.optionNetworkData['aliasCodeToPrimary'] = this.invertFlatStringDictionary (aliases);
+            this.optionNetworkData['idsOrTitlesToCodes'] = this.invertFlatStringDictionary (this.options['network']); // define id-to-code automatic relations
+            this.optionNetworkData['aliasCodeToPrimary'] = this.invertFlatStringDictionary (this.options['unifiedNetworkCodesAndAliases']); // to make a quick lookup later
             // re-create unified-network-codes & unified-alias-codes to IDs
             const keys = Object.keys (aliases);
             for (let i = 0; i < keys.length; i++) {
