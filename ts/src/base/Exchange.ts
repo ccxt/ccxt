@@ -2795,7 +2795,7 @@ export default class Exchange {
         //    ...
         //  }
         // then if user runs `withdraw ('XyzCoin', {network: 'ADA'})` we should ask him for explicit approval, because we don't know if s/he means an "unified networkCode" ADA or "exchange networkId" ADA
-        // (note, this is a simplified method, more complex cases can be added in future if there is a need)
+        // Note: this is a simplified method, more complex cases can be added in future if there is a need
         //
         const networkId = this.safeString (this.options['networks'], networkCode, networkCode);
         // check if provided network-value (i.e. ADA) gets a different networkId value (i.e. Cardano)
