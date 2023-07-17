@@ -1704,7 +1704,8 @@ export default class Exchange {
             // network-code replacements for mainnet VS token currencies
             'defaultNetworkCodeReplacements': {
                 // i.e. if user provides "currencyCode=ETH & networkCode=ERC20" then we replace networkCode with "ETH"
-                'ETH': { 'ERC20': 'ETH' }, // { mainnetCurrencyCode : {networkCodeProtocol : networkCodeMainnet} }
+                // the structure is like `{ mainnetCurrencyCode : {networkCodeProtocol : networkCodeMainnet} }`
+                'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
                 // for rest of tokens, if user provides "currencyCode=XYZ & networkCode=ETH" then we replace networkCode with "ERC20"
