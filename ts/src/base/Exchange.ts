@@ -2914,29 +2914,7 @@ export default class Exchange {
         }
         // replace network-codes for mainnet coins, i.e. for ethereum coin, set 'ETH' unified networkCode instead of 'ERC20'
         if (currencyCode !== undefined) {
-            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-            const isMainnetCurrency = (currencyCode in defaultNetworkCodeReplacements);
-            const mainnetNetworkCodes = this.options['defaultNetworkCodeReplacements']['*'];
-            const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
-            // "networkCode" is an array at this stage, then we have to find whether mainnet coin & networks match or not i.e. if currency is ETH and network is ETH or ERC20, then we set networkCode to ETH, otherwise we set it to ERC20
-            if (Array.isArray (networkCode)) {
-                for (let i = 0; i < networkCode.length; i++) {
-                    const currentNetworkCode = networkCode[i];
-                    const isMainnetNetworkCode = (currentNetworkCode in mainnetNetworkCodes);
-                    if (isMainnetCurrency && isMainnetNetworkCode) {
-                        networkCode = currentNetworkCode;
-                        break;
-                    } else if (!isMainnetCurrency && !isMainnetNetworkCode) {
-                        networkCode = currentNetworkCode;
-                        break;
-                    }
-                }
-            } else {
-                const isMainnetNetworkCode = (networkCode in mainnetNetworkCodes);
-                if (isMainnetCurrency && isMainnetNetworkCode) {
-                    networkCode = this.safeString (replacementObject, networkCode, networkCode);
-                }
-            }
+            networkCode = this.check replace mainnet...();
         }
         // if some unexpected theoretical scenario happens, when currencyCode is not provided and the networkCode is still an array i.e. ['ETH', 'ERC20'], then don't choose any of them, just return the provided networkId
         if (Array.isArray (networkCode)) {
