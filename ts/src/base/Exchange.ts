@@ -1692,19 +1692,16 @@ export default class Exchange {
     }
 
     createNetworksByIdObject () {
-        // from now and onwards, we need to have 'networks' prop existent for any exchange, even if they are empty, in unified structure they are now expected to be present, to avoid endless checks in implementations, like: if ('networks' in this.options)"
-        if (!('networks' in this.options)) {
-            this.options['networks'] = {};
-        }
         // automatically generate network-id-to-code mappings
         const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.options['networks']); // invert defined networks dictionary
         this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
-        // also add the property for approving the network-code conflicts:
-        this.options['networkCodeConflictApproved'] = {};
     }
 
     getDefaultOptions () {
         return {
+            // we need to have 'networks' property existent for any exchange, even if they are empty, in unified structure they are now expected to be present, to avoid endless checks in implementations, like: if ('networks' in this.options)"
+            'networks': {},
+            // network-code replacements for mainnet VS token currencies
             'defaultNetworkCodeReplacements': {
                 // i.e. if user provides "currencyCode=ETH & networkCode=ERC20" then we replace networkCode with "ETH"
                 'ETH': { 'ERC20': 'ETH' }, // { mainnetCurrencyCode : {networkCodeProtocol : networkCodeMainnet} }
@@ -1852,6 +1849,8 @@ export default class Exchange {
                 'KOMODO': 'KMD',
                 'ICON': 'ICX',
             },
+            // also add the property for approving the network-code conflicts:
+            'networkCodeConflictApproved': {},
         };
     }
 
