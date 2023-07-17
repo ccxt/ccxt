@@ -862,6 +862,7 @@ class huobi(Exchange, ImplicitAPI):
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
                     'maintain': OnMaintenance,
+                    'API key has no permission': PermissionDenied,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: API key has no permission [API Key没有权限]","data":null}
                 },
                 'exact': {
                     # err-code

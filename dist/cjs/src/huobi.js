@@ -841,6 +841,7 @@ class huobi extends huobi$1 {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': errors.OnMaintenance,
                     'maintain': errors.OnMaintenance,
+                    'API key has no permission': errors.PermissionDenied, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: API key has no permission [API Key没有权限]","data":null}
                 },
                 'exact': {
                     // err-code

@@ -838,6 +838,7 @@ class huobi extends Exchange {
                 'broad' => array(
                     'contract is restricted of closing positions on API.  Please contact customer service' => '\\ccxt\\OnMaintenance',
                     'maintain' => '\\ccxt\\OnMaintenance',
+                    'API key has no permission' => '\\ccxt\\PermissionDenied', // array("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => API key has no permission [API Key没有权限]","data":null)
                 ),
                 'exact' => array(
                     // err-code
