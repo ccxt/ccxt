@@ -116,7 +116,7 @@ class Exchange(BaseExchange):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
-        await self.ws_close ()
+        await self.ws_close()
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
