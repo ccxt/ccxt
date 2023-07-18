@@ -116,6 +116,7 @@ class Exchange(BaseExchange):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
+        await self.ws_close ()
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
@@ -437,7 +438,6 @@ class Exchange(BaseExchange):
             await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
             for url in self.clients.copy():
                 del self.clients[url]
-        await super(Exchange, self).close()
 
     async def load_order_book(self, client, messageHash, symbol, limit=None, params={}):
         if symbol not in self.orderbooks:
