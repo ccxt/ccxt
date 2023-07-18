@@ -302,7 +302,7 @@ export default class testMainClass extends baseMainTestClass {
                     continue;
                 } else {
                     // if not temp failure, then dump exception without retrying
-                    dump ('[TEST_WARNING]', 'Public method could not be tested', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                    dump ('[TEST_WARNING]', 'Method could not be tested', exceptionMessage (e), exchange.id, methodName, argsStringified);
                     return false;
                 }
             }
