@@ -20,15 +20,15 @@ namespace ccxt;
 public partial class Exchange
 {
 
-    public static int ROUND = 0;                // rounding mode
-    public static int TRUNCATE = 1;
+    public static int ROUND = 1;                // rounding mode
+    public static int TRUNCATE = 0;
     public static int ROUND_UP = 2;
     public static int ROUND_DOWN = 3;
-    public static int DECIMAL_PLACES = 0;        // digits counting mode
-    public static int SIGNIFICANT_DIGITS = 1;
-    public static int TICK_SIZE = 2;
-    public static int NO_PADDING = 0;             // zero-padding mode
-    public static int PAD_WITH_ZERO = 1;
+    public static int DECIMAL_PLACES = 2;        // digits counting mode
+    public static int SIGNIFICANT_DIGITS = 3;
+    public static int TICK_SIZE = 4;
+    public static int NO_PADDING = 5;             // zero-padding mode
+    public static int PAD_WITH_ZERO = 6;
 
     public object precisionConstants = new
     {
