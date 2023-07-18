@@ -8,7 +8,6 @@ function testCurrency (exchange, skippedProperties, method, entry) {
         'id': 'btc', // string literal for referencing within an exchange
         'withdraw': true, // withdraw enabled
         'deposit': true, // deposit enabled
-        'active': true, // if deposit/withdraw enabled
         'precision': exchange.parseNumber ('0.0001'), // would be integer in case of SIGNIFICANT_DIGITS
         'fee': exchange.parseNumber ('0.001'),
         'limits': {
@@ -25,6 +24,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
     const currencyFormat = exchange.deepExtend (commonFormat, {
         'code': 'BTC', // uppercase string literal of a currency
         'name': 'Bitcoin', // uppercase string, base currency
+        'active': true, // if deposit/withdraw enabled
         'networks': {},
     });
     const networkFormat = exchange.deepExtend (commonFormat, {
