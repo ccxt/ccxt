@@ -547,11 +547,11 @@ abstract class binance extends \ccxt\Exchange {
     public function sapi_get_portfolio_interest_history($params = array()) {
         return $this->request('portfolio/interest-history', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
     }
-    public function sapi_get_portfolio_interest_rate($params = array()) {
-        return $this->request('portfolio/interest-rate', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
-    }
     public function sapi_get_portfolio_asset_index_price($params = array()) {
         return $this->request('portfolio/asset-index-price', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_portfolio_repay_futures_switch($params = array()) {
+        return $this->request('portfolio/repay-futures-switch', 'sapi', 'GET', $params, null, null, array("cost" => 3));
     }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
@@ -868,6 +868,9 @@ abstract class binance extends \ccxt\Exchange {
     public function sapi_post_portfolio_repay($params = array()) {
         return $this->request('portfolio/repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
     }
+    public function sapi_post_loan_vip_renew($params = array()) {
+        return $this->request('loan/vip/renew', 'sapi', 'POST', $params, null, null, array("cost" => 40));
+    }
     public function sapi_post_loan_vip_borrow($params = array()) {
         return $this->request('loan/vip/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40));
     }
@@ -897,6 +900,12 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function sapi_post_portfolio_bnb_transfer($params = array()) {
         return $this->request('portfolio/bnb-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapi_post_portfolio_repay_futures_switch($params = array()) {
+        return $this->request('portfolio/repay-futures-switch', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
+    public function sapi_post_portfolio_repay_futures_negative_balance($params = array()) {
+        return $this->request('portfolio/repay-futures-negative-balance', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function sapi_post_lending_auto_invest_plan_add($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -2320,11 +2329,11 @@ abstract class binance extends \ccxt\Exchange {
     public function sapiGetPortfolioInterestHistory($params = array()) {
         return $this->request('portfolio/interest-history', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
     }
-    public function sapiGetPortfolioInterestRate($params = array()) {
-        return $this->request('portfolio/interest-rate', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
-    }
     public function sapiGetPortfolioAssetIndexPrice($params = array()) {
         return $this->request('portfolio/asset-index-price', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetPortfolioRepayFuturesSwitch($params = array()) {
+        return $this->request('portfolio/repay-futures-switch', 'sapi', 'GET', $params, null, null, array("cost" => 3));
     }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
@@ -2641,6 +2650,9 @@ abstract class binance extends \ccxt\Exchange {
     public function sapiPostPortfolioRepay($params = array()) {
         return $this->request('portfolio/repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
     }
+    public function sapiPostLoanVipRenew($params = array()) {
+        return $this->request('loan/vip/renew', 'sapi', 'POST', $params, null, null, array("cost" => 40));
+    }
     public function sapiPostLoanVipBorrow($params = array()) {
         return $this->request('loan/vip/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40));
     }
@@ -2670,6 +2682,12 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function sapiPostPortfolioBnbTransfer($params = array()) {
         return $this->request('portfolio/bnb-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapiPostPortfolioRepayFuturesSwitch($params = array()) {
+        return $this->request('portfolio/repay-futures-switch', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
+    public function sapiPostPortfolioRepayFuturesNegativeBalance($params = array()) {
+        return $this->request('portfolio/repay-futures-negative-balance', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function sapiPostLendingAutoInvestPlanAdd($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
