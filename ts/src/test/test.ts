@@ -350,6 +350,7 @@ export default class testMainClass extends baseMainTestClass {
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
         const results = await Promise.all (promises);
+        // now count which test-methods retuned `false` from "testSafe" and dump that info below
         const errors = [];
         for (let i = 0; i < testNames.length; i++) {
             if (!results[i]) {
