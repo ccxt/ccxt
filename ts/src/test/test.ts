@@ -280,6 +280,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async runPublicTests (exchange, symbol) {
         const tests = {
+            'exchangeOptions': [],
             'loadMarkets': [],
             'fetchCurrencies': [],
             'fetchTicker': [ symbol ],

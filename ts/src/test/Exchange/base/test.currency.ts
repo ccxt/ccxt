@@ -35,9 +35,9 @@ function testCurrency (exchange, skippedProperties, method, entry) {
     // check valid ID & CODE
     testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
     // check network entries
-    const networks = entry['networks'];
     if (!('networks' in skippedProperties)) {
-        // networks have the same format as root currency format, however
+        const networks = entry['networks'];
+        // check each network entry (they have somewhat similar structure as root currency structure)
         const networksKeys = Object.keys (networks);
         for (let i = 0; i < networksKeys.length; i++) {
             const networkCode = networksKeys[i];
