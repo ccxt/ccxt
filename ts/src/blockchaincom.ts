@@ -176,7 +176,7 @@ export default class blockchaincom extends Exchange {
                     'ADA': 'ADA',
                     'AR': 'AR',
                     'ATOM': 'ATOM',
-                    'AVAX_C': 'AVAX',
+                    'AVAXC': 'AVAX',
                     'BCH': 'BCH',
                     'BSV': 'BSV',
                     'BTC': 'BTC',
