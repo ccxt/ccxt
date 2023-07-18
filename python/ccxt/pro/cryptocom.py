@@ -6,9 +6,10 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 
 
@@ -26,17 +27,20 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchOHLCV': True,
+                'createOrderWs': True,
+                'cancelOrderWs': True,
+                'cancelAllOrders': True,
             },
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://stream.crypto.com/v2/market',
-                        'private': 'wss://stream.crypto.com/v2/user',
+                        'public': 'wss://stream.crypto.com/exchange/v1/market',
+                        'private': 'wss://stream.crypto.com/exchange/v1/user',
                     },
                 },
                 'test': {
-                    'public': 'wss://uat-stream.3ona.co/v2/market',
-                    'private': 'wss://uat-stream.3ona.co/v2/user',
+                    'public': 'wss://uat-stream.3ona.co/exchange/v1/market',
+                    'private': 'wss://uat-stream.3ona.co/exchange/v1/user',
                 },
             },
             'options': {
@@ -56,16 +60,14 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://exchange-docs.crypto.com/spot/index.html#book-instrument_name-depth
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' watchOrderBook() supports spot markets only')
         messageHash = 'book' + '.' + market['id']
         orderbook = await self.watch_public(messageHash, params)
         return orderbook.limit()
@@ -112,17 +114,16 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the cryptocom api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        if not market['spot']:
-            raise NotSupported(self.id + ' watchTrades() supports spot markets only')
         messageHash = 'trade' + '.' + market['id']
         trades = await self.watch_public(messageHash, params)
         if self.newUpdates:
@@ -163,30 +164,34 @@ class cryptocom(ccxt.async_support.cryptocom):
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
         data = self.safe_value(message, 'data', [])
+        dataLength = len(data)
+        if dataLength == 0:
+            return
         parsedTrades = self.parse_trades(data, market)
         for j in range(0, len(parsedTrades)):
             stored.append(parsedTrades[j])
+        channelReplaced = channel.replace('.' + marketId, '')
         client.resolve(stored, symbolSpecificMessageHash)
-        client.resolve(stored, channel)
+        client.resolve(stored, channelReplaced)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-trade-instrument_name
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the cryptocom api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        messageHash = 'user.margin.trade' if (defaultType == 'margin') else 'user.trade'
+        messageHash = 'user.trade'
         messageHash = (messageHash + '.' + market['id']) if (market is not None) else messageHash
-        trades = await self.watch_private(messageHash, params)
+        trades = await self.watch_private_subscribe(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
@@ -194,14 +199,13 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' watchTicker() supports spot markets only')
         messageHash = 'ticker' + '.' + market['id']
         return await self.watch_public(messageHash, params)
 
@@ -242,18 +246,17 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the cryptocom api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        if not market['spot']:
-            raise NotSupported(self.id + ' watchOHLCV() supports spot markets only')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'candlestick' + '.' + interval + '.' + market['id']
         ohlcv = await self.watch_public(messageHash, params)
@@ -294,54 +297,55 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the cryptocom api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-order-instrument_name
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        messageHash = 'user.margin.order' if (defaultType == 'margin') else 'user.order'
+        messageHash = 'user.order'
         messageHash = (messageHash + '.' + market['id']) if (market is not None) else messageHash
-        orders = await self.watch_private(messageHash, params)
+        orders = await self.watch_private_subscribe(messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_orders(self, client: Client, message, subscription=None):
         #
-        # {
-        #     "method": "subscribe",
-        #     "result": {
-        #       "instrument_name": "ETH_CRO",
-        #       "subscription": "user.order.ETH_CRO",
-        #       "channel": "user.order",
-        #       "data": [
-        #         {
-        #           "status": "ACTIVE",
-        #           "side": "BUY",
-        #           "price": 1,
-        #           "quantity": 1,
-        #           "order_id": "366455245775097673",
-        #           "client_oid": "my_order_0002",
-        #           "create_time": 1588758017375,
-        #           "update_time": 1588758017411,
-        #           "type": "LIMIT",
-        #           "instrument_name": "ETH_CRO",
-        #           "cumulative_quantity": 0,
-        #           "cumulative_value": 0,
-        #           "avg_price": 0,
-        #           "fee_currency": "CRO",
-        #           "time_in_force":"GOOD_TILL_CANCEL"
-        #         }
-        #       ],
-        #       "channel": "user.order.ETH_CRO"
-        #     }
+        #    {
+        #        "method": "subscribe",
+        #        "result": {
+        #          "instrument_name": "ETH_CRO",
+        #          "subscription": "user.order.ETH_CRO",
+        #          "channel": "user.order",
+        #          "data": [
+        #            {
+        #              "status": "ACTIVE",
+        #              "side": "BUY",
+        #              "price": 1,
+        #              "quantity": 1,
+        #              "order_id": "366455245775097673",
+        #              "client_oid": "my_order_0002",
+        #              "create_time": 1588758017375,
+        #              "update_time": 1588758017411,
+        #              "type": "LIMIT",
+        #              "instrument_name": "ETH_CRO",
+        #              "cumulative_quantity": 0,
+        #              "cumulative_value": 0,
+        #              "avg_price": 0,
+        #              "fee_currency": "CRO",
+        #              "time_in_force":"GOOD_TILL_CANCEL"
+        #            }
+        #          ],
+        #          "channel": "user.order.ETH_CRO"
+        #        }
+        #    }
         #
         channel = self.safe_string(message, 'channel')
         symbolSpecificMessageHash = self.safe_string(message, 'subscription')
@@ -362,46 +366,164 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the cryptocom api endpoint
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        messageHash = 'user.margin.balance' if (defaultType == 'margin') else 'user.balance'
-        return await self.watch_private(messageHash, params)
+        messageHash = 'user.balance'
+        return await self.watch_private_subscribe(messageHash, params)
 
     def handle_balance(self, client: Client, message):
         #
-        # {
-        #     "method": "subscribe",
-        #     "result": {
-        #       "subscription": "user.balance",
-        #       "channel": "user.balance",
-        #       "data": [
-        #         {
-        #           "currency": "CRO",
-        #           "balance": 99999999947.99626,
-        #           "available": 99999988201.50826,
-        #           "order": 11746.488,
-        #           "stake": 0
+        #     {
+        #         "id": 1,
+        #         "method": "subscribe",
+        #         "code": 0,
+        #         "result": {
+        #             "subscription": "user.balance",
+        #             "channel": "user.balance",
+        #             "data": [
+        #                 {
+        #                     "total_available_balance": "5.84684368",
+        #                     "total_margin_balance": "5.84684368",
+        #                     "total_initial_margin": "0",
+        #                     "total_maintenance_margin": "0",
+        #                     "total_position_cost": "0",
+        #                     "total_cash_balance": "6.44412101",
+        #                     "total_collateral_value": "5.846843685",
+        #                     "total_session_unrealized_pnl": "0",
+        #                     "instrument_name": "USD",
+        #                     "total_session_realized_pnl": "0",
+        #                     "position_balances": [
+        #                         {
+        #                             "quantity": "0.0002119875",
+        #                             "reserved_qty": "0",
+        #                             "collateral_weight": "0.9",
+        #                             "collateral_amount": "5.37549592",
+        #                             "market_value": "5.97277325",
+        #                             "max_withdrawal_balance": "0.00021198",
+        #                             "instrument_name": "BTC",
+        #                             "hourly_interest_rate": "0"
+        #                         },
+        #                     ],
+        #                     "total_effective_leverage": "0",
+        #                     "position_limit": "3000000",
+        #                     "used_position_limit": "0",
+        #                     "total_borrow": "0",
+        #                     "margin_score": "0",
+        #                     "is_liquidating": False,
+        #                     "has_risk": False,
+        #                     "terminatable": True
+        #                 }
+        #             ]
         #         }
-        #       ],
-        #       "channel": "user.balance"
         #     }
-        # }
         #
         messageHash = self.safe_string(message, 'subscription')
-        data = self.safe_value(message, 'data')
+        data = self.safe_value(message, 'data', [])
+        positionBalances = self.safe_value(data[0], 'position_balances', [])
         self.balance['info'] = data
-        for i in range(0, len(data)):
-            balance = data[i]
-            currencyId = self.safe_string(balance, 'currency')
+        for i in range(0, len(positionBalances)):
+            balance = positionBalances[i]
+            currencyId = self.safe_string(balance, 'instrument_name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['total'] = self.safe_string(balance, 'balance')
+            account['total'] = self.safe_string(balance, 'quantity')
+            account['used'] = self.safe_string(balance, 'reserved_qty')
             self.balance[code] = account
             self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
+        messageHashRequest = self.safe_string(message, 'id')
+        client.resolve(self.balance, messageHashRequest)
+
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+        """
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        params = self.createOrderRequest(symbol, type, side, amount, price, params)
+        request = {
+            'method': 'private/create-order',
+            'params': params,
+        }
+        messageHash = self.nonce()
+        return await self.watch_private_request(messageHash, request)
+
+    def handle_order(self, client: Client, message):
+        #
+        #    {
+        #        "id": 1,
+        #        "method": "private/create-order",
+        #        "code": 0,
+        #        "result": {
+        #            "client_oid": "c5f682ed-7108-4f1c-b755-972fcdca0f02",
+        #            "order_id": "18342311"
+        #        }
+        #    }
+        #
+        messageHash = self.safe_string(message, 'id')
+        rawOrder = self.safe_value(message, 'result', {})
+        order = self.parse_order(rawOrder)
+        client.resolve(order, messageHash)
+
+    async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+        """
+        cancels an open order
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+        :param str id: the order id of the order to cancel
+        :param str [symbol]: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        params = self.extend({
+            'order_id': id,
+        }, params)
+        request = {
+            'method': 'private/cancel-order',
+            'params': params,
+        }
+        messageHash = self.nonce()
+        return await self.watch_private_request(messageHash, request)
+
+    async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
+        """
+        cancel all open orders
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+        :param str symbol: unified market symbol of the orders to cancel
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :returns dict} Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure:
+        """
+        await self.load_markets()
+        market = None
+        request = {
+            'method': 'private/cancel-all-orders',
+            'params': self.extend({}, params),
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['params']['instrument_name'] = market['id']
+        messageHash = self.nonce()
+        return await self.watch_private_request(messageHash, request)
+
+    def handle_cancel_all_orders(self, client: Client, message):
+        #
+        #    {
+        #        "id": 1688914586647,
+        #        "method": "private/cancel-all-orders",
+        #        "code": 0
+        #    }
+        #
+        messageHash = self.safe_string(message, 'id')
+        client.resolve(message, messageHash)
 
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']['public']
@@ -416,7 +538,17 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_private(self, messageHash, params={}):
+    async def watch_private_request(self, nonce, params={}):
+        await self.authenticate()
+        url = self.urls['api']['ws']['private']
+        request = {
+            'id': nonce,
+            'nonce': nonce,
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, str(nonce), message, True)
+
+    async def watch_private_subscribe(self, messageHash, params={}):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
@@ -431,15 +563,17 @@ class cryptocom(ccxt.async_support.cryptocom):
         return await self.watch(url, messageHash, message, messageHash)
 
     def handle_error_message(self, client: Client, message):
-        # {
-        #     id: 0,
-        #     code: 10004,
-        #     method: 'subscribe',
-        #     message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
-        # }
-        errorCode = self.safe_integer(message, 'code')
+        #
+        #    {
+        #        id: 0,
+        #        code: 10004,
+        #        method: 'subscribe',
+        #        message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
+        #    }
+        #
+        errorCode = self.safe_string(message, 'code')
         try:
-            if errorCode:
+            if errorCode and errorCode != '0':
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 messageString = self.safe_value(message, 'message')
@@ -456,62 +590,72 @@ class cryptocom(ccxt.async_support.cryptocom):
                 client.reject(e)
             return True
 
-    def handle_message(self, client: Client, message):
-        # ping
-        # {
-        #     "id": 1587523073344,
-        #     "method": "public/heartbeat",
-        #     "code": 0
-        # }
-        # auth
-        #  {id: 1648132625434, method: 'public/auth', code: 0}
-        # ohlcv
-        # {
-        #     code: 0,
-        #     method: 'subscribe',
-        #     result: {
-        #       instrument_name: 'BTC_USDT',
-        #       subscription: 'candlestick.1m.BTC_USDT',
-        #       channel: 'candlestick',
-        #       depth: 300,
-        #       interval: '1m',
-        #       data: [[Object]]
-        #     }
-        #   }
-        # ticker
-        # {
-        #     "info":{
-        #        "instrument_name":"BTC_USDT",
-        #        "subscription":"ticker.BTC_USDT",
-        #        "channel":"ticker",
-        #        "data":[{}]
-        #
-        if self.handle_error_message(client, message):
-            return
-        subject = self.safe_string(message, 'method')
-        if subject == 'public/heartbeat':
-            self.handle_ping(client, message)
-            return
-        if subject == 'public/auth':
-            self.handle_authenticate(client, message)
-            return
+    def handle_subscribe(self, client: Client, message):
         methods = {
             'candlestick': self.handle_ohlcv,
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
             'book': self.handle_order_book_snapshot,
             'user.order': self.handle_orders,
-            'user.margin.order': self.handle_orders,
             'user.trade': self.handle_trades,
-            'user.margin.trade': self.handle_trades,
             'user.balance': self.handle_balance,
-            'user.margin.balance': self.handle_balance,
         }
         result = self.safe_value_2(message, 'result', 'info')
         channel = self.safe_string(result, 'channel')
+        if (channel is not None) and channel.find('user.trade') > -1:
+            # channel might be user.trade.BTC_USDT
+            self.handle_trades(client, result)
         method = self.safe_value(methods, channel)
         if method is not None:
             method(client, result)
+
+    def handle_message(self, client: Client, message):
+        #
+        # ping
+        #    {
+        #        "id": 1587523073344,
+        #        "method": "public/heartbeat",
+        #        "code": 0
+        #    }
+        # auth
+        #     {id: 1648132625434, method: 'public/auth', code: 0}
+        # ohlcv
+        #    {
+        #        code: 0,
+        #        method: 'subscribe',
+        #        result: {
+        #          instrument_name: 'BTC_USDT',
+        #          subscription: 'candlestick.1m.BTC_USDT',
+        #          channel: 'candlestick',
+        #          depth: 300,
+        #          interval: '1m',
+        #          data: [[Object]]
+        #        }
+        #      }
+        # ticker
+        #    {
+        #        "info":{
+        #           "instrument_name":"BTC_USDT",
+        #           "subscription":"ticker.BTC_USDT",
+        #           "channel":"ticker",
+        #           "data":[{}]
+        #
+        if self.handle_error_message(client, message):
+            return
+        method = self.safe_string(message, 'method')
+        methods = {
+            '': self.handle_ping,
+            'public/heartbeat': self.handle_ping,
+            'public/auth': self.handle_authenticate,
+            'private/create-order': self.handle_order,
+            'private/cancel-order': self.handle_order,
+            'private/cancel-all-orders': self.handle_cancel_all_orders,
+            'private/close-position': self.handle_order,
+            'subscribe': self.handle_subscribe,
+        }
+        callMethod = self.safe_value(methods, method)
+        if callMethod is not None:
+            callMethod(client, message)
 
     def authenticate(self, params={}):
         self.check_required_credentials()

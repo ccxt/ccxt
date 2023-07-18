@@ -1,5 +1,9 @@
 import Exchange from './abstract/coinex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coinex
+ * @extends Exchange
+ */
 export default class coinex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
@@ -234,7 +238,7 @@ export default class coinex extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

@@ -1,5 +1,9 @@
 import Exchange from './abstract/hitbtc3.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class hitbtc3
+ * @extends Exchange
+ */
 export default class hitbtc3 extends Exchange {
     describe(): any;
     nonce(): number;
@@ -58,7 +62,7 @@ export default class hitbtc3 extends Exchange {
             rate: any;
         };
     };
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;
@@ -195,7 +199,7 @@ export default class hitbtc3 extends Exchange {
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     fetchLeverage(symbol: string, params?: {}): Promise<number>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;

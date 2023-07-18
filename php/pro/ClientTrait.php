@@ -2,7 +2,7 @@
 
 namespace ccxt\pro;
 
-use ccxt\async\Throttle;
+use ccxt\async\Throttler;
 use ccxt\BaseError;
 use ccxt\ExchangeError;
 use React\Async;
@@ -56,7 +56,7 @@ trait ClientTrait {
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
-                'throttle' => new Throttle($this->tokenBucket),
+                'throttle' => new Throttler($this->tokenBucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }

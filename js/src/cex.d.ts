@@ -1,5 +1,9 @@
 import Exchange from './abstract/cex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class cex
+ * @extends Exchange
+ */
 export default class cex extends Exchange {
     describe(): any;
     fetchCurrenciesFromCache(params?: {}): Promise<any>;
