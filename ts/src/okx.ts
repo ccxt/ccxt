@@ -809,7 +809,7 @@ export default class okx extends Exchange {
                     'CRC20': 'Crypto',
                     // sorted
                     'ACA': 'Acala',
-                    // 'ALGO': 'Algorand', //todo: algo vs algorand
+                    'ALGO': 'Algorand',
                     'BHP': 'BHP',
                     'APT': 'Aptos',
                     'ARBONE': 'Arbitrum one',
