@@ -319,15 +319,82 @@ export default class cryptocom extends Exchange {
                     'future': 'DERIVATIVES',
                 },
                 'networks': {
-                    'BEP20': 'BSC',
+                    'BEP20': 'BSC', // todo: clarify 'BNB' ex-specific
                     'ERC20': 'ETH',
-                    'TRX': 'TRON',
                     'TRC20': 'TRON',
-                },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
+                    'CRC20': 'CRONOS',
+                    'CRO': 'CRO', // todo: this network-id is not used for main coin, so might be redundant
+                    'MATIC': 'MATIC',
+                    'AVAXC': 'AVAXC',
+                    'AVAXX': 'AVAX',
+                    'ARBONE': 'Arbitrum',
+                    'BEP2': 'BEP2',
+                    'BTC': 'BTC',
+                    'SOL': 'SOL',
+                    'DOT': 'DOT',
+                    'ATOM': 'ATOM',
+                    'OPTIMISM': 'OP',
+                    'LTC': 'LTC',
+                    'DGB': 'DGB',
+                    'ALGO': 'ALGO',
+                    'GLMR': 'GLMR',
+                    'ETC': 'ETC',
+                    'APT': 'APT',
+                    'IOTX': 'IOTX',
+                    'NEAR': 'NEAR',
+                    'HNT': 'HNT',
+                    'STX': 'STX',
+                    'NANO': 'NANO',
+                    'SDN': 'SDN',
+                    'BCH': 'BCH',
+                    'BAND': 'BAND',
+                    'ASTR': 'ASTRC',
+                    'AR': 'AR',
+                    'KLAY': 'KLAY',
+                    'ONE': 'ONE',
+                    'ONT': 'ONT',
+                    'SC': 'SC',
+                    'ACA': 'ACA',
+                    'MINA': 'MINA',
+                    'VET': 'VET',
+                    'CSPR': 'CSPR',
+                    'SGB': 'SGB',
+                    'ICP': 'ICP',
+                    'ADA': 'ADA',
+                    'ICX': 'ICX',
+                    'DOGE': 'DOGE',
+                    'HBAR': 'HBAR',
+                    'WAVES': 'WAVES',
+                    'XRP': 'XRP',
+                    'KAVA': 'KAVA',
+                    'OSMO': 'OSMO',
+                    'THETA': 'THETA',
+                    'CKB': 'CKB',
+                    'XTZ': 'XTZ',
+                    'EOS': 'EOS',
+                    'ZIL': 'ZIL',
+                    'FLOW': 'FLOW',
+                    'FTM': 'FTM',
+                    'WAX': 'WAXP',
+                    'AKT': 'AKT',
+                    'NEO': 'NEO',
+                    'LSK': 'LSK',
+                    'EGLD': 'EGLD',
+                    'XLM': 'XLM',
+                    'QTUM': 'QTUM',
+                    'ETHW': 'ETHW',
+                    'KSM': 'KSM',
+                    'FIL': 'FIL',
+                    'MOVR': 'MOVR',
+                    'IRIS': 'IRIS',
+                    'POLYX': 'POLYX',
+                    // todo: after consensus
+                    // 'FLARE': 'FLR',
+                    // 'THORCHAIN': 'RUNE',
+                    // 'WALTONCHAIN': 'WTC',
+                    // 'TERRACLASSIC': 'LUNC',
+                    // 'TERRANEW': 'LUNA2',
+                    // 'STRATIS': 'STRAX',
                 },
                 'broker': 'CCXT_',
             },
@@ -1372,9 +1439,8 @@ export default class cryptocom extends Exchange {
         }
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
-        if (networkId !== undefined) {
-            request['network_id'] = networkId;
+        if (networkCode !== undefined) {
+            request['network_id'] = this.networkCodeToId (networkCode);
         }
         const response = await this.v1PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
         //
@@ -1389,7 +1455,8 @@ export default class cryptocom extends Exchange {
         //            "symbol": "BTC",
         //            "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
         //            "client_wid": "my_withdrawal_002",
-        //            "create_time":1607063412000
+        //            "create_time":1607063412000,
+        //            "network_id": null
         //        }
         //     }
         //
@@ -1447,13 +1514,13 @@ export default class cryptocom extends Exchange {
             const [ address, tag ] = this.parseAddress (addressString);
             this.checkAddress (address);
             const networkId = this.safeString (value, 'network');
-            const network = this.networkIdToCode (networkId, responseCode);
-            result[network] = {
+            const networkCode = this.networkIdToCode (networkId, responseCode);
+            result[networkCode] = {
                 'info': value,
                 'currency': responseCode,
                 'address': address,
                 'tag': tag,
-                'network': network,
+                'network': networkCode,
             };
         }
         return result;
@@ -1468,28 +1535,10 @@ export default class cryptocom extends Exchange {
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        const network = this.safeStringUpper (params, 'network');
-        params = this.omit (params, [ 'network' ]);
-        const depositAddresses = await this.fetchDepositAddressesByNetwork (code, params);
-        if (network in depositAddresses) {
-            return depositAddresses[network];
-        } else {
-            const keys = Object.keys (depositAddresses);
-            return depositAddresses[keys[0]];
-        }
-    }
-
-    safeNetwork (networkId) {
-        const networksById = {
-            'BTC': 'BTC',
-            'ETH': 'ETH',
-            'SOL': 'SOL',
-            'BNB': 'BNB',
-            'CRONOS': 'CRONOS',
-            'MATIC': 'MATIC',
-            'OP': 'OP',
-        };
-        return this.safeString (networksById, networkId, networkId);
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        const addressesByChainIds = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, addressesByChainIds);
+        return addressesByChainIds[selectedNetworkCode];
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2097,7 +2146,8 @@ export default class cryptocom extends Exchange {
         //         "symbol": "BTC",
         //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
         //         "client_wid": "my_withdrawal_002",
-        //         "create_time":1607063412000
+        //         "create_time":1607063412000,
+        //         "network_id": null
         //     }
         //
         let type = undefined;
@@ -2126,7 +2176,7 @@ export default class cryptocom extends Exchange {
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
+            'network': this.networkIdToCode (this.safeString (transaction, 'network_id')),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
