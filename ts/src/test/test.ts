@@ -347,7 +347,8 @@ export default class testMainClass extends baseMainTestClass {
             const testArgs = tests[testName];
             promises.push (this.testSafe (testName, exchange, testArgs, true));
         }
-        // promises.push (testThrottle ()); // todo - not yet ready in other langs too
+        // todo - not yet ready in other langs too
+        // promises.push (testThrottle ());
         const results = await Promise.all (promises);
         const errors = [];
         for (let i = 0; i < testNames.length; i++) {
