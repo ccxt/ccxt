@@ -604,8 +604,8 @@ export default class wavesexchange extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.extend ({
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }, params);
         const response = await this.matcherGetMatcherOrderbookBaseIdQuoteId (request);
         const timestamp = this.safeInteger (response, 'timestamp');
@@ -1385,11 +1385,11 @@ export default class wavesexchange extends Exchange {
         if (matcherFeeAssetId !== 'WAVES') {
             body['matcherFeeAssetId'] = matcherFeeAssetId;
         }
-        let serializedOrder = await this.matcherPostMatcherOrdersSerialize(body);
+        let serializedOrder = await this.matcherPostMatcherOrdersSerialize (body);
         if (serializedOrder[0] === '"' && serializedOrder[serializedOrder.length - 1] === '"') {
-            serializedOrder = serializedOrder.substr(1, serializedOrder.length - 2);
+            serializedOrder = serializedOrder.substr (1, serializedOrder.length - 2);
         }
-        const signature = eddsa(this.binaryToBase16(this.base58ToBinary(serializedOrder)), this.binaryToBase16(this.base58ToBinary(this.secret)), ed25519);
+        const signature = eddsa (this.binaryToBase16 (this.base58ToBinary (serializedOrder)), this.binaryToBase16 (this.base58ToBinary (this.secret)), ed25519);
         body['signature'] = signature;
         //
         //     {
