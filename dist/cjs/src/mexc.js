@@ -539,7 +539,7 @@ class mexc extends mexc$1 {
                     '30032': errors.InvalidOrder,
                     '30041': errors.InvalidOrder,
                     '60005': errors.ExchangeError,
-                    '700001': errors.BadRequest,
+                    '700001': errors.AuthenticationError,
                     '700002': errors.AuthenticationError,
                     '700004': errors.BadRequest,
                     '700005': errors.InvalidNonce,

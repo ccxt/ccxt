@@ -542,7 +542,7 @@ export default class mexc extends Exchange {
                     '30032': InvalidOrder,
                     '30041': InvalidOrder,
                     '60005': ExchangeError,
-                    '700001': BadRequest,
+                    '700001': AuthenticationError,
                     '700002': AuthenticationError,
                     '700004': BadRequest,
                     '700005': InvalidNonce,
