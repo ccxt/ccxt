@@ -1,3 +1,27 @@
+## 4.0.30 (2023-07-18)
+
+*  Change name of method fetchTransactions to fetchDepositsWithdrawls [ada9a6a93d](https://github.com/ccxt/ccxt/commits/ada9a6a93de6df859168ad3cbbc364c0f750fb9c)
+*  parseTransaction(s) changed to parseDeposit(s)Withdrawal(s) [171c8bed62](https://github.com/ccxt/ccxt/commits/171c8bed62fe8569fd3b825950416ee48cfdb8d6)
+*  Revert "parseTransaction(s) changed to parseDeposit(s)Withdrawal(s)" [dfe6b7c813](https://github.com/ccxt/ccxt/commits/dfe6b7c813a5d5d1f3a210780d82a5b55bb326e3)
+*  has fix [58c5c68f26](https://github.com/ccxt/ccxt/commits/58c5c68f261adfffeb3ae52e80b062408a5c0938)
+*  minor corrections [16afbc9278](https://github.com/ccxt/ccxt/commits/16afbc9278850940e3ebe1dd8a1a06dfdbd3a509)
+*  comment [27f9cb6650](https://github.com/ccxt/ccxt/commits/27f9cb6650a6540902e3ef6fcdc975625e3f4856)
+*  fix(bitget): margin account endpoints [95e7bb0f09](https://github.com/ccxt/ccxt/commits/95e7bb0f09c7b00a044f9394c503a3746afec980)
+*  fix(Bitbay,bitcoincom): set correct name [778de519b0](https://github.com/ccxt/ccxt/commits/778de519b0db66de56cd58681edf44e14a18fab8)
+*  feat(okx): fetchSettlementHistory, handle expired market id [3d5b50773f](https://github.com/ccxt/ccxt/commits/3d5b50773fd1206440251dc3294fa071d712e6fa)
+*  Update gemini.ts [ffd0f32647](https://github.com/ccxt/ccxt/commits/ffd0f32647e630170b73f2bad76c8fb604f4828d)
+*  Update kucoin.ts [5931284f53](https://github.com/ccxt/ccxt/commits/5931284f530f4e9797a3fb5607ede1e282ca2328)
+*  4.0.30 [f88265148e](https://github.com/ccxt/ccxt/commits/f88265148e578368d457afde2bc7cd5a54ea6d45)
+
+
+## 4.0.29 (2023-07-17)
+
+*  new tags [33f7f49e30](https://github.com/ccxt/ccxt/commits/33f7f49e30bf3bc42929ea69f150dd535ce0573f)
+*  binance: add apis [75a45ae40d](https://github.com/ccxt/ccxt/commits/75a45ae40dc2ab6e7abd52c316221626f26e6bfc)
+*  huobi: add apis [ec5b0c233a](https://github.com/ccxt/ccxt/commits/ec5b0c233acd5622ddbce20ab931fc4e4db03505)
+*  4.0.29 [f6759a8d4d](https://github.com/ccxt/ccxt/commits/f6759a8d4d41949760481d843d85b55a6c9404de)
+
+
 ## 4.0.28 (2023-07-16)
 
 *  huobi error handling PermissionDenied on withdraw [2257f8690d](https://github.com/ccxt/ccxt/commits/2257f8690d7a49ed4e9d9f7ac98548930169cefb)
