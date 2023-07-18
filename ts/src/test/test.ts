@@ -298,7 +298,7 @@ export default class testMainClass extends baseMainTestClass {
                 const tempFailure = (isRateLimitExceeded || isExchangeNotAvailable || isNetworkError || isDDoSProtection || isRequestTimeout);
                 if (tempFailure) {
                     // wait and retry again
-                    await exchange.sleep (i); // increase wait seconds on every retry
+                    await exchange.sleep (i * 1000); // increase wait seconds on every retry
                     continue;
                 } else {
                     // if not temp failure, then dump exception without retrying
