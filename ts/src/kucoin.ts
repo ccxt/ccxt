@@ -1229,7 +1229,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseDepositWithdrawFee (data, currency);
+        return this.parseDepositWithdrawFee (data, currency) as any;
     }
 
     parseDepositWithdrawFee (fee, currency = undefined) {

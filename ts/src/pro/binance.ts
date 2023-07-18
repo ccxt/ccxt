@@ -1256,7 +1256,7 @@ export default class binance extends binanceRest {
         //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeValue (message, 'result', {});
-        const parsedBalances = this.parseBalance (result, 'spot');
+        const parsedBalances = this.parseBalance (result);
         client.resolve (parsedBalances, messageHash);
     }
 
