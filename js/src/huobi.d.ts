@@ -195,7 +195,7 @@ export default class huobi extends Exchange {
     fetchBorrowRatesPerSymbol(params?: {}): Promise<{
         info: any;
     }>;
-    fetchBorrowRates(params?: {}): Promise<{}>;
+    fetchBorrowRates(params?: {}): Promise<any>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseFundingRate(contract: any, market?: any): {
         info: any;

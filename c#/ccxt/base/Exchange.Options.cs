@@ -104,6 +104,27 @@ public partial class Exchange
     public dict tokenBucket { get; set; } = new dict();
     public Throttler throttler { get; set; }
 
+    public object proxyUrl { get; set; } = null;
+    public object proxy_url { get; set; } = null;
+
+    public Func<object, object, object, object> proxyUrlCallback { get; set; } = null;
+    public Func<object, object, object, object> proxy_url_callback { get; set; } = null;
+
+    // public object httpProxy { get; set; } = null;
+    public object http_proxy { get; set; } = null;
+    public Func<object, object, object, object, object> httpProxyCallback { get; set; } = null;
+    public Func<object, object, object, object, object> httpsProxyCallback { get; set; } = null;
+    public Func<object, object, object, object, object> http_proxy_callback { get; set; } = null;
+    public Func<object, object, object, object, object> https_proxy_callback { get; set; } = null;
+    public object httpsProxy { get; set; } = null;
+    public object https_proxy { get; set; } = null;
+
+    public object socksProxy { get; set; } = null;
+    public object socks_proxy { get; set; } = null;
+
+    public Func<object, object, object, object> socksProxyCallback { get; set; } = null;
+    public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
+
     private string httpProxyValue = "";
     public object httpProxy
     {

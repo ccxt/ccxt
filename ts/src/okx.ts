@@ -1379,8 +1379,8 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseMarkets (data);
+        const dataResponse = this.safeValue (response, 'data', []);
+        return this.parseMarkets (dataResponse);
     }
 
     safeNetwork (networkId) {

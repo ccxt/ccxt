@@ -104,7 +104,7 @@ export default class exmo extends Exchange {
         type: string;
         currency: any;
         network: string;
-        amount: string;
+        amount: number;
         status: string;
         timestamp: number;
         datetime: string;
@@ -130,7 +130,7 @@ export default class exmo extends Exchange {
         type: string;
         currency: any;
         network: string;
-        amount: string;
+        amount: number;
         status: string;
         timestamp: number;
         datetime: string;
@@ -148,7 +148,7 @@ export default class exmo extends Exchange {
             rate: any;
         };
     };
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
         info: any;
@@ -157,7 +157,7 @@ export default class exmo extends Exchange {
         type: string;
         currency: any;
         network: string;
-        amount: string;
+        amount: number;
         status: string;
         timestamp: number;
         datetime: string;
@@ -182,7 +182,7 @@ export default class exmo extends Exchange {
         type: string;
         currency: any;
         network: string;
-        amount: string;
+        amount: number;
         status: string;
         timestamp: number;
         datetime: string;

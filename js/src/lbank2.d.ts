@@ -55,6 +55,27 @@ export default class lbank2 extends Exchange {
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
+        txid: any;
+        type: any;
+        currency: any;
+        network: any;
+        amount: any;
+        status: any;
+        timestamp: any;
+        datetime: any;
+        address: any;
+        addressFrom: any;
+        addressTo: any;
+        tag: any;
+        tagFrom: any;
+        tagTo: any;
+        updated: any;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: any;
+            rate: any;
+        };
     }>;
     parseTransactionStatus(status: any, type: any): string;
     parseTransaction(transaction: any, currency?: any): {

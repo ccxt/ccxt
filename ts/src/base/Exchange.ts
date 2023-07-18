@@ -1398,7 +1398,7 @@ export default class Exchange {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
         const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
         if (proxyUrlCallback !== undefined) {
-            proxyUrl = proxyUrlCallback (url, method, headers, body);
+            proxyUrl = this.proxyUrlCallback (url, method, headers, body);
         }
         // backwards-compatibility
         if (this.proxy !== undefined) {
@@ -1411,17 +1411,17 @@ export default class Exchange {
         let httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
         const httpProxyCallback = (this.httpProxyCallback !== undefined) ? this.httpProxyCallback : this.http_proxy_callback;
         if (httpProxyCallback !== undefined) {
-            httpProxy = httpProxyCallback (url, method, headers, body);
+            httpProxy = this.httpProxyCallback (url, method, headers, body);
         }
         let httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
         const httpsProxyCallback = (this.httpsProxyCallback !== undefined) ? this.httpsProxyCallback : this.https_proxy_callback;
-        if (httpsProxyCallback !== undefined) {
-            httpsProxy = httpsProxyCallback (url, method, headers, body);
+        if (this.httpsProxyCallback !== undefined) {
+            httpsProxy = this.httpsProxyCallback (url, method, headers, body);
         }
         let socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
         const socksProxyCallback = (this.socksProxyCallback !== undefined) ? this.socksProxyCallback : this.socks_proxy_callback;
         if (socksProxyCallback !== undefined) {
-            socksProxy = socksProxyCallback (url, method, headers, body);
+            socksProxy = this.socksProxyCallback (url, method, headers, body);
         }
         let val = 0;
         if (proxyUrl !== undefined) {
@@ -3083,7 +3083,7 @@ export default class Exchange {
         return await this.createOrderWs (symbol, type, side, amount, price, params);
     }
 
-    async fetchPermissions (params = {}) {
+    async fetchPermissions (params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 

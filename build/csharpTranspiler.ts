@@ -274,6 +274,7 @@ class NewTranspiler {
             'loadOrderBook',
             'fetchCurrencies',
             'loadMarketsHelper',
+            'createNetworksByIdObject'
         ] // improve this later
         const isBlackListed = blacklistMethods.includes(methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
@@ -319,7 +320,8 @@ class NewTranspiler {
         const res: string[] = [];
 
         rawParameters.forEach(param => {
-            if (this.isIntegerType(param.type) || this.isNumberType(param.type)) {
+            const isOptional =  param.optional || param.initializer !== undefined;
+            if (isOptional && (this.isIntegerType(param.type) || this.isNumberType(param.type))) {
                 const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
                 res.push(decl);
             }

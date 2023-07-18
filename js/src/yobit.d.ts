@@ -31,15 +31,54 @@ export default class yobit extends Exchange {
         info: any;
     }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
+        id: any;
         currency: string;
         address: string;
         tag: any;
         network: any;
         info: any;
+        txid: any;
+        type: any;
+        amount: any;
+        status: any;
+        timestamp: any;
+        datetime: any;
+        addressFrom: any;
+        addressTo: any;
+        tagFrom: any;
+        tagTo: any;
+        updated: any;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: any;
+            rate: any;
+        };
     }>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: any;
+        txid: any;
+        type: any;
+        currency: any;
+        network: any;
+        amount: any;
+        status: any;
+        timestamp: any;
+        datetime: any;
+        address: any;
+        addressFrom: any;
+        addressTo: any;
+        tag: any;
+        tagFrom: any;
+        tagTo: any;
+        updated: any;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: any;
+            rate: any;
+        };
     }>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

@@ -47,7 +47,7 @@ export default class bigone extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
-        id: number;
+        id: string;
         txid: string;
         timestamp: number;
         datetime: string;
@@ -72,7 +72,7 @@ export default class bigone extends Exchange {
         id: any;
         timestamp: any;
         datetime: any;
-        currency: number;
+        currency: any;
         amount: any;
         fromAccount: any;
         toAccount: any;
@@ -83,7 +83,7 @@ export default class bigone extends Exchange {
         id: any;
         timestamp: any;
         datetime: any;
-        currency: number;
+        currency: any;
         amount: any;
         fromAccount: any;
         toAccount: any;
@@ -92,7 +92,7 @@ export default class bigone extends Exchange {
     parseTransferStatus(status: any): string;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
-        id: number;
+        id: string;
         txid: string;
         timestamp: number;
         datetime: string;

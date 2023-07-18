@@ -19,6 +19,23 @@ public partial class Exchange
 
     ////////////////////////////////////////////////////////
 
+    public object safeTimestampN(object obj, List<object> keys, object defaultValue = null)
+    {
+        var result = safeValueN(obj, keys, defaultValue);
+        if (result == null)
+            return defaultValue;
+        if (result is string && ((string)result).IndexOf(".") > -1)
+        {
+            return Convert.ToInt64(Convert.ToDouble(result, CultureInfo.InvariantCulture)) * 1000;
+        }
+        // if (result.GetType() == typeof(double))
+        // {
+        //     return Convert.ToInt64(result) * 1000;
+        // }
+        // return (Int64)(result) * 1000;
+        return Convert.ToInt64(result, CultureInfo.InvariantCulture.NumberFormat) * 1000;
+    }
+
     public object safeTimestamp(object obj, object key, object defaultValue = null)
     {
         var value = safeValue(obj, key, defaultValue);

@@ -35,18 +35,7 @@ export default class bitmart extends Exchange {
         };
         networks: {};
     };
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<{
-        info: any;
-        withdraw: {
-            fee: number;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    }>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;

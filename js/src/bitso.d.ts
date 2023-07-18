@@ -55,7 +55,7 @@ export default class bitso extends Exchange {
         addressFrom: string;
         address: string;
         addressTo: string;
-        amount: string;
+        amount: number;
         type: string;
         currency: any;
         status: string;
@@ -87,7 +87,7 @@ export default class bitso extends Exchange {
         addressFrom: string;
         address: string;
         addressTo: string;
-        amount: string;
+        amount: number;
         type: string;
         currency: any;
         status: string;
@@ -109,7 +109,7 @@ export default class bitso extends Exchange {
         addressFrom: string;
         address: string;
         addressTo: string;
-        amount: string;
+        amount: number;
         type: string;
         currency: any;
         status: string;

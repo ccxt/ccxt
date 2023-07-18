@@ -321,7 +321,7 @@ export default class okx extends Exchange {
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
-    fetchBorrowRates(params?: {}): Promise<{}>;
+    fetchBorrowRates(params?: {}): Promise<any>;
     fetchBorrowRate(code: string, params?: {}): Promise<{
         currency: any;
         rate: number;

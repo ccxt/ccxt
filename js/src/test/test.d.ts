@@ -4,6 +4,7 @@ declare class baseMainTestClass {
     debug: boolean;
     privateTest: boolean;
     privateTestOnly: boolean;
+    loadKeys: boolean;
     sandbox: boolean;
     skippedMethods: {};
     checkedPublicTests: {};
@@ -15,7 +16,7 @@ export default class testMainClass extends baseMainTestClass {
     init(exchangeId: any, symbol: any): Promise<void>;
     importFiles(exchange: any): Promise<void>;
     expandSettings(exchange: any, symbol: any): void;
-    addPadding(message: any, size: any): string;
+    addPadding(message: string, size: any): string;
     testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<any>;
     testSafe(methodName: any, exchange: any, args: any, isPublic: any): Promise<boolean>;
     runPublicTests(exchange: any, symbol: any): Promise<void>;

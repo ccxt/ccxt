@@ -454,51 +454,56 @@ public partial class Exchange
         this.throttler = new Throttler(this.tokenBucket);
     }
 
-    public virtual void setSandboxMode(object enable2)
+    public object clone(object o)
     {
-        var enable = (bool)enable2;
-        var urls = safeValue(this.urls, "api");
-        var apiBackup = safeValue(this.urls, "apiBackup");
-        if (enable)
-        {
-            var urlsDict = this.urls as dict;
-            var test = safeValue(urlsDict, "test");
-            var api = safeValue(urlsDict, "api");
-            if (test != null)
-            {
-                if (api.GetType() == typeof(string))
-                {
-                    urlsDict["apiBackup"] = urls;
-                    ((dict)this.urls)["api"] = test as dict;
-
-                }
-                else
-                {
-                    urlsDict["apiBackup"] = api;
-                    ((dict)this.urls)["api"] = test; // clone here?
-                }
-            }
-            else
-            {
-                throw new NotSupported("Sandbox mode is not supported by this exchange");
-
-            }
-
-        }
-        else if (apiBackup != null)
-        {
-            if (api.GetType() == typeof(string))
-            {
-                api = apiBackup as dict;
-
-            }
-            else
-            {
-                api = apiBackup as dict; // clone this
-            }
-        }
-
+        return o;
     }
+
+    // public virtual void setSandboxMode(object enable2)
+    // {
+    //     var enable = (bool)enable2;
+    //     var urls = safeValue(this.urls, "api");
+    //     var apiBackup = safeValue(this.urls, "apiBackup");
+    //     if (enable)
+    //     {
+    //         var urlsDict = this.urls as dict;
+    //         var test = safeValue(urlsDict, "test");
+    //         var api = safeValue(urlsDict, "api");
+    //         if (test != null)
+    //         {
+    //             if (api.GetType() == typeof(string))
+    //             {
+    //                 urlsDict["apiBackup"] = urls;
+    //                 ((dict)this.urls)["api"] = test as dict;
+
+    //             }
+    //             else
+    //             {
+    //                 urlsDict["apiBackup"] = api;
+    //                 ((dict)this.urls)["api"] = test; // clone here?
+    //             }
+    //         }
+    //         else
+    //         {
+    //             throw new NotSupported("Sandbox mode is not supported by this exchange");
+
+    //         }
+
+    //     }
+    //     else if (apiBackup != null)
+    //     {
+    //         if (api.GetType() == typeof(string))
+    //         {
+    //             api = apiBackup as dict;
+
+    //         }
+    //         else
+    //         {
+    //             api = apiBackup as dict; // clone this
+    //         }
+    //     }
+
+    // }
 
     public void checkRequiredDependencies()
     {

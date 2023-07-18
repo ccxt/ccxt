@@ -133,8 +133,14 @@ export interface Transaction {
     amount: number;
     currency: string;
     status: 'pending' | 'ok' | string;
-    updated: number;
+    updated?: number;
     fee: Fee;
+    tag?: string;
+    tagFrom?: string;
+    tagTo?: string;
+    addressTo?: string;
+    addressFrom?: string;
+    comment?: string;
 }
 export interface Tickers extends Dictionary<Ticker> {
     info: any;
@@ -170,6 +176,126 @@ export interface DepositAddressResponse {
     address: string;
     info: any;
     tag?: string;
+}
+export interface FundingRate {
+    symbol: string;
+    info: any;
+    timestamp?: number;
+    fundingRate?: number;
+    datetime?: string;
+    markPrice?: number;
+    indexPrice?: number;
+    interestRate?: number;
+    estimatedSettlePrice?: number;
+    fundingTimestamp?: number;
+    fundingDatetime?: string;
+    nextFundingTimestamp?: number;
+    nextFundingDatetime?: string;
+    nextFundingRate?: number;
+    previousFundingTimestamp?: number;
+    previousFundingDatetime?: string;
+    previousFundingRate?: number;
+}
+export interface OpenInterest {
+    symbol: string;
+    openInterestAmount?: number;
+    openInterestValue?: number;
+    timestamp?: number;
+    datetime?: string;
+    info: any;
+}
+export interface Position {
+    symbol: string;
+    id?: string;
+    info: any;
+    timestamp?: number;
+    datetime?: string;
+    contracts?: number;
+    contractsSize?: number;
+    side?: string;
+    notional?: number;
+    leverage?: number;
+    unrealizedPnl?: number;
+    collateral?: number;
+    entryPrice?: number;
+    markPrice?: number;
+    liquidationPrice?: number;
+    marginMode?: string;
+    hedged?: boolean;
+    maintenenceMargin?: number;
+    maintenanceMarginPercentage?: number;
+    initialMargin?: number;
+    initialMarginPercentage?: number;
+    marginRatio?: number;
+    lastUpdateTimestamp?: number;
+    lastPrice?: number;
+    percentage?: number;
+}
+export interface BorrowInterest {
+    account?: string;
+    currency?: string;
+    interest?: number;
+    interestRate?: number;
+    amountBorrowed?: number;
+    marginMode?: string;
+    timestamp?: number;
+    datetime?: string;
+    info: any;
+}
+export interface LeverageTier {
+    tier?: number;
+    currency?: string;
+    minNotional?: number;
+    maxNotional?: number;
+    maintenanceMarginRate?: number;
+    maxLeverage?: number;
+    info: any;
+}
+export interface LedgerEntry {
+    id?: string;
+    info: any;
+    timestamp?: number;
+    datetime?: string;
+    direction?: string;
+    account?: string;
+    referenceId?: string;
+    referenceAccount?: string;
+    type?: string;
+    currency?: string;
+    amount?: number;
+    before?: number;
+    after?: number;
+    status?: string;
+    fee?: Fee;
+}
+export interface DepositWithdrawFeeNetwork {
+    fee?: number;
+    percentage?: boolean;
+}
+export interface DepositWithdrawFee {
+    info: any;
+    withdraw?: DepositWithdrawFeeNetwork;
+    deposit?: DepositWithdrawFeeNetwork;
+    networks?: Dictionary<DepositWithdrawFeeNetwork>;
+}
+export interface TransferEntry {
+    info?: any;
+    id?: string;
+    timestamp?: number;
+    datetime?: string;
+    currency?: string;
+    amount?: number;
+    fromAccount?: string;
+    toAccount?: string;
+    status?: string;
+}
+export interface BorrowRate {
+    currency?: string;
+    rate?: number;
+    period?: number;
+    timestamp?: number;
+    datetime?: string;
+    info: any;
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [number, number, number, number, number, number];

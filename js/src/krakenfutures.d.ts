@@ -26,7 +26,7 @@ export default class krakenfutures extends Exchange {
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchBalance(params?: {}): Promise<any>;
     parseBalance(response: any): import("./base/types.js").Balances;
-    fetchFundingRates(symbols?: string[], params?: {}): Promise<{}>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     parseFundingRate(ticker: any, market?: any): {
         info: any;
         symbol: string;
