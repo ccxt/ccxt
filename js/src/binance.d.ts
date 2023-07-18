@@ -1,5 +1,9 @@
 import Exchange from './abstract/binance.js';
 import { Market, Int, OrderSide, Balances, OrderType } from './base/types.js';
+/**
+ * @class binance
+ * @extends Exchange
+ */
 export default class binance extends Exchange {
     describe(): any;
     isInverse(type: any, subType?: any): boolean;
@@ -114,11 +118,13 @@ export default class binance extends Exchange {
     };
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     editSpotOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editSpotOrderRequest(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): any;
     editContractOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -216,7 +222,7 @@ export default class binance extends Exchange {
         deposit: {};
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;

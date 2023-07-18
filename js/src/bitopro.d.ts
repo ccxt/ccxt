@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitopro.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitopro
+ * @extends Exchange
+ */
 export default class bitopro extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;

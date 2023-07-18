@@ -1,5 +1,9 @@
 import Exchange from './abstract/woo.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class woo
+ * @extends Exchange
+ */
 export default class woo extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

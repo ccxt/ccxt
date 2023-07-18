@@ -80,6 +80,7 @@ interface Exchange {
     publicGetDerivativesV3PublicRecentTrade(params?: {}): Promise<implicitReturnType>;
     publicGetDerivativesV3PublicOpenInterest(params?: {}): Promise<implicitReturnType>;
     publicGetDerivativesV3PublicInsurance(params?: {}): Promise<implicitReturnType>;
+    publicGetV5MarketTime(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketKline(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketMarkPriceKline(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketIndexPriceKline(params?: {}): Promise<implicitReturnType>;
@@ -200,6 +201,7 @@ interface Exchange {
     privateGetUserV3PrivateFrozenSubMember(params?: {}): Promise<implicitReturnType>;
     privateGetUserV3PrivateQuerySubMembers(params?: {}): Promise<implicitReturnType>;
     privateGetUserV3PrivateQueryApi(params?: {}): Promise<implicitReturnType>;
+    privateGetUserV3PrivateGetMemberType(params?: {}): Promise<implicitReturnType>;
     privateGetAssetV3PrivateTransferTransferCoinListQuery(params?: {}): Promise<implicitReturnType>;
     privateGetAssetV3PrivateTransferAccountCoinBalanceQuery(params?: {}): Promise<implicitReturnType>;
     privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery(params?: {}): Promise<implicitReturnType>;

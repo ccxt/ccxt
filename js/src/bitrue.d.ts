@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitrue.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitrue
+ * @extends Exchange
+ */
 export default class bitrue extends Exchange {
     describe(): any;
     costToPrecision(symbol: any, cost: any): any;
@@ -92,7 +96,7 @@ export default class bitrue extends Exchange {
         };
         networks: {};
     };
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

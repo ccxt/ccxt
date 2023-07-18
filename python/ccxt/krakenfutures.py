@@ -86,6 +86,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'test': {
                     'public': 'https://demo-futures.kraken.com/derivatives/api/',
                     'private': 'https://demo-futures.kraken.com/derivatives/api/',
+                    'charts': 'https://demo-futures.kraken.com/api/charts/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -240,7 +241,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple currencies
         see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
-        :param dict params: exchange specific params
+        :param dict [params]: exchange specific params
         :returns: An array of market structures
         """
         response = self.publicGetInstruments(params)
@@ -404,8 +405,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         Fetches a list of open orders in a market
         :param str symbol: Unified market symbol
-        :param int|None limit: Not used by krakenfutures
-        :param dict params: exchange specific params
+        :param int [limit]: Not used by krakenfutures
+        :param dict [params]: exchange specific params
         :returns: An `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
         """
         self.load_markets()
@@ -621,10 +622,10 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
          * @descriptions Fetch a history of filled trades that self account has made
         :param str symbol: Unified CCXT market symbol
-        :param int|None since: Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
-        :param int|None limit: Total number of trades, cannot exceed 100
-        :param dict params: Exchange specific params
-        :param int|None params['until']: Timestamp in ms of latest trade
+        :param int [since]: Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
+        :param int [limit]: Total number of trades, cannot exceed 100
+        :param dict [params]: Exchange specific params
+        :param int [params.until]: Timestamp in ms of latest trade
         :returns: An array of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
@@ -779,12 +780,12 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param str side: buy or sell
         :param int amount: Contract quantity
         :param float price: Limit order price
-        :param float|None params['stopPrice']: The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
-        :param bool|None params['reduceOnly']: Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default False,
-        :param bool|None params['postOnly']: Set if you wish to make a postOnly order, Default False
-        :param str|None params['triggerSignal']: If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
-        :param str|None params['cliOrdId']: UUID The order identity that is specified from the user, It must be globally unique
-        :param str|None params['clientOrderId']: UUID The order identity that is specified from the user, It must be globally unique
+        :param float [params.stopPrice]: The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
+        :param bool [params.reduceOnly]: Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default False,
+        :param bool [params.postOnly]: Set if you wish to make a postOnly order, Default False
+        :param str [params.triggerSignal]: If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
+        :param str [params.cliOrdId]: UUID The order identity that is specified from the user, It must be globally unique
+        :param str [params.clientOrderId]: UUID The order identity that is specified from the user, It must be globally unique
         """
         self.load_markets()
         type = self.safe_string(params, 'orderType', type)
@@ -859,9 +860,9 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param str symbol: Not used by Krakenfutures
         :param str type: Not used by Krakenfutures
         :param str side: Not used by Krakenfutures
-        :param float|None amount: Order size
-        :param float|None price: Price to fill order at
-        :param dict params: Exchange specific params
+        :param float amount: Order size
+        :param float price: Price to fill order at
+        :param dict [params]: Exchange specific params
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -881,8 +882,8 @@ class krakenfutures(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         :param str id: Order id
-        :param str|None symbol: Not used by Krakenfutures
-        :param dict params: Exchange specific params
+        :param str symbol: Not used by Krakenfutures
+        :param dict [params]: Exchange specific params
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -898,7 +899,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         Cancels all orders on the exchange, including trigger orders
         :param str symbol: Unified market symbol
-        :param dict params: Exchange specific params
+        :param dict [params]: Exchange specific params
         :returns: Response from exchange api
         """
         request = {}
@@ -911,9 +912,9 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         Gets all open orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
-        :param int since: Timestamp(ms) of earliest order.(Not used by kraken api but filtered internally by CCXT)
-        :param int limit: How many orders to return.(Not used by kraken api but filtered internally by CCXT)
-        :param dict params: Exchange specific parameters
+        :param int [since]: Timestamp(ms) of earliest order.(Not used by kraken api but filtered internally by CCXT)
+        :param int [limit]: How many orders to return.(Not used by kraken api but filtered internally by CCXT)
+        :param dict [params]: Exchange specific parameters
         :returns: An array of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -970,7 +971,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'insufficientAvailableFunds': 'rejected',  # the order was not placed because available funds are insufficient
             'selfFill': 'rejected',  # the order was not placed because it would be filled against an existing order belonging to the same account
             'tooManySmallOrders': 'rejected',  # the order was not placed because the number of small open orders would exceed the permissible limit
-            'maxPositionViolation': 'rejected',  # Order would cause you to exceed your maximum position in self contract.
+            'maxPositionViolation': 'rejected',  # Order would cause you to exceed your maximum hasattr(self, position) contract.
             'marketSuspended': 'rejected',  # the order was not placed because the market is suspended
             'marketInactive': 'rejected',  # the order was not placed because the market is inactive
             'clientOrderIdAlreadyExist': 'rejected',  # the specified client id already exist
@@ -1199,6 +1200,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         marketId = self.safe_string(details, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.parse8601(self.safe_string_2(details, 'timestamp', 'receivedTime'))
+        lastUpdateTimestamp = self.parse8601(self.safe_string(details, 'lastUpdateTime'))
         if price is None:
             price = self.safe_string(details, 'limitPrice')
         amount = self.safe_string(details, 'quantity')
@@ -1254,6 +1256,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': self.safe_string(market, 'symbol'),
             'type': self.parse_order_type(type),
             'timeInForce': timeInForce,
@@ -1304,9 +1307,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
-        :param dict params: Exchange specific parameters
-        :param str params['type']: The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'cash' *
-        :param str params['symbol']: A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
+        :param dict [params]: Exchange specific parameters
+        :param str [params.type]: The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'cash' *
+        :param str [params.symbol]: A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
         :returns: A `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
@@ -1517,9 +1520,9 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
         fetch the current funding rates
-        :param [str] symbols: unified market symbols
-        :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :param str[] symbols: unified market symbols
+        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         marketIds = self.market_ids(symbols)
@@ -1633,8 +1636,8 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         Fetches current contract trading positions
-        :param [str] symbols: List of unified symbols
-        :param dict params: Not used by krakenfutures
+        :param str[] symbols: List of unified symbols
+        :param dict [params]: Not used by krakenfutures
         :returns: Parsed exchange response for positions
         """
         self.load_markets()
@@ -1884,7 +1887,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         transfer from futures wallet to spot wallet
         :param str code: Unified currency code
         :param float amount: Size of the transfer
-        :param dict params: Exchange specific parameters
+        :param dict [params]: Exchange specific parameters
         :returns: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         return self.transfer(code, amount, 'future', 'spot', params)
@@ -1896,7 +1899,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param float amount: Size of the transfer
         :param str fromAccount: 'main'/'funding'/'future', 'flex', or a unified market symbol
         :param str toAccount: 'main'/'funding', 'flex', 'spot' or a unified market symbol
-        :param dict params: Exchange specific parameters
+        :param dict [params]: Exchange specific parameters
         :returns: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()

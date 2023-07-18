@@ -1,5 +1,9 @@
 import Exchange from './abstract/coincheck.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coincheck
+ * @extends Exchange
+ */
 export default class coincheck extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

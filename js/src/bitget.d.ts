@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitget.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitget
+ * @extends Exchange
+ */
 export default class bitget extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
@@ -99,8 +103,8 @@ export default class bitget extends Exchange {
         status: string;
         updated: number;
         tagFrom: any;
-        tag: any;
-        tagTo: any;
+        tag: string;
+        tagTo: string;
         comment: any;
         fee: any;
     };

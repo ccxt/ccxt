@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    public_spot_get_notice_queryallnotices = publicSpotGetNoticeQueryAllNotices = Entry('notice/queryAllNotices', ['public', 'spot'], 'GET', {'cost': 1})
     public_spot_get_public_time = publicSpotGetPublicTime = Entry('public/time', ['public', 'spot'], 'GET', {'cost': 1})
     public_spot_get_public_currencies = publicSpotGetPublicCurrencies = Entry('public/currencies', ['public', 'spot'], 'GET', {'cost': 6.6667})
     public_spot_get_public_products = publicSpotGetPublicProducts = Entry('public/products', ['public', 'spot'], 'GET', {'cost': 1})
@@ -13,6 +14,7 @@ class ImplicitAPI:
     public_spot_get_market_candles = publicSpotGetMarketCandles = Entry('market/candles', ['public', 'spot'], 'GET', {'cost': 1})
     public_spot_get_market_depth = publicSpotGetMarketDepth = Entry('market/depth', ['public', 'spot'], 'GET', {'cost': 1})
     public_spot_get_market_spot_vip_level = publicSpotGetMarketSpotVipLevel = Entry('market/spot-vip-level', ['public', 'spot'], 'GET', {'cost': 2})
+    public_spot_get_market_history_candles = publicSpotGetMarketHistoryCandles = Entry('market/history-candles', ['public', 'spot'], 'GET', {'cost': 1})
     public_mix_get_market_contracts = publicMixGetMarketContracts = Entry('market/contracts', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_market_depth = publicMixGetMarketDepth = Entry('market/depth', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_market_ticker = publicMixGetMarketTicker = Entry('market/ticker', ['public', 'mix'], 'GET', {'cost': 1})
@@ -29,6 +31,10 @@ class ImplicitAPI:
     public_mix_get_market_mark_price = publicMixGetMarketMarkPrice = Entry('market/mark-price', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_market_symbol_leverage = publicMixGetMarketSymbolLeverage = Entry('market/symbol-leverage', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_market_querypositionlever = publicMixGetMarketQueryPositionLever = Entry('market/queryPositionLever', ['public', 'mix'], 'GET', {'cost': 1})
+    public_mix_get_market_open_limit = publicMixGetMarketOpenLimit = Entry('market/open-limit', ['public', 'mix'], 'GET', {'cost': 1})
+    public_mix_get_market_history_candles = publicMixGetMarketHistoryCandles = Entry('market/history-candles', ['public', 'mix'], 'GET', {'cost': 1})
+    public_mix_get_market_history_index_candles = publicMixGetMarketHistoryIndexCandles = Entry('market/history-index-candles', ['public', 'mix'], 'GET', {'cost': 1})
+    public_mix_get_market_history_mark_candles = publicMixGetMarketHistoryMarkCandles = Entry('market/history-mark-candles', ['public', 'mix'], 'GET', {'cost': 1})
     public_margin_get_cross_public_interestrateandlimit = publicMarginGetCrossPublicInterestRateAndLimit = Entry('cross/public/interestRateAndLimit', ['public', 'margin'], 'GET', {'cost': 2})
     public_margin_get_isolated_public_interestrateandlimit = publicMarginGetIsolatedPublicInterestRateAndLimit = Entry('isolated/public/interestRateAndLimit', ['public', 'margin'], 'GET', {'cost': 2})
     public_margin_get_cross_public_tierdata = publicMarginGetCrossPublicTierData = Entry('cross/public/tierData', ['public', 'margin'], 'GET', {'cost': 2})
@@ -162,6 +168,10 @@ class ImplicitAPI:
     private_user_get_fee_query = privateUserGetFeeQuery = Entry('fee/query', ['private', 'user'], 'GET', {'cost': 2})
     private_user_get_sub_virtual_list = privateUserGetSubVirtualList = Entry('sub/virtual-list', ['private', 'user'], 'GET', {'cost': 2})
     private_user_get_sub_virtual_api_list = privateUserGetSubVirtualApiList = Entry('sub/virtual-api-list', ['private', 'user'], 'GET', {'cost': 2})
+    private_user_get_tax_spot_record = privateUserGetTaxSpotRecord = Entry('tax/spot-record', ['private', 'user'], 'GET', {'cost': 1})
+    private_user_get_tax_future_record = privateUserGetTaxFutureRecord = Entry('tax/future-record', ['private', 'user'], 'GET', {'cost': 1})
+    private_user_get_tax_margin_record = privateUserGetTaxMarginRecord = Entry('tax/margin-record', ['private', 'user'], 'GET', {'cost': 1})
+    private_user_get_tax_p2p_record = privateUserGetTaxP2pRecord = Entry('tax/p2p-record', ['private', 'user'], 'GET', {'cost': 1})
     private_user_post_sub_virtual_create = privateUserPostSubVirtualCreate = Entry('sub/virtual-create', ['private', 'user'], 'POST', {'cost': 4})
     private_user_post_sub_virtual_modify = privateUserPostSubVirtualModify = Entry('sub/virtual-modify', ['private', 'user'], 'POST', {'cost': 4})
     private_user_post_sub_virtual_api_batch_create = privateUserPostSubVirtualApiBatchCreate = Entry('sub/virtual-api-batch-create', ['private', 'user'], 'POST', {'cost': 20})

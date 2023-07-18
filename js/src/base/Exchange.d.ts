@@ -6,18 +6,41 @@ import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
 export { Market, Trade, Fee, Ticker } from './types';
+/**
+ * @class Exchange
+ */
 export default class Exchange {
     options: {
         [key: string]: any;
     };
+    api: any;
+    proxy: any;
+    proxyUrl: string;
+    proxy_url: string;
+    proxyUrlCallback: any;
+    proxy_url_callback: any;
+    httpProxy: string;
+    http_proxy: string;
+    httpProxyCallback: any;
+    http_proxy_callback: any;
+    httpsProxy: string;
+    https_proxy: string;
+    httpsProxyCallback: any;
+    https_proxy_callback: any;
+    socksProxy: string;
+    socks_proxy: string;
+    socksProxyCallback: any;
+    socks_proxy_callback: any;
+    userAgent: {
+        'User-Agent': string;
+    } | false;
+    user_agent: {
+        'User-Agent': string;
+    } | false;
     userAgents: any;
     headers: any;
-    httpAgent: any;
-    httpsAgent: any;
-    agent: any;
-    api: any;
-    proxy: string;
     origin: string;
+    agent: any;
     minFundingAddressLength: number;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
@@ -31,10 +54,6 @@ export default class Exchange {
     validateClientSsl: boolean;
     timeout: number;
     verbose: boolean;
-    debug: boolean;
-    userAgent: {
-        'User-Agent': string;
-    } | false;
     twofa: any;
     apiKey: string;
     secret: string;
@@ -271,9 +290,13 @@ export default class Exchange {
             createStopMarketOrder: any;
             createOrderWs: any;
             editOrderWs: any;
+            fetchOpenOrdersWs: any;
+            fetchOrderWs: any;
             cancelOrderWs: any;
             cancelOrdersWs: any;
             cancelAllOrdersWs: any;
+            fetchTradesWs: any;
+            fetchBalanceWs: any;
             editOrder: string;
             fetchAccounts: any;
             fetchBalance: boolean;
@@ -449,7 +472,6 @@ export default class Exchange {
     checkAddress(address: any): any;
     initRestRateLimiter(): void;
     throttle(cost?: any): any;
-    setSandboxMode(enabled: any): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
     log(...args: any[]): void;
@@ -488,13 +510,17 @@ export default class Exchange {
     convertToBigInt(value: string): bigint;
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
+    getProperty(obj: any, property: any, defaultValue?: any): any;
+    checkProxySettings(url: any, method: any, headers: any, body: any): string[];
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
+    setSandboxMode(enabled: any): void;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDepositAddresses(codes?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -525,6 +551,8 @@ export default class Exchange {
     createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
+    afterConstruct(): void;
+    createNetworksByIdObject(): void;
     getDefaultOptions(): {
         defaultNetworkCodeReplacements: {
             ETH: {
@@ -567,12 +595,14 @@ export default class Exchange {
         cost: number;
     };
     safeTrade(trade: object, market?: object): Trade;
+    invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: object, market?: any): Ticker;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     convertTradingViewToOHLCV(ohlcvs: any, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): any[];
     convertOHLCVToTradingView(ohlcvs: any, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
+    fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: any, endRegex?: any): Promise<any>;
     marketIds(symbols: any): any;
     marketSymbols(symbols: any, type?: string): any;
     marketCodes(codes: any): any;
@@ -627,6 +657,7 @@ export default class Exchange {
     checkRequiredCredentials(error?: boolean): boolean;
     oath(): string;
     fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalanceWs(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
     watchBalance(params?: {}): Promise<Balances>;
     fetchPartialBalance(part: any, params?: {}): Promise<Balance>;
@@ -657,6 +688,7 @@ export default class Exchange {
     fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
     watchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
@@ -665,18 +697,21 @@ export default class Exchange {
     cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrdersWs(ids: string[], symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    cancelAllOrderWs(symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTradesWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTransactions(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposits(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<any>;
     parseLastPrice(price: any, market?: any): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     account(): Balance;

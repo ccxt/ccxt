@@ -1,5 +1,9 @@
 import Exchange from './abstract/gate.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class gate
+ * @extends Exchange
+ */
 export default class gate extends Exchange {
     describe(): any;
     setSandboxMode(enable: any): void;
@@ -104,14 +108,6 @@ export default class gate extends Exchange {
         previousFundingDatetime: any;
     };
     fetchNetworkDepositAddress(code: string, params?: {}): Promise<{}>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-        code: string;
-        currency: string;
-        address: any;
-        tag: any;
-        network: any;
-    }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
         code: string;
@@ -135,7 +131,7 @@ export default class gate extends Exchange {
         taker: number;
     };
     fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): {
         info: any;
         withdraw: {

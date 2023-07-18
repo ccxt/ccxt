@@ -49,8 +49,8 @@ async function example () {
         console.log ('Created an order', created_order);
 
         // Fetch all your open orders for this symbol
-        const all_open_rders = await exchange.fetchOpenOrders (symbol);
-        console.log ('Fetched all your orders for this symbol', all_open_rders);
+        const all_open_orders = await exchange.fetchOpenOrders (symbol);
+        console.log ('Fetched all your orders for this symbol', all_open_orders);
 
         // To cancel a limit order, use "exchange.cancel_order(created_order['id'], symbol)""
     } catch (e) {
