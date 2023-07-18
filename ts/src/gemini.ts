@@ -276,7 +276,7 @@ export default class gemini extends Exchange {
                     'FIL': 'filecoin',
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
-                    'AVAX_X': 'avalanche',
+                    'AVAXX': 'avalanche',
                     'SOL': 'solana',
                     'ATOM': 'cosmos',
                     'DOT': 'polkadot',
