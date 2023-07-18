@@ -66,7 +66,7 @@ class bitfinex2 extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -2042,7 +2042,7 @@ class bitfinex2 extends Exchange {
         //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         //     )
         //
-        // fetchTransactions
+        // fetchDepositsWithdrawals
         //
         //     array(
         //         13293039, // ID
@@ -2267,14 +2267,13 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @deprecated
-             * use fetchDepositsWithdrawals instead
-             * @param {string} $code unified $currency $code for the $currency of the transactions, default is null
-             * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
-             * @param {int} [$limit] max number of transactions to return, default is null
+             * fetch history of deposits and withdrawals
+             * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+             * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */

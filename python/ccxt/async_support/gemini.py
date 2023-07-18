@@ -92,7 +92,7 @@ class gemini(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'postOnly': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -282,38 +282,19 @@ class gemini(Exchange, ImplicitAPI):
                 },
                 'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],  # keep self list updated(not available trough web api)
                 'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
-                'networkIds': {
-                    'bitcoin': 'BTC',
-                    'ethereum': 'ERC20',
-                    'bitcoincash': 'BCH',
-                    'litecoin': 'LTC',
-                    'zcash': 'ZEC',
-                    'filecoin': 'FIL',
-                    'dogecoin': 'DOGE',
-                    'tezos': 'XTZ',
-                    'avalanche': 'AVALANCHE_X',
-                    'solana': 'SOLANA',
-                    'cosmos': 'COSMOS',
-                    'polkadot': 'POLKADOT',
-                },
                 'networks': {
                     'BTC': 'bitcoin',
-                    'ETH': 'ethereum',
                     'ERC20': 'ethereum',
                     'BCH': 'bitcoincash',
                     'LTC': 'litecoin',
-                    'ZCASH': 'zcash',
                     'ZEC': 'zcash',
-                    'FILECOIN': 'filecoin',
                     'FIL': 'filecoin',
-                    'DOGECOIN': 'dogecoin',
                     'DOGE': 'dogecoin',
-                    'TEZOS': 'tezos',
                     'XTZ': 'tezos',
-                    'AVALANCHE_X': 'avalanche',
-                    'SOLANA': 'solana',
-                    'COSMOS': 'cosmos',
-                    'POLKADOT': 'polkadot',
+                    'AVAXX': 'avalanche',
+                    'SOL': 'solana',
+                    'ATOM': 'cosmos',
+                    'DOT': 'polkadot',
                 },
                 'nonce': 'milliseconds',  # if getting a Network 400 error change to seconds
             },
@@ -1474,13 +1455,12 @@ class gemini(Exchange, ImplicitAPI):
             return self.milliseconds()
         return self.seconds()
 
-    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: not used by gemini.fetchTransactions
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the gemini api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """

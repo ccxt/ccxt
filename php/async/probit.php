@@ -79,7 +79,7 @@ class probit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
@@ -200,11 +200,6 @@ class probit extends Exchange {
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRON',
-                ),
-                'networksById' => array(
-                    'BSC' => 'BEP20',
-                    'ETH' => 'ERC20',
-                    'TRON' => 'TRC20',
                 ),
             ),
             'commonCurrencies' => array(

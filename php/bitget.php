@@ -178,8 +178,6 @@ class bitget extends Exchange {
                             'cross/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'isolated/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'public/currencies' => 1, // 20 times/1s (IP) => 20/20 = 1
-                            'cross/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'isolated/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
                         ),
                     ),
                 ),
@@ -386,6 +384,8 @@ class bitget extends Exchange {
                             'cross/interest/list' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'cross/liquidation/list' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'cross/fin/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'isolated/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
                         ),
                         'post' => array(
                             'cross/account/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2

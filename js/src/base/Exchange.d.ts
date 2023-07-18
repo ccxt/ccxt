@@ -717,8 +717,9 @@ export default class Exchange {
     fetchMyTradesWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposits(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawals(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<any>;
     parseLastPrice(price: any, market?: any): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     account(): Balance;
