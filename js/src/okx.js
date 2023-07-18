@@ -6551,7 +6551,7 @@ export default class okx extends Exchange {
         const data = this.safeValue(response, 'data', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
     }
     parseSettlement(settlement, market) {
         //

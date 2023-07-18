@@ -215,14 +215,7 @@ class cex(Exchange, ImplicitAPI):
                     'ERC20': 'Ethereum',
                     'BTC': 'BTC',
                     'BEP20': 'Binance Smart Chain',
-                    'BSC': 'Binance Smart Chain',
                     'TRC20': 'Tron',
-                },
-                'networksById': {
-                    'Ethereum': 'ERC20',
-                    'BTC': 'BTC',
-                    'Binance Smart Chain': 'BEP20',
-                    'Tron': 'TRC20',
                 },
             },
         })

@@ -283,12 +283,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'BITVAVO-ACCESS-WINDOW': 10000,  # default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                },
-                'networksById': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,

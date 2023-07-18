@@ -191,13 +191,7 @@ class delta extends delta$1 {
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',
-                    'TRX': 'TRC20(TRON)',
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
-                },
-                'networksById': {
-                    'BEP20(BSC)': 'BSC',
-                    'TRC20(TRON)': 'TRC20',
                 },
             },
             'precisionMode': number.TICK_SIZE,

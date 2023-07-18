@@ -56,7 +56,7 @@ class coinbasepro extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -1455,15 +1455,14 @@ class coinbasepro extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @deprecated
-         * use fetchDepositsWithdrawals instead
+         * fetch history of deposits and withdrawals
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
-         * @param {string} $code unified $currency $code for the $currency of the transactions, default is null
-         * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
-         * @param {int} [$limit] max number of transactions to return, default is null
+         * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
          * @param {string} [$params->id] $account $id, when defined, the endpoint used is '/accounts/{$account_id}/transfers/' instead of '/transfers/'
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
@@ -1478,7 +1477,7 @@ class coinbasepro extends Exchange {
                 $accountsByCurrencyCode = $this->index_by($this->accounts, 'code');
                 $account = $this->safe_value($accountsByCurrencyCode, $code);
                 if ($account === null) {
-                    throw new ExchangeError($this->id . ' fetchTransactions() could not find $account $id for ' . $code);
+                    throw new ExchangeError($this->id . ' fetchDepositsWithdrawals() could not find $account $id for ' . $code);
                 }
                 $id = $account['id'];
             }
@@ -1571,7 +1570,7 @@ class coinbasepro extends Exchange {
          * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions($code, $since, $limit, array_merge(array( 'type' => 'deposit' ), $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge(array( 'type' => 'deposit' ), $params));
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1583,7 +1582,7 @@ class coinbasepro extends Exchange {
          * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions($code, $since, $limit, array_merge(array( 'type' => 'withdraw' ), $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge(array( 'type' => 'withdraw' ), $params));
     }
 
     public function parse_transaction_status($transaction) {

@@ -6463,7 +6463,7 @@ class okx extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $settlements = $this->parse_settlements($data, $market);
         $sorted = $this->sort_by($settlements, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function parse_settlement($settlement, $market) {

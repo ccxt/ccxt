@@ -6136,7 +6136,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_settlement(self, settlement, market):
         #

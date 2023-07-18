@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.29'
+__version__ = '4.0.30'
 
 # -----------------------------------------------------------------------------
 
@@ -1546,43 +1546,6 @@ class Exchange(BaseExchange):
             ]
         return ohlcv
 
-    def get_network(self, network: str, code: str):
-        network = network.upper()
-        aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
-        }
-        if network == code:
-            return network
-        elif network in aliases:
-            return aliases[network]
-        else:
-            raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
-
     def network_code_to_id(self, networkCode, currencyCode=None):
         """
          * @ignore
@@ -1620,9 +1583,9 @@ class Exchange(BaseExchange):
     def network_id_to_code(self, networkId, currencyCode=None):
         """
          * @ignore
-        tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have 'options->networksById' defined.
-        :param str networkId: unified network code
-        :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have "options['networksById']" defined.
+        :param str networkId: exchange specific network id/title, like: TRON, Trc-20, usdt-erc20, etc
+        :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns str|None: unified network code
         """
         networkCodesByIds = self.safe_value(self.options, 'networksById', {})
@@ -1656,10 +1619,10 @@ class Exchange(BaseExchange):
         return defaultNetworkCode
 
     def select_network_code_from_unified_networks(self, currencyCode, networkCode, indexedNetworkEntries):
-        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, True)
+        return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, True)
 
     def select_network_id_from_raw_networks(self, currencyCode, networkCode, indexedNetworkEntries):
-        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, False)
+        return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, False)
 
     def select_network_key_from_networks(self, currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode=False):
         # self method is used against raw & unparse network entries, which are just indexed by network id
@@ -1671,7 +1634,7 @@ class Exchange(BaseExchange):
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
                 # if networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
-                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(networkCode, currencyCode)
+                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
                 if networkId in indexedNetworkEntries:
                     chosenNetworkId = networkId
                 else:
@@ -1681,8 +1644,8 @@ class Exchange(BaseExchange):
                 raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
             else:
                 # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                defaultNetworkCode = self.defaultNetworkCode(currencyCode)
-                defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(defaultNetworkCode, currencyCode)
+                defaultNetworkCode = self.default_network_code(currencyCode)
+                defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(defaultNetworkCode, currencyCode)
                 chosenNetworkId = defaultNetworkId if (defaultNetworkId in indexedNetworkEntries) else availableNetworkIds[0]
         return chosenNetworkId
 
@@ -2318,8 +2281,16 @@ class Exchange(BaseExchange):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
-    async def fetch_transactions(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
     async def fetch_deposits(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
@@ -2961,16 +2932,17 @@ class Exchange(BaseExchange):
         market = self.market(firstMarket)
         return market
 
-    async def fetch_deposits_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+         * @deprecated
+        *DEPRECATED* use fetchDepositsWithdrawals instead
         :param str code: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
-        if self.has['fetchTransactions']:
-            return await self.fetchTransactions(code, since, limit, params)
+        if self.has['fetchDepositsWithdrawals']:
+            return await self.fetchDepositsWithdrawals(code, since, limit, params)
         else:
-            raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
+            raise NotSupported(self.id + ' fetchTransactions() is not supported yet')

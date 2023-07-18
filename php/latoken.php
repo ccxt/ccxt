@@ -50,7 +50,7 @@ class latoken extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
                 'transfer' => true,

@@ -246,11 +246,6 @@ class bitrue extends bitrue$1 {
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
-                    'TRON': 'TRX',
-                },
-                'networksById': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
                 },
             },
             'commonCurrencies': {
