@@ -2,16 +2,13 @@
 import testSharedMethods from './test.sharedMethods.js';
 
 function testCurrency (exchange, skippedProperties, method, entry) {
-    const format = {
+    const commonFormat = {
         'info': {},
         'id': 'btc', // string literal for referencing within an exchange
-        'code': 'BTC', // uppercase string literal of a pair of currencies
-        'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         'withdraw': true, // withdraw enabled
         'deposit': true, // deposit enabled
         'precision': exchange.parseNumber ('0.0001'), // would be integer in case of SIGNIFICANT_DIGITS
         'fee': exchange.parseNumber ('0.001'),
-        'networks': {},
         'limits': {
             'withdraw': {
                 'min': exchange.parseNumber ('0.01'),
@@ -23,9 +20,34 @@ function testCurrency (exchange, skippedProperties, method, entry) {
             },
         },
     };
+    const currencyFormat = exchange.deepExtend (commonFormat, {
+        'code': 'BTC', // uppercase string literal of a currency
+        'name': 'Bitcoin', // uppercase string, base currency
+        'networks': {},
+    });
+    const networkFormat = exchange.deepExtend (commonFormat, {
+        'network': 'BEP20', // can be either uppercase unified code or lowercase network id
+    });
+    testCommonCurrencyEntry (exchange, skippedProperties, method, entry, currencyFormat);
+    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
+    // check valid ID & CODE
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
+    // check network entries
+    const networks = exchange.safeValue (entry, 'networks', {});
+    if (!('networks' in skippedProperties)) {
+        // networks have the same format as root currency format, however
+        const networksKeys = Object.keys (networks);
+        for (let i = 0; i < networksKeys.length; i++) {
+            const networkCode = networksKeys[i];
+            const networkEntry = networks[networkCode];
+            testCommonCurrencyEntry (exchange, skippedProperties, method, networkEntry, networkFormat);
+        }
+    }
+}
+
+function testCommonCurrencyEntry (exchange, skippedProperties, method, entry, format) {
     const emptyAllowedFor = [ 'name', 'fee' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
     //
     testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, entry, 'precision');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'fee', '0');
@@ -47,10 +69,6 @@ function testCurrency (exchange, skippedProperties, method, entry) {
         if (minStringDeposit !== undefined) {
             testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, depositLimits, 'max', minStringDeposit);
         }
-        // check valid ID & CODE
-        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
-        // todo: networks check
     }
 }
-
 export default testCurrency;
