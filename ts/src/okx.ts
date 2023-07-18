@@ -812,9 +812,9 @@ export default class okx extends Exchange {
                     // 'ALGO': 'Algorand', //todo: algo vs algorand
                     'BHP': 'BHP',
                     'APT': 'Aptos',
-                    'ARB_ONE': 'Arbitrum one',
-                    'AVAX_C': 'Avalanche C-Chain',
-                    'AVAX_X': 'Avalanche X-Chain',
+                    'ARBONE': 'Arbitrum one',
+                    'AVAXC': 'Avalanche C-Chain',
+                    'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
                     'ASTR': 'Astar',
