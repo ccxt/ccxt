@@ -588,7 +588,9 @@ export default class kucoin extends Exchange {
                     'EOS': 'eos',
                     'BEP20': 'bsc',
                     'BEP2': 'bnb',
-                    'ARB_ONE': 'arbitrum',
+                    'ARBONE': 'arbitrum',
+                    'AVAXX': 'avax',
+                    'AVAXC': 'avaxc',
                     'TLOS': 'tlos', // tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
@@ -631,8 +633,6 @@ export default class kucoin extends Exchange {
                     'QTUM': 'qtum',
                     'DOGE': 'doge',
                     'FIL': 'fil',
-                    'AVAX_X': 'avax',
-                    'AVAX_C': 'avaxc',
                     'XYM': 'xym',
                     'FLUX': 'flux',
                     'ATOM': 'atom',
@@ -688,7 +688,7 @@ export default class kucoin extends Exchange {
                     // 'BOBA': 'boba', // tbd
                     'EVER': 'ever',
                     'BNC': 'bnc',
-                    'BNC_DOT': 'bncdot', // todo: after consensus
+                    'BNCDOT': 'bncdot',
                     // 'CMP': 'cmp', // todo: after consensus
                     'AION': 'aion',
                     'GRIN': 'grin',
