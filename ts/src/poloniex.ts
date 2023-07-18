@@ -219,12 +219,6 @@ export default class poloniex extends Exchange {
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
                 },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
-                    'TRX': 'TRC20',
-                },
                 'limits': {
                     'cost': {
                         'min': {
