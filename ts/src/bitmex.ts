@@ -232,7 +232,7 @@ export default class bitmex extends Exchange {
                     'ERC20': 'eth',
                     'BEP20': 'bsc',
                     'TRC20': 'tron',
-                    'AVAX_C': 'avax',
+                    'AVAXC': 'avax',
                     'NEAR': 'near',
                     'XTZ': 'xtz',
                     'DOT': 'dot',
