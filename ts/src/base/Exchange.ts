@@ -2879,7 +2879,13 @@ export default class Exchange {
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
         let networkId = this.safeString (networkIdsByCodes, networkCodeDeAliasedAndMainnetCorrected);
         if (networkId === undefined) {
-            networkId = networkCode;
+            if (currencyCode === undefined) {
+                // if currencyCode was not provided, then we just set passed value to networkId
+                networkId = networkCode;
+            } else {
+                // atm, we still set to the passed networkCode, if networkId was not found, however this block will be enhanced a bit in a very near future
+                networkId = networkCode;
+            }
         }
         return networkId;
     }
