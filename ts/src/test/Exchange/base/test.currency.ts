@@ -1,4 +1,5 @@
 
+import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 
 function testCurrency (exchange, skippedProperties, method, entry) {
@@ -34,7 +35,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
     // check valid ID & CODE
     testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
     // check network entries
-    const networks = exchange.safeValue (entry, 'networks', {});
+    const networks = entry['networks'];
     if (!('networks' in skippedProperties)) {
         // networks have the same format as root currency format, however
         const networksKeys = Object.keys (networks);
@@ -47,9 +48,26 @@ function testCurrency (exchange, skippedProperties, method, entry) {
 }
 
 function testCommonCurrencyEntry (exchange, skippedProperties, method, entry, format) {
-    const emptyAllowedFor = [ 'name', 'fee' ];
+    const emptyAllowedFor = [ 'name', 'fee', 'active' ]; // 'active' key is dynammically checked in the bottom
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     //
+    if (!('active' in skippedProperties)) {
+        if (entry['deposit'] === undefined && entry['withdraw'] === undefined) {
+            assert (entry['active'] === undefined, 'active must be undefined if deposit and withdraw are both undefined');
+        }
+        else if (entry['deposit'] === undefined || entry['withdraw'] === undefined) {
+            assert (entry['active'] === undefined, 'active must be undefined if either deposit or withdraw is undefined');
+        }
+        else if (entry['deposit'] === false && entry['withdraw'] === false) {
+            assert (entry['active'] === false, 'active must be false if deposit and withdraw are both false');
+        }
+        else if (entry['deposit'] === false || entry['withdraw'] === false) {
+            assert (entry['active'] === false, 'active must be false if either deposit or withdraw is false');
+        }
+        else if (entry['deposit'] === true && entry['withdraw'] === true) {
+            assert (entry['active'] === true, 'active must be true if deposit and withdraw are both true');
+        }
+    }
     testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, entry, 'precision');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'fee', '0');
     if (!('limits' in skippedProperties)) {
