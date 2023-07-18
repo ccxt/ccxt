@@ -542,10 +542,10 @@ export default class gate extends Exchange {
                     'DOT': 'DOTSM', // todo: DOT vs DOTSM
                     'MATIC': 'MATIC',
                     'ALGO': 'ALGO',
-                    'ARB_NOVA': 'ARBNOVA',
-                    // 'ARB_ONE': 'ARB', // todo: ARB vs ARBEVM
-                    'AVAX_C': 'AVAX_C',
-                    'AVAX_X': 'AVAX',
+                    'ARBNOVA': 'ARBNOVA',
+                    // 'ARBONE': 'ARB', // todo: ARB vs ARBEVM
+                    'AVAXC': 'AVAX_C',
+                    'AVAXX': 'AVAX',
                     'BEP20': 'BSC',
                     'CHZ': 'CHZ',
                     'EOS': 'EOS',
