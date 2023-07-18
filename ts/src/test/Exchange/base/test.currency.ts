@@ -7,6 +7,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
         'id': 'btc', // string literal for referencing within an exchange
         'withdraw': true, // withdraw enabled
         'deposit': true, // deposit enabled
+        'active': true, // if deposit/withdraw enabled
         'precision': exchange.parseNumber ('0.0001'), // would be integer in case of SIGNIFICANT_DIGITS
         'fee': exchange.parseNumber ('0.001'),
         'limits': {
