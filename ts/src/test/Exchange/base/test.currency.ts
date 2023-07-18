@@ -3,22 +3,16 @@ import testSharedMethods from './test.sharedMethods.js';
 
 function testCurrency (exchange, skippedProperties, method, entry) {
     const format = {
+        'info': {},
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
-    };
-    // todo: remove fee from empty
-    const emptyAllowedFor = [ 'name', 'fee' ];
-    // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
-    if (isNative) {
-        format['info'] = {};
-        // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-        format['withdraw'] = true; // withdraw enabled
-        format['deposit'] = true; // deposit enabled
-        format['precision'] = exchange.parseNumber ('0.0001'); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
-        format['fee'] = exchange.parseNumber ('0.001');
-        format['networks'] = {};
-        format['limits'] = {
+        'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
+        'withdraw': true, // withdraw enabled
+        'deposit': true, // deposit enabled
+        'precision': exchange.parseNumber ('0.0001'), // would be integer in case of SIGNIFICANT_DIGITS
+        'fee': exchange.parseNumber ('0.001'),
+        'networks': {},
+        'limits': {
             'withdraw': {
                 'min': exchange.parseNumber ('0.01'),
                 'max': exchange.parseNumber ('1000'),
@@ -27,8 +21,9 @@ function testCurrency (exchange, skippedProperties, method, entry) {
                 'min': exchange.parseNumber ('0.01'),
                 'max': exchange.parseNumber ('1000'),
             },
-        };
-    }
+        },
+    };
+    const emptyAllowedFor = [ 'name', 'fee' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
     //
