@@ -4788,7 +4788,8 @@ export default class mexc extends Exchange {
         const result = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
-            const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'network'));
+            const networkId = this.safeString (networkEntry, 'network');
+            const networkCode = this.networkIdToCode (networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
             result[networkCode] = fee;
         }
@@ -4872,6 +4873,7 @@ export default class mexc extends Exchange {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
+            // some networks might be null/undefined, so skip them
             if (networkCode !== undefined) {
                 result['networks'][networkCode] = {
                     'withdraw': {
