@@ -147,6 +147,7 @@ export default class testMainClass extends baseMainTestClass {
         // exchange tests
         this.testFiles = {};
         const properties = Object.keys (exchange.has);
+        properties.push ('exchangeOptions');
         properties.push ('loadMarkets');
         await setTestFiles (this, properties);
     }
@@ -234,8 +235,8 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         let skipMessage = undefined;
-        const isFetchOhlcvEmulated = (methodName === 'fetchOHLCV' && exchange.has['fetchOHLCV'] === 'emulated'); // todo: remove emulation from base
-        if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
+        const nonStructuralTests = [ 'loadMarkets', 'exchangeOptions' ];
+        if (!exchange.inArray (methodName, nonStructuralTests) && !exchange.safeValue (exchange.has, methodName)) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
