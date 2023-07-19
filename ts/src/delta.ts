@@ -195,6 +195,7 @@ export default class delta extends Exchange {
                     'TRC20': 'TRC20(TRON)',
                     'BEP20': 'BEP20(BSC)',
                 },
+                'sandboxMode': false,
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
@@ -222,6 +223,11 @@ export default class delta extends Exchange {
                 },
             },
         });
+    }
+
+    setSandboxMode (enable) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
     }
 
     async fetchTime (params = {}) {
@@ -2434,6 +2440,8 @@ export default class delta extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        this.setSandboxMode (sandboxMode);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
