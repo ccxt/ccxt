@@ -340,7 +340,6 @@ class hitbtc3(Exchange, ImplicitAPI):
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     # '': 'UGT',
                     'NEAR': 'NEAR',
                     # '': 'LWF',

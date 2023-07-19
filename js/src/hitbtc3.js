@@ -324,7 +324,6 @@ export default class hitbtc3 extends Exchange {
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     // '': 'UGT',
                     'NEAR': 'NEAR',
                     // '': 'LWF',

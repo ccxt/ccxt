@@ -321,7 +321,6 @@ class hitbtc3 extends hitbtc3$1 {
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     // '': 'UGT',
                     'NEAR': 'NEAR',
                     // '': 'LWF',
