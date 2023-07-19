@@ -2508,7 +2508,7 @@ export default class bitfinex2 extends Exchange {
         }
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            const errorCode = this.safeString (response[1], '');
+            const errorCode = this.safeString (response, 1, '');
             const errorText = this.safeString (response, 2, '');
             const feedback = this.id + ' ' + errorText;
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
