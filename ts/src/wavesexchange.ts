@@ -1288,6 +1288,7 @@ export default class wavesexchange extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
+         * @param {float} [params.stopPrice] The price at which a stop order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredDependencies ();
@@ -1298,10 +1299,11 @@ export default class wavesexchange extends Exchange {
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         const isMarketOrder = (type === 'market');
+        const stopPrice = this.safeFloatN (params, [ 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const isStopOrder = (stopPrice !== undefined);
         if ((isMarketOrder) && (price === undefined)) {
             throw new InvalidOrder (this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
         }
-        const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
         const defaultExpiryDelta = this.safeInteger (this.options, 'createOrderDefaultExpiry', 2419200000);
         const expiration = this.sum (timestamp, defaultExpiryDelta);
@@ -1382,6 +1384,18 @@ export default class wavesexchange extends Exchange {
             'priceMode': 'fixedDecimals',
             'version': 4,
         };
+        if (isStopOrder) {
+            const attachment = {
+                'v': 1, // version (int)
+                'c': {  // condition (object)
+                    't': 'sp', // condition type. for now only "stop-price" (string)
+                    'v': { // value (object)
+                        'p': this.customPriceToPrecision (symbol, stopPrice), // price (long)
+                    },
+                },
+            };
+            body['attachment'] = this.binaryToBase58 (this.stringToBinary (JSON.stringify (attachment)));
+        }
         if (matcherFeeAssetId !== 'WAVES') {
             body['matcherFeeAssetId'] = matcherFeeAssetId;
         }
