@@ -658,11 +658,15 @@
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "ask": "failing the test",
+                "bid": "failing the test"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "ask": "failing the test",
+                "bid": "failing the test"
             }
         }
     },
