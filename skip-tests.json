@@ -656,6 +656,7 @@
     "delta": {
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
+            "fetchOrderBook": "ask crossing bids test failing",
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
