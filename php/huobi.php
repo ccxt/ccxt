@@ -594,6 +594,7 @@ class huobi extends Exchange {
                             // Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status' => 1,
                             'linear-swap-api/v3/unified_account_info' => 1,
+                            'linear-swap-api/v3/fix_position_margin_change_record' => 1,
                             'linear-swap-api/v3/swap_unified_account_type' => 1,
                         ),
                         'post' => array(
@@ -787,6 +788,7 @@ class huobi extends Exchange {
                             'linear-swap-api/v3/swap_cross_hisorders' => 1,
                             'linear-swap-api/v3/swap_hisorders_exact' => 1,
                             'linear-swap-api/v3/swap_cross_hisorders_exact' => 1,
+                            'linear-swap-api/v3/fix_position_margin_change' => 1,
                             'linear-swap-api/v3/swap_switch_account_type' => 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order' => 1,
@@ -838,6 +840,7 @@ class huobi extends Exchange {
                 'broad' => array(
                     'contract is restricted of closing positions on API.  Please contact customer service' => '\\ccxt\\OnMaintenance',
                     'maintain' => '\\ccxt\\OnMaintenance',
+                    'API key has no permission' => '\\ccxt\\PermissionDenied', // array("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => API key has no permission [API Key没有权限]","data":null)
                 ),
                 'exact' => array(
                     // err-code

@@ -267,11 +267,6 @@ class bitrue(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
-                    'TRON': 'TRX',
-                },
-                'networksById': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
                 },
             },
             'commonCurrencies': {

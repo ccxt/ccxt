@@ -74,7 +74,7 @@ class hitbtc extends hitbtc$1 {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -816,16 +816,15 @@ class hitbtc extends hitbtc$1 {
             'fee': fee,
         }, market);
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name hitbtc#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
+         * @name hitbtc#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
          * @see https://api.hitbtc.com/v2#get-transactions-history
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */

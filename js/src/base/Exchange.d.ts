@@ -610,7 +610,6 @@ export default class Exchange {
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     filterBySymbol(objects: any, symbol?: string): any;
     parseOHLCV(ohlcv: any, market?: any): any;
-    getNetwork(network: string, code: string): string;
     networkCodeToId(networkCode: any, currencyCode?: any): string;
     networkIdToCode(networkId: any, currencyCode?: any): string;
     handleNetworkCodeAndParams(params: any): any[];
@@ -708,7 +707,7 @@ export default class Exchange {
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTradesWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchTransactions(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposits(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<any>;
@@ -779,6 +778,6 @@ export default class Exchange {
     parseIncome(info: any, market?: any): void;
     parseIncomes(incomes: any, market?: any, since?: Int, limit?: Int): any;
     getMarketFromSymbols(symbols?: string[]): any;
-    fetchDepositsWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
 }
 export { Exchange, };

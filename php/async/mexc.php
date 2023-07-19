@@ -544,7 +544,7 @@ class mexc extends Exchange {
                     '30032' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum position
                     '30041' => '\\ccxt\\InvalidOrder', // current order type can not place order
                     '60005' => '\\ccxt\\ExchangeError', // your account is abnormal
-                    '700001' => '\\ccxt\\BadRequest', // API-key format invalid
+                    '700001' => '\\ccxt\\AuthenticationError', // API-key format invalid
                     '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid
                     '700004' => '\\ccxt\\BadRequest', // Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
                     '700005' => '\\ccxt\\InvalidNonce', // recvWindow must less than 60000

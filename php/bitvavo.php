@@ -260,12 +260,7 @@ class bitvavo extends Exchange {
                 'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
                 'networks' => array(
                     'ERC20' => 'ETH',
-                    'ETH' => 'ETH',
                     'TRC20' => 'TRX',
-                ),
-                'networksById' => array(
-                    'TRX' => 'TRC20',
-                    'ETH' => 'ERC20',
                 ),
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
