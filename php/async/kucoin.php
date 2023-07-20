@@ -403,6 +403,7 @@ class kucoin extends Exchange {
                     '401000' => '\\ccxt\\BadRequest', // array("code":"401000","msg":"The interface has been deprecated")
                     '411100' => '\\ccxt\\AccountSuspended',
                     '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
+                    '400303' => '\\ccxt\\PermissionDenied', // array("msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303")
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // array("code":"500000","msg":"Internal Server Error")
                     '260220' => '\\ccxt\\InvalidAddress', // array( "code" => "260220", "msg" => "deposit.address.not.exists" )
                     '900014' => '\\ccxt\\BadRequest', // array("code":"900014","msg":"Invalid chainId")
@@ -4104,6 +4105,9 @@ class kucoin extends Exchange {
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+        if ($errorCode !== '200000') {
+            throw new ExchangeError($feedback);
+        }
         return null;
     }
 }
