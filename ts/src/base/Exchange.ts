@@ -64,7 +64,6 @@ const {
     , numberToLE
     , ymdhms
     , stringToBase64
-    , stringToBinary
     , decode
     , uuid22
     , safeIntegerProduct2
@@ -85,7 +84,6 @@ const {
     , safeStringUpper2
     , urlencodeWithArrayRepeat
     , microseconds
-    , binaryToBase58
     , binaryToBase64
     , strip
     , toArray
@@ -391,7 +389,6 @@ export default class Exchange {
     ymdhms = ymdhms
     yymmdd = yymmdd
     stringToBase64 = stringToBase64
-    stringToBinary = stringToBinary
     decode = decode
     uuid22 = uuid22
     safeIntegerProduct2 = safeIntegerProduct2
@@ -410,7 +407,6 @@ export default class Exchange {
     uuid16 = uuid16
     urlencodeWithArrayRepeat = urlencodeWithArrayRepeat
     microseconds = microseconds
-    binaryToBase58 = binaryToBase58
     binaryToBase64 = binaryToBase64
     strip = strip
     toArray = toArray
