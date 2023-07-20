@@ -25,7 +25,7 @@ export default class coinex extends coinexRest {
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true, // only for swap markets
-                'fetchOHLCV': true,
+                'fetchOHLCVWs': true,
             },
             'urls': {
                 'api': {
@@ -581,7 +581,7 @@ export default class coinex extends coinexRest {
         return this.filterBySinceLimit (ohlcvs, since, limit, 0);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCVWs (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchOHLCV
