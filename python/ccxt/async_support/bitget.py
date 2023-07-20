@@ -218,6 +218,8 @@ class bitget(Exchange, ImplicitAPI):
                             'account/assets': 2,
                             'account/assets-lite': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'account/transferRecords': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'convert/currencies': 2,
+                            'convert/convert-record': 2,
                         },
                         'post': {
                             'wallet/transfer': 4,
@@ -265,6 +267,8 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/profit/profitHisDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/profit/waitProfitDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/user/getTraderInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'convert/quoted-price': 4,
+                            'convert/trade': 4,
                         },
                     },
                     'mix': {

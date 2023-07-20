@@ -420,6 +420,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
+                    '400303': PermissionDenied,  # {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
                     '500000': ExchangeNotAvailable,  # {"code":"500000","msg":"Internal Server Error"}
                     '260220': InvalidAddress,  # {"code": "260220", "msg": "deposit.address.not.exists"}
                     '900014': BadRequest,  # {"code":"900014","msg":"Invalid chainId"}
@@ -3847,4 +3848,6 @@ class kucoin(Exchange, ImplicitAPI):
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+        if errorCode != '200000':
+            raise ExchangeError(feedback)
         return None

@@ -396,6 +396,7 @@ export default class kucoin extends Exchange {
                     '401000': BadRequest,
                     '411100': AccountSuspended,
                     '415000': BadRequest,
+                    '400303': PermissionDenied,
                     '500000': ExchangeNotAvailable,
                     '260220': InvalidAddress,
                     '900014': BadRequest, // {"code":"900014","msg":"Invalid chainId"}
@@ -4082,6 +4083,9 @@ export default class kucoin extends Exchange {
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
+        if (errorCode !== '200000') {
+            throw new ExchangeError(feedback);
+        }
         return undefined;
     }
 }

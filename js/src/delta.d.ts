@@ -160,6 +160,62 @@ export default class delta extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
+    addMargin(symbol: string, amount: any, params?: {}): Promise<{
+        info: any;
+        type: any;
+        amount: any;
+        total: number;
+        code: any;
+        symbol: any;
+        status: any;
+    }>;
+    reduceMargin(symbol: string, amount: any, params?: {}): Promise<{
+        info: any;
+        type: any;
+        amount: any;
+        total: number;
+        code: any;
+        symbol: any;
+        status: any;
+    }>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<{
+        info: any;
+        type: any;
+        amount: any;
+        total: number;
+        code: any;
+        symbol: any;
+        status: any;
+    }>;
+    parseMarginModification(data: any, market?: any): {
+        info: any;
+        type: any;
+        amount: any;
+        total: number;
+        code: any;
+        symbol: any;
+        status: any;
+    };
+    fetchOpenInterest(symbol: string, params?: {}): Promise<{
+        symbol: any;
+        baseVolume: number;
+        quoteVolume: number;
+        openInterestAmount: number;
+        openInterestValue: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    parseOpenInterest(interest: any, market?: any): {
+        symbol: any;
+        baseVolume: number;
+        quoteVolume: number;
+        openInterestAmount: number;
+        openInterestValue: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
