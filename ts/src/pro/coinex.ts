@@ -601,7 +601,7 @@ export default class coinex extends coinexRest {
         symbol = market['symbol'];
         const messageHash = 'ohlcv';
         const timeframes = this.safeValue (this.options, 'timeframes', {});
-        timeframe = this.safeInteger (timeframes, timeframe, timeframe);
+        timeframe = this.safeString (timeframes, timeframe, timeframe);
         if (since === undefined) {
             since = 1640995200;  // January 1, 2022
         }
@@ -610,9 +610,9 @@ export default class coinex extends coinexRest {
             'method': 'kline.query',
             'params': [
                 market['id'],
-                parseInt (since / 1000),
+                this.parseToInt (since / 1000),
                 this.safeInteger (params, 'end', this.seconds ()),
-                timeframe,
+                this.parseToInt (timeframe),
             ],
             'id': id,
         };
