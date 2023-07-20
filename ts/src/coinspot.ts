@@ -132,6 +132,7 @@ export default class coinspot extends Exchange {
             },
             'options': {
                 'fetchBalance': 'private_post_my_balances',
+                'networks': {},
             },
             'precisionMode': TICK_SIZE,
         });

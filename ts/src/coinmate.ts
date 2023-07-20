@@ -189,6 +189,7 @@ export default class coinmate extends Exchange {
                         'DAI': 'privatePostDaiWithdrawal',
                     },
                 },
+                'networks': {},
             },
             'exceptions': {
                 'exact': {

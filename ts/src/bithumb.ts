@@ -164,6 +164,7 @@ export default class bithumb extends Exchange {
                         },
                     },
                 },
+                'networks': {},
             },
             'commonCurrencies': {
                 'ALT': 'ArchLoot',

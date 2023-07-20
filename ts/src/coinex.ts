@@ -294,6 +294,7 @@ export default class coinex extends Exchange {
                 'accountsById': {
                     'spot': '0',
                 },
+                'networks': {},
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',

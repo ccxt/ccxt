@@ -163,6 +163,9 @@ export default class coincheck extends Exchange {
                 },
                 'broad': {},
             },
+            'options': {
+                'networks': {},
+            },
         });
     }
 

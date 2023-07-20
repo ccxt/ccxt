@@ -149,6 +149,7 @@ export default class mercado extends Exchange {
                     'LTC': 0.01,
                     'XRP': 0.1,
                 },
+                'networks': {},
             },
             'precisionMode': TICK_SIZE,
         });

@@ -225,6 +225,9 @@ export default class coinbasepro extends Exchange {
                     'Cancel only mode': OnMaintenance, // https://github.com/ccxt/ccxt/issues/7690
                 },
             },
+            'options': {
+                'networks': {},
+            },
         });
     }
 

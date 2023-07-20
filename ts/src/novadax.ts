@@ -195,6 +195,7 @@ export default class novadax extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'networks': {},
             },
         });
     }

@@ -108,6 +108,7 @@ export default class bitso extends Exchange {
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'networks': {},
             },
             'timeframes': {
                 '1m': '60',

@@ -266,6 +266,7 @@ export default class bittrex extends Exchange {
                 // 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
                 'fetchClosedOrdersFilterBySince': true,
                 // 'createOrderMethod': 'create_order_v1',
+                'networks': {},
             },
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',

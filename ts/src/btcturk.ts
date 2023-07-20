@@ -131,6 +131,9 @@ export default class btcturk extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'networks': {},
+            },
         });
     }
 

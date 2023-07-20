@@ -118,6 +118,9 @@ export default class btcbox extends Exchange {
                 '401': OrderNotFound, // cancel canceled, closed or non-existent order
                 '402': DDoSProtection,
             },
+            'options': {
+                'networks': {},
+            },
         });
     }
 

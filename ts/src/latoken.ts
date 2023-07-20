@@ -212,6 +212,7 @@ export default class latoken extends Exchange {
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 },
+                'networks': {},
             },
         });
     }

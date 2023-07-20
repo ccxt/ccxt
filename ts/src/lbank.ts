@@ -142,6 +142,7 @@ export default class lbank extends Exchange {
             },
             'options': {
                 'cacheSecretAsPem': true,
+                'networks': {},
             },
             'precisionMode': TICK_SIZE,
         });

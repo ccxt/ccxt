@@ -178,6 +178,9 @@ export default class lykke extends Exchange {
             },
             'commonCurrencies': {
             },
+            'options': {
+                'networks': {},
+            },
         });
     }
 

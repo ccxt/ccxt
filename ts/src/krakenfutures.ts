@@ -208,6 +208,7 @@ export default class krakenfutures extends Exchange {
                         },
                     },
                 },
+                'networks': {},
             },
             'timeframes': {
                 '1m': '1m',

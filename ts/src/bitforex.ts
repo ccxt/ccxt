@@ -151,6 +151,9 @@ export default class bitforex extends Exchange {
                 '4004': OrderNotFound,
                 '10204': DDoSProtection,
             },
+            'options': {
+                'networks': {},
+            },
         });
     }
 

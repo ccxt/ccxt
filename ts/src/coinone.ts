@@ -135,6 +135,9 @@ export default class coinone extends Exchange {
             'commonCurrencies': {
                 'SOC': 'Soda Coin',
             },
+            'options': {
+                'networks': {},
+            },
         });
     }
 

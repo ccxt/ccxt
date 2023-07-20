@@ -151,6 +151,9 @@ export default class bitbns extends Exchange {
                 },
                 'broad': {},
             },
+            'options': {
+                'networks': {},
+            },
         });
     }
 

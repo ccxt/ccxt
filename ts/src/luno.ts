@@ -156,6 +156,9 @@ export default class luno extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'networks': {},
+            },
         });
     }
 

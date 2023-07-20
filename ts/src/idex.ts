@@ -154,6 +154,7 @@ export default class idex extends Exchange {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
+                'networks': {},
             },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,

@@ -163,6 +163,7 @@ export default class bit2c extends Exchange {
             },
             'options': {
                 'fetchTradesMethod': 'public_get_exchanges_pair_trades',
+                'networks': {},
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

@@ -257,6 +257,7 @@ export default class timex extends Exchange {
                 },
                 'defaultSort': 'timestamp,asc',
                 'defaultSortOrders': 'createdAt,asc',
+                'networks': {},
             },
         });
     }

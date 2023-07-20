@@ -247,6 +247,7 @@ export default class bingx extends Exchange {
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
+                'networks': {},
             },
         });
     }

@@ -111,6 +111,9 @@ export default class paymium extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'networks': {},
+            },
         });
     }
 

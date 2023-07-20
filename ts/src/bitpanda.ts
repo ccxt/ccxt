@@ -291,6 +291,7 @@ export default class bitpanda extends Exchange {
                     'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },
                 'fiat': [ 'EUR', 'CHF' ],
+                'networks': {},
             },
         });
     }

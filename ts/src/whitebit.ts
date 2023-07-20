@@ -229,6 +229,7 @@ export default class whitebit extends Exchange {
                     'margin': 'collateral',
                     'trade': 'spot',
                 },
+                'networks': {},
                 'networksById': {
                     'BEP20': 'BSC',
                 },

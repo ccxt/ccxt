@@ -114,6 +114,9 @@ export default class bitflyer extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'networks': {},
+            },
         });
     }
 

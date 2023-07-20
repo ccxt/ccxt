@@ -182,6 +182,7 @@ export default class upbit extends Exchange {
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
+                'networks': {},
             },
             'commonCurrencies': {
                 'TON': 'Tokamak Network',

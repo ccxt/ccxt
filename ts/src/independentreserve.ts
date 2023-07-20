@@ -135,6 +135,9 @@ export default class independentreserve extends Exchange {
                 'PLA': 'PlayChip',
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'networks': {},
+            },
         });
     }
 

@@ -157,6 +157,7 @@ export default class indodax extends Exchange {
                 'recvWindow': 5 * 1000, // default 5 sec
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'networks': {},
             },
             'commonCurrencies': {
                 'STR': 'XLM',

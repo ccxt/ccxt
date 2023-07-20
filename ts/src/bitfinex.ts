@@ -392,6 +392,7 @@ export default class bitfinex extends Exchange {
                     'funding': 'deposit',
                     'swap': 'trading',
                 },
+                'networks': {},
             },
         });
     }

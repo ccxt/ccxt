@@ -392,6 +392,7 @@ export default class deribit extends Exchange {
                 'transfer': {
                     'method': 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
                 },
+                'networks': {},
             },
         });
     }

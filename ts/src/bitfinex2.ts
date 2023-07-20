@@ -333,6 +333,7 @@ export default class bitfinex2 extends Exchange {
                 'withdraw': {
                     'includeFee': false,
                 },
+                'networks': {},
             },
             'exceptions': {
                 'exact': {

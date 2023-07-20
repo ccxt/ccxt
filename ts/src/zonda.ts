@@ -254,6 +254,7 @@ export default class zonda extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'networks': {},
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

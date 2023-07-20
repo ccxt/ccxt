@@ -145,6 +145,9 @@ export default class oceanex extends Exchange {
                     'The account does not exist': AuthenticationError,
                 },
             },
+            'options': {
+                'networks': {},
+            },
         });
     }
 
