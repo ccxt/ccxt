@@ -30,6 +30,7 @@ export default class delta extends Exchange {
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -65,6 +66,7 @@ export default class delta extends Exchange {
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
+                'reduceMargin': true,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -2430,6 +2432,107 @@ export default class delta extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+        };
+    }
+
+    async addMargin (symbol: string, amount, params = {}) {
+        /**
+         * @method
+         * @name delta#addMargin
+         * @description add margin
+         * @see https://docs.delta.exchange/#add-remove-position-margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async reduceMargin (symbol: string, amount, params = {}) {
+        /**
+         * @method
+         * @name delta#reduceMargin
+         * @description remove margin from a position
+         * @see https://docs.delta.exchange/#add-remove-position-margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = amount.toString ();
+        if (type === 'reduce') {
+            amount = Precise.stringMul (amount, '-1');
+        }
+        const request = {
+            'product_id': market['numericId'],
+            'delta_margin': amount,
+        };
+        const response = await this.privatePostPositionsChangeMargin (this.extend (request, params));
+        //
+        //     {
+        //         "result": {
+        //             "auto_topup": false,
+        //             "bankruptcy_price": "24934.12",
+        //             "commission": "0.01197072",
+        //             "created_at": "2023-07-20T03:49:09.159401Z",
+        //             "entry_price": "29926.8",
+        //             "liquidation_price": "25083.754",
+        //             "margin": "4.99268",
+        //             "margin_mode": "isolated",
+        //             "product_id": 84,
+        //             "product_symbol": "BTCUSDT",
+        //             "realized_cashflow": "0",
+        //             "realized_funding": "0",
+        //             "realized_pnl": "0",
+        //             "size": 1,
+        //             "updated_at": "2023-07-20T03:49:09.159401Z",
+        //             "user_id": 30084879
+        //         },
+        //         "success": true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseMarginModification (result, market);
+    }
+
+    parseMarginModification (data, market = undefined) {
+        //
+        //     {
+        //         "auto_topup": false,
+        //         "bankruptcy_price": "24934.12",
+        //         "commission": "0.01197072",
+        //         "created_at": "2023-07-20T03:49:09.159401Z",
+        //         "entry_price": "29926.8",
+        //         "liquidation_price": "25083.754",
+        //         "margin": "4.99268",
+        //         "margin_mode": "isolated",
+        //         "product_id": 84,
+        //         "product_symbol": "BTCUSDT",
+        //         "realized_cashflow": "0",
+        //         "realized_funding": "0",
+        //         "realized_pnl": "0",
+        //         "size": 1,
+        //         "updated_at": "2023-07-20T03:49:09.159401Z",
+        //         "user_id": 30084879
+        //     }
+        //
+        const marketId = this.safeString (data, 'product_symbol');
+        market = this.safeMarket (marketId, market);
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'total': this.safeNumber (data, 'margin'),
+            'code': undefined,
+            'symbol': market['symbol'],
+            'status': undefined,
         };
     }
 
