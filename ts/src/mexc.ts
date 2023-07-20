@@ -429,7 +429,7 @@ export default class mexc extends Exchange {
                     },
                 },
                 'defaultType': 'spot', // spot, swap
-                                'defaultNetwork': 'ETH',
+                'defaultNetwork': 'ETH',
                 'defaultNetworks': {
                     'ETH': 'ETH',
                     'USDT': 'TRC20',
