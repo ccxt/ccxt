@@ -80,7 +80,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'transfer': True,
                 'withdraw': True,
             },
@@ -1310,13 +1310,12 @@ class bitfinex(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        fetch history of deposits and withdrawals
+        :param str code: unified currency code for the currency of the deposit/withdrawals
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the bitfinex api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
@@ -1326,7 +1325,7 @@ class bitfinex(Exchange, ImplicitAPI):
         currency = None
         if currencyId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency `code` argument or a `currency` parameter')
+                raise ArgumentsRequired(self.id + ' fetchDepositsWithdrawals() requires a currency `code` argument or a `currency` parameter')
             else:
                 currency = self.currency(code)
                 currencyId = currency['id']

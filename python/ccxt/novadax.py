@@ -93,7 +93,7 @@ class novadax(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -1217,7 +1217,7 @@ class novadax(Exchange, ImplicitAPI):
         request = {
             'type': 'coin_in',
         }
-        return self.fetch_transactions(code, since, limit, self.extend(request, params))
+        return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1232,16 +1232,15 @@ class novadax(Exchange, ImplicitAPI):
         request = {
             'type': 'coin_out',
         }
-        return self.fetch_transactions(code, since, limit, self.extend(request, params))
+        return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
+        fetch history of deposits and withdrawals
         see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the novadax api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
@@ -1309,7 +1308,7 @@ class novadax(Exchange, ImplicitAPI):
         #         "message":"Success"
         #     }
         #
-        # fetchTransactions
+        # fetchDepositsWithdrawals
         #
         #     {
         #         "id": "DR562339304588709888",

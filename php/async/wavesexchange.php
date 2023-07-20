@@ -324,10 +324,6 @@ class wavesexchange extends Exchange {
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
                 ),
-                'networksById' => array(
-                    'ETH' => 'ERC20',
-                    'BSC' => 'BEP20',
-                ),
             ),
             'commonCurrencies' => array(
                 'EGG' => 'Waves Ducks',

@@ -203,13 +203,7 @@ class delta(Exchange, ImplicitAPI):
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',
-                    'TRX': 'TRC20(TRON)',
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
-                },
-                'networksById': {
-                    'BEP20(BSC)': 'BSC',
-                    'TRC20(TRON)': 'TRC20',
                 },
             },
             'precisionMode': TICK_SIZE,

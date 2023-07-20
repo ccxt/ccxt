@@ -97,7 +97,6 @@ class gate(Exchange, ImplicitAPI):
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'createDepositAddress': True,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -1716,16 +1715,6 @@ class gate(Exchange, ImplicitAPI):
                 'tag': tag,
             }
         return result
-
-    def create_deposit_address(self, code: str, params={}):
-        """
-        create a currency deposit address
-        see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
-        :param str code: unified currency code of the currency for the deposit address
-        :param dict [params]: extra parameters specific to the gate api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
-        """
-        return self.fetch_deposit_address(code, params)
 
     def fetch_deposit_address(self, code: str, params={}):
         """

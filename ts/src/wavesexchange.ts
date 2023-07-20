@@ -321,10 +321,6 @@ export default class wavesexchange extends Exchange {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                 },
-                'networksById': {
-                    'ETH': 'ERC20',
-                    'BSC': 'BEP20',
-                },
             },
             'commonCurrencies': {
                 'EGG': 'Waves Ducks',

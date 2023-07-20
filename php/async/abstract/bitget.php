@@ -121,12 +121,6 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function public_margin_get_public_currencies($params = array()) {
         return $this->request('public/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_margin_get_cross_account_assets($params = array()) {
-        return $this->request('cross/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function public_margin_get_isolated_account_assets($params = array()) {
-        return $this->request('isolated/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
-    }
     public function private_spot_get_wallet_deposit_address($params = array()) {
         return $this->request('wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
     }
@@ -643,6 +637,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_margin_get_cross_fin_list($params = array()) {
         return $this->request('cross/fin/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_margin_get_cross_account_assets($params = array()) {
+        return $this->request('cross/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_account_assets($params = array()) {
+        return $this->request('isolated/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_margin_post_cross_account_borrow($params = array()) {
         return $this->request('cross/account/borrow', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -801,12 +801,6 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function publicMarginGetPublicCurrencies($params = array()) {
         return $this->request('public/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function publicMarginGetCrossAccountAssets($params = array()) {
-        return $this->request('cross/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function publicMarginGetIsolatedAccountAssets($params = array()) {
-        return $this->request('isolated/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateSpotGetWalletDepositAddress($params = array()) {
         return $this->request('wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
@@ -1323,6 +1317,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateMarginGetCrossFinList($params = array()) {
         return $this->request('cross/fin/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossAccountAssets($params = array()) {
+        return $this->request('cross/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedAccountAssets($params = array()) {
+        return $this->request('isolated/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMarginPostCrossAccountBorrow($params = array()) {
         return $this->request('cross/account/borrow', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
