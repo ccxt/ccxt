@@ -198,6 +198,8 @@ export default class hollaex extends Exchange {
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
+                    'BNB': 'bnb',
+                    'MATIC': 'matic',
                 },
             },
         });
@@ -1771,14 +1773,23 @@ export default class hollaex extends Exchange {
         if (allowWithdrawal) {
             result['withdraw'] = { 'fee': this.safeNumber (fee, 'withdrawal_fee'), 'percentage': false };
         }
-        const networkId = this.safeStringUpper (fee, 'network');
-        const currencyCode = this.safeString (currency, 'code');
-        const networkCode = this.networkIdToCode (networkId, currencyCode);
-        if (networkCode !== undefined) {
-            result['networks'][networkCode] = {
-                'deposit': result['deposit'],
-                'withdraw': result['withdraw'],
-            };
+        const withdrawalFees = this.safeValue (fee, 'withdrawal_fees');
+        if (withdrawalFees !== undefined) {
+            const keys = Object.keys (withdrawalFees);
+            const keysLength = keys.length;
+            for (let i = 0; i < keysLength; i++) {
+                const key = keys[i];
+                const value = withdrawalFees[key];
+                const currencyId = this.safeString (value, 'symbol');
+                const currencyCode = this.safeCurrencyCode (currencyId);
+                const networkCode = this.networkIdToCode (key, currencyCode);
+                const networkCodeUpper = networkCode.toUpperCase (); // default to the upper case network code
+                const withdrawalFee = this.safeNumber (value, 'value');
+                result['networks'][networkCodeUpper] = {
+                    'deposit': undefined,
+                    'withdraw': withdrawalFee,
+                };
+            }
         }
         return result;
     }
