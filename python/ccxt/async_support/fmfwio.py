@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.hitbtc import hitbtc
+from ccxt.abstract.fmfwio import ImplicitAPI
 
 
-class fmfwio(hitbtc):
+class fmfwio(hitbtc, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(fmfwio, self).describe(), {

@@ -45,8 +45,8 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
-  - `/doc/*` (these files are generated from `/wiki/*`, place your edits there)
   - `/build/*` (these are generated automatically)
+  - `/js/*` (these are compiled from the typescript version)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
   - `/ccxt.js`
@@ -119,7 +119,7 @@ If you're not going to develop CCXT and contribute code to the CCXT library, the
 
 ### With Docker
 
-The easiest way is to use Docker to run an isolated build & test enviroment with all the dependencies installed:
+The easiest way is to use Docker to run an isolated build & test environment with all the dependencies installed:
 
 ```shell
 docker-compose run --rm ccxt
@@ -194,8 +194,8 @@ The contents of the repository are structured as follows:
 /dist/                     # a folder for the generated browser bundle of CCXT
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
-/doc/                      # Sphinx-generated rst-docs for http://docs.ccxt.com/
 /js/                       # the JS version of the library
+/ts/                       # the TypeScript version of the library
 /php/                      # PHP ccxt module/package folder
 /python/                   # Python ccxt module/package folder for PyPI
 /python/__init__.py        # entry point for the Python version of the ccxt.library
@@ -218,22 +218,23 @@ The contents of the repository are structured as follows:
 
 ### Multilanguage Support
 
-The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in several different languages (TypeScript, JavaScript, Python, PHP, C# and more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is TypeScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a TS or a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
 - `./python/async/__init__.py` for the Python 3.5.3+ ccxt.async_support subpackage
-- `./ccxt.js` for the Node.js npm package
+- `./js/ccxt.js` for the Node.js npm package
+- `./ts/ccxt.ts` for TypeScript
 - `./dist/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
 
-Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
+Generated versions and docs are transpiled from the source `ts/src` folder by the `npm run build` command.
 
 ### Transpiled (generated) files
 
-- All derived exchange classes are transpiled automatically from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
+- All derived exchange classes are transpiled by `tsc` from TypeScript to JavaScript and by our custom transpiler from TypeScript to PHP and Python. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - All base classes are **not** transpiled, those are language-specific.
 
 #### JavaScript
@@ -242,9 +243,9 @@ The `ccxt.browser.js` is generated with Babel from source.
 
 #### Python
 
-These files containing derived exchange classes are transpiled from JS into Python:
+These files containing derived exchange classes are transpiled from TS into Python:
 
-- `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
+- `ts/[_a-z].ts` → `python/ccxt/async/[_a-z].py`
 - `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python sync transpilation stage)
 - `python/ccxt/test/test_async.py` → `python/ccxt/test/test_sync.py` (the sync test is generated from the async test)
 
@@ -257,7 +258,7 @@ These Python base classes and files are not transpiled:
 
 These files containing derived exchange classes are transpiled from JS into PHP:
 
-- `js/[_a-z].js` → `php/[_a-z].php`
+- `ts/[_a-z].ts` → `php/[_a-z].php`
 
 These PHP base classes and files are not transpiled:
 
@@ -265,7 +266,7 @@ These PHP base classes and files are not transpiled:
 
 #### Typescript
 
-- `js/[_a-z].js` → `ccxt.d.ts`
+- Development is made using these files
 
 ### Base Class
 
@@ -330,7 +331,7 @@ Most of exchanges' API endpoints will require an exchange-specific market symbol
 
 **NEVER DO THIS:**
 
-```JavaScript
+```javascript
 async fetchTicker (symbol, params = {}) {
    const request = {
       'pair': symbol, // very bad, sending unified symbols to the exchange directly
@@ -342,7 +343,7 @@ async fetchTicker (symbol, params = {}) {
 
 **DO NOT DO THIS EITHER:**
 
-```JavaScript
+```javascript
 async fetchTicker (symbol, params = {}) {
    const request = {
       'symbol': symbol, // very bad, sending unified symbols to the exchange directly
@@ -361,7 +362,7 @@ To get the exchange-specific market-id by a unified CCXT symbol, use the followi
 
 **GOOD EXAMPLES:**
 
-```JavaScript
+```javascript
 async fetchTicker (symbol, params = {}) {
    const market = this.market (symbol); // the entire market structure
    const request = {
@@ -372,7 +373,7 @@ async fetchTicker (symbol, params = {}) {
 }
 ```
 
-```JavaScript
+```javascript
 async fetchTicker (symbol, params = {}) {
    const marketId = this.marketId (symbol); // just the id
    const request = {
@@ -394,7 +395,7 @@ When sending requests to the exchange unified symbols have to be _"converted"_ t
 
 **NEVER DO THIS:**:
 
-```JavaScript
+```javascript
 parseTrade (trade, market = undefined) {
    // parsing code...
    return {
@@ -407,7 +408,7 @@ parseTrade (trade, market = undefined) {
 
 **DO NOT DO THIS EITHER**
 
-```JavaScript
+```javascript
 parseTrade (trade, market = undefined) {
    // parsing code...
    return {
@@ -422,7 +423,7 @@ In order to handle the market-`id` properly it has to be looked-up in the info c
 
 **GOOD EXAMPLE:**
 
-```JavaScript
+```javascript
 parseTrade (trade, market = undefined) {
     const marketId = this.safeString (trade, 'pair');
     // safeSymbol is used to parse the market id to a unified symbol
@@ -452,7 +453,7 @@ To keep the code transpileable, please, remember this simple rule: *always use t
 
 JavaScript is less restrictive than other languages. It will tolerate an attempt to dereference a non-existent key where other languages will throw an Exception:
 
-```JavaScript
+```javascript
 // JavaScript
 
 const someObject = {}
@@ -466,7 +467,7 @@ if (someObject['nonExistentKey']) {
 
 However, the above logic with *"an undefined value by default"* will not work in Python or PHP.
 
-```Python
+```python
 # Python
 some_dictionary = {}
 
@@ -488,7 +489,7 @@ Most languages will not tolerate an attempt to access a non-existent key in an o
 
 For the above reasons, please, **never do this** in the transpiled JS files:
 
-```JavaScript
+```javascript
 // JavaScript
 const value = object['key'] || other_value; // will not work in Python or PHP!
 if (object['key'] || other_value) { /* will not work in Python or PHP! */ }
@@ -508,10 +509,10 @@ The `safeValue` function is used for objects inside objects, arrays inside objec
 
 If you need to search for several different keys within an object you have available the `safeMethodN` function's family that allows for a search with an arbitrary number of keys by accepting an array of keys as an argument.
 
-```Javascript
+```javascript
 const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], default)
 ```
-For every safe method listed above, there is the correspondent `safeMethodN` too. 
+For every safe method listed above, there is the correspondent `safeMethodN` too.
 
 The above safe-functions will check for the existence of the `key` (or `key1`, `key2`) in the object and will properly return `undefined/None/null` values for JS/Python/PHP. Each function also accepts the `default` value to be returned instead of `undefined/None/null` in the last argument.
 
@@ -519,14 +520,14 @@ Alternatively, you could check for the key existence first...
 
 So, you have to change this:
 
-```JavaScript
+```javascript
 if (params['foo'] !== undefined) {
 }
 ```
 
 ↓
 
-```JavaScript
+```javascript
 const foo = this.safeValue (params, 'foo');
 if (foo !== undefined) {
 }
@@ -534,7 +535,7 @@ if (foo !== undefined) {
 
 Or:
 
-```JavaScript
+```javascript
 if ('foo' in params) {
 }
 ```
@@ -586,7 +587,7 @@ The `hmac()` method also supports `'base64'` for the `digest` argument. This is 
 
 In order to convert to milliseconds timestamps, CCXT implements the following methods:
 
-```JavaScript
+```javascript
 const data = {
    'unixTimestampInSeconds': 1565242530,
    'unixTimestampInMilliseconds': 1565242530165,
@@ -611,7 +612,7 @@ const timestamp = this.safeTimestamp (data, 'stringInSeconds'); // === 156524253
 
 In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:
 
-```JavaScript
+```javascript
 someArray.length
 
 // or
@@ -621,7 +622,7 @@ someString.length
 
 And it works for both strings and arrays. In Python this is done in a similar way:
 
-```Python
+```python
 len(some_array)
 
 # or
@@ -633,7 +634,7 @@ So the length is accessible in the same way for both strings and arrays and both
 
 However, with PHP this is different, so the syntax for string lengths and array lengths is different:
 
-```PHP
+```php
 count(some_array);
 
 // or
@@ -643,7 +644,7 @@ strlen(some_string); // or mb_strlen
 
 Because the transpiler works line-by-line and does no code introspection, it cannot tell arrays from strings and cannot properly transpile `.length` to PHP without additional hinting. It will always transpile JS `.length` to PHP `strlen` and will prefer string lengths over array lengths. In order to indicate an array length properly we have to do the following:
 
-```JavaScript
+```javascript
 const arrayLength = someArray.length;
 // the above line ends with .length;
 // that ending is a hint for the transpiler that will recognize someArray
@@ -658,8 +659,8 @@ That `.length;` line ending does the trick. The only case when the array `.lengt
 In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up numbers or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is.
 
 There's this aspect of representation of numbers throughout the lib.
-The existing approach documented int the Manual says that the library will accept and will return "floats everywhere" for amounts, prices, costs, etc.
-Using floats is the easiest way of unboarding new users.
+The existing approach documented in the Manual says that the library will accept and will return "floats everywhere" for amounts, prices, costs, etc.
+Using floats is the easiest way of onboarding new users.
 This has known quirks, it's impossible to represent exact numbers with floats (https://0.30000000000000004.com/)
 
 To address that, we are switching to string-based representations everywhere.
@@ -677,7 +678,7 @@ What exactly that means:
 
 Compare this pseudocode showing how it was done **before** (an example of some arbitrary parsing code for the purpose of explaining it):
 
-```JavaScript
+```javascript
 const amount = this.safeFloat (order, 'amount');
 const remaining = this.safeFloat (order, 'remaining');
 if (remaining > 0) {
@@ -697,7 +698,7 @@ return {
 
 This is how we should do it **from now on**:
 
-```JavaScript
+```javascript
 const amount = this.safeNumber (order, 'amount'); // internal string-layer
 const remaining = this.safeString (order, 'remaining'); // internal string-layer
 if (Precise.stringGt (remaining, '0')) { // internal string-layer
@@ -731,14 +732,14 @@ When using strings containing control characters like `"\n"`, `"\t"`, always enc
 
 Bad:
 
-```JavaScript
+```javascript
 const a = 'GET' + method.toLowerCase () + '\n' + path;
 const b = 'api\nfoobar.com\n';
 ```
 
 Good:
 
-```JavaScript
+```javascript
 const a = 'GET' + method.toLowerCase () + "\n" + path; // eslint-disable-line quotes
 // eslint-disable-next-line quotes
 const b = "api\nfoobar.com\n";
@@ -756,21 +757,21 @@ The brackets are needed to hint the transpiler which part of the conditional is 
 
 Here are some examples of a badly-designed code that will break the transpiler:
 
-```JavaScript
-// this is an example of bad codestyle that will likely break the transpiler
+```javascript
+// this is an example of bad code style that will likely break the transpiler
 const foo = {
    'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
 };
 ```
 
-```JavaScript
+```javascript
 // this confuses the transpiler and a human developer as well
 const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
 ```
 
 Adding surrounding brackets to corresponding parts would be a more or less correct way to resolve it.
 
-```JavaScript
+```javascript
 const foo = {
    'bar': (qux === 'baz') ? this.a () : this.b (), // much better now
 };
@@ -778,7 +779,7 @@ const foo = {
 
 The universally-working way to solve it is to just break the complex line into a few simpler lines, even at a cost of adding extra lines and conditionals:
 
-```JavaScript
+```javascript
 // before:
 // const foo = {
 //    'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
@@ -793,7 +794,7 @@ const foo = {
 
 Or even:
 
-```JavaScript
+```javascript
 // before:
 // const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
 // ----------------------------------------------------------------------------
@@ -906,7 +907,7 @@ Exchange API keys can be added to the `keys.local.json` in the root folder insid
 
 An example of `keys.local.json` file:
 
-```JavaScript
+```javascript
 {
     "ftx": {
         "apiKey": "XXX",
@@ -943,7 +944,7 @@ Before building for the first time, install Node dependencies (skip this step if
 npm install
 ```
 
-The command below will build everything and generate PHP/Python versions from source JS files:
+The command below will build everything and generate PHP/Python versions from source TS files:
 
 ```
 npm run build
@@ -1019,7 +1020,7 @@ Follow this steps to add a test:
 
 ## Committing Changes To The Repository
 
-The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (JS) file changes please**.
+The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (TS) file changes please**.
 
 ## Financial Contributions
 

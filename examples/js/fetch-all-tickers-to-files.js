@@ -1,16 +1,19 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
-    , log  = require ('ololog').noLocate // npm install ololog
-    , fs   = require ('fs')
 
-    // the numWorkers constant defines the number of concurrent workers
-    // those aren't really threads in terms of the async environment
-    // set this to the number of cores in your CPU * 2
-    // or play with this number to find a setting that works best for you
-    , numWorkers = 8
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog';
 
-;(async () => {
+const { noLocate } = ololog;
+const log = noLocate;
+
+import fs from 'fs';
+
+// the numWorkers constant defines the number of concurrent workers
+// those aren't really threads in terms of the async environment
+// set this to the number of cores in your CPU * 2
+// or play with this number to find a setting that works best for you
+
+const numWorkers = 8;(async () => {
 
     // make an array of all exchanges
     const exchanges = ccxt.exchanges

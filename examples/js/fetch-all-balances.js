@@ -1,15 +1,19 @@
-'use strict';
-
-const { PAD_WITH_ZERO } = require('../../js/base/functions/number.js');
+import { PAD_WITH_ZERO } from '../../js/src/base/functions/number.js';
 
 //-----------------------------------------------------------------------------
 
-const ccxt         = require ('../../ccxt.js')
-    , fs           = require ('fs')
-    , path         = require ('path')
-    , ansi         = require ('ansicolor').nice
-    , asTable      = require ('as-table').configure ({
+import ccxt from '../../js/ccxt.js';
 
+import fs from 'fs';
+import path from 'path';
+import ansicolor from 'ansicolor';
+import asTable from 'as-table';
+import ololog from 'ololog';
+
+ansicolor.nice
+//-----------------------------------------------------------------------------
+
+const table = asTable.configure ({
         delimiter: '|'.lightGray.dim,
         right: true,
         title: x => String (x).lightGray,
@@ -20,9 +24,9 @@ const ccxt         = require ('../../ccxt.js')
             }
             return String (x)
         }
-    })
-    , { ROUND, DECIMAL_PLACES, decimalToPrecision, omit, unique, flatten, extend } = ccxt
-    , log = require ('ololog').handleNodeErrors ().noLocate.unlimited
+    }),
+    { ROUND, DECIMAL_PLACES, decimalToPrecision, omit, unique, flatten, extend } = ccxt,
+    log = ololog.handleNodeErrors ().noLocate.unlimited;
 
 //-----------------------------------------------------------------------------
 
@@ -54,7 +58,8 @@ if (!(keysGlobalExists || keysLocalExists)) {
 
 let globalKeysFile = keysGlobalExists ? keysGlobal : false
 let localKeysFile = keysLocalExists ? keysLocal : globalKeysFile
-let settings = localKeysFile ? (require (localKeysFile) || {}) : {}
+const dynamicLocalKeysFile = JSON.parse (fs.readFileSync (localKeysFile));
+let settings = localKeysFile ? (dynamicLocalKeysFile || {}) : {}
 
 //-----------------------------------------------------------------------------
 
@@ -115,7 +120,7 @@ function initializeAllExchanges () {
     return result
 }
 
-;(async () => {
+(async () => {
 
     const exchanges = initializeAllExchanges ()
     console.log (exchanges.map (exchange => exchange.id))
@@ -203,9 +208,9 @@ function initializeAllExchanges () {
         }, result);
     })
 
-    const table = asTable (results)
+    const tableResults = table (results)
 
-    log (table)
+    log (tableResults)
 
     log.green ('Currencies:', currencies)
 

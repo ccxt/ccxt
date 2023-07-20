@@ -1,4 +1,4 @@
-const ccxt = require ('../../ccxt')
+import ccxt from '../../js/ccxt.js';
 
 const bitpanda = new ccxt.bitpanda ({
     "apiKey": "INSERTYOURAPIKEY"
