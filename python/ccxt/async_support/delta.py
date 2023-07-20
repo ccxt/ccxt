@@ -40,6 +40,7 @@ class delta(Exchange, ImplicitAPI):
                 'swap': None,
                 'future': None,
                 'option': None,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -60,6 +61,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
@@ -74,6 +76,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchTransfers': None,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': None,
+                'reduceMargin': True,
                 'transfer': False,
                 'withdraw': False,
             },
@@ -2321,6 +2324,232 @@ class delta(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+        }
+
+    async def add_margin(self, symbol: str, amount, params={}):
+        """
+        add margin
+        see https://docs.delta.exchange/#add-remove-position-margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        """
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
+
+    async def reduce_margin(self, symbol: str, amount, params={}):
+        """
+        remove margin from a position
+        see https://docs.delta.exchange/#add-remove-position-margin
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        """
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        amount = str(amount)
+        if type == 'reduce':
+            amount = Precise.string_mul(amount, '-1')
+        request = {
+            'product_id': market['numericId'],
+            'delta_margin': amount,
+        }
+        response = await self.privatePostPositionsChangeMargin(self.extend(request, params))
+        #
+        #     {
+        #         "result": {
+        #             "auto_topup": False,
+        #             "bankruptcy_price": "24934.12",
+        #             "commission": "0.01197072",
+        #             "created_at": "2023-07-20T03:49:09.159401Z",
+        #             "entry_price": "29926.8",
+        #             "liquidation_price": "25083.754",
+        #             "margin": "4.99268",
+        #             "margin_mode": "isolated",
+        #             "product_id": 84,
+        #             "product_symbol": "BTCUSDT",
+        #             "realized_cashflow": "0",
+        #             "realized_funding": "0",
+        #             "realized_pnl": "0",
+        #             "size": 1,
+        #             "updated_at": "2023-07-20T03:49:09.159401Z",
+        #             "user_id": 30084879
+        #         },
+        #         "success": True
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_margin_modification(result, market)
+
+    def parse_margin_modification(self, data, market=None):
+        #
+        #     {
+        #         "auto_topup": False,
+        #         "bankruptcy_price": "24934.12",
+        #         "commission": "0.01197072",
+        #         "created_at": "2023-07-20T03:49:09.159401Z",
+        #         "entry_price": "29926.8",
+        #         "liquidation_price": "25083.754",
+        #         "margin": "4.99268",
+        #         "margin_mode": "isolated",
+        #         "product_id": 84,
+        #         "product_symbol": "BTCUSDT",
+        #         "realized_cashflow": "0",
+        #         "realized_funding": "0",
+        #         "realized_pnl": "0",
+        #         "size": 1,
+        #         "updated_at": "2023-07-20T03:49:09.159401Z",
+        #         "user_id": 30084879
+        #     }
+        #
+        marketId = self.safe_string(data, 'product_symbol')
+        market = self.safe_market(marketId, market)
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'total': self.safe_number(data, 'margin'),
+            'code': None,
+            'symbol': market['symbol'],
+            'status': None,
+        }
+
+    async def fetch_open_interest(self, symbol: str, params={}):
+        """
+        retrieves the open interest of a derivative market
+        see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+        :param str symbol: unified market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetTickersSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "result": {
+        #             "close": 894.0,
+        #             "contract_type": "call_options",
+        #             "greeks": {
+        #                 "delta": "0.67324861",
+        #                 "gamma": "0.00022178",
+        #                 "rho": "4.34638266",
+        #                 "spot": "30178.53195697",
+        #                 "theta": "-35.64972577",
+        #                 "vega": "16.34381277"
+        #             },
+        #             "high": 946.0,
+        #             "low": 893.0,
+        #             "mark_price": "1037.07582681",
+        #             "mark_vol": "0.35899491",
+        #             "oi": "0.0910",
+        #             "oi_change_usd_6h": "-90.5500",
+        #             "oi_contracts": "91",
+        #             "oi_value": "0.0910",
+        #             "oi_value_symbol": "BTC",
+        #             "oi_value_usd": "2746.3549",
+        #             "open": 946.0,
+        #             "price_band": {
+        #                 "lower_limit": "133.37794509",
+        #                 "upper_limit": "5663.66930164"
+        #             },
+        #             "product_id": 116171,
+        #             "quotes": {
+        #                 "ask_iv": "0.36932389",
+        #                 "ask_size": "1321",
+        #                 "best_ask": "1054",
+        #                 "best_bid": "1020",
+        #                 "bid_iv": "0.34851914",
+        #                 "bid_size": "2202",
+        #                 "impact_mid_price": null,
+        #                 "mark_iv": "0.35896335"
+        #             },
+        #             "size": 152,
+        #             "spot_price": "30178.53195697",
+        #             "strike_price": "29500",
+        #             "symbol": "C-BTC-29500-280723",
+        #             "timestamp": 1689834695286094,
+        #             "turnover": 4546.601744940001,
+        #             "turnover_symbol": "USDT",
+        #             "turnover_usd": 4546.601744940001,
+        #             "volume": 0.15200000000000002
+        #         },
+        #         "success": True
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "close": 894.0,
+        #         "contract_type": "call_options",
+        #         "greeks": {
+        #             "delta": "0.67324861",
+        #             "gamma": "0.00022178",
+        #             "rho": "4.34638266",
+        #             "spot": "30178.53195697",
+        #             "theta": "-35.64972577",
+        #             "vega": "16.34381277"
+        #         },
+        #         "high": 946.0,
+        #         "low": 893.0,
+        #         "mark_price": "1037.07582681",
+        #         "mark_vol": "0.35899491",
+        #         "oi": "0.0910",
+        #         "oi_change_usd_6h": "-90.5500",
+        #         "oi_contracts": "91",
+        #         "oi_value": "0.0910",
+        #         "oi_value_symbol": "BTC",
+        #         "oi_value_usd": "2746.3549",
+        #         "open": 946.0,
+        #         "price_band": {
+        #             "lower_limit": "133.37794509",
+        #             "upper_limit": "5663.66930164"
+        #         },
+        #         "product_id": 116171,
+        #         "quotes": {
+        #             "ask_iv": "0.36932389",
+        #             "ask_size": "1321",
+        #             "best_ask": "1054",
+        #             "best_bid": "1020",
+        #             "bid_iv": "0.34851914",
+        #             "bid_size": "2202",
+        #             "impact_mid_price": null,
+        #             "mark_iv": "0.35896335"
+        #         },
+        #         "size": 152,
+        #         "spot_price": "30178.53195697",
+        #         "strike_price": "29500",
+        #         "symbol": "C-BTC-29500-280723",
+        #         "timestamp": 1689834695286094,
+        #         "turnover": 4546.601744940001,
+        #         "turnover_symbol": "USDT",
+        #         "turnover_usd": 4546.601744940001,
+        #         "volume": 0.15200000000000002
+        #     }
+        #
+        timestamp = self.safe_integer_product(interest, 'timestamp', 0.001)
+        marketId = self.safe_string(interest, 'symbol')
+        return {
+            'symbol': self.safe_symbol(marketId, market),
+            'baseVolume': self.safe_number(interest, 'oi_value'),
+            'quoteVolume': self.safe_number(interest, 'oi_value_usd'),
+            'openInterestAmount': self.safe_number(interest, 'oi_contracts'),
+            'openInterestValue': self.safe_number(interest, 'oi'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

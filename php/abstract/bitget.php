@@ -142,6 +142,12 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_spot_get_account_transferrecords($params = array()) {
         return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_spot_get_convert_currencies($params = array()) {
+        return $this->request('convert/currencies', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_get_convert_convert_record($params = array()) {
+        return $this->request('convert/convert-record', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_spot_post_wallet_transfer($params = array()) {
         return $this->request('wallet/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
@@ -276,6 +282,12 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function private_spot_post_trace_user_gettraderinfo($params = array()) {
         return $this->request('trace/user/getTraderInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_convert_quoted_price($params = array()) {
+        return $this->request('convert/quoted-price', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_spot_post_convert_trade($params = array()) {
+        return $this->request('convert/trade', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_mix_get_account_account($params = array()) {
         return $this->request('account/account', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
@@ -823,6 +835,12 @@ abstract class bitget extends \ccxt\Exchange {
     public function privateSpotGetAccountTransferRecords($params = array()) {
         return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateSpotGetConvertCurrencies($params = array()) {
+        return $this->request('convert/currencies', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetConvertConvertRecord($params = array()) {
+        return $this->request('convert/convert-record', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateSpotPostWalletTransfer($params = array()) {
         return $this->request('wallet/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
@@ -957,6 +975,12 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateSpotPostTraceUserGetTraderInfo($params = array()) {
         return $this->request('trace/user/getTraderInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostConvertQuotedPrice($params = array()) {
+        return $this->request('convert/quoted-price', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateSpotPostConvertTrade($params = array()) {
+        return $this->request('convert/trade', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateMixGetAccountAccount($params = array()) {
         return $this->request('account/account', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
