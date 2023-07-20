@@ -2512,8 +2512,8 @@ class bitfinex2 extends Exchange {
         }
         if ($statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            $errorCode = $this->number_to_string($response[1]);
-            $errorText = $response[2];
+            $errorCode = $this->safe_string($response, 1, '');
+            $errorText = $this->safe_string($response, 2, '');
             $feedback = $this->id . ' ' . $errorText;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorText, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
