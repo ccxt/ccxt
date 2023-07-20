@@ -191,12 +191,13 @@ export default class hollaex extends Exchange {
                 // how many seconds before the authenticated request expires
                 'api-expires': this.parseToInt (this.timeout / 1000),
                 'networks': {
-                    'ERC20': 'ETH',
-                    'TRC20': 'TRX',
-                },
-                'networksById': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'ERC20': 'eth',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'XRP': 'xrp',
+                    'XLM': 'xlm',
                 },
             },
         });
@@ -1698,18 +1699,16 @@ export default class hollaex extends Exchange {
         if (tag !== undefined) {
             address += ':' + tag;
         }
-        const network = this.safeStringUpper (params, 'network');
+        const network = this.safeString (params, 'network');
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
         }
         params = this.omit (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const networkId = this.safeStringLower2 (networks, network, code, network);
         const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-            'network': networkId,
+            'network': this.networkCodeToId (network, code),
         };
         const response = await this.privatePostUserWithdrawal (this.extend (request, params));
         //
