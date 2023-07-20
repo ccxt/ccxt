@@ -577,6 +577,9 @@ interface Exchange {
     papiGetCmIncome (params?: {}): Promise<implicitReturnType>;
     papiGetUmAccount (params?: {}): Promise<implicitReturnType>;
     papiGetCmAccount (params?: {}): Promise<implicitReturnType>;
+    papiGetPortfolioRepayFuturesSwitch (params?: {}): Promise<implicitReturnType>;
+    papiGetUmAdlQuantile (params?: {}): Promise<implicitReturnType>;
+    papiGetCmAdlQuantile (params?: {}): Promise<implicitReturnType>;
     papiGetMarginMarginLoan (params?: {}): Promise<implicitReturnType>;
     papiGetMarginRepayLoan (params?: {}): Promise<implicitReturnType>;
     papiGetMarginMarginInterestHistory (params?: {}): Promise<implicitReturnType>;
@@ -593,6 +596,8 @@ interface Exchange {
     papiPostCmPositionSideDual (params?: {}): Promise<implicitReturnType>;
     papiPostAutoCollection (params?: {}): Promise<implicitReturnType>;
     papiPostBnbTransfer (params?: {}): Promise<implicitReturnType>;
+    papiPostPortfolioRepayFuturesSwitch (params?: {}): Promise<implicitReturnType>;
+    papiPostPortfolioRepayFuturesNegativeBalance (params?: {}): Promise<implicitReturnType>;
     papiPostListenKey (params?: {}): Promise<implicitReturnType>;
     papiPutListenKey (params?: {}): Promise<implicitReturnType>;
     papiDeleteUmOrder (params?: {}): Promise<implicitReturnType>;

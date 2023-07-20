@@ -924,6 +924,9 @@ class binance(Exchange, ImplicitAPI):
                         'cm/income ': 30,
                         'um/account': 5,
                         'cm/account': 5,
+                        'portfolio/repay-futures-switch': 3,  # Weight(IP): 30 => cost = 0.1 * 30 = 3
+                        'um/adlQuantile': 5,
+                        'cm/adlQuantile': 5,
                         'margin/marginLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
                         'margin/repayLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
                         'margin/marginInterestHistory': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -942,6 +945,8 @@ class binance(Exchange, ImplicitAPI):
                         'cm/positionSide/dual': 1,  # 1
                         'auto-collection': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'bnb-transfer': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/repay-futures-switch': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1,  # 1
                     },
                     'put': {
