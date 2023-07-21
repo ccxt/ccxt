@@ -1694,7 +1694,6 @@ export default class Exchange {
             'currencyIdToCurrencyCode': {},
             'currencyIdToNetworkCode': {},
             'currencyCodeAndNetworkCodeToCurrencyId': {},
-            'curencyIdNetworkIdJunctions': [],
         };
     }
 

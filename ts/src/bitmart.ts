@@ -963,25 +963,33 @@ export default class bitmart extends Exchange {
         }
     }
 
-    handleNetworkCodeAndCurrencyId (currencyCode, params = {}) {
+    handleCurrencyIdAndParams (currencyCodeOrId, params = {}) {
         let networkCode = undefined;
         let currencyId = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], currencyCode, {});
+            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], currencyCodeOrId, {});
             currencyId = this.safeString (mappings, networkCode);
             if (currencyId === undefined) {
-                throw new ArgumentsRequired (this.id + ' handleNetworkCodeAndCurrencyId() can not derive the currencyId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
+                throw new ArgumentsRequired (this.id + ' handleCurrencyIdAndParams() can not derive the currencyId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
             }
         } else {
-            // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific currency-id (i.e. USDT-TRC20) and we should handle it too
-            currencyId = currencyCode;
-            networkCode = this.safeString (this.generatedNetworkData['currencyIdToNetworkCode'], currencyId);
-            if (networkCode === undefined) {
-                throw new ArgumentsRequired (this.id + ' handleNetworkCodeAndCurrencyId() can not derive the network, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
-            }
+            currencyId = currencyCodeOrId;
         }
-        return [ networkCode, currencyId, params ];
+        return [ currencyId, params ];
+    }
+
+    parseCurrencyCodeAndNetworkCode (currencyId, currency = undefined) {
+        // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific currency-id (i.e. USDT-TRC20) and we should handle it too
+        let currencyCode = this.safeString (this.generatedNetworkData['currencyIdToCurrencyCode'], currencyId);
+        if (currencyCode === undefined) {
+            currencyCode = this.safeCurrencyCode (currencyId, currency);
+        }
+        let networkCode = this.safeString (this.generatedNetworkData['currencyIdToNetworkCode'], currencyId);
+        if (networkCode === undefined) {
+            networkCode = this.networkIdToCode (currencyId);
+        }
+        return [ currencyCode, networkCode ];
     }
 
     async fetchTransactionFee (code: string, params = {}) {
@@ -1057,10 +1065,8 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let networkCode = undefined;
         let currencyId = undefined;
-        // eslint-disable-next-line no-unused-vars
-        [ networkCode, currencyId, params ] = this.handleNetworkCodeAndCurrencyId (code, params);
+        [ currencyId, params ] = this.handleCurrencyIdAndParams (code, params);
         const request = {
             'currency': currencyId,
         };
@@ -2425,10 +2431,9 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let networkCode = undefined;
         let currencyId = undefined;
         // eslint-disable-next-line no-unused-vars
-        [ networkCode, currencyId, params ] = this.handleNetworkCodeAndCurrencyId (code, params);
+        [ currencyId, params ] = this.handleCurrencyIdAndParams (code, params);
         const request = {
             'currency': currencyId,
         };
@@ -2447,17 +2452,29 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        currencyId = this.safeString (data, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
-        const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'address_memo');
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "currency":"USDT-TRC20",
+        //         "chain":"TRON", // does not play any role in API engine
+        //         "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
+        //         "address_memo":""
+        //     }
+        //
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const [ currencyCode, networkCode ] = this.parseCurrencyCodeAndNetworkCode (currencyId, currency);
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'address_memo');
         this.checkAddress (address);
         return {
-            'currency': currency['code'],
+            'currency': currencyCode,
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode (this.safeString (data, 'chain')),
-            'info': data,
+            'network': networkCode,
+            'info': depositAddress,
         };
     }
 
@@ -2485,10 +2502,8 @@ export default class bitmart extends Exchange {
         if (tag !== undefined) {
             request['address_memo'] = tag;
         }
-        let networkCode = undefined;
         let currencyId = undefined;
-        // eslint-disable-next-line no-unused-vars
-        [ networkCode, currencyId, params ] = this.handleNetworkCodeAndCurrencyId (code, params);
+        [ currencyId, params ] = this.handleCurrencyIdAndParams (code, params);
         request['currency'] = currencyId;
         const response = await this.privatePostAccountV1WithdrawApply (this.extend (request, params));
         //
@@ -2523,10 +2538,8 @@ export default class bitmart extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            let networkCode = undefined;
             let currencyId = undefined;
-            // eslint-disable-next-line no-unused-vars
-            [ networkCode, currencyId, params ] = this.handleNetworkCodeAndCurrencyId (code, params);
+            [ currencyId, params ] = this.handleCurrencyIdAndParams (code, params);
             request['currency'] = currencyId;
         }
         const response = await this.privateGetAccountV2DepositWithdrawHistory (this.extend (request, params));
@@ -2721,8 +2734,7 @@ export default class bitmart extends Exchange {
         const amount = this.safeNumber (transaction, 'arrival_amount');
         const timestamp = this.safeInteger (transaction, 'apply_time');
         const currencyId = this.safeString (transaction, 'currency');
-        const currencyCode = this.safeString (this.generatedNetworkData['currencyIdToCurrencyCode'], currencyId, currencyId);
-        const networkCode = this.safeString (this.generatedNetworkData['currencyIdToNetworkCode'], currencyId, currencyId);
+        const [ currencyCode, networkCode ] = this.parseCurrencyCodeAndNetworkCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
