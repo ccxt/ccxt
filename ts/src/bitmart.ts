@@ -402,7 +402,7 @@ export default class bitmart extends Exchange {
                     'FIO': 'FIO',
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
-                    'SOL': 'SOL',
+                    'SOL': 'SPL',
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'DOT': 'DOT',
@@ -893,7 +893,7 @@ export default class bitmart extends Exchange {
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const currencyId = this.safeString (currency, 'currency'); // USDT-BEP20, USDT-TRX, etc
+            const currencyId = this.safeString (currency, 'id'); // USDT-BEP20, USDT-TRX, etc
             const parts = currencyId.split ('-');
             const currencyTitle = parts[0];
             const networkTitle = this.safeString2 (parts, 1, 0); // if there is no dedicated network-part after hyphen, then use the currencyTitle itself (i.e. ATOM, ALGO ...)
@@ -968,7 +968,7 @@ export default class bitmart extends Exchange {
         let currencyId = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            const mappings = this.safeValue (this.generatedNetworkData['networkCodeToCurrencyId'], currencyCode, {});
+            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], currencyCode, {});
             currencyId = this.safeString (mappings, networkCode);
             if (currencyId === undefined) {
                 throw new ArgumentsRequired (this.id + ' handleNetworkCodeAndCurrencyId() can not derive the currencyId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
@@ -2427,6 +2427,7 @@ export default class bitmart extends Exchange {
         let currency = this.currency (code);
         let networkCode = undefined;
         let currencyId = undefined;
+        // eslint-disable-next-line no-unused-vars
         [ networkCode, currencyId, params ] = this.handleNetworkCodeAndCurrencyId (code, params);
         const request = {
             'currency': currencyId,
@@ -2450,17 +2451,12 @@ export default class bitmart extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const address = this.safeString (data, 'address');
         const tag = this.safeString (data, 'address_memo');
-        const networkId = this.safeString (data, 'chain');
-        // bitmart has a messy namings/ids from this endpoint, which doesn't match the data from fetchCurrencies, so we need few checks to determine networkCode
-        if (networkId !== undefined) {
-            networkCode = this.networkIdToCode (networkId);
-        }
         this.checkAddress (address);
         return {
             'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'network': networkCode,
+            'network': this.networkIdToCode (this.safeString (data, 'chain')),
             'info': data,
         };
     }

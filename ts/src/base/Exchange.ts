@@ -1709,10 +1709,6 @@ export default class Exchange {
         this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'][currencyCode][networkCode] = currencyId;
     }
 
-    setNetworkMappingForUniqueNetworkId (currencyCode, currencyId, networkId) {
-        // this method is used when exchange uses unique network id (for same network) for different currencies, so, i.e. ethereum network might be referred with `usdtErc20` for usdt token, but `erc20Shib` for SHIB token
-    }
-
     createNetworksByIdObject () {
         // automatically generate network-id-to-code mappings
         const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
