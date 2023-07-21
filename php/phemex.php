@@ -3813,11 +3813,18 @@ class phemex extends Exchange {
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the phemex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by $market $symbols
          */
         $this->load_markets();
+        if ($symbols !== null) {
+            $first = $this->safe_value($symbols, 0);
+            $market = $this->market($first);
+            if ($market['settle'] !== 'USD') {
+                throw new BadSymbol($this->id . ' fetchLeverageTiers() supports USD settled markets only');
+            }
+        }
         $response = $this->publicGetCfgV2Products ($params);
         //
         //     {

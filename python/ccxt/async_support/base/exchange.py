@@ -2459,7 +2459,7 @@ class Exchange(BaseExchange):
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         if self.has['fetchLeverageTiers']:
-            market = await self.market(symbol)
+            market = self.market(symbol)
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
