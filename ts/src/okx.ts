@@ -1407,16 +1407,6 @@ export default class okx extends Exchange {
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (currencyActive === undefined) ? active : currencyActive;
                 const networkId = this.safeString (chain, 'chain'); // is unique per entry i.e. USDT-ERC20, USDT-TRC20
-                if (canDeposit && !depositEnabled) {
-                    depositEnabled = true;
-                } else if (!canDeposit) {
-                    depositEnabled = false;
-                }
-                if (canWithdraw && !withdrawEnabled) {
-                    withdrawEnabled = true;
-                } else if (!canWithdraw) {
-                    withdrawEnabled = false;
-                }
                 const networkTitle = this.getNetworkPartFromCurrencyJunction (networkId);
                 this.defineNetworkCodeNameIdMappings (code, undefined, networkTitle, networkId);
                 const networkCode = this.networkIdToCode (networkId, code);
