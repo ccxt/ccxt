@@ -128,7 +128,7 @@ export default class poloniex extends poloniexRest {
          * @description Connects to a websocket channel
          * @param {string} name name of the channel
          * @param {boolean} isPrivate true for the authenticated url, false for the public url
-         * @param {[string]|undefined} symbols CCXT market symbols
+         * @param {string[]|undefined} symbols CCXT market symbols
          * @param {object} [params] extra parameters specific to the poloniex api
          * @returns {object} data from the websocket stream
          */
@@ -165,7 +165,7 @@ export default class poloniex extends poloniexRest {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns [[int]] A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const timeframes = this.safeValue(this.options, 'timeframes', {});
@@ -223,7 +223,7 @@ export default class poloniex extends poloniexRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -262,7 +262,7 @@ export default class poloniex extends poloniexRest {
          * @param {int} [since] not used by poloniex watchOrders
          * @param {int} [limit] not used by poloniex watchOrders
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
@@ -287,7 +287,7 @@ export default class poloniex extends poloniexRest {
          * @param {int} [since] not used by poloniex watchMyTrades
          * @param {int} [limit] not used by poloniex watchMyTrades
          * @param {object} [params] extra parameters specific to the poloniex strean
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
@@ -313,7 +313,7 @@ export default class poloniex extends poloniexRest {
          * @param {int} [since] not used by poloniex watchBalance
          * @param {int} [limit] not used by poloniex watchBalance
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
         const name = 'balances';

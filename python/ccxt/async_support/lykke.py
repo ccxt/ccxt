@@ -80,7 +80,7 @@ class lykke(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransactionFees': False,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchWithdrawals': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -1073,7 +1073,7 @@ class lykke(Exchange, ImplicitAPI):
         # withdraw
         #     "3035b1ad-2005-4587-a986-1f7966be78e0"
         #
-        # fetchTransactions
+        # fetchDepositsWithdrawals
         #     {
         #         "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
         #         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
@@ -1125,13 +1125,12 @@ class lykke(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the lykke api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """

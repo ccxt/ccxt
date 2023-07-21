@@ -64,6 +64,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -425,6 +426,71 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         return self.safe_integer(response, 'result')
+
+    def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        see https://docs.deribit.com/#public-get_currencies
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        response = self.publicGetGetCurrencies(params)
+        #
+        #    {
+        #      "jsonrpc": "2.0",
+        #      "result": [
+        #        {
+        #          "withdrawal_priorities": [],
+        #          "withdrawal_fee": 0.01457324,
+        #          "min_withdrawal_fee": 0.000001,
+        #          "min_confirmations": 1,
+        #          "fee_precision": 8,
+        #          "currency_long": "Solana",
+        #          "currency": "SOL",
+        #          "coin_type": "SOL"
+        #        },
+        #        ...
+        #      ],
+        #      "usIn": 1688652701456124,
+        #      "usOut": 1688652701456390,
+        #      "usDiff": 266,
+        #      "testnet": True
+        #    }
+        #
+        data = self.safe_value(response, 'result', {})
+        result = {}
+        for i in range(0, len(data)):
+            currency = data[i]
+            currencyId = self.safe_string(currency, 'currency')
+            code = self.safe_currency_code(currencyId)
+            name = self.safe_string(currency, 'currency_long')
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': name,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': self.safe_number(currency, 'withdrawal_fee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'fee_precision'))),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'networks': None,
+            }
+        return result
 
     def code_from_options(self, methodName, params={}):
         defaultCode = self.safe_value(self.options, 'code', 'BTC')

@@ -75,7 +75,6 @@ class gate extends Exchange {
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'createDepositAddress' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -1740,17 +1739,6 @@ class gate extends Exchange {
             );
         }
         return $result;
-    }
-
-    public function create_deposit_address(string $code, $params = array ()) {
-        /**
-         * create a currency deposit address
-         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
-         * @param {string} $code unified currency $code of the currency for the deposit address
-         * @param {array} [$params] extra parameters specific to the gate api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
-         */
-        return $this->fetch_deposit_address($code, $params);
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {

@@ -734,7 +734,8 @@ class coinex extends coinex$1 {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        this.orders.append(parsedOrder);
+        const orders = this.orders;
+        orders.append(parsedOrder);
         let messageHash = 'orders';
         client.resolve(this.orders, messageHash);
         messageHash += ':' + parsedOrder['symbol'];

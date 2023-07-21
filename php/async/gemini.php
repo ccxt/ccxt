@@ -79,7 +79,7 @@ class gemini extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'postOnly' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -264,42 +264,24 @@ class gemini extends Exchange {
                 ),
                 'fetchCurrencies' => array(
                     'webApiEnable' => true, // fetches from WEB
-                    'webApiRetries' => 10,
+                    'webApiRetries' => 5,
+                    'webApiMuteFailure' => true,
                 ),
                 'fetchUsdtMarkets' => array( 'btcusdt', 'ethusdt' ), // keep this list updated (not available trough web api)
                 'fetchTickerMethod' => 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
-                'networkIds' => array(
-                    'bitcoin' => 'BTC',
-                    'ethereum' => 'ERC20',
-                    'bitcoincash' => 'BCH',
-                    'litecoin' => 'LTC',
-                    'zcash' => 'ZEC',
-                    'filecoin' => 'FIL',
-                    'dogecoin' => 'DOGE',
-                    'tezos' => 'XTZ',
-                    'avalanche' => 'AVALANCHE_X',
-                    'solana' => 'SOLANA',
-                    'cosmos' => 'COSMOS',
-                    'polkadot' => 'POLKADOT',
-                ),
                 'networks' => array(
                     'BTC' => 'bitcoin',
-                    'ETH' => 'ethereum',
                     'ERC20' => 'ethereum',
                     'BCH' => 'bitcoincash',
                     'LTC' => 'litecoin',
-                    'ZCASH' => 'zcash',
                     'ZEC' => 'zcash',
-                    'FILECOIN' => 'filecoin',
                     'FIL' => 'filecoin',
-                    'DOGECOIN' => 'dogecoin',
                     'DOGE' => 'dogecoin',
-                    'TEZOS' => 'tezos',
                     'XTZ' => 'tezos',
-                    'AVALANCHE_X' => 'avalanche',
-                    'SOLANA' => 'solana',
-                    'COSMOS' => 'cosmos',
-                    'POLKADOT' => 'polkadot',
+                    'AVAXX' => 'avalanche',
+                    'SOL' => 'solana',
+                    'ATOM' => 'cosmos',
+                    'DOT' => 'polkadot',
                 ),
                 'nonce' => 'milliseconds', // if getting a Network 400 error change to seconds
             ),
@@ -1572,14 +1554,13 @@ class gemini extends Exchange {
         return $this->seconds();
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @deprecated
-             * use fetchDepositsWithdrawals instead
-             * @param {string} $code not used by gemini.fetchTransactions
-             * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
-             * @param {int} [$limit] max number of transactions to return, default is null
+             * fetch history of deposits and withdrawals
+             * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
+             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+             * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the gemini api endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */

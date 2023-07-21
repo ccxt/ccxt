@@ -455,6 +455,7 @@ class huobi extends huobi$1 {
                             // Trading
                             'v1/order/orders/place': 0.2,
                             'v1/order/batch-orders': 0.4,
+                            'v1/order/auto/place': 0.2,
                             'v1/order/orders/{order-id}/submitcancel': 0.2,
                             'v1/order/orders/submitCancelClientOrder': 0.2,
                             'v1/order/orders/batchCancelOpenOrders': 0.4,
@@ -596,6 +597,7 @@ class huobi extends huobi$1 {
                             // Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
                             'linear-swap-api/v3/unified_account_info': 1,
+                            'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
                         },
                         'post': {
@@ -622,6 +624,7 @@ class huobi extends huobi$1 {
                             'api/v3/contract_financial_record': 1,
                             'api/v3/contract_financial_record_exact': 1,
                             // Future Trade Interface
+                            'api/v1/contract-cancel-after': 1,
                             'api/v1/contract_order': 1,
                             'v1/contract_batchorder': 1,
                             'api/v1/contract_cancel': 1,
@@ -679,6 +682,7 @@ class huobi extends huobi$1 {
                             'swap-api/v3/swap_financial_record': 1,
                             'swap-api/v3/swap_financial_record_exact': 1,
                             // Swap Trade Interface
+                            'swap-api/v1/swap-cancel-after': 1,
                             'swap-api/v1/swap_order': 1,
                             'swap-api/v1/swap_batchorder': 1,
                             'swap-api/v1/swap_cancel': 1,
@@ -776,6 +780,7 @@ class huobi extends huobi$1 {
                             'linear-swap-api/v1/swap_cross_matchresults': 1,
                             'linear-swap-api/v1/swap_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v1/linear-cancel-after': 1,
                             'linear-swap-api/v1/swap_switch_position_mode': 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
                             'linear-swap-api/v3/swap_matchresults': 1,
@@ -786,6 +791,7 @@ class huobi extends huobi$1 {
                             'linear-swap-api/v3/swap_cross_hisorders': 1,
                             'linear-swap-api/v3/swap_hisorders_exact': 1,
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
+                            'linear-swap-api/v3/fix_position_margin_change': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
@@ -837,6 +843,7 @@ class huobi extends huobi$1 {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': errors.OnMaintenance,
                     'maintain': errors.OnMaintenance,
+                    'API key has no permission': errors.PermissionDenied, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: API key has no permission [API Key没有权限]","data":null}
                 },
                 'exact': {
                     // err-code
@@ -2328,12 +2335,10 @@ class huobi extends huobi$1 {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrderTrades', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'fetchSpotOrderTrades',
-            // 'swap': 'fetchContractOrderTrades',
-            // 'future': 'fetchContractOrderTrades',
-        });
-        return await this[method](id, symbol, since, limit, params);
+        if (marketType !== 'spot') {
+            throw new errors.NotSupported(this.id + ' fetchOrderTrades() is only supported for spot markets');
+        }
+        return await this.fetchSpotOrderTrades(id, symbol, since, limit, params);
     }
     async fetchSpotOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2788,16 +2793,37 @@ class huobi extends huobi$1 {
             'code': undefined,
         };
     }
-    async fetchAccountIdByType(type, params = {}) {
+    async fetchAccountIdByType(type, marginMode = undefined, symbol = undefined, params = {}) {
         const accounts = await this.loadAccounts();
-        const accountId = this.safeValue(params, 'account-id');
+        const accountId = this.safeValue2(params, 'accountId', 'account-id');
         if (accountId !== undefined) {
             return accountId;
         }
-        const indexedAccounts = this.indexBy(accounts, 'type');
+        if (type === 'spot') {
+            if (marginMode === 'cross') {
+                type = 'super-margin';
+            }
+            else if (marginMode === 'isolated') {
+                type = 'margin';
+            }
+        }
+        const marketId = (symbol === undefined) ? undefined : this.marketId(symbol);
+        for (let i = 0; i < accounts.length; i++) {
+            const account = accounts[i];
+            const info = this.safeValue(account, 'info');
+            const subtype = this.safeString(info, 'subtype', undefined);
+            const typeFromAccount = this.safeString(account, 'type');
+            if (type === 'margin') {
+                if (subtype === marketId) {
+                    return this.safeString(account, 'id');
+                }
+            }
+            else if (type === typeFromAccount) {
+                return this.safeString(account, 'id');
+            }
+        }
         const defaultAccount = this.safeValue(accounts, 0, {});
-        const account = this.safeValue(indexedAccounts, type, defaultAccount);
-        return this.safeString(account, 'id');
+        return this.safeString(defaultAccount, 'id');
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -2991,7 +3017,7 @@ class huobi extends huobi$1 {
             }
             else {
                 await this.loadAccounts();
-                const accountId = await this.fetchAccountIdByType(type, params);
+                const accountId = await this.fetchAccountIdByType(type, undefined, undefined, params);
                 request['account-id'] = accountId;
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
             }
@@ -3834,19 +3860,18 @@ class huobi extends huobi$1 {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'fetchSpotOrders',
-            'swap': 'fetchContractOrders',
-            'future': 'fetchContractOrders',
-        });
-        if (method === undefined) {
-            throw new errors.NotSupported(this.id + ' fetchOrders() does not support ' + marketType + ' markets yet');
-        }
         const contract = (marketType === 'swap') || (marketType === 'future');
         if (contract && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders');
         }
-        return await this[method](symbol, since, limit, params);
+        let response = undefined;
+        if (contract) {
+            response = await this.fetchContractOrders(symbol, since, limit, params);
+        }
+        else {
+            response = await this.fetchSpotOrders(symbol, since, limit, params);
+        }
+        return response;
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -3866,15 +3891,14 @@ class huobi extends huobi$1 {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'fetchClosedSpotOrders',
-            'swap': 'fetchClosedContractOrders',
-            'future': 'fetchClosedContractOrders',
-        });
-        if (method === undefined) {
-            throw new errors.NotSupported(this.id + ' fetchClosedOrders() does not support ' + marketType + ' markets yet');
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.fetchClosedSpotOrders(symbol, since, limit, params);
         }
-        return await this[method](symbol, since, limit, params);
+        else {
+            response = await this.fetchClosedContractOrders(symbol, since, limit, params);
+        }
+        return response;
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -4544,6 +4568,15 @@ class huobi extends huobi$1 {
          * @method
          * @name huobi#createOrder
          * @description create a trade order
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -4563,21 +4596,36 @@ class huobi extends huobi$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('createOrder', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'createSpotOrder',
-            'swap': 'createContractOrder',
-            'future': 'createContractOrder',
-        });
-        if (method === undefined) {
-            throw new errors.NotSupported(this.id + ' createOrder() does not support ' + marketType + ' markets yet');
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.createSpotOrder(symbol, type, side, amount, price, query);
         }
-        return await this[method](symbol, type, side, amount, price, query);
+        else {
+            response = await this.createContractOrder(symbol, type, side, amount, price, query);
+        }
+        return response;
     }
     async createSpotOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name huobi#createSpotOrder
+         * @description create a spot trade order
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets();
         await this.loadAccounts();
         const market = this.market(symbol);
-        const accountId = await this.fetchAccountIdByType(market['type']);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        const accountId = await this.fetchAccountIdByType(market['type'], marginMode, symbol);
         const request = {
             // spot -----------------------------------------------------------
             'account-id': accountId,
@@ -4603,7 +4651,6 @@ class huobi extends huobi$1 {
         else {
             const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
             const stopOperator = this.safeString(params, 'operator', defaultOperator);
-            params = this.omit(params, ['stopPrice', 'stop-price']);
             request['stop-price'] = this.priceToPrecision(symbol, stopPrice);
             request['operator'] = stopOperator;
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
@@ -4628,7 +4675,15 @@ class huobi extends huobi$1 {
         else {
             request['client-order-id'] = clientOrderId;
         }
-        params = this.omit(params, ['clientOrderId', 'client-order-id', 'postOnly']);
+        if (marginMode === 'cross') {
+            request['source'] = 'super-margin-api';
+        }
+        else if (marginMode === 'isolated') {
+            request['source'] = 'margin-api';
+        }
+        else if (marginMode === 'c2c') {
+            request['source'] = 'c2c-margin-api';
+        }
         if ((orderType === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
@@ -4657,6 +4712,7 @@ class huobi extends huobi$1 {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
+        params = this.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator']);
         const response = await this.spotPrivatePostV1OrderOrdersPlace(this.extend(request, params));
         //
         // spot
@@ -4686,6 +4742,23 @@ class huobi extends huobi$1 {
         };
     }
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name huobi#createContractOrder
+         * @description create a contract trade order
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const market = this.market(symbol);
         const request = {
             'contract_code': market['id'],
@@ -7157,7 +7230,7 @@ class huobi extends huobi$1 {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
-        const accountId = await this.fetchAccountIdByType('spot', params);
+        const accountId = await this.fetchAccountIdByType('spot', undefined, undefined, params);
         const request = {
             'accountId': accountId,
             // 'currency': code,
@@ -7708,7 +7781,7 @@ class huobi extends huobi$1 {
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         const marginAccounts = this.safeValue(this.options, 'marginAccounts', {});
         const accountType = this.getSupportedMapping(marginMode, marginAccounts);
-        const accountId = await this.fetchAccountIdByType(accountType, params);
+        const accountId = await this.fetchAccountIdByType(accountType, marginMode, symbol, params);
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision(code, amount),

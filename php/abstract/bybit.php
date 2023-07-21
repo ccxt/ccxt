@@ -244,6 +244,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function public_get_derivatives_v3_public_insurance($params = array()) {
         return $this->request('derivatives/v3/public/insurance', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_v5_market_time($params = array()) {
+        return $this->request('v5/market/time', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_v5_market_kline($params = array()) {
         return $this->request('v5/market/kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1566,6 +1569,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function publicGetDerivativesV3PublicInsurance($params = array()) {
         return $this->request('derivatives/v3/public/insurance', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetV5MarketTime($params = array()) {
+        return $this->request('v5/market/time', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetV5MarketKline($params = array()) {
         return $this->request('v5/market/kline', 'public', 'GET', $params, null, null, array("cost" => 1));

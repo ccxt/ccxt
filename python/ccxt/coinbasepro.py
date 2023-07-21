@@ -73,7 +73,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -1393,15 +1393,14 @@ class coinbasepro(Exchange, ImplicitAPI):
             response[i]['currency'] = code
         return self.parse_ledger(response, currency, since, limit)
 
-    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
+        fetch history of deposits and withdrawals
         see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
         see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :param str [params.id]: account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
@@ -1416,7 +1415,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 accountsByCurrencyCode = self.index_by(self.accounts, 'code')
                 account = self.safe_value(accountsByCurrencyCode, code)
                 if account is None:
-                    raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
+                    raise ExchangeError(self.id + ' fetchDepositsWithdrawals() could not find account id for ' + code)
                 id = account['id']
         request = {}
         if id is not None:
@@ -1500,7 +1499,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        return self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
+        return self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'deposit'}, params))
 
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1511,7 +1510,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        return self.fetch_transactions(code, since, limit, self.extend({'type': 'withdraw'}, params))
+        return self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')

@@ -374,13 +374,162 @@ export default class bitmart extends Exchange {
                 'TRU': 'Truebit', // conflict with TrueFi
             },
             'options': {
-                'networks': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
-                },
+                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'USDT': 'ERC20',
                 },
+                'networks': {
+                    'ERC20': 'ERC20',
+                    'BTC': 'BTC',
+                    'TRC20': 'TRC20',
+                    // todo: should be TRX after unification
+                    // 'TRC20': [ 'TRC20', 'trc20', 'TRON' ], // todo: after unification i.e. TRON is returned from fetchDepositAddress
+                    // 'ERC20': [ 'ERC20', 'ERC-20', 'ERC20 ' ], // todo: after unification
+                    'OMNI': 'OMNI',
+                    'XLM': 'XLM',
+                    'EOS': 'EOS',
+                    'NEO': 'NEO',
+                    'BTM': 'BTM',
+                    'BCH': 'BCH',
+                    'LTC': 'LTC',
+                    'BSV': 'BSV',
+                    'XRP': 'XRP',
+                    // 'VECHAIN': [ 'VET', 'Vechain' ], // todo: after unification
+                    'PLEX': 'PLEX',
+                    'XCH': 'XCH',
+                    // 'AVALANCHE_C': [ 'AVAX', 'AVAX-C' ], // todo: after unification
+                    'NEAR': 'NEAR',
+                    'FIO': 'FIO',
+                    'SCRT': 'SCRT',
+                    'IOTX': 'IOTX',
+                    'SOL': 'SOL',
+                    'ALGO': 'ALGO',
+                    'ATOM': 'ATOM',
+                    'DOT': 'DOT',
+                    'ADA': 'ADA',
+                    'DOGE': 'DOGE',
+                    'XYM': 'XYM',
+                    'GLMR': 'GLMR',
+                    'MOVR': 'MOVR',
+                    'ZIL': 'ZIL',
+                    'INJ': 'INJ',
+                    'KSM': 'KSM',
+                    'ZEC': 'ZEC',
+                    'NAS': 'NAS',
+                    // 'POLYGON': [ 'MATIC', 'Polygon', 'POLYGON' ], // todo: after unification
+                    'HRC20': 'HECO',
+                    'XDC': 'XDC',
+                    'ONE': 'ONE',
+                    'LAT': 'LAT',
+                    'CSPR': 'Casper',
+                    'ICP': 'Computer',
+                    'XTZ': 'XTZ',
+                    'MINA': 'MINA',
+                    // 'BEP20': [ 'BEP20', 'BSC_BNB', 'bep20' ], // todo: after unification
+                    'THETA': 'THETA',
+                    'AKT': 'AKT',
+                    'AR': 'AR',
+                    'CELO': 'CELO',
+                    'FIL': 'FIL',
+                    'NULS': 'NULS',
+                    'ETC': 'ETC',
+                    'DASH': 'DASH',
+                    'DGB': 'DGB',
+                    'BEP2': 'BEP2',
+                    'GRIN': 'GRIN',
+                    'WAVES': 'WAVES',
+                    'ABBC': 'ABBC',
+                    'ACA': 'ACA',
+                    'QTUM': 'QTUM',
+                    'PAC': 'PAC',
+                    // 'TERRACLASSIC': 'LUNC', // TBD
+                    // 'TERRA': 'Terra', // TBD
+                    // 'HEDERA': [ 'HBAR', 'Hedera', 'Hedera Mainnet' ], // todo: after unification
+                    'TLOS': 'TLOS',
+                    'KARDIA': 'KardiaChain',
+                    'FUSE': 'FUSE',
+                    'TRC10': 'TRC10',
+                    'FIRO': 'FIRO',
+                    'FTM': 'Fantom',
+                    // 'KLAYTN': [ 'klaytn', 'KLAY', 'Klaytn' ], // todo: after unification
+                    // 'ELROND': [ 'EGLD', 'Elrond eGold', 'MultiversX' ], // todo: after unification
+                    'EVER': 'EVER',
+                    'KAVA': 'KAVA',
+                    'HYDRA': 'HYDRA',
+                    'PLCU': 'PLCU',
+                    'BRISE': 'BRISE',
+                    // 'CRC20': [ 'CRO', 'CRO_Chain' ], // todo: after unification
+                    // 'CONFLUX': [ 'CFX eSpace', 'CFX' ], // todo: after unification
+                    'OPTIMISM': 'OPTIMISM',
+                    'REEF': 'REEF',
+                    'SYS': 'SYS', // NEVM is different
+                    'VITE': 'VITE',
+                    'STX': 'STX',
+                    'SXP': 'SXP',
+                    'BITCI': 'BITCI',
+                    // 'ARBITRUM': [ 'ARBI', 'Arbitrum' ], // todo: after unification
+                    'XRD': 'XRD',
+                    'ASTR': 'ASTAR',
+                    'ZEN': 'HORIZEN',
+                    'LTO': 'LTO',
+                    'ETHW': 'ETHW',
+                    'ETHF': 'ETHF',
+                    'IOST': 'IOST',
+                    // 'CHILIZ': [ 'CHZ', 'CHILIZ' ], // todo: after unification
+                    'APT': 'APT',
+                    // 'FLOW': [ 'FLOW', 'Flow' ], // todo: after unification
+                    'ONT': 'ONT',
+                    'EVMOS': 'EVMOS',
+                    'XMR': 'XMR',
+                    'OASYS': 'OAS',
+                    'OSMO': 'OSMO',
+                    'OMAX': 'OMAX Chain',
+                    'DESO': 'DESO',
+                    'BFIC': 'BFIC',
+                    'OHO': 'OHO',
+                    'CS': 'CS',
+                    'CHEQ': 'CHEQ',
+                    'NODL': 'NODL',
+                    'NEM': 'XEM',
+                    'FRA': 'FRA',
+                    'ERGO': 'ERG',
+                    // todo: below will be uncommented after unification
+                    // 'BITCOINHD': 'BHD',
+                    // 'CRUST': 'CRU',
+                    // 'MINTME': 'MINTME',
+                    // 'ZENITH': 'ZENITH',
+                    // 'ZENIQ': 'ZENIQ', // "ZEN-20" is different
+                    // 'BITCOINVAULT': 'BTCV',
+                    // 'MOBILECOIN': 'MBX',
+                    // 'PINETWORK': 'PI',
+                    // 'PI': 'PI',
+                    // 'REBUS': 'REBUS',
+                    // 'XODEX': 'XODEX',
+                    // 'ULTRONGLOW': 'UTG'
+                    // 'QIBLOCKCHAIN': 'QIE',
+                    // 'XIDEN': 'XDEN',
+                    // 'PHAETON': 'PHAE',
+                    // 'REDLIGHT': 'REDLC',
+                    // 'VERITISE': 'VTS',
+                    // 'VERIBLOCK': 'VBK',
+                    // 'RAMESTTA': 'RAMA',
+                    // 'BITICA': 'BDCC',
+                    // 'CROWNSOVEREIGN': 'CSOV',
+                    // 'DRAC': 'DRC20',
+                    // 'QCHAIN': 'QDT',
+                    // 'KINGARU': 'KRU',
+                    // 'PROOFOFMEMES': 'POM',
+                    // 'CUBE': 'CUBE',
+                    // 'CADUCEUS': 'CMP',
+                    // 'VEIL': 'VEIL',
+                    // 'ENERGYWEB': 'EWT',
+                    // 'CYPHERIUM': 'CPH',
+                    // 'LBRY': 'LBC',
+                    // 'ETHERCOIN': 'ETE',
+                    // undetermined chains:
+                    // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
+                },
+                'currencyIdsIncludeNetworkTitles': true,
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'account'
@@ -709,34 +858,32 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetAccountV1Currencies (params);
+        const response = await this.publicGetSpotV1Currencies (params);
         //
         //     {
-        //         "message": "OK",
-        //         "code": 1000,
-        //         "trace": "c25d91c7-359a-47e4-80c4-4a6a2c19be2f",
-        //         "data": {
-        //             "currencies": [
-        //                  {
-        //                     "currency": "USDT-SPL",
-        //                     "name": "USDT-SPL",
-        //                     "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-        //                     "network": "SOL",
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
+        //         "data":{
+        //             "currencies":[
+        //                 {
+        //                     "id": "USDT-TRC20",
+        //                     "name": "USDT-TRC20",
         //                     "withdraw_enabled": true,
-        //                     "deposit_enabled": true,
-        //                     "withdraw_minsize": "20",
-        //                     "withdraw_minfee": null
-        //                  },
-        //                  {
-        //                     "currency": "USDT",
-        //                     "name": "Tether USD",
-        //                     "contract_address": null,
-        //                     "network": "OMNI",
-        //                     "withdraw_enabled": false,
-        //                     "deposit_enabled": false,
-        //                     "withdraw_minsize": "10",
-        //                     "withdraw_minfee": null
-        //                  },
+        //                     "deposit_enabled": true
+        //                 },
+        //                 {
+        //                     "id": "USDT-ERC20",
+        //                     "name": "USDT-ERC20",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true
+        //                 },
+        //                 {
+        //                     "id": "ATOM",
+        //                     "name": "Cosmos",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true
+        //                 },
         //             ]
         //         }
         //    }
@@ -748,41 +895,39 @@ export default class bitmart extends Exchange {
             const currency = currencies[i];
             const currencyId = this.safeString (currency, 'currency'); // USDT-BEP20, USDT-TRX, etc
             const parts = currencyId.split ('-');
-            const currencyName = parts[0];
-            const code = this.safeCurrencyCode (currencyName);
+            const currencyTitle = parts[0];
+            const networkTitle = this.safeString2 (parts, 1, 0); // if there is no dedicated network-part after hyphen, then use the currencyTitle itself (i.e. ATOM, ALGO ...)
+            const code = this.safeCurrencyCode (currencyTitle);
             // if it's first time of the currency loop
             if (!(code in result)) {
                 result[code] = this.safeCurrencyStructure ({
                     'info': [],
-                    'id': currencyName, // not 'currencyId' (USDT-BEP20, USDT-TRX, ...) but name itself (USDT)
-                    'lowerCaseId': currencyName.toLowerCase (),
+                    'id': currencyTitle, // not actual 'currencyId' (USDT-BEP20, USDT-TRX, ...) but name itself (USDT)
+                    'lowerCaseId': currencyTitle.toLowerCase (),
                     'code': code,
                     'name': this.safeString (currency, 'name'),
                     'limits': this.limits,
+                    'networks': {},
                 });
             }
-            // now (as currency entry is defined in results) then just add the current parsed entry into it's networks
-            // below are network-specific values
-            const networkId = this.safeString (currency, 'network');
-            const networkCode = this.networkIdToCode (networkId);
-            this.setNetworkMappingsForUniqueCurrencyId (currencyId, code, networkId, networkCode);
+            // now (as currency entry is defined in results) just add the current parsed entry into its networks
+            this.setNetworkMappingForCurrencyNetworkJunction (code, currencyId, networkTitle);
+            const networkCode = this.networkIdToCode (networkTitle);
             const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
             const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
-            const withdraw_minsize = this.safeString (currency, 'withdraw_minsize');
-            const withdraw_minfee = this.safeString (currency, 'withdraw_minfee');
             const precisionString = this.options['currencyPrecision'];
             result[code]['networks'][networkCode] = {
                 'info': currency,
-                'id': networkId,
+                'id': networkTitle,
                 'network': networkCode,
                 'active': (deposit_enabled || withdraw_enabled),
                 'deposit': deposit_enabled,
                 'withdraw': withdraw_enabled,
-                'fee': this.parseNumber (withdraw_minfee),
+                'fee': undefined,
                 'precision': this.parseNumber (precisionString),
                 'limits': {
                     'withdraw': {
-                        'min': this.parseNumber (withdraw_minsize),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
@@ -800,40 +945,11 @@ export default class bitmart extends Exchange {
             if (result[code]['precision'] === undefined) {
                 result[code]['precision'] = precisionString;
             } else {
-                const minPrecisionString = this.numberToString (result[code]['precision']);
-                result[code]['precision'] = Precise.stringMin (minPrecisionString, precisionString);
+                result[code]['precision'] = Precise.stringMin (this.numberToString (result[code]['precision']), precisionString);
             }
+            result[code]['precision'] = this.parseNumber (result[code]['precision']);
         }
         return result;
-    }
-
-    handleNetworkCodeAndParamsWithCurrencyId (currencyCode, params = {}) {
-        let networkCode = undefined;
-        let currencyId = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        // if 'network' was not passed by user, then we might try to mean that user might have passed an exchange-specific currency-id (i.e. USDT-TRC20) and we should handle it too
-        if (networkCode === undefined) {
-            currencyId = currencyCode;
-            networkCode = this.safeString (this.generatedNetworkData['currencyIdToNetworkCode'], currencyId);
-            if (networkCode === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() can not derive the network, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
-            }
-        } else {
-            const mappings = this.safeValue (this.generatedNetworkData['networkCodeToCurrencyId'], networkCode, {});
-            currencyId = this.safeString (mappings, currencyCode);
-            if (currencyId === undefined) {
-                // todo: temporary manual support for aliases, before "networks-unification" PR is merged
-                if (networkCode === 'TRX') {
-                    params['network'] = 'TRC20';
-                    return this.handleNetworkCodeAndParamsWithCurrencyId (currencyCode, params);
-                } else if (networkCode === 'ETH') {
-                    params['network'] = 'ERC20';
-                    return this.handleNetworkCodeAndParamsWithCurrencyId (currencyCode, params);
-                }
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() can not derive the currencyId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
-            }
-        }
-        return [ currencyId, networkCode, params ];
     }
 
     currency (code) {
@@ -845,6 +961,27 @@ export default class bitmart extends Exchange {
             const unifiedCurrencyCode = this.safeString (this.generatedNetworkData['currencyIdToCurrencyCode'], code, code);
             return super.currency (unifiedCurrencyCode);
         }
+    }
+
+    handleNetworkCodeAndCurrencyId (currencyCode, params = {}) {
+        let networkCode = undefined;
+        let currencyId = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            const mappings = this.safeValue (this.generatedNetworkData['networkCodeToCurrencyId'], currencyCode, {});
+            currencyId = this.safeString (mappings, networkCode);
+            if (currencyId === undefined) {
+                throw new ArgumentsRequired (this.id + ' handleNetworkCodeAndCurrencyId() can not derive the currencyId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
+            }
+        } else {
+            // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific currency-id (i.e. USDT-TRC20) and we should handle it too
+            currencyId = currencyCode;
+            networkCode = this.safeString (this.generatedNetworkData['currencyIdToNetworkCode'], currencyId);
+            if (networkCode === undefined) {
+                throw new ArgumentsRequired (this.id + ' handleNetworkCodeAndCurrencyId() can not derive the network, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
+            }
+        }
+        return [ networkCode, currencyId, params ];
     }
 
     async fetchTransactionFee (code: string, params = {}) {
@@ -923,7 +1060,7 @@ export default class bitmart extends Exchange {
         let networkCode = undefined;
         let currencyId = undefined;
         // eslint-disable-next-line no-unused-vars
-        [ currencyId, networkCode, params ] = this.handleNetworkCodeAndParamsWithCurrencyId (currency['code'], params);
+        [ networkCode, currencyId, params ] = this.handleNetworkCodeAndCurrencyId (code, params);
         const request = {
             'currency': currencyId,
         };
@@ -942,7 +1079,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = response['data'];
-        return this.parseDepositWithdrawFee (data);
+        return this.parseDepositWithdrawFee (data, currency);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -2290,7 +2427,7 @@ export default class bitmart extends Exchange {
         let currency = this.currency (code);
         let networkCode = undefined;
         let currencyId = undefined;
-        [ currencyId, networkCode, params ] = this.handleNetworkCodeAndParamsWithCurrencyId (code, params);
+        [ networkCode, currencyId, params ] = this.handleNetworkCodeAndCurrencyId (code, params);
         const request = {
             'currency': currencyId,
         };
@@ -2328,11 +2465,6 @@ export default class bitmart extends Exchange {
         };
     }
 
-    safeNetwork (networkId) {
-        // TODO: parse
-        return networkId;
-    }
-
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
@@ -2360,7 +2492,7 @@ export default class bitmart extends Exchange {
         let networkCode = undefined;
         let currencyId = undefined;
         // eslint-disable-next-line no-unused-vars
-        [ currencyId, networkCode, params ] = this.handleNetworkCodeAndParamsWithCurrencyId (code, params);
+        [ networkCode, currencyId, params ] = this.handleNetworkCodeAndCurrencyId (code, params);
         request['currency'] = currencyId;
         const response = await this.privatePostAccountV1WithdrawApply (this.extend (request, params));
         //
@@ -2398,7 +2530,7 @@ export default class bitmart extends Exchange {
             let networkCode = undefined;
             let currencyId = undefined;
             // eslint-disable-next-line no-unused-vars
-            [ currencyId, networkCode, params ] = this.handleNetworkCodeAndParamsWithCurrencyId (code, params);
+            [ networkCode, currencyId, params ] = this.handleNetworkCodeAndCurrencyId (code, params);
             request['currency'] = currencyId;
         }
         const response = await this.privateGetAccountV2DepositWithdrawHistory (this.extend (request, params));

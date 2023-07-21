@@ -241,34 +241,15 @@ class bitmex(Exchange, ImplicitAPI):
                 'oldPrecision': False,
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
                     'BEP20': 'bsc',
-                    'BSC': 'bsc',
                     'TRC20': 'tron',
-                    'TRON': 'tron',
-                    'TRX': 'tron',
-                    'AVALANCHEC': 'avax',
+                    'AVAXC': 'avax',
                     'NEAR': 'near',
-                    'TEZOS': 'xtz',
                     'XTZ': 'xtz',
-                    'POLKADOT': 'dot',
                     'DOT': 'dot',
-                    'SOLANA': 'sol',
                     'SOL': 'sol',
-                    'CARDANO': 'ada',
-                },
-                'networksById': {
-                    'btc': 'BTC',
-                    'eth': 'ERC20',
-                    'bsc': 'BEP20',
-                    'tron': 'TRC20',
-                    'avax': 'AVALANCHEC',
-                    'near': 'NEAR',
-                    'xtz': 'TEZOS',
-                    'dot': 'POLKADOT',
-                    'sol': 'SOLANA',
-                    'ada': 'CARDANO',
+                    'ADA': 'ada',
                 },
             },
             'commonCurrencies': {
@@ -1143,13 +1124,12 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the bitmex api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
@@ -1175,6 +1155,7 @@ class bitmex(Exchange, ImplicitAPI):
 
     def parse_transaction_status(self, status):
         statuses = {
+            'Confirmed': 'pending',
             'Canceled': 'canceled',
             'Completed': 'ok',
             'Pending': 'pending',
@@ -1220,7 +1201,8 @@ class bitmex(Exchange, ImplicitAPI):
             addressTo = self.safe_string(transaction, 'address')
             addressFrom = self.safe_string(transaction, 'tx')
         amountString = self.safe_string(transaction, 'amount')
-        amount = self.convert_to_real_amount(currency['code'], amountString)
+        amountStringAbs = Precise.string_abs(amountString)
+        amount = self.convert_to_real_amount(currency['code'], amountStringAbs)
         feeCostString = self.safe_string(transaction, 'fee')
         feeCost = self.convert_to_real_amount(currency['code'], feeCostString)
         status = self.safe_string(transaction, 'transactStatus')
@@ -1232,7 +1214,7 @@ class bitmex(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': self.safe_string(transaction, 'network'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), currency['code']),
             'amount': amount,
             'status': status,
             'timestamp': transactTime,

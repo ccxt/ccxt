@@ -613,12 +613,13 @@ class krakenfutures extends krakenfutures$1 {
         const limit = this.safeInteger(this.options, 'ordersLimit');
         this.orders = new Cache.ArrayCacheBySymbolById(limit);
         const symbols = {};
+        const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const parsed = this.parseWsOrder(order);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
-            this.orders.append(parsed);
+            cachedOrders.append(parsed);
         }
         if (this.orders.length > 0) {
             client.resolve(this.orders, 'orders');

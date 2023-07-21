@@ -62,7 +62,7 @@ class bitfinex2 extends bitfinex2$1 {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'withdraw': true,
             },
             'timeframes': {
@@ -1979,6 +1979,8 @@ class bitfinex2 extends bitfinex2$1 {
             'PENDING': 'pending',
             'PENDING REVIEW': 'pending',
             'PENDING CANCELLATION': 'pending',
+            'SENDING': 'pending',
+            'USER APPROVED': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -2007,7 +2009,7 @@ class bitfinex2 extends bitfinex2$1 {
         //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         //     ]
         //
-        // fetchTransactions
+        // fetchDepositsWithdrawals
         //
         //     [
         //         13293039, // ID
@@ -2234,15 +2236,14 @@ class bitfinex2 extends bitfinex2$1 {
         }
         return result;
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name bitfinex2#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name bitfinex2#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -2477,8 +2478,8 @@ class bitfinex2 extends bitfinex2$1 {
         }
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            const errorCode = this.numberToString(response[1]);
-            const errorText = response[2];
+            const errorCode = this.safeString(response, 1, '');
+            const errorText = this.safeString(response, 2, '');
             const feedback = this.id + ' ' + errorText;
             this.throwBroadlyMatchedException(this.exceptions['broad'], errorText, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

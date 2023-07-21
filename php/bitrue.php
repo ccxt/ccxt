@@ -243,11 +243,6 @@ class bitrue extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
-                    'TRON' => 'TRX',
-                ),
-                'networksById' => array(
-                    'TRX' => 'TRC20',
-                    'ETH' => 'ERC20',
                 ),
             ),
             'commonCurrencies' => array(

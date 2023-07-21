@@ -513,7 +513,8 @@ export default class bitpanda extends bitpandaRest {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         const order = this.parseTradingOrder(message);
-        this.orders.append(order);
+        const orders = this.orders;
+        orders.append(order);
         client.resolve(this.orders, 'orders:' + order['symbol']);
         client.resolve(this.orders, 'orders');
     }
@@ -710,10 +711,11 @@ export default class bitpanda extends bitpandaRest {
         if (rawOrdersLength === 0) {
             return;
         }
+        const orders = this.orders;
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.parseOrder(rawOrders[i]);
             let symbol = this.safeString(order, 'symbol', '');
-            this.orders.append(order);
+            orders.append(order);
             client.resolve(this.orders, 'orders:' + symbol);
             const rawTrades = this.safeValue(rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
@@ -957,6 +959,7 @@ export default class bitpanda extends bitpandaRest {
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         let symbol = undefined;
+        const orders = this.orders;
         const update = this.safeValue(message, 'update', {});
         const updateType = this.safeString(update, 'type');
         if (updateType === 'ORDER_REJECTED' || updateType === 'ORDER_CLOSED' || updateType === 'STOP_ORDER_TRIGGERED') {
@@ -970,7 +973,7 @@ export default class bitpanda extends bitpandaRest {
             if (updateType === 'ORDER_CLOSED' && filled === 0) {
                 status = 'canceled';
             }
-            this.orders.append({
+            orders.append({
                 'id': orderId,
                 'symbol': symbol,
                 'status': status,
@@ -981,7 +984,7 @@ export default class bitpanda extends bitpandaRest {
         else {
             const parsed = this.parseOrder(update);
             symbol = this.safeString(parsed, 'symbol', '');
-            this.orders.append(parsed);
+            orders.append(parsed);
         }
         client.resolve(this.orders, 'orders:' + symbol);
         client.resolve(this.orders, 'orders');

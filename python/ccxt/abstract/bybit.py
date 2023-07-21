@@ -81,6 +81,7 @@ class ImplicitAPI:
     public_get_derivatives_v3_public_recent_trade = publicGetDerivativesV3PublicRecentTrade = Entry('derivatives/v3/public/recent-trade', 'public', 'GET', {'cost': 1})
     public_get_derivatives_v3_public_open_interest = publicGetDerivativesV3PublicOpenInterest = Entry('derivatives/v3/public/open-interest', 'public', 'GET', {'cost': 1})
     public_get_derivatives_v3_public_insurance = publicGetDerivativesV3PublicInsurance = Entry('derivatives/v3/public/insurance', 'public', 'GET', {'cost': 1})
+    public_get_v5_market_time = publicGetV5MarketTime = Entry('v5/market/time', 'public', 'GET', {'cost': 1})
     public_get_v5_market_kline = publicGetV5MarketKline = Entry('v5/market/kline', 'public', 'GET', {'cost': 1})
     public_get_v5_market_mark_price_kline = publicGetV5MarketMarkPriceKline = Entry('v5/market/mark-price-kline', 'public', 'GET', {'cost': 1})
     public_get_v5_market_index_price_kline = publicGetV5MarketIndexPriceKline = Entry('v5/market/index-price-kline', 'public', 'GET', {'cost': 1})

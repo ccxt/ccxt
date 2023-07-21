@@ -118,6 +118,7 @@ const {
     , InvalidAddress
     , InvalidOrder
     , NotSupported
+    , BadResponse
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
@@ -735,6 +736,8 @@ export default class Exchange {
             this.setMarkets (this.markets)
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
+
+        this.afterConstruct ();
     }
 
     encodeURIComponent (...args) {
@@ -1490,7 +1493,7 @@ export default class Exchange {
             }
         }
         if (tail) {
-            return result.slice (-limit);
+            return this.arraySlice (result, -limit);
         }
         return this.filterByLimit (result, limit, key);
     }
@@ -1516,7 +1519,7 @@ export default class Exchange {
             }
         }
         if (tail) {
-            return result.slice (-limit);
+            return this.arraySlice (result, -limit);
         }
         return this.filterByLimit (result, limit, key);
     }
@@ -1686,23 +1689,34 @@ export default class Exchange {
     }
 
     afterConstruct () {
+        this.createNetworksByIdObject ();
         this.generatedNetworkData = {
             'currencyIdToCurrencyCode': {},
             'currencyIdToNetworkCode': {},
-            'currencyIdToNetworkId': {},
-            'networkCodeToCurrencyId': {},
+            'currencyCodeAndNetworkCodeToCurrencyId': {},
+            'curencyIdNetworkIdJunctions': [],
         };
     }
 
-    setNetworkMappingsForUniqueCurrencyId (currencyId, currencyCode, networkId, networkCode) {
+    setNetworkMappingForCurrencyNetworkJunction (currencyCode, currencyId, networkTitle) {
         // unique currency id means that exchange uses currency id junctions like: 'USDT-BEP20', 'USDT-TRX', etc
         this.generatedNetworkData['currencyIdToCurrencyCode'][currencyId] = currencyCode;
+        const networkCode = this.networkIdToCode (networkTitle);
         this.generatedNetworkData['currencyIdToNetworkCode'][currencyId] = networkCode;
-        this.generatedNetworkData['currencyIdToNetworkId'][currencyId] = networkId;
-        if (!(networkCode in this.generatedNetworkData['networkCodeToCurrencyId'])) {
-            this.generatedNetworkData['networkCodeToCurrencyId'][networkCode] = {};
+        if (!(currencyCode in this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'])) {
+            this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'][currencyCode] = {};
         }
-        this.generatedNetworkData['networkCodeToCurrencyId'][networkCode][currencyCode] = currencyId;
+        this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'][currencyCode][networkCode] = currencyId;
+    }
+
+    setNetworkMappingForUniqueNetworkId (currencyCode, currencyId, networkId) {
+        // this method is used when exchange uses unique network id (for same network) for different currencies, so, i.e. ethereum network might be referred with `usdtErc20` for usdt token, but `erc20Shib` for SHIB token
+    }
+
+    createNetworksByIdObject () {
+        // automatically generate network-id-to-code mappings
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
+        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
     }
 
     getDefaultOptions () {
@@ -2306,6 +2320,19 @@ export default class Exchange {
         return trade as Trade;
     }
 
+    invertFlatStringDictionary (dict) {
+        const reversed = {};
+        const keys = Object.keys (dict);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = dict[key];
+            if (typeof value === 'string') {
+                reversed[value] = key;
+            }
+        }
+        return reversed;
+    }
+
     reduceFeesByCurrency (fees) {
         //
         // this function takes a list of fee structures having the following format
@@ -2501,8 +2528,9 @@ export default class Exchange {
 
     async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
         let errorMessage = '';
+        const options = this.safeValue (this.options, method, {});
+        const muteOnFailure = this.safeValue (options, 'webApiMuteFailure', true);
         try {
-            const options = this.safeValue (this.options, method, {});
             // if it was not explicitly disabled, then don't fetch
             if (this.safeValue (options, 'webApiEnable', true) !== true) {
                 return undefined;
@@ -2534,14 +2562,20 @@ export default class Exchange {
                 const jsoned = this.parseJson (content.trim ()); // content should be trimmed before json parsing
                 if (jsoned) {
                     return jsoned; // if parsing was not successfull, exception should be thrown
+                } else {
+                    throw new BadResponse ('could not parse the response into json');
                 }
             } else {
                 return content;
             }
         } catch (e) {
-            errorMessage = e.toString ();
+            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        throw new NotSupported (this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage);
+        if (muteOnFailure) {
+            return undefined;
+        } else {
+            throw new BadResponse (errorMessage);
+        }
     }
 
     marketIds (symbols) {
@@ -2627,45 +2661,6 @@ export default class Exchange {
         return ohlcv;
     }
 
-    getNetwork (network: string, code: string): string {
-        network = network.toUpperCase ();
-        const aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
-        };
-        if (network === code) {
-            return network;
-        } else if (network in aliases) {
-            return aliases[network];
-        } else {
-            throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
-        }
-    }
-
     networkCodeToId (networkCode, currencyCode = undefined) {
         /**
          * @ignore
@@ -2714,9 +2709,9 @@ export default class Exchange {
          * @ignore
          * @method
          * @name exchange#networkIdToCode
-         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
-         * @param {string} networkId unified network code
-         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have "options['networksById']" defined.
+         * @param {string} networkId exchange specific network id/title, like: TRON, Trc-20, usdt-erc20, etc
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
         const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
@@ -3584,8 +3579,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
     }
 
-    async fetchTransactions (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
-        throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name exchange#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        throw new NotSupported (this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
 
     async fetchDeposits (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
@@ -3594,6 +3599,10 @@ export default class Exchange {
 
     async fetchWithdrawals (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
+    }
+
+    async fetchOpenInterest (symbol: string, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
     }
 
     parseLastPrice (price, market = undefined): any {
@@ -3712,7 +3721,7 @@ export default class Exchange {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new ArgumentsRequired (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
+            throw new InvalidOrder (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
         }
         return result;
     }
@@ -3721,7 +3730,7 @@ export default class Exchange {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new ArgumentsRequired (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
         }
         return result;
     }
@@ -4380,21 +4389,22 @@ export default class Exchange {
         return market;
     }
 
-    async fetchDepositsWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         /**
          * @method
-         * @name exchange#fetchDepositsWithdrawals
-         * @description fetch history of deposits and withdrawals
+         * @name exchange#fetchTransactions
+         * @deprecated
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
-        if (this.has['fetchTransactions']) {
-            return await this.fetchTransactions (code, since, limit, params);
+        if (this.has['fetchDepositsWithdrawals']) {
+            return await this.fetchDepositsWithdrawals (code, since, limit, params);
         } else {
-            throw new NotSupported (this.id + ' fetchDepositsWithdrawals () is not supported yet');
+            throw new NotSupported (this.id + ' fetchTransactions () is not supported yet');
         }
     }
 }
