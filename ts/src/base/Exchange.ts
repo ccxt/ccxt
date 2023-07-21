@@ -1393,19 +1393,30 @@ export default class Exchange {
 
     calculateWsTokenBucket (wsOptions, url, tokenKey = 'connections') {
         const rateLimits = this.safeValue (wsOptions, 'rateLimits');
-        if (rateLimits === undefined) {
+        const rateLimit = this.safeNumber (rateLimits, 'rateLimit');
+        if (rateLimits === undefined || rateLimit === undefined) {
             return this.tokenBucket; // default to the rest bucket
         }
-        let cost = 1;
+        let cost = undefined;
         const rateLimitsKeys = Object.keys (rateLimits);
         for (let i = 0; i < rateLimitsKeys.length; i++) {
             const rateLimitKey = rateLimitsKeys[i];
             if (url.startsWith (rateLimitKey)) {
                 const value = this.safeValue (rateLimits, rateLimitKey);
-                cost = this.safeInteger (value, tokenKey, cost);
+                cost = this.safeInteger (value, tokenKey);
             }
         }
-        const rateLimit = this.safeNumber (rateLimits, 'rateLimit');
+        if (cost === undefined) {
+            // try default
+            const defaultConfig = this.safeValue (rateLimits, 'default');
+            if (defaultConfig !== undefined) {
+                cost = this.safeInteger (defaultConfig, tokenKey);
+            }
+            if (cost === undefined) {
+                // default not found
+                return this.tokenBucket;
+            }
+        }
         const refillRate = (rateLimit !== undefined) ? (1 / rateLimit) : Number.MAX_SAFE_INTEGER;
         const tokenBucket = this.safeValue (rateLimits, 'tokenBucket', {});
         const config = this.extend ({
