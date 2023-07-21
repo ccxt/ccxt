@@ -35,6 +35,8 @@ export default class Client {
     ping: any
     subscriptions: {}
     throttle: any
+    connectionsThrottler: any
+    messagesThrottler: any
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,

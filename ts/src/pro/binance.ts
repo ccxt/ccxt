@@ -94,7 +94,17 @@ export default class binance extends binanceRest {
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
                 'ws': {
-                    'cost': 5,
+                    'rateLimits': {
+                        'rateLimit': 100,
+                        'default': {
+                            'connections': 1,
+                            'messages': 5,
+                        },
+                        'wss://testnet.binance.vision': {
+                            'connections': 5,
+                            'messages': 2,
+                        },
+                    },
                 },
             },
         });
