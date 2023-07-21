@@ -7228,10 +7228,7 @@ class huobi extends Exchange {
             '1d' => '1day',
         );
         $market = $this->market($symbol);
-        $amountType = $this->safe_number_2($params, 'amount_type', 'amountType');
-        if ($amountType === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenInterestHistory requires parameter $params->amountType to be either 1 (cont), or 2 (cryptocurrency)');
-        }
+        $amountType = $this->safe_integer_2($params, 'amount_type', 'amountType', 2);
         $request = array(
             'period' => $timeframes[$timeframe],
             'amount_type' => $amountType,
