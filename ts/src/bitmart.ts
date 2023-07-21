@@ -2430,9 +2430,8 @@ export default class bitmart extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         let currencyId = undefined;
-        // eslint-disable-next-line no-unused-vars
         [ currencyId, params ] = this.handleCurrencyIdAndParams (code, params);
         const request = {
             'currency': currencyId,
