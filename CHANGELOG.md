@@ -1,3 +1,46 @@
+## 4.0.33 (2023-07-20)
+
+*  fetchDepositWithdrawFees [cc2bc8d6f0](https://github.com/ccxt/ccxt/commits/cc2bc8d6f0ba313ba6e886b7e8294c9579aafd02)
+*  bitget: add convert apis [a455b6fb60](https://github.com/ccxt/ccxt/commits/a455b6fb60a14bd7b04263d55748e40ee5cc9802)
+*  binance: add apis [781bebee7d](https://github.com/ccxt/ccxt/commits/781bebee7dd0649ec2bff2928ac51ad97afd34d3)
+*  feat(delta): addMargin, reduceMargin [8fa434da8c](https://github.com/ccxt/ccxt/commits/8fa434da8c19aa05e7d56b1078b63781184990dd)
+*  feat(delta): fetchOpenInterest [5290eb3c2c](https://github.com/ccxt/ccxt/commits/5290eb3c2c4e9e11f748f9f6c39799f12e909c48)
+*  CR fixes [6e99fa995a](https://github.com/ccxt/ccxt/commits/6e99fa995ae8ce23d7662ad69a00af50888bd75e)
+*  several fixes [280edebf39](https://github.com/ccxt/ccxt/commits/280edebf39a2e3842568d260f7e7d61b710a2869)
+*  fix(kucoin): add kyc error [6e8ba04fc9](https://github.com/ccxt/ccxt/commits/6e8ba04fc9fa08de3bb58a3549f95917f374b262)
+*  handle generic errors [9f8d19a698](https://github.com/ccxt/ccxt/commits/9f8d19a69806053dbc5d491b3241d0de821f552c)
+*  mexc linting fix #18596 [1f53d1166c](https://github.com/ccxt/ccxt/commits/1f53d1166c6a2bb40d5dff95973e067d33564f12)
+*  travis.yml node js version updated with nvm install v18.17.0 [17778f61ea](https://github.com/ccxt/ccxt/commits/17778f61ea66c6593a19f7cdb7f6dbc7e3082f9d)
+*  4.0.33 [51a868c9dc](https://github.com/ccxt/ccxt/commits/51a868c9dcb677517362622b88f054bc54164eda)
+
+
+## 4.0.32 (2023-07-20)
+
+*  minor mistake [820026ce77](https://github.com/ccxt/ccxt/commits/820026ce77875bbe00c189e276acb2db9863cb53)
+*  fix(bitfinex2): protect handleErrors [e0921513fb](https://github.com/ccxt/ccxt/commits/e0921513fb5b2307e6886e478ea420b4a480de72)
+*  small update [2c34fb34d5](https://github.com/ccxt/ccxt/commits/2c34fb34d509bc3d4786809c51605d6e5d4e8fa6)
+*  fix [d724b1c845](https://github.com/ccxt/ccxt/commits/d724b1c8451a59855005b9c434f2b634a4b81950)
+*  4.0.32 [1cbc53d817](https://github.com/ccxt/ccxt/commits/1cbc53d8175d1525fe5917d4507b587c771073ff)
+
+
+## 4.0.31 (2023-07-19)
+
+*  networks [0f4943ff09](https://github.com/ccxt/ccxt/commits/0f4943ff094074a8a44ae6bb58182c8ff8937baa)
+*  fda [6fcdbf3a86](https://github.com/ccxt/ccxt/commits/6fcdbf3a8602839caad3902707ed83c7c2447f19)
+*  fix [c9a1c6ccec](https://github.com/ccxt/ccxt/commits/c9a1c6ccec45b1a19a8a385b2c5d93c6e800a54a)
+*  fda by networks [3c54bdb41f](https://github.com/ccxt/ccxt/commits/3c54bdb41fb4f1cdeaa138c3584e1eb3de04b834)
+*  upd [dd422b7dfa](https://github.com/ccxt/ccxt/commits/dd422b7dfa5f772ac15b8306ab403321019c77d3)
+*  Update okx.ts [c07106adaa](https://github.com/ccxt/ccxt/commits/c07106adaa46f1475ac1ed8c78f967fecc4738c7)
+*  Update hitbtc3.ts [292f83391d](https://github.com/ccxt/ccxt/commits/292f83391d5d017a7c9022aa12886ca2d5fbecdd)
+*  Update bigone.ts [9a7464b797](https://github.com/ccxt/ccxt/commits/9a7464b79792a538ab6acaa52c388c70ac33dd9c)
+*  Update bitmex.ts [07b668e363](https://github.com/ccxt/ccxt/commits/07b668e36349969c2c9ef9ed88cb9d3dcd74fef0)
+*  add algo [3d9f2e5d41](https://github.com/ccxt/ccxt/commits/3d9f2e5d41d407333c4eea9c1c3fead457a97777)
+*  mexc error remapping [0a9f98f3d7](https://github.com/ccxt/ccxt/commits/0a9f98f3d70e290312bce8c4df8ba0ae50d1e0b9)
+*  fix(base): python ws close [3568317863](https://github.com/ccxt/ccxt/commits/356831786369aa96c02088658962546ff7bd53d6)
+*  fix linting [cdc963030b](https://github.com/ccxt/ccxt/commits/cdc963030b0ef1676beb548f9c29480b14a7e1d6)
+*  4.0.31 [dfec27e852](https://github.com/ccxt/ccxt/commits/dfec27e852009da9ecf71095abf66bb00a81ec43)
+
+
 ## 4.0.30 (2023-07-18)
 
 *  Change name of method fetchTransactions to fetchDepositsWithdrawls [ada9a6a93d](https://github.com/ccxt/ccxt/commits/ada9a6a93de6df859168ad3cbbc364c0f750fb9c)
