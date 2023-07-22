@@ -1691,21 +1691,37 @@ export default class Exchange {
     afterConstruct () {
         this.createNetworksByIdObject ();
         this.generatedNetworkData = {
+            // for unique currency-network-id junctions (i.e. bitmart, etc)
             'currencyIdToCurrencyCode': {},
             'currencyIdToNetworkCode': {},
             'currencyCodeAndNetworkCodeToCurrencyId': {},
+            // for unique network-currency-id junctions (i.e. okx, etc)
+            'networkIdToCurrencyCode': {},
+            'networkIdToNetworkCode': {},
+            'currencyCodeAndNetworkCodeToNetworkId': {},
         };
     }
 
     setNetworkMappingForCurrencyNetworkJunction (currencyCode, currencyId, networkTitle) {
         // unique currency id means that exchange uses currency id junctions like: 'USDT-BEP20', 'USDT-TRX', etc
-        this.generatedNetworkData['currencyIdToCurrencyCode'][currencyId] = currencyCode;
         const networkCode = this.networkIdToCode (networkTitle);
+        this.generatedNetworkData['currencyIdToCurrencyCode'][currencyId] = currencyCode;
         this.generatedNetworkData['currencyIdToNetworkCode'][currencyId] = networkCode;
         if (!(currencyCode in this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'])) {
             this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'][currencyCode] = {};
         }
         this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'][currencyCode][networkCode] = currencyId;
+    }
+
+    setNetworkMappingForNetworkCurrencyJunction (currencyCode, networkId, networkTitle) {
+        // this method is used when exchange uses unique network id (for same network) for different currencies, such as a currency object might have multiple network objects in its dictionary, but each network's id would be unique, i.e. ethereum network might be referred with `usdtErc20` for usdt token, but `erc20Shib` for SHIB token
+        const networkCode = this.networkIdToCode (networkTitle);
+        this.generatedNetworkData['networkIdToCurrencyCode'][networkId] = currencyCode;
+        this.generatedNetworkData['networkIdToNetworkCode'][networkId] = networkCode;
+        if (!(currencyCode in this.generatedNetworkData['currencyCodeAndNetworkCodeToNetworkId'])) {
+            this.generatedNetworkData['currencyCodeAndNetworkCodeToNetworkId'][currencyCode] = {};
+        }
+        this.generatedNetworkData['currencyCodeAndNetworkCodeToNetworkId'][currencyCode][networkCode] = networkId;
     }
 
     createNetworksByIdObject () {
