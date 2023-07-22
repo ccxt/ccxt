@@ -961,18 +961,7 @@ export default class huobi extends Exchange {
                     'POLYGON': 'PRC20',
                     'MATIC': 'PRC20',
                 },
-                'networksById': {
-                    'ALGO': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'AVAXCCHAIN': 'AVALANCHE',
-                    'HECO': 'HRC20',
-                    'TRC20': 'TRC20',
-                    'BTC': 'BTC',
-                    'ARB': 'ARBITRUM',
-                    'SOL': 'SOLANA',
-                    'PRC20': 'POLYGON',
-                },
+                'networksAreTitlesInsteadOfIds': true,
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'createMarketBuyOrderRequiresPrice': true,
@@ -2807,51 +2796,69 @@ export default class huobi extends Exchange {
          */
         const response = await this.spotPublicGetV2ReferenceCurrencies (params);
         //
-        //    {
-        //        "code": 200,
-        //        "data": [
-        //            {
-        //                "currency": "sxp",
-        //                "assetType": "1",
-        //                "chains": [
-        //                    {
-        //                        "chain": "sxp",
-        //                        "displayName": "ERC20",
-        //                        "baseChain": "ETH",
-        //                        "baseChainProtocol": "ERC20",
-        //                        "isDynamic": true,
-        //                        "numOfConfirmations": "12",
-        //                        "numOfFastConfirmations": "12",
-        //                        "depositStatus": "allowed",
-        //                        "minDepositAmt": "0.23",
-        //                        "withdrawStatus": "allowed",
-        //                        "minWithdrawAmt": "0.23",
-        //                        "withdrawPrecision": "8",
-        //                        "maxWithdrawAmt": "227000.000000000000000000",
-        //                        "withdrawQuotaPerDay": "227000.000000000000000000",
-        //                        "withdrawQuotaPerYear": null,
-        //                        "withdrawQuotaTotal": null,
-        //                        "withdrawFeeType": "fixed",
-        //                        "transactFeeWithdraw": "11.1653",
-        //                        "addrWithTag": false,
-        //                        "addrDepositTag": false
-        //                    }
-        //                ],
-        //                "instStatus": "normal"
-        //            }
-        //        ]
-        //    }
-        //    }
+        //     {
+        //         "code": 200,
+        //         "data": [
+        //           {
+        //             "currency": "usdt",
+        //             "assetType": 1,
+        //             "chains": [
+        //               {
+        //                 "chain": "algousdt",
+        //                 "displayName": "ALGO",
+        //                 "fullName": "",
+        //                 "isDynamic": false,
+        //                 "numOfConfirmations": 60,
+        //                 "numOfFastConfirmations": 15,
+        //                 "depositStatus": "allowed",
+        //                 "minDepositAmt": "1",
+        //                 "withdrawStatus": "allowed",
+        //                 "minWithdrawAmt": "2",
+        //                 "withdrawPrecision": 6,
+        //                 "maxWithdrawAmt": "1000000.000000000000000000",
+        //                 "withdrawQuotaPerDay": "1000000.000000000000000000",
+        //                 "withdrawQuotaPerYear": null,
+        //                 "withdrawQuotaTotal": null,
+        //                 "withdrawFeeType": "fixed",
+        //                 "transactFeeWithdraw": "0.001",
+        //                 "addrWithTag": false,
+        //                 "addrDepositTag": false
+        //               },
+        //               {
+        //                 "chain": "btt2usdt",
+        //                 "displayName": "BTT",
+        //                 "fullName": "BTT",
+        //                 "baseChain": "BTT",
+        //                 "baseChainProtocol": "BTTRC20",
+        //                 "isDynamic": false,
+        //                 "numOfConfirmations": 64,
+        //                 "numOfFastConfirmations": 64,
+        //                 "depositStatus": "allowed",
+        //                 "minDepositAmt": "1",
+        //                 "withdrawStatus": "allowed",
+        //                 "minWithdrawAmt": "1",
+        //                 "withdrawPrecision": 6,
+        //                 "maxWithdrawAmt": "2000000.000000000000000000",
+        //                 "withdrawQuotaPerDay": "2000000.000000000000000000",
+        //                 "withdrawQuotaPerYear": null,
+        //                 "withdrawQuotaTotal": null,
+        //                 "withdrawFeeType": "fixed",
+        //                 "transactFeeWithdraw": "0.001",
+        //                 "addrWithTag": false,
+        //                 "addrDepositTag": false
+        //               },
+        //             ],
+        //             "instStatus": "normal"
+        //           },
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
-        this.options['networkChainIdsByNames'] = {};
-        this.options['networkNamesByChainIds'] = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            this.options['networkChainIdsByNames'][code] = {};
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
             const instStatus = this.safeString (entry, 'instStatus');
@@ -2863,11 +2870,10 @@ export default class huobi extends Exchange {
             let withdraw = false;
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
-                const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
-                const title = this.safeString (chainEntry, 'displayName');
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
-                const networkCode = this.networkIdToCode (title, code);
+                const networkId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
+                const networkTitle = this.safeString (chainEntry, 'displayName');
+                this.setNetworkMappingForNetworkCurrencyJunction (code, networkTitle, networkId);
+                const networkCode = this.networkIdToCode (networkTitle, code);
                 minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
@@ -2884,7 +2890,7 @@ export default class huobi extends Exchange {
                 const fee = this.safeNumber (chainEntry, 'transactFeeWithdraw');
                 networks[networkCode] = {
                     'info': chainEntry,
-                    'id': uniqueChainId,
+                    'id': networkId,
                     'network': networkCode,
                     'limits': {
                         'withdraw': {
@@ -2923,31 +2929,6 @@ export default class huobi extends Exchange {
             };
         }
         return result;
-    }
-
-    networkIdToCode (networkId, currencyCode = undefined) {
-        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        const keys = Object.keys (this.options['networkNamesByChainIds']);
-        const keysLength = keys.length;
-        if (keysLength === 0) {
-            throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
-        }
-        const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
-        return super.networkIdToCode (networkTitle);
-    }
-
-    networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        if (currencyCode === undefined) {
-            throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
-        }
-        const keys = Object.keys (this.options['networkChainIdsByNames']);
-        const keysLength = keys.length;
-        if (keysLength === 0) {
-            throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
-        }
-        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
-        const networkTitle = super.networkCodeToId (networkCode);
-        return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
     }
 
     async fetchBalance (params = {}) {
@@ -5239,6 +5220,15 @@ export default class huobi extends Exchange {
         return response;
     }
 
+    parseNetworkCodeFromNetworkId (networkId, currencyCode = undefined) {
+        // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific network-id (i.e. USDT-TRC20) and we should handle it too
+        let networkCode = this.safeString (this.generatedNetworkData['networkIdToNetworkCode'], networkId);
+        if (networkCode === undefined) {
+            networkCode = this.networkIdToCode (networkId, currencyCode);
+        }
+        return networkCode;
+    }
+
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
@@ -5252,15 +5242,16 @@ export default class huobi extends Exchange {
         const tag = this.safeString (depositAddress, 'addressTag');
         const currencyId = this.safeString (depositAddress, 'currency');
         currency = this.safeCurrency (currencyId, currency);
-        const code = this.safeCurrencyCode (currencyId, currency);
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         const note = this.safeString (depositAddress, 'note');
         const networkId = this.safeString (depositAddress, 'chain');
+        const networkCode = this.parseNetworkCodeFromNetworkId (networkId, currencyCode);
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': currencyCode,
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode (networkId, code),
+            'network': networkCode,
             'note': note,
             'info': depositAddress,
         };
@@ -5310,8 +5301,9 @@ export default class huobi extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
-        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, params);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
         return indexedAddresses[selectedNetworkCode];
     }
