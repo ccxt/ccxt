@@ -1567,10 +1567,11 @@ export default class okx extends Exchange {
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
-                const networkId = this.safeString (currency, 'chain'); // USDT-BEP20, USDT-TRX, etc
+                const networkId = this.safeString (chain, 'chain'); // USDT-BEP20, USDT-Avalance-C etc
                 const parts = networkId.split ('-');
-                const networkTitle = this.safeString2 (parts, 1, networkId); // if there is no dedicated network-part after hyphen, then use the currencyTitle itself (i.e. ATOM, ALGO ...)
-                this.setNetworkMappingForNetworkCurrencyJunction (code, networkId, networkTitle);
+                parts.shift ();
+                const networkTitle = parts.join ('-');
+                this.setNetworkMappingForNetworkCurrencyJunction (code, networkTitle, networkId);
                 const networkCode = this.networkIdToCode (networkTitle);
                 const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                 minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (minPrecision, precision);
@@ -4084,11 +4085,27 @@ export default class okx extends Exchange {
         };
     }
 
-    parseNetworkCodeFromNetworkId (networkId, currency = undefined) {
+    handleNetworkIdAndParams (networkCodeOrId, params = {}) {
+        let networkCode = undefined;
+        let networkId = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], networkId, {});
+            networkId = this.safeString (mappings, networkCode);
+            if (networkId === undefined) {
+                throw new ArgumentsRequired (this.id + ' handleNetworkIdAndParams() can not derive the networkId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
+            }
+        } else {
+            networkId = networkCodeOrId;
+        }
+        return [ networkId, params ];
+    }
+
+    parseNetworkCodeFromNetworkId (networkId, currencyCode = undefined) {
         // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific network-id (i.e. USDT-TRC20) and we should handle it too
-        let networkCode = this.safeString (this.generatedNetworkData['currencyIdToNetworkCode'], networkId);
+        let networkCode = this.safeString (this.generatedNetworkData['networkIdToNetworkCode'], networkId);
         if (networkCode === undefined) {
-            networkCode = this.networkIdToCode (networkId);
+            networkCode = this.networkIdToCode (networkId, currencyCode);
         }
         return networkCode;
     }
@@ -4224,16 +4241,16 @@ export default class okx extends Exchange {
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
             'amt': this.numberToString (amount),
         };
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, code);
+        let networkId = undefined;
+        [ networkId, params ] = this.handleNetworkIdAndParams (params);
+        if (networkId !== undefined) {
+            request['chain'] = this.networkCodeToId (networkId, code);
         }
         let fee = this.safeString (params, 'fee');
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.deepExtend (this.currencies, currencies);
-            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (networkCode), {});
+            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (networkId), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
