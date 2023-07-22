@@ -529,7 +529,7 @@ export default class bitmart extends Exchange {
                     // undetermined chains:
                     // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
                 },
-                'currencyIdsIncludeNetworkTitles': true,
+                'networksAreTitlesInsteadOfIds': true,
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'account'
@@ -979,7 +979,7 @@ export default class bitmart extends Exchange {
         return [ currencyId, params ];
     }
 
-    parseCurrencyCodeAndNetworkCode (currencyId, currency = undefined) {
+    parseCurrencyCodeAndNetworkCodeFromCurrencyId (currencyId, currency = undefined) {
         // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific currency-id (i.e. USDT-TRC20) and we should handle it too
         let currencyCode = this.safeString (this.generatedNetworkData['currencyIdToCurrencyCode'], currencyId);
         if (currencyCode === undefined) {
@@ -2464,7 +2464,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const currencyId = this.safeString (depositAddress, 'currency');
-        const [ currencyCode, networkCode ] = this.parseCurrencyCodeAndNetworkCode (currencyId, currency);
+        const [ currencyCode, networkCode ] = this.parseCurrencyCodeAndNetworkCodeFromCurrencyId (currencyId, currency);
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'address_memo');
         this.checkAddress (address);
@@ -2733,7 +2733,7 @@ export default class bitmart extends Exchange {
         const amount = this.safeNumber (transaction, 'arrival_amount');
         const timestamp = this.safeInteger (transaction, 'apply_time');
         const currencyId = this.safeString (transaction, 'currency');
-        const [ currencyCode, networkCode ] = this.parseCurrencyCodeAndNetworkCode (currencyId, currency);
+        const [ currencyCode, networkCode ] = this.parseCurrencyCodeAndNetworkCodeFromCurrencyId (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
