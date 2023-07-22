@@ -1849,6 +1849,8 @@ export default class Exchange {
                 'STACKS': 'STX',
                 'KOMODO': 'KMD',
                 'ICON': 'ICX',
+                'BELDEX': 'BDX',
+                'PHALA': 'KHALA',
             },
             // also add the property for approving the network-code conflicts:
             'networkCodeConflictApproved': {},
