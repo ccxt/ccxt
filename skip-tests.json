@@ -1358,6 +1358,9 @@
             "fetchCurrencies": {
                 "deposit": "not provided",
                 "precision": "not provided"
+            },
+            "fetchOrderBook": {
+                "ask": "multiple ask prices are equal in ob https://app.travis-ci.com/github/ccxt/ccxt/builds/264706670#L2228"
             }
         }
     }
