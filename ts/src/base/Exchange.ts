@@ -1702,7 +1702,7 @@ export default class Exchange {
         };
     }
 
-    setNetworkMappingForCurrencyNetworkJunction (currencyCode, currencyId, networkTitle) {
+    setNetworkMappingForCurrencyNetworkJunction (currencyCode, networkTitle, currencyId) {
         // unique currency id means that exchange uses currency id junctions like: 'USDT-BEP20', 'USDT-TRX', etc
         const networkCode = this.networkIdToCode (networkTitle);
         this.generatedNetworkData['currencyIdToCurrencyCode'][currencyId] = currencyCode;
@@ -1713,7 +1713,7 @@ export default class Exchange {
         this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'][currencyCode][networkCode] = currencyId;
     }
 
-    setNetworkMappingForNetworkCurrencyJunction (currencyCode, networkId, networkTitle) {
+    setNetworkMappingForNetworkCurrencyJunction (currencyCode, networkTitle, networkId) {
         // this method is used when exchange uses unique network id (for same network) for different currencies, such as a currency object might have multiple network objects in its dictionary, but each network's id would be unique, i.e. ethereum network might be referred with `usdtErc20` for usdt token, but `erc20Shib` for SHIB token
         const networkCode = this.networkIdToCode (networkTitle);
         this.generatedNetworkData['networkIdToCurrencyCode'][networkId] = currencyCode;
