@@ -3898,7 +3898,6 @@ export default class okx extends Exchange {
         //
         //     {
         //        "chain": "ETH-OKExChain",
-        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field,
         //        "ctAddr": "72315c",
         //        "ccy": "ETH",
         //        "to": "6",
@@ -3909,10 +3908,6 @@ export default class okx extends Exchange {
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
-        if (tag === undefined) {
-            const addrEx = this.safeValue (depositAddress, 'addrEx', {});
-            tag = this.safeString (addrEx, 'comment');
-        }
         const currencyId = this.safeString (depositAddress, 'ccy');
         // the exchange replies with inconsistent network naming
         // a network id may be missing in the currency structure from fetchCurrencies
