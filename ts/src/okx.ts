@@ -909,6 +909,7 @@ export default class okx extends Exchange {
                     // 'TERRA': 'Terra',
                     // 'TERRACLASSIC': 'Terra Classic',
                 },
+                'networksAreTitlesInsteadOfIds': true,
                 'fetchOpenInterestHistory': {
                     'timeframes': {
                         '5m': '5m',
@@ -1477,15 +1478,6 @@ export default class okx extends Exchange {
         return this.parseMarkets (data);
     }
 
-    safeNetwork (networkId) {
-        const networksById = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -1565,7 +1557,7 @@ export default class okx extends Exchange {
             let currencyActive = false;
             let depositEnabled = false;
             let withdrawEnabled = false;
-            let maxPrecision = undefined;
+            let minPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const canDeposit = this.safeValue (chain, 'canDep');
@@ -1575,34 +1567,29 @@ export default class okx extends Exchange {
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
-                const networkId = this.safeString (chain, 'chain');
-                if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
-                    const parts = networkId.split ('-');
-                    const chainPart = this.safeString (parts, 1, networkId);
-                    const networkCode = this.safeNetwork (chainPart);
-                    const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
-                    if (maxPrecision === undefined) {
-                        maxPrecision = precision;
-                    } else {
-                        maxPrecision = Precise.stringMin (maxPrecision, precision);
-                    }
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
-                        'fee': this.safeNumber (chain, 'minFee'),
-                        'precision': this.parseNumber (precision),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (chain, 'minWd'),
-                                'max': this.safeNumber (chain, 'maxWd'),
-                            },
+                const networkId = this.safeString (currency, 'chain'); // USDT-BEP20, USDT-TRX, etc
+                const parts = networkId.split ('-');
+                const networkTitle = this.safeString2 (parts, 1, networkId); // if there is no dedicated network-part after hyphen, then use the currencyTitle itself (i.e. ATOM, ALGO ...)
+                this.setNetworkMappingForNetworkCurrencyJunction (code, networkId, networkTitle);
+                const networkCode = this.networkIdToCode (networkTitle);
+                const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
+                minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (minPrecision, precision);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': active,
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
+                    'fee': this.safeNumber (chain, 'minFee'),
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWd'),
+                            'max': this.safeNumber (chain, 'maxWd'),
                         },
-                        'info': chain,
-                    };
-                }
+                    },
+                    'info': chain,
+                };
             }
             const firstChain = this.safeValue (chains, 0);
             result[code] = {
@@ -1614,7 +1601,7 @@ export default class okx extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': this.parseNumber (maxPrecision),
+                'precision': this.parseNumber (minPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
