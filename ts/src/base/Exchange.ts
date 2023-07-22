@@ -2747,6 +2747,23 @@ export default class Exchange {
         return [ networkCodeInParams, params ];
     }
 
+    handleNetworkIdAndParams (networkCodeOrId, params = {}) {
+        let networkCode = undefined;
+        let networkId = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], networkId, {});
+            networkId = this.safeString (mappings, networkCode);
+            if (networkId === undefined) {
+                throw new ArgumentsRequired (this.id + ' handleNetworkIdAndParams() can not derive the networkId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
+            }
+        } else {
+            networkId = networkCodeOrId;
+            networkCode = this.networkIdToCode (networkId);
+        }
+        return [ networkCode, networkId, params ];
+    }
+
     defaultNetworkCode (currencyCode) {
         let defaultNetworkCode = undefined;
         const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
