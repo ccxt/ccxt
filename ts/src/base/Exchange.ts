@@ -1724,6 +1724,61 @@ export default class Exchange {
         this.generatedNetworkData['currencyCodeAndNetworkCodeToNetworkId'][currencyCode][networkCode] = networkId;
     }
 
+    handleNetworkIdAndParams (networkCodeOrId, params = {}) {
+        let networkCode = undefined;
+        let networkId = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], networkId, {});
+            networkId = this.safeString (mappings, networkCode);
+            if (networkId === undefined) {
+                throw new ArgumentsRequired (this.id + ' handleNetworkIdAndParams() can not derive the networkId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
+            }
+        } else {
+            networkId = networkCodeOrId;
+            networkCode = this.networkIdToCode (networkId);
+        }
+        return [ networkCode, networkId, params ];
+    }
+
+    handleCurrencyIdAndParams (currencyCodeOrId, params = {}) {
+        let networkCode = undefined;
+        let currencyId = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], currencyCodeOrId, {});
+            currencyId = this.safeString (mappings, networkCode);
+            if (currencyId === undefined) {
+                throw new ArgumentsRequired (this.id + ' handleCurrencyIdAndParams() can not derive the currencyId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
+            }
+        } else {
+            currencyId = currencyCodeOrId;
+        }
+        return [ currencyId, params ];
+    }
+
+    extractNetworkCodeFromNetworkId (networkId, currencyCode = undefined) {
+        // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific network-id (i.e. USDT-TRC20) and we should handle it too
+        let networkCode = this.safeString (this.generatedNetworkData['networkIdToNetworkCode'], networkId);
+        if (networkCode === undefined) {
+            networkCode = this.networkIdToCode (networkId, currencyCode);
+        }
+        return networkCode;
+    }
+
+    extractCurrencyCodeAndNetworkCodeFromCurrencyId (currencyId, currency = undefined) {
+        // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific currency-id (i.e. USDT-TRC20) and we should handle it too
+        let currencyCode = this.safeString (this.generatedNetworkData['currencyIdToCurrencyCode'], currencyId);
+        if (currencyCode === undefined) {
+            currencyCode = this.safeCurrencyCode (currencyId, currency);
+        }
+        let networkCode = this.safeString (this.generatedNetworkData['currencyIdToNetworkCode'], currencyId);
+        if (networkCode === undefined) {
+            networkCode = this.networkIdToCode (currencyId);
+        }
+        return [ currencyCode, networkCode ];
+    }
+
     createNetworksByIdObject () {
         // automatically generate network-id-to-code mappings
         const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
@@ -2745,23 +2800,6 @@ export default class Exchange {
         }
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return [ networkCodeInParams, params ];
-    }
-
-    handleNetworkIdAndParams (networkCodeOrId, params = {}) {
-        let networkCode = undefined;
-        let networkId = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], networkId, {});
-            networkId = this.safeString (mappings, networkCode);
-            if (networkId === undefined) {
-                throw new ArgumentsRequired (this.id + ' handleNetworkIdAndParams() can not derive the networkId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
-            }
-        } else {
-            networkId = networkCodeOrId;
-            networkCode = this.networkIdToCode (networkId);
-        }
-        return [ networkCode, networkId, params ];
     }
 
     defaultNetworkCode (currencyCode) {

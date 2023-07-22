@@ -4085,15 +4085,6 @@ export default class okx extends Exchange {
         };
     }
 
-    parseNetworkCodeFromNetworkId (networkId, currencyCode = undefined) {
-        // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific network-id (i.e. USDT-TRC20) and we should handle it too
-        let networkCode = this.safeString (this.generatedNetworkData['networkIdToNetworkCode'], networkId);
-        if (networkCode === undefined) {
-            networkCode = this.networkIdToCode (networkId, currencyCode);
-        }
-        return networkCode;
-    }
-
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
@@ -4130,7 +4121,7 @@ export default class okx extends Exchange {
         // the exchange replies with inconsistent network naming
         // a network id may be missing in the currency structure from fetchCurrencies
         const networkId = this.safeString (depositAddress, 'chain');
-        const networkCode = this.parseNetworkCodeFromNetworkId (networkId);
+        const networkCode = this.extractNetworkCodeFromNetworkId (networkId);
         this.checkAddress (address);
         return {
             'currency': currencyCode,
