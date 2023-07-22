@@ -4085,22 +4085,6 @@ export default class okx extends Exchange {
         };
     }
 
-    handleNetworkIdAndParams (networkCodeOrId, params = {}) {
-        let networkCode = undefined;
-        let networkId = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], networkId, {});
-            networkId = this.safeString (mappings, networkCode);
-            if (networkId === undefined) {
-                throw new ArgumentsRequired (this.id + ' handleNetworkIdAndParams() can not derive the networkId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
-            }
-        } else {
-            networkId = networkCodeOrId;
-        }
-        return [ networkId, params ];
-    }
-
     parseNetworkCodeFromNetworkId (networkId, currencyCode = undefined) {
         // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific network-id (i.e. USDT-TRC20) and we should handle it too
         let networkCode = this.safeString (this.generatedNetworkData['networkIdToNetworkCode'], networkId);
@@ -4239,13 +4223,14 @@ export default class okx extends Exchange {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
-            'amt': this.numberToString (amount),
         };
         let networkId = undefined;
-        [ networkId, params ] = this.handleNetworkIdAndParams (params);
+        let networkCode = undefined;
+        [ networkCode, networkId, params ] = this.handleNetworkIdAndParams (params);
         if (networkId !== undefined) {
             request['chain'] = this.networkCodeToId (networkId, code);
         }
+        request['amt'] = this.currencyToPrecision (code, amount, networkCode);
         let fee = this.safeString (params, 'fee');
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();

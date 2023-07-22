@@ -938,27 +938,15 @@ export default class huobi extends Exchange {
                 'networks': {
                     // by displaynames
                     'ALGO': 'ALGO',
-                    'ALGORAND': 'ALGO',
                     'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'AVALANCHE': 'AVAXCCHAIN',
-                    'AVAX': 'AVAXCCHAIN',
+                    'AVAXC': 'AVAXCCHAIN',
                     'HRC20': 'HECO',
-                    'HECO': 'HECO',
                     // 'HT': 'HECO', // HT is not acceptable networkcode for unification
                     'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
                     'BTC': 'BTC',
-                    'BITCOIN': 'BTC',
-                    'ARBITRUM': 'ARB',
-                    'ARB': 'ARB',
-                    'SOLANA': 'SOL',
+                    'ARBONE': 'ARB',
                     'SOL': 'SOL',
-                    'SPL': 'SOL',
-                    'PRC20': 'PRC20',
-                    'POLYGON': 'PRC20',
                     'MATIC': 'PRC20',
                 },
                 'networksAreTitlesInsteadOfIds': true,
@@ -5601,9 +5589,10 @@ export default class huobi extends Exchange {
             request['addr-tag'] = tag; // only for XRP?
         }
         let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, code);
+        let networkId = undefined;
+        [ networkCode, networkId, params ] = this.handleNetworkIdAndParams (params);
+        if (networkId !== undefined) {
+            request['chain'] = this.networkCodeToId (networkId, code);
         }
         amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
