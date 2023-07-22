@@ -911,7 +911,7 @@ export default class bitmart extends Exchange {
                 });
             }
             // now (as currency entry is defined in results) just add the current parsed entry into its networks
-            this.setNetworkMappingForCurrencyNetworkJunction (code, currencyId, networkTitle);
+            this.setNetworkMappingForCurrencyNetworkJunction (code, networkTitle, currencyId);
             const networkCode = this.networkIdToCode (networkTitle);
             const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
             const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
