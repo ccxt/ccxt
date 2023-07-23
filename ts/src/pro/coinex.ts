@@ -398,7 +398,8 @@ export default class coinex extends coinexRest {
             client.resolve (ohlcvs, messageHash);
             return;
         }
-        const keysLength = Object.keys (this.ohlcvs).length;
+        const keys = Object.keys (this.ohlcvs);
+        const keysLength = keys.length;
         if (keysLength === 0) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs = new ArrayCacheByTimestamp (limit);
