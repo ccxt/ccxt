@@ -1258,6 +1258,7 @@ export default class bitvavo extends bitvavoRest {
             'order': this.handleOrder,
             'fill': this.handleMyTrade,
             'privateCreateOrder': this.handleSingleOrder,
+            'privateUpdateOrder': this.handleSingleOrder,
             'privateGetBalance': this.handleFetchBalance,
             'privateCancelOrders': this.handleMultipleOrders,
             'privateGetOrders': this.handleMultipleOrders,
