@@ -393,7 +393,7 @@ export default class coinex extends coinexRest {
         const messageHash = 'ohlcv';
         const id = this.safeString (message, 'id');
         const ohlcvs = this.parseOHLCVs (candles);
-        if (id !== null) {
+        if (id !== undefined) {
             // spot subscription response
             client.resolve (ohlcvs, messageHash);
             return;
