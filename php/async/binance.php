@@ -3774,7 +3774,7 @@ class binance extends Exchange {
             $uppercaseType = 'LIMIT_MAKER';
         }
         $request['type'] = $uppercaseType;
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         if ($stopPrice !== null) {
             if ($uppercaseType === 'MARKET') {
                 $uppercaseType = 'STOP_LOSS';

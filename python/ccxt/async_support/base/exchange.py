@@ -2281,6 +2281,9 @@ class Exchange(BaseExchange):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet')
+
     async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals

@@ -3639,7 +3639,7 @@ class binance(Exchange, ImplicitAPI):
         if postOnly:
             uppercaseType = 'LIMIT_MAKER'
         request['type'] = uppercaseType
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         if stopPrice is not None:
             if uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_LOSS'

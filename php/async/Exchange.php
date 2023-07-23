@@ -2505,6 +2505,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
     }
 
+    public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOHLCVWs() is not supported yet');
+    }
+
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals

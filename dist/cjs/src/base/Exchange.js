@@ -3173,6 +3173,9 @@ class Exchange {
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchMyTrades() is not supported yet');
     }
+    async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOHLCVWs() is not supported yet');
+    }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
