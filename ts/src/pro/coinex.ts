@@ -575,7 +575,7 @@ export default class coinex extends coinexRest {
             'id': this.requestId (),
             'params': [
                 market['id'],
-                this.safeInteger (timeframes, timeframe, this.parseToInt (timeframe)),
+                this.safeInteger (timeframes, timeframe),
             ],
         };
         const subscription = {
