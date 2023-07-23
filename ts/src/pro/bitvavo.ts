@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitvavoRest from '../bitvavo.js';
-import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
+import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from '../base/types.js';
@@ -52,6 +52,7 @@ export default class bitvavo extends bitvavoRest {
                 },
             },
             'options': {
+                'supressMultipleWsRequestsError': false, // if true, will not throw an error when using the same messageHash for more than one request. By making false you may receive responses from different requests on the same action
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -530,12 +531,6 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    requestId () {
-        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
-        this.options['requestId'] = requestId;
-        return requestId;
-    }
-
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -564,10 +559,7 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const url = this.urls['api']['ws'];
-        request['action'] = 'privateCreateOrder';
-        const messageHash = this.requestId ();
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watchRequest ('privateCreateOrder', request);
     }
 
     async editOrderWs (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -588,10 +580,7 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        const url = this.urls['api']['ws'];
-        request['action'] = 'privateUpdateOrder';
-        const messageHash = this.requestId ();
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watchRequest ('privateUpdateOrder', request);
     }
 
     async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
@@ -607,11 +596,8 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws'];
         const request = this.cancelOrderRequest (id, symbol, params);
-        request['action'] = 'privateCancelOrder';
-        const messageHash = this.requestId ();
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watchRequest ('privateCancelOrder', request);
     }
 
     async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
@@ -626,16 +612,33 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws'];
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        request['action'] = 'privateCancelOrders';
-        const messageHash = this.requestId ();
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watchRequest ('privateCancelOrders', this.extend (request, params));
+    }
+
+    handleMultipleOrders (client: Client, message) {
+        //
+        //    {
+        //        action: 'privateCancelOrders',
+        //        response: [{
+        //            orderId: 'd71df826-1130-478a-8741-d219128675b0'
+        //        }]
+        //    }
+        //
+        const action = this.safeString (message, 'action');
+        const response = this.safeValue (message, 'response');
+        const firstRawOrder = this.safeValue (response, 0, {});
+        const marketId = this.safeString (firstRawOrder, 'market');
+        const orders = this.parseOrders (response);
+        let messageHash = this.buildMessageHash (action, { 'market': marketId });
+        client.resolve (orders, messageHash);
+        messageHash = this.buildMessageHash (action, message);
+        client.resolve (orders, messageHash);
     }
 
     async fetchOrderWs (id: string, symbol: string = undefined, params = {}) {
@@ -652,15 +655,12 @@ export default class bitvavo extends bitvavoRest {
         }
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws'];
         const market = this.market (symbol);
         const request = {
-            'action': 'privateGetOrder',
             'orderId': id,
             'market': market['id'],
         };
-        const messageHash = this.requestId ();
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watchRequest ('privateGetOrder', this.extend (request, params));
     }
 
     async fetchOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -680,10 +680,16 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.fetchOrdersRequest (symbol, since, limit, params);
-        request['action'] = 'privateGetOrders';
-        const messageHash = this.requestId ();
+        const orders = await this.watchRequest ('privateGetOrders', request);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+    }
+
+    async watchRequest (action, request) {
+        request['action'] = action;
+        const messageHash = this.buildMessageHash (action, request);
+        this.checkMessageHashDoesNotExist (messageHash);
         const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -707,10 +713,8 @@ export default class bitvavo extends bitvavoRest {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        request['action'] = 'privateGetOrdersOpen';
-        const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const orders = await this.watchRequest ('privateGetOrdersOpen', this.extend (request, params));
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -731,10 +735,39 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.fetchMyTradesRequest (symbol, since, limit, params);
-        request['action'] = 'privateGetOrdersOpen';
-        const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const myTrades = await this.watchRequest ('privateGetTrades', request);
+        return this.filterBySymbolSinceLimit (myTrades, symbol, since, limit);
+    }
+
+    handleMyTrades (client: Client, message) {
+        //
+        //    {
+        //        action: 'privateGetTrades',
+        //        response: [
+        //            {
+        //                "id": "108c3633-0276-4480-a902-17a01829deae",
+        //                "orderId": "1d671998-3d44-4df4-965f-0d48bd129a1b",
+        //                "timestamp": 1542967486256,
+        //                "market": "BTC-EUR",
+        //                "side": "buy",
+        //                "amount": "0.005",
+        //                "price": "5000.1",
+        //                "taker": true,
+        //                "fee": "0.03",
+        //                "feeCurrency": "EUR",
+        //                "settled": true
+        //            }
+        //        ]
+        //    }
+        //
+        //
+        const action = this.safeString (message, 'action');
+        const response = this.safeValue (message, 'response');
+        const firstRawTrade = this.safeValue (response, 0, {});
+        const marketId = this.safeString (firstRawTrade, 'market');
+        const trades = this.parseTrades (response, undefined, undefined, undefined);
+        const messageHash = this.buildMessageHash (action, { 'market': marketId });
+        client.resolve (trades, messageHash);
     }
 
     async withdrawWs (code: string, amount, address, tag = undefined, params = {}) {
@@ -754,10 +787,25 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.withdrawRequest (code, amount, address, tag, params);
-        request['action'] = 'privateWithdrawAssets';
-        const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watchRequest ('privateWithdrawAssets', request);
+    }
+
+    handleWithdraw (client: Client, message) {
+        //
+        //    {
+        //        action: 'privateWithdrawAssets',
+        //        response: {
+        //         "success": true,
+        //         "symbol": "BTC",
+        //         "amount": "1.5"
+        //        }
+        //    }
+        //
+        const action = this.safeString (message, 'action');
+        const messageHash = this.buildMessageHash (action, message);
+        const response = this.safeValue (message, 'response');
+        const withdraw = this.parseTransaction (response);
+        client.resolve (withdraw, messageHash);
     }
 
     async fetchWithdrawalsWs (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -775,10 +823,31 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.fetchWithdrawalsRequest (code, since, limit, params);
-        request['action'] = 'privateGetWithdrawalHistory';
-        const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const withdraws = await this.watchRequest ('privateGetWithdrawalHistory', request);
+        return this.filterByCurrencySinceLimit (withdraws, code, since, limit);
+    }
+
+    handleWithdraws (client: Client, message) {
+        //
+        //    {
+        //        action: 'privateGetWithdrawalHistory',
+        //        response: [{
+        //                timestamp: 1689792085000,
+        //                symbol: 'BTC',
+        //                amount: '0.0009',
+        //                fee: '0',
+        //                status: 'completed',
+        //                txId: '7dbadc658d7d59c129de1332c55ee8e08d0ab74432faae03b417b9809c819d1f'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const action = this.safeString (message, 'action');
+        const messageHash = this.buildMessageHash (action, message);
+        const response = this.safeValue (message, 'response');
+        const withdrawals = this.parseTransactions (response, undefined, undefined, undefined, { 'type': 'withdrawal' });
+        client.resolve (withdrawals, messageHash);
     }
 
     async fetchDepositsWs (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -796,10 +865,31 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.fetchDepositsRequest (code, since, limit, params);
-        request['action'] = 'privateGetDepositHistory';
-        const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const deposits = await this.watchRequest ('privateGetDepositHistory', request);
+        return this.filterByCurrencySinceLimit (deposits, code, since, limit);
+    }
+
+    handleDeposits (client: Client, message) {
+        //
+        //    {
+        //        action: 'privateGetDepositHistory',
+        //        response: [{
+        //                timestamp: 1689792085000,
+        //                symbol: 'BTC',
+        //                amount: '0.0009',
+        //                fee: '0',
+        //                status: 'completed',
+        //                txId: '7dbadc658d7d59c129de1332c55ee8e08d0ab74432faae03b417b9809c819d1f'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const action = this.safeString (message, 'action');
+        const messageHash = this.buildMessageHash (action, message);
+        const response = this.safeValue (message, 'response');
+        const deposits = this.parseTransactions (response, undefined, undefined, undefined, { 'type': 'deposit' });
+        client.resolve (deposits, messageHash);
     }
 
     async fetchTradingFeesWs (params = {}) {
@@ -813,12 +903,27 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const request = {
-            'action': 'privateGetAccount',
-        };
-        const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watchRequest ('privateGetAccount', params);
+    }
+
+    handleTradingFees (client, message) {
+        //
+        //    {
+        //        action: 'privateGetAccount',
+        //        response: {
+        //            fees: {
+        //                taker: '0.0025',
+        //                maker: '0.0015',
+        //                volume: '1693.74'
+        //            }
+        //        }
+        //    }
+        //
+        const action = this.safeString (message, 'action');
+        const messageHash = this.buildMessageHash (action, message);
+        const response = this.safeValue (message, 'response');
+        const fees = this.parseTradingFees (response);
+        client.resolve (fees, messageHash);
     }
 
     async fetchBalanceWs (params = {}) {
@@ -832,12 +937,7 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const request = {
-            'action': 'privateGetBalance',
-        };
-        const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watchRequest ('privateGetBalance', params);
     }
 
     handleFetchBalance (client: Client, message) {
@@ -853,13 +953,14 @@ export default class bitvavo extends bitvavoRest {
         //        ]
         //    }
         //
-        const messageHash = this.safeString (message, 'action', 'privateGetBalance');
+        const action = this.safeString (message, 'action', 'privateGetBalance');
+        const messageHash = this.buildMessageHash (action, message);
         const response = this.safeValue (message, 'response', []);
         const balance = this.parseBalance (response);
         client.resolve (balance, messageHash);
     }
 
-    handleCreateOrder (client: Client, message) {
+    handleSingleOrder (client: Client, message) {
         //
         //    {
         //        action: 'privateCreateOrder',
@@ -888,11 +989,52 @@ export default class bitvavo extends bitvavoRest {
         //        }
         //    }
         //
-        const marketId = this.safeString (message, 'market');
-        const market = this.safeMarket (marketId, undefined, '-');
-        const messageHash = 'fix';
-        const order = this.parseOrder (message, market);
+        const action = this.safeString (message, 'action');
+        const response = this.safeValue (message, 'response', {});
+        const order = this.parseOrder (response);
+        const messageHash = this.buildMessageHash (action, response);
         client.resolve (order, messageHash);
+    }
+
+    buildMessageHash (action, params = {}) {
+        const methods = {
+            'privateCreateOrder': this.actionAndMarketMessageHash,
+            'privateUpdateOrder': this.actionAndOrderIdMessageHash,
+            'privateCancelOrder': this.actionAndOrderIdMessageHash,
+            'privateGetTrades': this.actionAndMarketMessageHash,
+        };
+        const method = this.safeValue (methods, action);
+        let messageHash = action;
+        if (method !== undefined) {
+            messageHash = method.call (this, action, params);
+        }
+        return messageHash;
+    }
+
+    checkMessageHashDoesNotExist (messageHash) {
+        const supressMultipleWsRequestsError = this.safeValue (this.options, 'supressMultipleWsRequestsError', false);
+        if (!supressMultipleWsRequestsError) {
+            const client = this.safeValue (this.clients, this.urls['api']['ws']);
+            if (client !== undefined) {
+                const future = this.safeValue (client.futures, messageHash);
+                if (future !== undefined) {
+                    throw new ExchangeError (this.id + ' a similar request with messageHash ' + messageHash + ' is already pending, you must wait for a response, or turn off this error by setting supressMultipleWsRequestsError in the options to true');
+                }
+            }
+        }
+    }
+
+    actionAndMarketMessageHash (action, params = {}) {
+        const symbol = this.safeString (params, 'market', '');
+        return action + symbol;
+    }
+
+    actionAndOrderIdMessageHash (action, params = {}) {
+        const orderId = this.safeString (params, 'orderId');
+        if (orderId === undefined) {
+            throw new ExchangeError (this.id + ' privateUpdateOrderMessageHash requires a orderId parameter');
+        }
+        return action + orderId;
     }
 
     handleOrder (client: Client, message) {
@@ -1032,6 +1174,31 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
+    handleErrorMessage (client: Client, message) {
+        //
+        //    {
+        //        action: 'privateCreateOrder',
+        //        market: 'BTC-EUR',
+        //        errorCode: 217,
+        //        error: 'Minimum order size in quote currency is 5 EUR or 0.001 BTC.'
+        //    }
+        //
+        const error = this.safeString (message, 'error');
+        const code = this.safeInteger (error, 'errorCode');
+        const action = this.safeString (message, 'action');
+        const messageHash = this.buildMessageHash (action, message);
+        let rejected = false;
+        try {
+            this.handleErrors (code, error, client.url, undefined, undefined, error, message, undefined, undefined);
+        } catch (e) {
+            rejected = true;
+            client.reject (e, messageHash);
+        }
+        if (!rejected) {
+            client.reject (message, messageHash);
+        }
+    }
+
     handleMessage (client: Client, message) {
         //
         //     {
@@ -1040,7 +1207,6 @@ export default class bitvavo extends bitvavoRest {
         //             book: [ 'BTC-EUR' ]
         //         }
         //     }
-        //
         //
         //     {
         //         event: 'book',
@@ -1077,6 +1243,10 @@ export default class bitvavo extends bitvavoRest {
         //         authenticated: true
         //     }
         //
+        const error = this.safeString (message, 'error');
+        if (error !== undefined) {
+            return this.handleErrorMessage (client, message);
+        }
         const methods = {
             'subscribed': this.handleSubscriptionStatus,
             'book': this.handleOrderBook,
@@ -1087,19 +1257,22 @@ export default class bitvavo extends bitvavoRest {
             'authenticate': this.handleAuthenticationMessage,
             'order': this.handleOrder,
             'fill': this.handleMyTrade,
-            'privateCreateOrder': this.handleCreateOrder,
+            'privateCreateOrder': this.handleSingleOrder,
             'privateGetBalance': this.handleFetchBalance,
+            'privateCancelOrders': this.handleMultipleOrders,
+            'privateGetOrders': this.handleMultipleOrders,
+            'privateGetOrder': this.handleSingleOrder,
+            'privateCancelOrder': this.handleSingleOrder,
+            'privateGetOrdersOpen': this.handleMultipleOrders,
+            'privateGetAccount': this.handleTradingFees,
+            'privateGetDepositHistory': this.handleDeposits,
+            'privateGetWithdrawalHistory': this.handleWithdraws,
+            'privateWithdrawAssets': this.handleWithdraw,
+            'privateGetTrades': this.handleMyTrades,
         };
-        const event = this.safeString (message, 'event');
-        let method = this.safeValue (methods, event);
+        const event = this.safeString2 (message, 'event', 'action');
+        const method = this.safeValue (methods, event);
         if (method !== undefined) {
-            return method.call (this, client, message);
-        }
-        const action = this.safeString (message, 'action');
-        method = this.safeValue (methods, action);
-        if (method === undefined) {
-            return message;
-        } else {
             return method.call (this, client, message);
         }
     }

@@ -484,6 +484,7 @@ export default class Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
+                'fetchDepositsWs': undefined,
                 'fetchDepositsWithdrawals': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
@@ -523,12 +524,14 @@ export default class Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
+                'fetchTradingFeesWs': undefined,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawAddresses': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
+                'fetchWithdrawalsWs': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMargin': undefined,
@@ -3575,8 +3578,16 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
     }
 
+    async fetchDepositsWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchDepositsWs() is not supported yet');
+    }
+
     async fetchWithdrawals (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
+    }
+
+    async fetchWithdrawalsWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchWithdrawalsWs() is not supported yet');
     }
 
     async fetchOpenInterest (symbol: string, params = {}): Promise<any> {
@@ -4063,6 +4074,10 @@ export default class Exchange {
 
     async fetchTradingFees (params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet');
+    }
+
+    async fetchTradingFeesWs (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchTradingFeesWs() is not supported yet');
     }
 
     async fetchTradingFee (symbol: string, params = {}) {

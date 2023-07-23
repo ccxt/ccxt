@@ -780,14 +780,27 @@ export default class bitvavo extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeValue (response, 'fees');
-        const maker = this.safeNumber (fees, 'maker');
-        const taker = this.safeNumber (fees, 'taker');
+        return this.parseTradingFees (response);
+    }
+
+    parseTradingFees (fees, market = undefined) {
+        //
+        //     {
+        //         "fees": {
+        //           "taker": "0.0025",
+        //           "maker": "0.0015",
+        //           "volume": "10000.00"
+        //         }
+        //     }
+        //
+        const feesValue = this.safeValue (fees, 'fees');
+        const maker = this.safeNumber (feesValue, 'maker');
+        const taker = this.safeNumber (feesValue, 'taker');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
-                'info': response,
+                'info': fees,
                 'symbol': symbol,
                 'maker': maker,
                 'taker': taker,
