@@ -633,7 +633,7 @@ export default class coinex extends coinexRest {
         const subscriptionHash = id;
         const request = this.deepExtend (subscribe, query);
         const ohlcvs = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        return this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcvs, since, limit, 0);
     }
 
     handleDelta (bookside, delta) {
