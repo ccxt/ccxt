@@ -396,6 +396,7 @@ export default class coinex extends coinexRest {
         if (id !== null) {
             // spot subscription response
             client.resolve (ohlcvs, messageHash);
+            return;
         }
         const keysLength = Object.keys (this.ohlcvs).length;
         if (keysLength === 0) {
