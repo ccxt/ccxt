@@ -391,7 +391,12 @@ export default class coinex extends coinexRest {
         //
         const candles = this.safeValue2 (message, 'params', 'result', []);
         const messageHash = 'ohlcv';
+        const id = this.safeString (message, 'id');
         const ohlcvs = this.parseOHLCVs (candles);
+        if (id !== null) {
+            // spot subscription response
+            client.resolve (ohlcvs, messageHash);
+        }
         const keysLength = Object.keys (this.ohlcvs).length;
         if (keysLength === 0) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -535,6 +540,7 @@ export default class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchOHLCV
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -555,9 +561,12 @@ export default class coinex extends coinexRest {
         const messageHash = 'ohlcv';
         const watchOHLCVWarning = this.safeValue (this.options, 'watchOHLCVWarning', true);
         const client = this.safeValue (this.clients, url, {});
-        const existingSubscription = this.safeValue (client.subscriptions, messageHash);
+        const clientSub = this.safeValue (client, 'subscriptions', {});
+        const existingSubscription = this.safeValue (clientSub, messageHash);
+        const subSymbol = this.safeString (existingSubscription, 'symbol');
+        const subTimeframe = this.safeString (existingSubscription, 'timeframe');
         // due to nature of coinex response can only watch one symbol at a time
-        if (watchOHLCVWarning && existingSubscription !== undefined && (existingSubscription['symbol'] !== symbol || existingSubscription['timeframe'] !== timeframe)) {
+        if (watchOHLCVWarning && existingSubscription !== undefined && (subSymbol !== symbol || subTimeframe !== timeframe)) {
             throw new ExchangeError (this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
         }
         const timeframes = this.safeValue (this.options, 'timeframes', {});
@@ -566,7 +575,7 @@ export default class coinex extends coinexRest {
             'id': this.requestId (),
             'params': [
                 market['id'],
-                this.safeString (timeframes, timeframe, timeframe),
+                this.safeInteger (timeframes, timeframe, this.parseToInt (timeframe)),
             ],
         };
         const subscription = {
@@ -585,6 +594,7 @@ export default class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#fetchOHLCV
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
          * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to query OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -623,9 +633,6 @@ export default class coinex extends coinexRest {
         const subscriptionHash = id;
         const request = this.deepExtend (subscribe, query);
         const ohlcvs = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        if (this.newUpdates) {
-            limit = ohlcvs.getLimit (symbol, limit);
-        }
         return this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
     }
 
