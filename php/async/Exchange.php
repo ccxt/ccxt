@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.33';
+$version = '4.0.34';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.33';
+    const VERSION = '4.0.34';
 
     public $browser;
     public $marketsLoading = null;
@@ -2751,7 +2751,7 @@ class Exchange extends \ccxt\Exchange {
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             if ($this->has['fetchLeverageTiers']) {
-                $market = Async\await($this->market ($symbol));
+                $market = $this->market ($symbol);
                 if (!$market['contract']) {
                     throw new BadSymbol($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
                 }

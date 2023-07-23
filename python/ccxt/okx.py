@@ -6034,7 +6034,7 @@ class okx(Exchange, ImplicitAPI):
         id = self.safe_string(interest, 'instId')
         market = self.safe_market(id, market)
         time = self.safe_integer(interest, 'ts')
-        timestamp = self.safe_number(interest, 0, time)
+        timestamp = self.safe_integer(interest, 0, time)
         baseVolume = None
         quoteVolume = None
         openInterestAmount = None

@@ -6849,9 +6849,7 @@ class huobi(Exchange, ImplicitAPI):
             '1d': '1day',
         }
         market = self.market(symbol)
-        amountType = self.safe_number_2(params, 'amount_type', 'amountType')
-        if amountType is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1(cont), or 2(cryptocurrency)')
+        amountType = self.safe_integer_2(params, 'amount_type', 'amountType', 2)
         request = {
             'period': timeframes[timeframe],
             'amount_type': amountType,

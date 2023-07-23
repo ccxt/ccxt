@@ -6347,7 +6347,7 @@ class okx extends Exchange {
         $id = $this->safe_string($interest, 'instId');
         $market = $this->safe_market($id, $market);
         $time = $this->safe_integer($interest, 'ts');
-        $timestamp = $this->safe_number($interest, 0, $time);
+        $timestamp = $this->safe_integer($interest, 0, $time);
         $baseVolume = null;
         $quoteVolume = null;
         $openInterestAmount = null;
