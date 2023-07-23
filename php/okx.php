@@ -4063,6 +4063,7 @@ class okx extends Exchange {
         //
         //     {
         //        "chain" => "ETH-OKExChain",
+        //        "addrEx" => array( "comment" => "6040348" ), // some currencies like TON may have this field,
         //        "ctAddr" => "72315c",
         //        "ccy" => "ETH",
         //        "to" => "6",
@@ -4071,8 +4072,11 @@ class okx extends Exchange {
         //     }
         //
         $address = $this->safe_string($depositAddress, 'addr');
-        $tag = $this->safe_string_2($depositAddress, 'tag', 'pmtId');
-        $tag = $this->safe_string($depositAddress, 'memo', $tag);
+        $tag = $this->safe_string_n($depositAddress, array( 'tag', 'pmtId', 'memo' ));
+        if ($tag === null) {
+            $addrEx = $this->safe_value($depositAddress, 'addrEx', array());
+            $tag = $this->safe_string($addrEx, 'comment');
+        }
         $currencyId = $this->safe_string($depositAddress, 'ccy');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
@@ -6347,7 +6351,7 @@ class okx extends Exchange {
         $id = $this->safe_string($interest, 'instId');
         $market = $this->safe_market($id, $market);
         $time = $this->safe_integer($interest, 'ts');
-        $timestamp = $this->safe_number($interest, 0, $time);
+        $timestamp = $this->safe_integer($interest, 0, $time);
         $baseVolume = null;
         $quoteVolume = null;
         $openInterestAmount = null;

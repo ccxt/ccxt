@@ -3874,6 +3874,13 @@ class phemex extends phemex$1 {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
+        if (symbols !== undefined) {
+            const first = this.safeValue(symbols, 0);
+            const market = this.market(first);
+            if (market['settle'] !== 'USD') {
+                throw new errors.BadSymbol(this.id + ' fetchLeverageTiers() supports USD settled markets only');
+            }
+        }
         const response = await this.publicGetCfgV2Products(params);
         //
         //     {

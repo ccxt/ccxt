@@ -3375,7 +3375,7 @@ export default class Exchange {
     }
     async fetchMarketLeverageTiers(symbol, params = {}) {
         if (this.has['fetchLeverageTiers']) {
-            const market = await this.market(symbol);
+            const market = this.market(symbol);
             if (!market['contract']) {
                 throw new BadSymbol(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }

@@ -7447,10 +7447,7 @@ export default class huobi extends Exchange {
             '1d': '1day',
         };
         const market = this.market(symbol);
-        const amountType = this.safeNumber2(params, 'amount_type', 'amountType');
-        if (amountType === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrency)');
-        }
+        const amountType = this.safeInteger2(params, 'amount_type', 'amountType', 2);
         const request = {
             'period': timeframes[timeframe],
             'amount_type': amountType,

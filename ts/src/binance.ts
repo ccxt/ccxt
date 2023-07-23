@@ -3770,7 +3770,7 @@ export default class binance extends Exchange {
             uppercaseType = 'LIMIT_MAKER';
         }
         request['type'] = uppercaseType;
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
