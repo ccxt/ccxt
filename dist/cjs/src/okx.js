@@ -4115,6 +4115,7 @@ class okx extends okx$1 {
         //
         //     {
         //        "chain": "ETH-OKExChain",
+        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field,
         //        "ctAddr": "72315c",
         //        "ccy": "ETH",
         //        "to": "6",
@@ -4123,8 +4124,11 @@ class okx extends okx$1 {
         //     }
         //
         const address = this.safeString(depositAddress, 'addr');
-        let tag = this.safeString2(depositAddress, 'tag', 'pmtId');
-        tag = this.safeString(depositAddress, 'memo', tag);
+        let tag = this.safeStringN(depositAddress, ['tag', 'pmtId', 'memo']);
+        if (tag === undefined) {
+            const addrEx = this.safeValue(depositAddress, 'addrEx', {});
+            tag = this.safeString(addrEx, 'comment');
+        }
         const currencyId = this.safeString(depositAddress, 'ccy');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];

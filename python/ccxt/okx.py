@@ -3898,6 +3898,7 @@ class okx(Exchange, ImplicitAPI):
         #
         #     {
         #        "chain": "ETH-OKExChain",
+        #        "addrEx": {"comment": "6040348"},  # some currencies like TON may have self field,
         #        "ctAddr": "72315c",
         #        "ccy": "ETH",
         #        "to": "6",
@@ -3906,8 +3907,10 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         address = self.safe_string(depositAddress, 'addr')
-        tag = self.safe_string_2(depositAddress, 'tag', 'pmtId')
-        tag = self.safe_string(depositAddress, 'memo', tag)
+        tag = self.safe_string_n(depositAddress, ['tag', 'pmtId', 'memo'])
+        if tag is None:
+            addrEx = self.safe_value(depositAddress, 'addrEx', {})
+            tag = self.safe_string(addrEx, 'comment')
         currencyId = self.safe_string(depositAddress, 'ccy')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
