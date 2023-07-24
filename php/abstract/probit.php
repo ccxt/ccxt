@@ -58,6 +58,9 @@ abstract class probit extends \ccxt\Exchange {
     public function private_get_deposit_address($params = array()) {
         return $this->request('deposit_address', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_transfer_payment($params = array()) {
+        return $this->request('transfer/payment', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function accounts_post_token($params = array()) {
         return $this->request('token', 'accounts', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -111,6 +114,9 @@ abstract class probit extends \ccxt\Exchange {
     }
     public function privateGetDepositAddress($params = array()) {
         return $this->request('deposit_address', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTransferPayment($params = array()) {
+        return $this->request('transfer/payment', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function accountsPostToken($params = array()) {
         return $this->request('token', 'accounts', 'POST', $params, null, null, array("cost" => 1));

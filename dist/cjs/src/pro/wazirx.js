@@ -43,7 +43,7 @@ class wazirx extends wazirx$1 {
          * @name wazirx#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.wazirx.com/#account-update
-         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -96,7 +96,7 @@ class wazirx extends wazirx$1 {
         const messageHash = 'balance';
         client.resolve(this.balance, messageHash);
     }
-    parseWSTrade(trade, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         // trade
         //     {
@@ -164,7 +164,7 @@ class wazirx extends wazirx$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.wazirx.com/#all-market-tickers-stream
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -186,8 +186,8 @@ class wazirx extends wazirx$1 {
          * @name wazirx#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @see https://docs.wazirx.com/#all-market-tickers-stream
-         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -285,10 +285,10 @@ class wazirx extends wazirx$1 {
          * @name wazirx#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the wazirx api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -304,7 +304,7 @@ class wazirx extends wazirx$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -339,7 +339,7 @@ class wazirx extends wazirx$1 {
             this.trades[symbol] = trades;
         }
         for (let i = 0; i < rawTrades.length; i++) {
-            const parsedTrade = this.parseWSTrade(rawTrades[i], market);
+            const parsedTrade = this.parseWsTrade(rawTrades[i], market);
             trades.append(parsedTrade);
         }
         client.resolve(trades, messageHash);
@@ -351,10 +351,10 @@ class wazirx extends wazirx$1 {
          * @description watch trades by user
          * @see https://docs.wazirx.com/#trade-update
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the wazirx api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const token = await this.authenticate(params);
@@ -374,7 +374,7 @@ class wazirx extends wazirx$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -383,10 +383,10 @@ class wazirx extends wazirx$1 {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the wazirx api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -403,7 +403,7 @@ class wazirx extends wazirx$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -471,8 +471,8 @@ class wazirx extends wazirx$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.wazirx.com/#depth-stream
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -557,7 +557,7 @@ class wazirx extends wazirx$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrder(client, message) {
         //
@@ -580,18 +580,19 @@ class wazirx extends wazirx$1 {
         //     }
         //
         const order = this.safeValue(message, 'data', {});
-        const parsedOrder = this.parseWSOrder(order);
+        const parsedOrder = this.parseWsOrder(order);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        this.orders.append(parsedOrder);
+        const orders = this.orders;
+        orders.append(parsedOrder);
         let messageHash = 'orders';
         client.resolve(this.orders, messageHash);
         messageHash += ':' + parsedOrder['symbol'];
         client.resolve(this.orders, messageHash);
     }
-    parseWSOrder(order) {
+    parseWsOrder(order, market = undefined) {
         //
         //     {
         //         "E": 1631683058904,
@@ -611,7 +612,7 @@ class wazirx extends wazirx$1 {
         const timestamp = this.safeInteger(order, 'O');
         const marketId = this.safeString(order, 's');
         const status = this.safeString(order, 'X');
-        const market = this.safeMarket(marketId);
+        market = this.safeMarket(marketId);
         return this.safeOrder({
             'info': order,
             'id': this.safeString(order, 'i'),
@@ -671,7 +672,7 @@ class wazirx extends wazirx$1 {
         else {
             myTrades = this.myTrades;
         }
-        const parsedTrade = this.parseWSTrade(trade);
+        const parsedTrade = this.parseWsTrade(trade);
         myTrades.append(parsedTrade);
         client.resolve(myTrades, messageHash);
     }

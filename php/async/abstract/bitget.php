@@ -7,6 +7,9 @@ namespace ccxt\async\abstract;
 
 
 abstract class bitget extends \ccxt\async\Exchange {
+    public function public_spot_get_notice_queryallnotices($params = array()) {
+        return $this->request('notice/queryAllNotices', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_spot_get_public_time($params = array()) {
         return $this->request('public/time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -39,6 +42,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function public_spot_get_market_spot_vip_level($params = array()) {
         return $this->request('market/spot-vip-level', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_spot_get_market_history_candles($params = array()) {
+        return $this->request('market/history-candles', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_mix_get_market_contracts($params = array()) {
         return $this->request('market/contracts', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
@@ -88,6 +94,18 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function public_mix_get_market_querypositionlever($params = array()) {
         return $this->request('market/queryPositionLever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_mix_get_market_open_limit($params = array()) {
+        return $this->request('market/open-limit', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_mix_get_market_history_candles($params = array()) {
+        return $this->request('market/history-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_mix_get_market_history_index_candles($params = array()) {
+        return $this->request('market/history-index-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_mix_get_market_history_mark_candles($params = array()) {
+        return $this->request('market/history-mark-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_margin_get_cross_public_interestrateandlimit($params = array()) {
         return $this->request('cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -102,12 +120,6 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function public_margin_get_public_currencies($params = array()) {
         return $this->request('public/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function public_margin_get_cross_account_assets($params = array()) {
-        return $this->request('cross/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function public_margin_get_isolated_account_assets($params = array()) {
-        return $this->request('isolated/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_spot_get_wallet_deposit_address($params = array()) {
         return $this->request('wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
@@ -124,8 +136,17 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_spot_get_account_assets($params = array()) {
         return $this->request('account/assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_spot_get_account_assets_lite($params = array()) {
+        return $this->request('account/assets-lite', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_spot_get_account_transferrecords($params = array()) {
         return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_spot_get_convert_currencies($params = array()) {
+        return $this->request('convert/currencies', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_get_convert_convert_record($params = array()) {
+        return $this->request('convert/convert-record', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_spot_post_wallet_transfer($params = array()) {
         return $this->request('wallet/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
@@ -262,6 +283,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_spot_post_trace_user_gettraderinfo($params = array()) {
         return $this->request('trace/user/getTraderInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_spot_post_convert_quoted_price($params = array()) {
+        return $this->request('convert/quoted-price', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_spot_post_convert_trade($params = array()) {
+        return $this->request('convert/trade', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
     public function private_mix_get_account_account($params = array()) {
         return $this->request('account/account', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -382,11 +409,17 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_mix_post_order_cancel_batch_orders($params = array()) {
         return $this->request('order/cancel-batch-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_post_order_modifyorder($params = array()) {
+        return $this->request('order/modifyOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_mix_post_order_cancel_symbol_orders($params = array()) {
         return $this->request('order/cancel-symbol-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_mix_post_order_cancel_all_orders($params = array()) {
         return $this->request('order/cancel-all-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_order_close_all_positions($params = array()) {
+        return $this->request('order/close-all-positions', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function private_mix_post_plan_placeplan($params = array()) {
         return $this->request('plan/placePlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
@@ -442,6 +475,33 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_mix_post_trace_cancelcopytrader($params = array()) {
         return $this->request('trace/cancelCopyTrader', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
+    public function private_mix_post_trace_traderupdateconfig($params = array()) {
+        return $this->request('trace/traderUpdateConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_mytraderlist($params = array()) {
+        return $this->request('trace/myTraderList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_myfollowerlist($params = array()) {
+        return $this->request('trace/myFollowerList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_removefollower($params = array()) {
+        return $this->request('trace/removeFollower', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_public_getfollowerconfig($params = array()) {
+        return $this->request('trace/public/getFollowerConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_report_order_historylist($params = array()) {
+        return $this->request('trace/report/order/historyList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_report_order_currentlist($params = array()) {
+        return $this->request('trace/report/order/currentList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_querytradertpslratioconfig($params = array()) {
+        return $this->request('trace/queryTraderTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_traderupdatetpslratioconfig($params = array()) {
+        return $this->request('trace/traderUpdateTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_user_get_fee_query($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -450,6 +510,18 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function private_user_get_sub_virtual_api_list($params = array()) {
         return $this->request('sub/virtual-api-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_user_get_tax_spot_record($params = array()) {
+        return $this->request('tax/spot-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_tax_future_record($params = array()) {
+        return $this->request('tax/future-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_tax_margin_record($params = array()) {
+        return $this->request('tax/margin-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_tax_p2p_record($params = array()) {
+        return $this->request('tax/p2p-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_user_post_sub_virtual_create($params = array()) {
         return $this->request('sub/virtual-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
@@ -577,6 +649,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_margin_get_cross_fin_list($params = array()) {
         return $this->request('cross/fin/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_margin_get_cross_account_assets($params = array()) {
+        return $this->request('cross/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_account_assets($params = array()) {
+        return $this->request('isolated/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_margin_post_cross_account_borrow($params = array()) {
         return $this->request('cross/account/borrow', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -622,6 +700,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_margin_post_cross_order_batchcancelorder($params = array()) {
         return $this->request('cross/order/batchCancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function publicSpotGetNoticeQueryAllNotices($params = array()) {
+        return $this->request('notice/queryAllNotices', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicSpotGetPublicTime($params = array()) {
         return $this->request('public/time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -654,6 +735,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function publicSpotGetMarketSpotVipLevel($params = array()) {
         return $this->request('market/spot-vip-level', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicSpotGetMarketHistoryCandles($params = array()) {
+        return $this->request('market/history-candles', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicMixGetMarketContracts($params = array()) {
         return $this->request('market/contracts', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
@@ -703,6 +787,18 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function publicMixGetMarketQueryPositionLever($params = array()) {
         return $this->request('market/queryPositionLever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicMixGetMarketOpenLimit($params = array()) {
+        return $this->request('market/open-limit', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMixGetMarketHistoryCandles($params = array()) {
+        return $this->request('market/history-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMixGetMarketHistoryIndexCandles($params = array()) {
+        return $this->request('market/history-index-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMixGetMarketHistoryMarkCandles($params = array()) {
+        return $this->request('market/history-mark-candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicMarginGetCrossPublicInterestRateAndLimit($params = array()) {
         return $this->request('cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -717,12 +813,6 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function publicMarginGetPublicCurrencies($params = array()) {
         return $this->request('public/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function publicMarginGetCrossAccountAssets($params = array()) {
-        return $this->request('cross/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function publicMarginGetIsolatedAccountAssets($params = array()) {
-        return $this->request('isolated/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateSpotGetWalletDepositAddress($params = array()) {
         return $this->request('wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
@@ -739,8 +829,17 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateSpotGetAccountAssets($params = array()) {
         return $this->request('account/assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateSpotGetAccountAssetsLite($params = array()) {
+        return $this->request('account/assets-lite', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateSpotGetAccountTransferRecords($params = array()) {
         return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotGetConvertCurrencies($params = array()) {
+        return $this->request('convert/currencies', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetConvertConvertRecord($params = array()) {
+        return $this->request('convert/convert-record', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateSpotPostWalletTransfer($params = array()) {
         return $this->request('wallet/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
@@ -877,6 +976,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateSpotPostTraceUserGetTraderInfo($params = array()) {
         return $this->request('trace/user/getTraderInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privateSpotPostConvertQuotedPrice($params = array()) {
+        return $this->request('convert/quoted-price', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateSpotPostConvertTrade($params = array()) {
+        return $this->request('convert/trade', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
     public function privateMixGetAccountAccount($params = array()) {
         return $this->request('account/account', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -997,11 +1102,17 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateMixPostOrderCancelBatchOrders($params = array()) {
         return $this->request('order/cancel-batch-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privateMixPostOrderModifyOrder($params = array()) {
+        return $this->request('order/modifyOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privateMixPostOrderCancelSymbolOrders($params = array()) {
         return $this->request('order/cancel-symbol-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateMixPostOrderCancelAllOrders($params = array()) {
         return $this->request('order/cancel-all-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostOrderCloseAllPositions($params = array()) {
+        return $this->request('order/close-all-positions', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function privateMixPostPlanPlacePlan($params = array()) {
         return $this->request('plan/placePlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
@@ -1057,6 +1168,33 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateMixPostTraceCancelCopyTrader($params = array()) {
         return $this->request('trace/cancelCopyTrader', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
+    public function privateMixPostTraceTraderUpdateConfig($params = array()) {
+        return $this->request('trace/traderUpdateConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceMyTraderList($params = array()) {
+        return $this->request('trace/myTraderList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceMyFollowerList($params = array()) {
+        return $this->request('trace/myFollowerList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceRemoveFollower($params = array()) {
+        return $this->request('trace/removeFollower', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTracePublicGetFollowerConfig($params = array()) {
+        return $this->request('trace/public/getFollowerConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceReportOrderHistoryList($params = array()) {
+        return $this->request('trace/report/order/historyList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceReportOrderCurrentList($params = array()) {
+        return $this->request('trace/report/order/currentList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceQueryTraderTpslRatioConfig($params = array()) {
+        return $this->request('trace/queryTraderTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceTraderUpdateTpslRatioConfig($params = array()) {
+        return $this->request('trace/traderUpdateTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privateUserGetFeeQuery($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1065,6 +1203,18 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateUserGetSubVirtualApiList($params = array()) {
         return $this->request('sub/virtual-api-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUserGetTaxSpotRecord($params = array()) {
+        return $this->request('tax/spot-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetTaxFutureRecord($params = array()) {
+        return $this->request('tax/future-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetTaxMarginRecord($params = array()) {
+        return $this->request('tax/margin-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetTaxP2pRecord($params = array()) {
+        return $this->request('tax/p2p-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateUserPostSubVirtualCreate($params = array()) {
         return $this->request('sub/virtual-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
@@ -1191,6 +1341,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateMarginGetCrossFinList($params = array()) {
         return $this->request('cross/fin/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossAccountAssets($params = array()) {
+        return $this->request('cross/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedAccountAssets($params = array()) {
+        return $this->request('isolated/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMarginPostCrossAccountBorrow($params = array()) {
         return $this->request('cross/account/borrow', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));

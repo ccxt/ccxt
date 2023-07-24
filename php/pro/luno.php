@@ -43,10 +43,10 @@ class luno extends \ccxt\async\luno {
              * get the list of most recent $trades for a particular $symbol
              * @see https://www.luno.com/en/developers/api#tag/Streaming-API
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of    $trades to fetch
-             * @param {array} $params extra parameters specific to the luno api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of    $trades to fetch
+             * @param {array} [$params] extra parameters specific to the luno api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->check_required_credentials());
             Async\await($this->load_markets());
@@ -65,7 +65,7 @@ class luno extends \ccxt\async\luno {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -143,9 +143,9 @@ class luno extends \ccxt\async\luno {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {arrayConstructor} $params extra parameters specific to the luno api endpoint
-             * @param {string|null} $params->type accepts l2 or l3 for level 2 or level 3 order book
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {arrayConstructor} [$params] extra parameters specific to the luno api endpoint
+             * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->check_required_credentials());

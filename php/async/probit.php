@@ -50,6 +50,8 @@ class probit extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
+                'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -77,10 +79,11 @@ class probit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -146,6 +149,7 @@ class probit extends Exchange {
                         'order_history' => 1,
                         'trade_history' => 1,
                         'deposit_address' => 1,
+                        'transfer/payment' => 1,
                     ),
                 ),
                 'accounts' => array(
@@ -197,11 +201,6 @@ class probit extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRON',
                 ),
-                'networksById' => array(
-                    'BSC' => 'BEP20',
-                    'ETH' => 'ERC20',
-                    'TRON' => 'TRC20',
-                ),
             ),
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
@@ -250,8 +249,8 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/market
              * retrieves data on all $markets for probit
-             * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetMarket ($params));
             //
@@ -353,7 +352,7 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/currency
              * fetches all available $currencies on an exchange
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} an associative dictionary of $currencies
              */
             $response = Async\await($this->publicGetCurrencyWithPlatform ($params));
@@ -539,7 +538,7 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/balance
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -565,8 +564,8 @@ class probit extends Exchange {
              * @see https://docs-en.probit.com/reference/order_book
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -595,8 +594,8 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/ticker
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -633,7 +632,7 @@ class probit extends Exchange {
              * @see https://docs-en.probit.com/reference/ticker
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
@@ -716,18 +715,19 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/trade
              * fetch all trades made by the user
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch trades for
-             * @param {int|null} $limit the maximum number of trades structures to retrieve
-             * @param {array} $params extra parameters specific to the probit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
+            $now = $this->milliseconds();
             $request = array(
                 'limit' => 100,
-                'start_time' => $this->iso8601(0),
-                'end_time' => $this->iso8601($this->milliseconds()),
+                'start_time' => $this->iso8601($now - 31536000000), // -365 days
+                'end_time' => $this->iso8601($now),
             );
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -735,6 +735,7 @@ class probit extends Exchange {
             }
             if ($since !== null) {
                 $request['start_time'] = $this->iso8601($since);
+                $request['end_time'] = $this->iso8601(min ($now, $since + 31536000000));
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -770,10 +771,10 @@ class probit extends Exchange {
              * @see https://docs-en.probit.com/reference/trade-1
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the probit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -891,7 +892,7 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/time
              * fetches the current integer $timestamp in milliseconds from the exchange server
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {int} the current integer $timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetTime ($params));
@@ -945,10 +946,10 @@ class probit extends Exchange {
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the probit api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1034,11 +1035,11 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/open_order-1
              * fetch all unfilled currently open orders
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open orders for
-             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-             * @param {array} $params extra parameters specific to the probit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $since = $this->parse8601($since);
@@ -1059,11 +1060,11 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/order
              * fetches information on multiple closed orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the probit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1094,7 +1095,7 @@ class probit extends Exchange {
              * @see https://docs-en.probit.com/reference/order-3
              * fetches information on an $order made by the user
              * @param {string} $symbol unified $symbol of the $market the $order was made in
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             if ($symbol === null) {
@@ -1198,7 +1199,7 @@ class probit extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs-en.probit.com/reference/order-1
@@ -1207,8 +1208,8 @@ class probit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -1295,7 +1296,7 @@ class probit extends Exchange {
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -1336,7 +1337,7 @@ class probit extends Exchange {
              * @see https://docs-en.probit.com/reference/deposit_address
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
@@ -1390,8 +1391,8 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/deposit_address
              * fetch deposit addresses for multiple currencies and chain types
-             * @param {[string]|null} $codes list of unified $currency $codes, default is null
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {string[]|null} $codes list of unified $currency $codes, default is null
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
              */
             Async\await($this->load_markets());
@@ -1418,8 +1419,8 @@ class probit extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
-             * @param {string|null} $tag
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -1455,6 +1456,97 @@ class probit extends Exchange {
             $response = Async\await($this->privatePostWithdrawal (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data');
             return $this->parse_transaction($data, $currency);
+        }) ();
+    }
+
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @param {string} $code unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch deposits for
+             * @param {int} [$limit] the maximum number of transaction structures to retrieve
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            $request = array(
+                'type' => 'deposit',
+            );
+            $result = Async\await($this->fetch_transactions($code, $since, $limit, array_merge($request, $params)));
+            return $result;
+        }) ();
+    }
+
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made to an account
+             * @param {string} $code unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+             * @param {int} [$limit] the maximum number of transaction structures to retrieve
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            $request = array(
+                'type' => 'withdrawal',
+            );
+            $result = Async\await($this->fetch_transactions($code, $since, $limit, array_merge($request, $params)));
+            return $result;
+        }) ();
+    }
+
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * @deprecated
+             * use fetchDepositsWithdrawals instead
+             * @see https://docs-en.probit.com/reference/transferpayment
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch transactions for
+             * @param {int} [$limit] the maximum number of transaction structures to retrieve
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            Async\await($this->load_markets());
+            $currency = null;
+            $request = array();
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency_id'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['start_time'] = $this->iso8601($since);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetTransferPayment (array_merge($request, $params)));
+            //
+            //     {
+            //         "data" => array(
+            //             {
+            //                 "id" => "01211d4b-0e68-41d6-97cb-298bfe2cab67",
+            //                 "type" => "deposit",
+            //                 "status" => "done",
+            //                 "amount" => "0.01",
+            //                 "address" => "0x9e7430fc0bdd14745bd00a1b92ed25133a7c765f",
+            //                 "time" => "2023-06-14T12:03:11.000Z",
+            //                 "hash" => "0x0ff5bedc9e378f9529acc6b9840fa8c2ef00fd0275e0bac7fa0589a9b5d1712e",
+            //                 "currency_id" => "ETH",
+            //                 "confirmations":0,
+            //                 "fee" => "0",
+            //                 "destination_tag" => null,
+            //                 "platform_id" => "ETH",
+            //                 "fee_currency_id" => "ETH",
+            //                 "payment_service_name":null,
+            //                 "payment_service_display_name":null,
+            //                 "crypto":null
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
 
@@ -1513,15 +1605,14 @@ class probit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * @see https://docs-en.probit.com/reference/currency
              * fetch deposit and withdraw fees
-             * @see https://docs.poloniex.com/#public-endpoints-reference-$data-currency-information
-             * @param {[string]|null} $codes list of unified currency $codes
-             * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
+             * @param {string[]|null} $codes list of unified currency $codes
+             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetCurrencyWithPlatform ($params));
@@ -1706,7 +1797,7 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/token
              * sign in, must be called prior to using other authenticated methods
-             * @param {array} $params extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the probit api endpoint
              * @return $response from exchange
              */
             $this->check_required_credentials();

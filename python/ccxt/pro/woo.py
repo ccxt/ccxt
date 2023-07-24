@@ -272,7 +272,7 @@ class woo(ccxt.async_support.woo):
         ohlcv = await self.watch_public(topic, message)
         if self.newUpdates:
             limit = ohlcv.getLimit(market['symbol'], limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -329,7 +329,7 @@ class woo(ccxt.async_support.woo):
         trades = await self.watch_public(topic, message)
         if self.newUpdates:
             limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_trade(self, client: Client, message):
         #
@@ -453,7 +453,7 @@ class woo(ccxt.async_support.woo):
         orders = await self.watch_private(messageHash, message)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order(self, order, market=None):
         #
@@ -486,9 +486,8 @@ class woo(ccxt.async_support.woo):
         market = self.market(marketId)
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp')
-        cost = self.safe_string(order, 'totalFee')
         fee = {
-            'cost': cost,
+            'cost': self.safe_string(order, 'totalFee'),
             'currency': self.safe_string(order, 'feeAsset'),
         }
         price = self.safe_number(order, 'price')
@@ -523,7 +522,7 @@ class woo(ccxt.async_support.woo):
             'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'filled': filled,
             'remaining': remaining,

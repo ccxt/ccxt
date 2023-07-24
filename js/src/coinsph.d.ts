@@ -1,5 +1,9 @@
 import Exchange from './abstract/coinsph.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coinsph
+ * @extends Exchange
+ */
 export default class coinsph extends Exchange {
     describe(): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
@@ -12,7 +16,7 @@ export default class coinsph extends Exchange {
     }>;
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
@@ -24,13 +28,13 @@ export default class coinsph extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseBalance(response: any): import("./base/types.js").Balances;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
-    parseOrder(order: any, market?: any): any;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     parseOrderSide(status: any): string;
     encodeOrderSide(status: any): string;
     parseOrderType(status: any): string;
@@ -116,6 +120,20 @@ export default class coinsph extends Exchange {
         fee: any;
     };
     parseTransactionStatus(status: any): string;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: any;
+        address: string;
+        tag: string;
+        network: any;
+        info: any;
+    }>;
+    parseDepositAddress(depositAddress: any, currency?: any): {
+        currency: any;
+        address: string;
+        tag: string;
+        network: any;
+        info: any;
+    };
     urlEncodeQuery(query?: {}): string;
     parseArrayParam(array: any, key: any): string;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

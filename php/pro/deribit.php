@@ -67,7 +67,7 @@ class deribit extends \ccxt\async\deribit {
             /**
              * @see https://docs.deribit.com/#user-portfolio-currency
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the deribit api endpoint
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
@@ -153,8 +153,8 @@ class deribit extends \ccxt\async\deribit {
              * @see https://docs.deribit.com/#ticker-instrument_name-$interval
              * watches a price ticker, a statistical calculation with the information for a specific $market->
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @param {str|null} $params->interval specify aggregation and frequency of notifications. Possible values => 100ms, raw
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -226,11 +226,11 @@ class deribit extends \ccxt\async\deribit {
              * get the list of most recent $trades for a particular $symbol
              * @see https://docs.deribit.com/#$trades-instrument_name-$interval
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @param {str|null} $params->interval specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -254,7 +254,7 @@ class deribit extends \ccxt\async\deribit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -308,11 +308,11 @@ class deribit extends \ccxt\async\deribit {
              * get the list of $trades associated with the user
              * @see https://docs.deribit.com/#user-$trades-instrument_name-$interval
              * @param {string} $symbol unified $symbol of the market to fetch $trades for. Use 'any' to watch all $trades
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @param {str|null} $params->interval specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->authenticate($params));
             if ($symbol !== null) {
@@ -333,7 +333,7 @@ class deribit extends \ccxt\async\deribit {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $channel, $request, $channel, $request));
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -395,9 +395,9 @@ class deribit extends \ccxt\async\deribit {
              * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @param {string} $params->interval Frequency of notifications. Events will be aggregated over this $interval-> Possible values => 100ms, raw
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {string} [$params->interval] Frequency of notifications. Events will be aggregated over this $interval-> Possible values => 100ms, raw
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -474,7 +474,7 @@ class deribit extends \ccxt\async\deribit {
         $channel = $this->safe_string($params, 'channel');
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
-        $timestamp = $this->safe_number($data, 'timestamp');
+        $timestamp = $this->safe_integer($data, 'timestamp');
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         if ($storedOrderBook === null) {
             $storedOrderBook = $this->counted_order_book();
@@ -529,10 +529,10 @@ class deribit extends \ccxt\async\deribit {
              * @see https://docs.deribit.com/#user-$orders-instrument_name-raw
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -558,7 +558,7 @@ class deribit extends \ccxt\async\deribit {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -611,8 +611,9 @@ class deribit extends \ccxt\async\deribit {
             $order = $this->parse_order($data);
             $orders = array( $order );
         }
+        $cachedOrders = $this->orders;
         for ($i = 0; $i < count($orders); $i++) {
-            $this->orders.append ($orders[$i]);
+            $cachedOrders->append ($orders[$i]);
         }
         $client->resolve ($this->orders, $channel);
     }
@@ -624,10 +625,10 @@ class deribit extends \ccxt\async\deribit {
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -651,7 +652,7 @@ class deribit extends \ccxt\async\deribit {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($market['symbol'], $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
