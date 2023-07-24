@@ -1715,141 +1715,6 @@ export default class Exchange {
                     'CRONOS': 'CRC20',
                 },
             },
-            // this list is for common reserved CCXT unified network codes, the primary and supported secondary unified network codes
-            'unifiedNetworkCodesAndAliases': {
-                'BSC': 'BEP20',
-                'HECO': 'HRC20',
-                'TRON': 'TRC20',
-                // 'BNB': 'BEP2', // BNB is risky for unification, as some exchanges are undeliberately calling 'BNB' network for BINANCE smart chain
-                'CARDANO': 'ADA',
-                'DOGECOIN': 'DOGE',
-                'SOLANA': 'SOL',
-                'POLYGON': 'MATIC',
-                'COSMOS': 'ATOM',
-                'POLKADOT': 'DOT',
-                'RIPPLE': 'XRP',
-                'STELLAR': 'XLM',
-                'ALGORAND': 'ALGO',
-                'CHILIZ': 'CHZ',
-                'ZILLIQA': 'ZIL',
-                'ECASH': 'XEC',
-                'ZCASH': 'ZEC',
-                'KUSAMA': 'KSM',
-                'MOONBEAM': 'GLMR',
-                'MOONRIVER': 'MOVR',
-                'INJECTIVE': 'INJ',
-                'SYMBOL': 'XYM',
-                'ONTOLOGY': 'ONT',
-                'ONTOLOGY_GAS': 'ONG',
-                'NEBULAS': 'NAS',
-                'ELROND': 'EGLD',
-                'TELOS': 'TLOS',
-                'ARBITRUM_ONE': 'ARBONE',
-                'ARBITRUM_NOVA': 'ARBNOVA',
-                'AVALANCHE_X': 'AVAXX',
-                'AVALANCHE_C': 'AVAXC',
-                'SOLAR': 'SXP',
-                'FILECOIN': 'FIL',
-                'KLAYTN': 'KLAY',
-                'PROTON': 'XPR',
-                'HARMONY': 'ONE',
-                'BITCOIN_LIGHTNING': 'BTCLN',
-                'KARURA': 'KAR',
-                'KADENA': 'KDA',
-                'TEZOS': 'XTZ',
-                'POLKADEX': 'PDEX',
-                'BITTORRENT': 'BTT',
-                'VECHAIN': 'VET',
-                'BITSHARES': 'BTS',
-                'EVERSCALE': 'EVER',
-                'HEDERA': 'HBAR',
-                'ACALA': 'ACA',
-                'ARWEAVE': 'AR',
-                'BITCOINX': 'BCX',
-                'APTOS': 'APT',
-                'DIGIBYTE': 'DGB',
-                'SUPERBITCOIN': 'SBTC',
-                'THUNDERCORE': 'TT',
-                'DECRED': 'DCR',
-                'DECRED_NEXT': 'DCRN',
-                'CERTIK': 'CTK',
-                'ELASTOS': 'ELA',
-                'ELASTOS_SMARTCHAIN': 'ESC',
-                'RAVENCOIN': 'RVN',
-                'PLATON': 'LAT',
-                'SYSCOIN': 'SYS',
-                'CENTRIFUGE': 'CFG',
-                'THEOPENNETWORK': 'TON', // same as TONCOIN, telegram's coin
-                'SHIDEN': 'SDN',
-                'CALAMARI': 'KMA',
-                'CASPER': 'CSPR',
-                'OSMOSIS': 'OSMO',
-                'CONFLUX': 'CFX',
-                'CHEQD': 'CHEQ',
-                'RADIX': 'XRD',
-                'KARDIA': 'KAI',
-                'BIFROST': 'BNC',
-                'BIFROST_POLKADOT': 'BNCDOT',
-                'NODLE': 'NODL',
-                'NEM': 'XEM',
-                'FILESTAR': 'STAR',
-                'EDGEWARE': 'EDG',
-                'ALEPHZERO': 'AZERO',
-                'NEBLIO': 'NEBL',
-                'BYTOM': 'BTM2',
-                'PLCULTIMA': 'PLCU',
-                'KINTSUGI': 'KINT',
-                'FINDORA': 'FRA',
-                'BITGERT': 'BRISE',
-                'DATA': 'DTA',
-                'AETERNITY': 'AE',
-                'ASTAR': 'ASTR',
-                'FANTOM': 'FTM',
-                'ARDOR': 'ARDR',
-                'AELF': 'ELF',
-                'FLARE': 'FLR',
-                'ZEITGEIST': 'ZTG',
-                'GXSHARES': 'GXS',
-                'SONGBIRD': 'SGB',
-                'SECRET': 'SCRT',
-                'SIACOIN': 'SC',
-                'GATHER': 'GTH',
-                'TOMOCHAIN': 'TOMO',
-                'INTERNETCOMPUTER': 'ICP',  // aka Dfinity
-                'PERSISTENCE': 'XPRT',
-                'HELIUM': 'HNT',
-                'CLOVER': 'CLV',
-                'VERGE': 'XVG',
-                'NERVOS': 'CKB',
-                'CHIA': 'XCH',
-                'LISK': 'LSK',
-                'VSYSTEMS': 'vsys',
-                'IOTEX': 'IOTX',
-                'QISWAP': 'QI',
-                'FETCH_AI': 'FET',
-                'CORTEX': 'CTXC',
-                'POLYMESH': 'POLYX',
-                'MONERO': 'XMR',
-                'IRISNET': 'IRIS',
-                'POCKET': 'POKT',
-                'AKASH': 'AKT',
-                'FUSION': 'FSN',
-                'NIMIQ': 'NIM',
-                'ENERGI': 'NRG',
-                'QUARKCHAIN': 'QKC',
-                'CADUCEUS': 'CMP',
-                'CREDITS': 'CS',
-                'HATHOR': 'HTR',
-                'TRUECHAIN': 'TRUE',
-                'DEFICHAIN': 'DFI',
-                'SENTINEL': 'DVPN',
-                'HORIZEN': 'ZEN',
-                'STACKS': 'STX',
-                'KOMODO': 'KMD',
-                'ICON': 'ICX',
-                'BELDEX': 'BDX',
-                'PHALA': 'KHALA',
-            },
             // also add the property for approving the network-code conflicts:
             'networkCodeConflictApproved': {},
         };
@@ -2864,26 +2729,23 @@ export default class Exchange {
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
-        // check if alias replacement is needed (i.e. POLYGON>MATIC)
-        const unifiedNetworkCodesAndAliases = this.safeValue (this.options, 'unifiedNetworkCodesAndAliases', {});
-        const networkCodeAliasCorrected = this.safeString (unifiedNetworkCodesAndAliases, networkCode, networkCode);
         // check if Mainnet<>Protocol replacement is needed (i.e. ETH<>ERC20) depending on currencyCode
-        const networkCodeAliasCorrectedAndMainnetCorrected = this.checkMainnetNetworkCodeReplacement (networkCodeAliasCorrected, currencyCode);
+        const networkCodeMainnetCorrected = this.checkMainnetNetworkCodeReplacement (networkCode, currencyCode);
         // check for conflicts
         this.checkNetworkCodeConflict (networkCode);
-        if (networkCode !== networkCodeAliasCorrectedAndMainnetCorrected) {
+        if (networkCode !== networkCodeMainnetCorrected) {
             // if there was a alias replacement, then check the original alias for conflict too
-            this.checkNetworkCodeConflict (networkCodeAliasCorrectedAndMainnetCorrected);
+            this.checkNetworkCodeConflict (networkCodeMainnetCorrected);
         }
         // get the exchange-specific network-id from mappings
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        let networkId = this.safeString (networkIdsByCodes, networkCodeAliasCorrectedAndMainnetCorrected);
+        let networkId = this.safeString (networkIdsByCodes, networkCodeMainnetCorrected);
         if (networkId === undefined) {
             if (currencyCode === undefined) {
                 // if currencyCode was not provided, then we just set passed value to networkId
                 networkId = networkCode;
             } else {
-                // atm, we still set to the passed networkCode, if networkId was not found, however this block will be enhanced a bit in a very near future
+                // atm, we still set to the passed networkCode, if networkId was not found, however this block will be enhanced a bit in a next PR
                 networkId = networkCode;
             }
         }
