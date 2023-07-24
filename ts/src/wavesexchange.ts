@@ -102,7 +102,7 @@ export default class wavesexchange extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test': {
-                    'matcher': 'https://matcher-testnet.waves.exchange',
+                    'matcher': 'https://matcher-testnet.wx.network',
                     'node': 'https://nodes-testnet.wavesnodes.com',
                     'public': 'https://api-testnet.wavesplatform.com/v0',
                     'private': 'https://api-testnet.waves.exchange/v1',
@@ -110,15 +110,15 @@ export default class wavesexchange extends Exchange {
                     'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
                 },
                 'api': {
-                    'matcher': 'https://matcher.waves.exchange',
+                    'matcher': 'https://matcher.wx.network',
                     'node': 'https://nodes.waves.exchange',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
                     'market': 'https://waves.exchange/api/v1/forward/marketdata/api/v1',
                 },
-                'doc': 'https://docs.waves.exchange',
-                'www': 'https://waves.exchange',
+                'doc': 'https://docs.wx.network',
+                'www': 'https://wx.network',
             },
             'api': {
                 'matcher': {
