@@ -298,6 +298,7 @@ interface Exchange {
     sapiPostConvertGetQuote(params?: {}): Promise<implicitReturnType>;
     sapiPostConvertAcceptQuote(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioAutoCollection(params?: {}): Promise<implicitReturnType>;
+    sapiPostPortfolioAssetCollection(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioBnbTransfer(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRepayFuturesNegativeBalance(params?: {}): Promise<implicitReturnType>;
@@ -491,6 +492,8 @@ interface Exchange {
     eapiPrivateGetUserTrades(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetExerciseRecord(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetBill(params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetIncomeAsyn(params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetIncomeAsynId(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetMarginAccount(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetMmp(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetCountdownCancelAll(params?: {}): Promise<implicitReturnType>;

@@ -3069,30 +3069,30 @@ class coinex(Exchange, ImplicitAPI):
 
     def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
         set the level of leverage for a market
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the coinex api endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated'(default is 'cross')
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         self.load_markets()
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode')
-        defaultPositionType = None
-        if defaultMarginMode == 'isolated':
-            defaultPositionType = 1
-        elif defaultMarginMode == 'cross':
-            defaultPositionType = 2
-        positionType = self.safe_integer(params, 'position_type', defaultPositionType)
-        if positionType is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a position_type parameter that will transfer margin to the specified trading pair')
         market = self.market(symbol)
-        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
-        if market['type'] != 'swap':
+        if not market['swap']:
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
-        if (leverage < 3) or (leverage > maxLeverage):
-            raise BadRequest(self.id + ' setLeverage() leverage should be between 3 and ' + str(maxLeverage) + ' for ' + symbol)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
+        positionType = None
+        if marginMode == 'isolated':
+            positionType = 1
+        elif marginMode == 'cross':
+            positionType = 2
+        minLeverage = self.safe_integer(market['limits']['leverage'], 'min', 1)
+        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
+        if (leverage < minLeverage) or (leverage > maxLeverage):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between ' + str(minLeverage) + ' and ' + str(maxLeverage) + ' for ' + symbol)
         request = {
             'market': market['id'],
             'leverage': str(leverage),

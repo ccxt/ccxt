@@ -541,8 +541,9 @@ class binance(Exchange, ImplicitAPI):
                         'loan/vip/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
-                        'portfolio/auto-collection': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
-                        'portfolio/bnb-transfer': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/auto-collection': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/asset-collection': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'portfolio/bnb-transfer': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-switch': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'lending/auto-invest/plan/add': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -817,6 +818,8 @@ class binance(Exchange, ImplicitAPI):
                         'userTrades': 5,
                         'exerciseRecord': 5,
                         'bill': 1,
+                        'income/asyn': 5,
+                        'income/asyn/id': 5,
                         'marginAccount': 3,
                         'mmp': 1,
                         'countdownCancelAll': 1,
