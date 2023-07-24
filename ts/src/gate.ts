@@ -762,6 +762,7 @@ export default class gate extends Exchange {
                     'REPAY_TOO_MUCH': ExchangeError,
                     'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
                     'TOO_MANY_ORDERS': InvalidOrder,
+                    'TOO_MANY_REQUESTS': RateLimitExceeded,
                     'MIXED_ACCOUNT_TYPE': InvalidOrder,
                     'AUTO_BORROW_TOO_MUCH': ExchangeError,
                     'TRADE_RESTRICTED': InsufficientFunds,
