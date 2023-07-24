@@ -352,6 +352,8 @@ export default class gate extends Exchange {
                     },
                     'flash_swap': {
                         'get': {
+                            'currencies': 1.5,
+                            'currency_pairs': 1.5,
                             'orders': 1.5,
                             'orders/{order_id}': 1.5,
                         },
