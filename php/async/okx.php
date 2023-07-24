@@ -403,6 +403,7 @@ class okx extends Exchange {
                         'account/set-riskOffset-type' => 2,
                         'account/activate-option' => 4,
                         'account/set-auto-loan' => 4,
+                        'account/set-account-level' => 4,
                         'account/mmp-reset' => 4,
                         'account/mmp-config' => 100,
                         // subaccount
