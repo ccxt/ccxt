@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
-import { stringToBinary, binaryToBase58 } from './base/functions/encode.js';
+import { stringToBinary, binaryToString, binaryToBase58 } from './base/functions/encode.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 
@@ -1673,7 +1673,7 @@ export default class wavesexchange extends Exchange {
         // createOrder
         //
         //     {
-        //         'version': 3,
+        //         'version': 4,
         //         'id': 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
         //         'sender': '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
         //         'senderPublicKey': 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
@@ -1693,6 +1693,7 @@ export default class wavesexchange extends Exchange {
         //         'proofs': [
         //             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
         //         ],
+        //         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         //     }
         //
         //
@@ -1715,8 +1716,9 @@ export default class wavesexchange extends Exchange {
         //             priceAsset: 'WAVES'
         //         },
         //         avgWeighedPrice: 0,
-        //         version: 3,
+        //         version: 4,
         //         totalExecutedPriceAssets: 0,  // in fetchOpenOrder/s
+        //         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         //     }
         //
         const timestamp = this.safeInteger (order, 'timestamp');
@@ -1757,6 +1759,20 @@ export default class wavesexchange extends Exchange {
                 'fee': this.parseNumber (this.currencyFromPrecision (currency, this.safeString (order, 'matcherFee'))),
             };
         }
+        let stopPrice = undefined;
+        const attachment = this.safeString (order, 'attachment');
+        if (attachment !== undefined) {
+            const decodedAttachment = this.parseJson (binaryToString (this.base58ToBinary (attachment)));
+            if (decodedAttachment !== undefined) {
+                const c = this.safeValue (decodedAttachment, 'c');
+                if (c !== undefined) {
+                    const v = this.safeValue (c, 'v');
+                    if (v !== undefined) {
+                        stopPrice = this.safeString (v, 'p');
+                    }
+                }
+            }
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1770,7 +1786,7 @@ export default class wavesexchange extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': stopPrice,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
