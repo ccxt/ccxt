@@ -3263,7 +3263,7 @@ export default class coinex extends Exchange {
         this.checkRequiredSymbol ('setLeverage', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['type']) {
+        if (!market['swap']) {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
         let marginMode = undefined;
