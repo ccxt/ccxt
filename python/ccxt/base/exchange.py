@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.36'
+__version__ = '4.0.38'
 
 # -----------------------------------------------------------------------------
 
@@ -1772,7 +1772,7 @@ class Exchange(object):
                 value = self.safe_value(entry, key)
                 if value and (value >= since):
                     result.append(entry)
-        if tail:
+        if tail and limit is not None:
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
@@ -1793,7 +1793,7 @@ class Exchange(object):
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
-        if tail:
+        if tail and limit is not None:
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.0.36';
+$version = '4.0.38';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.0.36';
+    const VERSION = '4.0.38';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2224,7 +2224,7 @@ class Exchange {
                 }
             }
         }
-        if ($tail) {
+        if ($tail && $limit !== null) {
             return $this->arraySlice ($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
@@ -2250,7 +2250,7 @@ class Exchange {
                 }
             }
         }
-        if ($tail) {
+        if ($tail && $limit !== null) {
             return $this->arraySlice ($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
