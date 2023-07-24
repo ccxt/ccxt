@@ -160,7 +160,7 @@ export default class Exchange {
     api = undefined
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
-    proxy = ''; // maintained for backwards compatibility, no-one should use it from now on
+    proxy: any // maintained for backwards compatibility, no-one should use it from now on
     proxyUrl: string;
     proxy_url: string;
     proxyUrlCallback: any;

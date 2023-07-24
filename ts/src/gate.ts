@@ -2,10 +2,10 @@
 
 import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
+import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 /**
  * @class gate
@@ -303,11 +303,6 @@ export default class gate extends Exchange {
                         },
                         'patch': {
                             'spot/orders/{order_id}': 1.5,
-                        },
-                    },
-                    'account': {
-                        'get': {
-                            'detail': 1,
                         },
                     },
                     'spot': {
