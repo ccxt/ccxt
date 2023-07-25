@@ -49,6 +49,7 @@ export default class delta extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -1354,6 +1355,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.delta.exchange/#get-ohlc-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1364,7 +1366,6 @@ export default class delta extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
@@ -1378,6 +1379,13 @@ export default class delta extends Exchange {
             request['start'] = start;
             request['end'] = this.sum (start, limit * duration);
         }
+        const price = this.safeString (params, 'price');
+        if (price === 'mark') {
+            request['symbol'] = 'MARK:' + market['id'];
+        } else {
+            request['symbol'] = market['id'];
+        }
+        params = this.omit (params, 'price');
         const response = await this.publicGetHistoryCandles (this.extend (request, params));
         //
         //     {
