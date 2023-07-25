@@ -58,7 +58,7 @@ class poloniex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
@@ -213,12 +213,6 @@ class poloniex extends Exchange {
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRON',
-                ),
-                'networksById' => array(
-                    'BSC' => 'BEP20',
-                    'ETH' => 'ERC20',
-                    'TRON' => 'TRC20',
-                    'TRX' => 'TRC20',
                 ),
                 'limits' => array(
                     'cost' => array(
@@ -1846,14 +1840,13 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @deprecated
-         * use fetchDepositsWithdrawals instead
+         * fetch history of $deposits and $withdrawals
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
-         * @param {string} $code unified $currency $code for the $currency of the $transactions, default is null
-         * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
-         * @param {int} [$limit] max number of $transactions to return, default is null
+         * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the poloniex api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */

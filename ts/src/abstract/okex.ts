@@ -133,6 +133,7 @@ interface okx {
     privateGetAccountInterestLimits (params?: {}): Promise<implicitReturnType>;
     privateGetAccountGreeks (params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositionTiers (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountMmpConfig (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBalances (params?: {}): Promise<implicitReturnType>;
@@ -221,7 +222,9 @@ interface okx {
     privatePostAccountSetRiskOffsetType (params?: {}): Promise<implicitReturnType>;
     privatePostAccountActivateOption (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetAutoLoan (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetAccountLevel (params?: {}): Promise<implicitReturnType>;
     privatePostAccountMmpReset (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountMmpConfig (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
     privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountSetTransferOut (params?: {}): Promise<implicitReturnType>;

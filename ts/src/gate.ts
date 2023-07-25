@@ -77,7 +77,6 @@ export default class gate extends Exchange {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -353,6 +352,8 @@ export default class gate extends Exchange {
                     },
                     'flash_swap': {
                         'get': {
+                            'currencies': 1.5,
+                            'currency_pairs': 1.5,
                             'orders': 1.5,
                             'orders/{order_id}': 1.5,
                         },
@@ -763,6 +764,7 @@ export default class gate extends Exchange {
                     'REPAY_TOO_MUCH': ExchangeError,
                     'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
                     'TOO_MANY_ORDERS': InvalidOrder,
+                    'TOO_MANY_REQUESTS': RateLimitExceeded,
                     'MIXED_ACCOUNT_TYPE': InvalidOrder,
                     'AUTO_BORROW_TOO_MUCH': ExchangeError,
                     'TRADE_RESTRICTED': InsufficientFunds,
@@ -1758,19 +1760,6 @@ export default class gate extends Exchange {
             };
         }
         return result;
-    }
-
-    async createDepositAddress (code: string, params = {}) {
-        /**
-         * @method
-         * @name gate#createDepositAddress
-         * @description create a currency deposit address
-         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
-        return await this.fetchDepositAddress (code, params);
     }
 
     async fetchDepositAddress (code: string, params = {}) {

@@ -75,7 +75,7 @@ class gemini extends gemini$1 {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'postOnly': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -260,42 +260,24 @@ class gemini extends gemini$1 {
                 },
                 'fetchCurrencies': {
                     'webApiEnable': true,
-                    'webApiRetries': 10,
+                    'webApiRetries': 5,
+                    'webApiMuteFailure': true,
                 },
                 'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],
                 'fetchTickerMethod': 'fetchTickerV1',
-                'networkIds': {
-                    'bitcoin': 'BTC',
-                    'ethereum': 'ERC20',
-                    'bitcoincash': 'BCH',
-                    'litecoin': 'LTC',
-                    'zcash': 'ZEC',
-                    'filecoin': 'FIL',
-                    'dogecoin': 'DOGE',
-                    'tezos': 'XTZ',
-                    'avalanche': 'AVALANCHE_X',
-                    'solana': 'SOLANA',
-                    'cosmos': 'COSMOS',
-                    'polkadot': 'POLKADOT',
-                },
                 'networks': {
                     'BTC': 'bitcoin',
-                    'ETH': 'ethereum',
                     'ERC20': 'ethereum',
                     'BCH': 'bitcoincash',
                     'LTC': 'litecoin',
-                    'ZCASH': 'zcash',
                     'ZEC': 'zcash',
-                    'FILECOIN': 'filecoin',
                     'FIL': 'filecoin',
-                    'DOGECOIN': 'dogecoin',
                     'DOGE': 'dogecoin',
-                    'TEZOS': 'tezos',
                     'XTZ': 'tezos',
-                    'AVALANCHE_X': 'avalanche',
-                    'SOLANA': 'solana',
-                    'COSMOS': 'cosmos',
-                    'POLKADOT': 'polkadot',
+                    'AVAXX': 'avalanche',
+                    'SOL': 'solana',
+                    'ATOM': 'cosmos',
+                    'DOT': 'polkadot',
                 },
                 'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
             },
@@ -1536,15 +1518,14 @@ class gemini extends gemini$1 {
         }
         return this.seconds();
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name gemini#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code not used by gemini.fetchTransactions
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name gemini#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the gemini api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */

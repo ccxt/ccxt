@@ -193,6 +193,8 @@ class hollaex extends Exchange {
                     'TRC20' => 'trx',
                     'XRP' => 'xrp',
                     'XLM' => 'xlm',
+                    'BNB' => 'bnb',
+                    'MATIC' => 'matic',
                 ),
             ),
         ));
@@ -314,6 +316,7 @@ class hollaex extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
+         * @see https://apidocs.hollaex.com/#constants
          * @param {array} [$params] extra parameters specific to the hollaex api endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -1650,13 +1653,11 @@ class hollaex extends Exchange {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter');
         }
         $params = $this->omit($params, 'network');
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $networkId = $this->safe_string_lower_2($networks, $network, $code, $network);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
-            'network' => $networkId,
+            'network' => $this->network_code_to_id($network, $code),
         );
         $response = $this->privatePostUserWithdrawal (array_merge($request, $params));
         //
@@ -1670,6 +1671,122 @@ class hollaex extends Exchange {
         //     }
         //
         return $this->parse_transaction($response, $currency);
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    "bch":{
+        //        "id":4,
+        //        "fullname":"Bitcoin Cash",
+        //        "symbol":"bch",
+        //        "active":true,
+        //        "verified":true,
+        //        "allow_deposit":true,
+        //        "allow_withdrawal":true,
+        //        "withdrawal_fee":0.0001,
+        //        "min":0.001,
+        //        "max":100000,
+        //        "increment_unit":0.001,
+        //        "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //        "code":"bch",
+        //        "is_public":true,
+        //        "meta":array(),
+        //        "estimated_price":null,
+        //        "description":null,
+        //        "type":"blockchain",
+        //        "network":null,
+        //        "standard":null,
+        //        "issuer":"HollaEx",
+        //        "withdrawal_fees":null,
+        //        "created_at":"2019-08-09T10:45:43.367Z",
+        //        "updated_at":"2021-12-13T03:08:32.372Z",
+        //        "created_by":1,
+        //        "owner_id":1
+        //    }
+        //
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        $allowWithdrawal = $this->safe_value($fee, 'allow_withdrawal');
+        if ($allowWithdrawal) {
+            $result['withdraw'] = array( 'fee' => $this->safe_number($fee, 'withdrawal_fee'), 'percentage' => false );
+        }
+        $withdrawalFees = $this->safe_value($fee, 'withdrawal_fees');
+        if ($withdrawalFees !== null) {
+            $keys = is_array($withdrawalFees) ? array_keys($withdrawalFees) : array();
+            $keysLength = count($keys);
+            for ($i = 0; $i < $keysLength; $i++) {
+                $key = $keys[$i];
+                $value = $withdrawalFees[$key];
+                $currencyId = $this->safe_string($value, 'symbol');
+                $currencyCode = $this->safe_currency_code($currencyId);
+                $networkCode = $this->network_id_to_code($key, $currencyCode);
+                $networkCodeUpper = strtoupper($networkCode); // default to the upper case network code
+                $withdrawalFee = $this->safe_number($value, 'value');
+                $result['networks'][$networkCodeUpper] = array(
+                    'deposit' => null,
+                    'withdraw' => $withdrawalFee,
+                );
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://apidocs.hollaex.com/#constants
+         * @param {string[]|null} $codes list of unified currency $codes
+         * @param {array} [$params] extra parameters specific to the hollaex api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $response = $this->publicGetConstants ($params);
+        //
+        //     {
+        //         "coins":array(
+        //             "bch":array(
+        //                 "id":4,
+        //                 "fullname":"Bitcoin Cash",
+        //                 "symbol":"bch",
+        //                 "active":true,
+        //                 "verified":true,
+        //                 "allow_deposit":true,
+        //                 "allow_withdrawal":true,
+        //                 "withdrawal_fee":0.0001,
+        //                 "min":0.001,
+        //                 "max":100000,
+        //                 "increment_unit":0.001,
+        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //                 "code":"bch",
+        //                 "is_public":true,
+        //                 "meta":array(),
+        //                 "estimated_price":null,
+        //                 "description":null,
+        //                 "type":"blockchain",
+        //                 "network":null,
+        //                 "standard":null,
+        //                 "issuer":"HollaEx",
+        //                 "withdrawal_fees":null,
+        //                 "created_at":"2019-08-09T10:45:43.367Z",
+        //                 "updated_at":"2021-12-13T03:08:32.372Z",
+        //                 "created_by":1,
+        //                 "owner_id":1
+        //             ),
+        //         ),
+        //         "network":"https://api.hollaex.network"
+        //     }
+        //
+        $coins = $this->safe_value($response, 'coins');
+        return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
     }
 
     public function normalize_number_if_needed($number) {

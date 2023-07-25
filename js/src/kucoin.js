@@ -202,7 +202,12 @@ export default class kucoin extends Exchange {
                         'hf/orders/done': 2,
                         'hf/orders/{orderId}': 1,
                         'hf/orders/client-order/{clientOid}': 2,
-                        'hf/fills': 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
+                        'hf/fills': 6.67,
+                        'margin/repay': 1,
+                        'project/list': 1,
+                        'project/marketInterestRate': 1,
+                        'redeem/orders': 1,
+                        'purchase/orders': 1,
                     },
                     'post': {
                         'accounts': 1,
@@ -230,7 +235,11 @@ export default class kucoin extends Exchange {
                         'hf/orders/sync': 1.33,
                         'hf/orders/multi': 20,
                         'hf/orders/multi/sync': 20,
-                        'hf/orders/alter': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
+                        'hf/orders/alter': 1,
+                        'margin/repay': 1,
+                        'purchase': 1,
+                        'redeem': 1,
+                        'lend/purchase/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -354,6 +363,18 @@ export default class kucoin extends Exchange {
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied,
                     '103000': InvalidOrder,
+                    '130101': BadRequest,
+                    '130102': ExchangeError,
+                    '130103': OrderNotFound,
+                    '130104': ExchangeError,
+                    '130105': InsufficientFunds,
+                    '130106': NotSupported,
+                    '130107': ExchangeError,
+                    '130108': OrderNotFound,
+                    '130201': PermissionDenied,
+                    '130202': ExchangeError,
+                    '130203': InsufficientFunds,
+                    '130204': BadRequest,
                     '200004': InsufficientFunds,
                     '210014': InvalidOrder,
                     '210021': InsufficientFunds,
@@ -374,12 +395,14 @@ export default class kucoin extends Exchange {
                     '400200': InvalidOrder,
                     '400350': InvalidOrder,
                     '400370': InvalidOrder,
+                    '400400': BadRequest,
                     '400500': InvalidOrder,
                     '400600': BadSymbol,
                     '400760': InvalidOrder,
                     '401000': BadRequest,
                     '411100': AccountSuspended,
                     '415000': BadRequest,
+                    '400303': PermissionDenied,
                     '500000': ExchangeNotAvailable,
                     '260220': InvalidAddress,
                     '900014': BadRequest, // {"code":"900014","msg":"Invalid chainId"}
@@ -450,6 +473,7 @@ export default class kucoin extends Exchange {
                 'fetchCurrencies': {
                     'webApiEnable': true,
                     'webApiRetries': 5,
+                    'webApiMuteFailure': true,
                 },
                 'fetchMarkets': {
                     'fetchTickersFees': true,
@@ -481,6 +505,12 @@ export default class kucoin extends Exchange {
                             'hf/orders/{orderId}': 'v1',
                             'hf/orders/client-order/{clientOid}': 'v1',
                             'hf/fills': 'v1',
+                            'margin/borrow': 'v3',
+                            'margin/repay': 'v3',
+                            'project/list': 'v3',
+                            'project/marketInterestRate': 'v3',
+                            'redeem/orders': 'v3',
+                            'purchase/orders': 'v3',
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
@@ -491,6 +521,11 @@ export default class kucoin extends Exchange {
                             'hf/orders/multi': 'v1',
                             'hf/orders/multi/sync': 'v1',
                             'hf/orders/alter': 'v1',
+                            'margin/borrow': 'v3',
+                            'margin/repay': 'v3',
+                            'purchase': 'v3',
+                            'redeem': 'v3',
+                            'lend/purchase/update': 'v3',
                         },
                         'DELETE': {
                             'hf/orders/{orderId}': 'v1',
@@ -545,321 +580,209 @@ export default class kucoin extends Exchange {
                 'networks': {
                     'BTC': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
-                    'KCC': 'kcc',
-                    'SOLANA': 'sol',
-                    'ALGORAND': 'algo',
-                    'EOS': 'eos',
                     'HRC20': 'heco',
-                    'POLYGON': 'matic',
+                    'MATIC': 'matic',
+                    'KCC': 'kcc',
+                    'SOL': 'sol',
+                    'ALGO': 'algo',
+                    'EOS': 'eos',
                     'BEP20': 'bsc',
                     'BEP2': 'bnb',
-                    'ARBITRUM_ONE': 'arbitrum',
-                    'TELOS': 'tlos',
-                    'CONFLUX': 'cfx',
-                    'ACALA': 'aca',
+                    'ARBONE': 'arbitrum',
+                    'AVAXX': 'avax',
+                    'AVAXC': 'avaxc',
+                    'TLOS': 'tlos',
+                    'CFX': 'cfx',
+                    'ACA': 'aca',
                     'OPTIMISM': 'optimism',
-                    'ONTOLOGY': 'ont',
-                    'MOONBEAM': 'glmr',
-                    'CASPER': 'cspr',
-                    'KLAYTN': 'klay',
-                    'RADIX': 'xrd',
-                    'RAVENCOIN': 'rvn',
+                    'ONT': 'ont',
+                    'GLMR': 'glmr',
+                    'CSPR': 'cspr',
+                    'KLAY': 'klay',
+                    'XRD': 'xrd',
+                    'RVN': 'rvn',
                     'NEAR': 'near',
-                    'APTOS': 'aptos',
+                    'APT': 'aptos',
                     'ETHW': 'ethw',
                     'TON': 'ton',
                     'BCH': 'bch',
                     'BSV': 'bchsv',
                     'BCHA': 'bchabc',
-                    'OSMOSIS': 'osmo',
+                    'OSMO': 'osmo',
                     'NANO': 'nano',
-                    'STELLAR': 'xlm',
-                    'VECHAIN': 'vet',
+                    'XLM': 'xlm',
+                    'VET': 'vet',
                     'IOST': 'iost',
-                    'ZILLIQA': 'zil',
-                    'RIPPLE': 'xrp',
-                    'TOMOCHAIN': 'tomo',
-                    'MONERO': 'xmr',
+                    'ZIL': 'zil',
+                    'XRP': 'xrp',
+                    'TOMO': 'tomo',
+                    'XMR': 'xmr',
                     'COTI': 'coti',
-                    'TEZOS': 'xtz',
-                    'CARDANO': 'ada',
+                    'XTZ': 'xtz',
+                    'ADA': 'ada',
                     'WAX': 'waxp',
                     'THETA': 'theta',
-                    'HARMONY': 'one',
+                    'ONE': 'one',
                     'IOTEX': 'iotx',
                     'NULS': 'nuls',
-                    'KUSAMA': 'ksm',
+                    'KSM': 'ksm',
                     'LTC': 'ltc',
                     'WAVES': 'waves',
-                    'POLKADOT': 'dot',
+                    'DOT': 'dot',
                     'STEEM': 'steem',
                     'QTUM': 'qtum',
-                    'DOGECOIN': 'doge',
-                    'FILECOIN': 'fil',
-                    'AVALANCHE_X': 'avax',
-                    'AVALANCHE_C': 'avaxc',
-                    'SYMBOL': 'xym',
+                    'DOGE': 'doge',
+                    'FIL': 'fil',
+                    'XYM': 'xym',
                     'FLUX': 'flux',
-                    'COSMOS': 'atom',
+                    'ATOM': 'atom',
                     'XDC': 'xdc',
-                    'KADENA': 'kda',
-                    'INTERNETCOMPUTER': 'icp',
+                    'KDA': 'kda',
+                    'ICP': 'icp',
                     'CELO': 'celo',
-                    'LISK': 'lsk',
-                    'VSYSTEMS': 'vsys',
-                    'KARURA': 'kar',
-                    'CHIA': 'xch',
+                    'LSK': 'lsk',
+                    'VSYS': 'vsys',
+                    'KAR': 'kar',
+                    'XCH': 'xch',
                     'FLOW': 'flow',
                     'BAND': 'band',
-                    'ELROND': 'egld',
-                    'HEDERA': 'hbar',
-                    'PROTON': 'xpr',
-                    'ARWEAVE': 'ar',
-                    'FANTOM': 'ftm',
+                    'EGLD': 'egld',
+                    'HBAR': 'hbar',
+                    'XPR': 'xpr',
+                    'AR': 'ar',
+                    'FTM': 'ftm',
                     'KAVA': 'kava',
-                    'CALAMARI': 'kma',
-                    'ECASH': 'xec',
+                    'KMA': 'kma',
+                    'XEC': 'xec',
                     'IOTA': 'iota',
-                    'HELIUM': 'hnt',
-                    'ASTAR': 'astr',
-                    'POLKADEX': 'pdex',
+                    'HNT': 'hnt',
+                    'ASTR': 'astr',
+                    'PDEX': 'pdex',
                     'METIS': 'metis',
-                    'ZCASH': 'zec',
-                    'POCKET': 'pokt',
+                    'ZEC': 'zec',
+                    'POKT': 'pokt',
                     'OASYS': 'oas',
-                    'ETC': 'etc',
-                    'AKASH': 'akt',
-                    'FUSION': 'fsn',
-                    'SECRET': 'scrt',
-                    'CENTRIFUGE': 'cfg',
-                    'ICON': 'icx',
-                    'KOMODO': 'kmd',
-                    'NEM': 'NEM',
-                    'STACKS': 'stx',
-                    'DIGIBYTE': 'dgb',
-                    'DECRED': 'dcr',
-                    'NERVOS': 'ckb',
-                    'ELASTOS': 'ela',
-                    'HYDRA': 'hydra',
-                    'BYTOM': 'btm',
                     'OASIS': 'oasis',
-                    'KARDIACHAIN': 'kai',
-                    'SOLAR': 'sxp',
-                    'NEBLIO': 'nebl',
-                    'HORIZEN': 'zen',
-                    'SHIDEN': 'sdn',
-                    'AURORA': 'aurora',
+                    'ETC': 'etc',
+                    'AKT': 'akt',
+                    'FSN': 'fsn',
+                    'SCRT': 'scrt',
+                    'CFG': 'cfg',
+                    'ICX': 'icx',
+                    'KMD': 'kmd',
+                    'NEM': 'NEM',
+                    'STX': 'stx',
+                    'DGB': 'dgb',
+                    'DCR': 'dcr',
+                    'CKB': 'ckb',
+                    'ELA': 'ela',
+                    'HYDRA': 'hydra',
+                    'BTM': 'btm',
+                    'KARDIA': 'kai',
+                    'SXP': 'sxp',
+                    'NEBL': 'nebl',
+                    'ZEN': 'zen',
+                    'SDN': 'sdn',
                     'LTO': 'lto',
-                    // below will be uncommented after unification
-                    // 'ORAICHAIN': 'orai',
-                    // 'JUPITER': 'jup',
-                    // // 'terra' luna lunc TBD
+                    'WEMIX': 'wemix',
+                    // 'BOBA': 'boba', // tbd
+                    'EVER': 'ever',
+                    'BNC': 'bnc',
+                    'BNCDOT': 'bncdot',
+                    // 'CMP': 'cmp', // todo: after consensus
+                    'AION': 'aion',
+                    'GRIN': 'grin',
+                    'LOKI': 'loki',
+                    'QKC': 'qkc',
+                    'TT': 'TT',
+                    'PIVX': 'pivx',
+                    'SERO': 'sero',
+                    'METER': 'meter',
+                    'STATEMINE': 'statemine',
+                    'DVPN': 'dvpn',
+                    'XPRT': 'xprt',
+                    'MOVR': 'movr',
+                    'ERGO': 'ergo',
+                    'ABBC': 'abbc',
+                    'DIVI': 'divi',
+                    'PURA': 'pura',
+                    'DFI': 'dfi',
+                    // 'NEO': 'neo', // tbd neo legacy
+                    'NEON3': 'neon3',
+                    'DOCK': 'dock',
+                    'TRUE': 'true',
+                    'CS': 'cs',
+                    'ORAI': 'orai',
+                    // below will be uncommented after consensus
+                    // 'BITCOINDIAMON': 'bcd',
+                    // 'BITCOINGOLD': 'btg',
+                    // 'HTR': 'htr',
                     // 'DEROHE': 'derohe',
-                    // 'BIFROST': 'bnc',
-                    // 'BIFROSTPOLKADOT': 'bncdot',
+                    // 'NDAU': 'ndau',
+                    // 'HPB': 'hpb',
+                    // 'AXE': 'axe',
+                    // 'BITCOINPRIVATE': 'btcp',
+                    // 'EDGEWARE': 'edg',
+                    // 'JUPITER': 'jup',
+                    // 'VELAS': 'vlx', // vlxevm is different
+                    // // 'terra' luna lunc TBD
+                    // 'DIGITALBITS': 'xdb',
                     // // fra is fra-emv on kucoin
                     // 'PASTEL': 'psl',
                     // // sysevm
                     // 'CONCORDIUM': 'ccd',
+                    // 'AURORA': 'aurora',
+                    // 'PHA': 'pha', // a.k.a. khala
+                    // 'PAL': 'pal',
+                    // 'RSK': 'rbtc',
+                    // 'NIX': 'nix',
+                    // 'NIM': 'nim',
+                    // 'NRG': 'nrg',
+                    // 'RFOX': 'rfox',
                     // 'PIONEER': 'neer',
-                    // 'CADUCEUS': 'cmp',
                     // 'PIXIE': 'pix',
                     // 'ALEPHZERO': 'azero',
                     // 'ACHAIN': 'act', // actevm is different
                     // 'BOSCOIN': 'bos',
                     // 'ELECTRONEUM': 'etn',
                     // 'GOCHAIN': 'go',
-                    // 'HPB': 'hpb',
-                    // // 'NEO': 'neo', tbd neo legacy
                     // 'SOPHIATX': 'sphtx',
                     // 'WANCHAIN': 'wan',
                     // 'ZEEPIN': 'zpt',
                     // 'MATRIXAI': 'man',
                     // 'METADIUM': 'meta',
-                    // 'BITCOINDIAMON': 'bcd',
-                    // 'AION': 'aion',
-                    // 'PAL': 'pal',
-                    // 'GRIN': 'grin',
                     // 'METAHASH': 'mhc',
-                    // 'LOKI': 'loki',
-                    // 'NIMIQ': 'nim',
-                    // 'QUARKCHAIN': 'qkc',
-                    // 'ENERGI': 'nrg',
-                    // 'RSK': 'rbtc',
-                    // 'RFOX': 'rfox',
-                    // 'THUNDERCORE': 'TT',
-                    // 'NIX': 'nix',
-                    // 'PIVX': 'pivx',
-                    // 'SERO': 'sero',
                     // // eosc --"eosforce" tbd
                     // 'IOTCHAIN': 'itc',
-                    // 'TRUECHAIN': 'true',
                     // 'CONTENTOS': 'cos',
-                    // 'CREDITS': 'cs',
                     // 'CPCHAIN': 'cpc',
                     // 'INTCHAIN': 'int',
                     // // 'DASH': 'dash', tbd digita-cash
                     // 'WALTONCHAIN': 'wtc',
-                    // 'AXE': 'axe',
                     // 'CONSTELLATION': 'dag',
                     // 'ONELEDGER': 'olt',
                     // 'AIRDAO': 'amb', // a.k.a. AMBROSUS
                     // 'ENERGYWEB': 'ewt',
                     // 'WAVESENTERPRISE': 'west',
                     // 'HYPERCASH': 'hc',
-                    // 'BITCOINGOLD': 'btg',
                     // 'ENECUUM': 'enq',
                     // 'HAVEN': 'xhv',
-                    // 'DOCK': 'dock',
-                    // 'HATHOR': 'htr',
-                    // 'DEFICHAIN': 'dfi',
                     // 'CHAINX': 'pcx',
                     // // 'FLUXOLD': 'zel', // zel seems old chain (with uppercase FLUX in kucoin UI and with id 'zel')
-                    // 'BITCOINPRIVATE': 'btcp',
                     // 'BUMO': 'bu',
                     // 'DEEPONION': 'onion',
-                    // 'PURA': 'pura',
                     // 'ULORD': 'ut',
                     // 'ASCH': 'xas',
                     // 'SOLARIS': 'xlr',
                     // 'APOLLO': 'apl',
-                    // 'DIVI': 'divi',
                     // 'PIRATECHAIN': 'arrr',
-                    // 'ERGO': 'ergo',
-                    // 'ABBC': 'abbc',
                     // 'ULTRA': 'uos',
-                    // 'MOONRIVE': 'movr',
-                    // 'NDAU': 'ndau',
-                    // 'PERSISTENCE': 'xprt',
-                    // 'SENTINEL': 'dvpn',
-                    // 'EDGEWARE': 'edg',
-                    // 'STATEMINE': 'statemine', // a.k.a. RMRK
-                    // 'VELAS': 'vlx', // vlxevm is different
                     // 'EMONEY': 'ngm',
-                    // 'PHALA': 'pha', // a.k.a. khala
-                    // 'METER': 'meter',
                     // 'AURORACHAIN': 'aoa',
-                    // 'EVERSCALE': 'ever',
-                    // // 'BOBA': 'boba', // tbd
-                    // 'DIGITALBITS': 'xdb',
-                    // 'WEMIX': 'wemix',
                     // 'KLEVER': 'klv',
-                    // undetermined: xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus), neon3 (NEO N3),
-                },
-                'networksById': {
-                    'btc': 'BTC',
-                    'bech32': 'BTCNATIVESEGWIT',
-                    'eth': 'ERC20',
-                    'trx': 'TRC20',
-                    'kcc': 'KCC',
-                    'sol': 'SOLANA',
-                    'algo': 'ALGORAND',
-                    'eos': 'EOS',
-                    'heco': 'HRC20',
-                    'matic': 'POLYGON',
-                    'bsc': 'BEP20',
-                    'bnb': 'BEP2',
-                    'arbitrum': 'ARBITRUM_ONE',
-                    'tlos': 'TELOS',
-                    'cfx': 'CONFLUX',
-                    'aca': 'ACALA',
-                    'optimism': 'OPTIMISM',
-                    'ont': 'ONTOLOGY',
-                    'glmr': 'MOONBEAM',
-                    'cspr': 'CASPER',
-                    'klay': 'KLAYTN',
-                    'xrd': 'RADIX',
-                    'rvn': 'RAVENCOIN',
-                    'near': 'NEAR',
-                    'aptos': 'APTOS',
-                    'ethw': 'ETHW',
-                    'ton': 'TON',
-                    'bch': 'BCH',
-                    'bchsv': 'BSV',
-                    'bchabc': 'BCHA',
-                    'osmo': 'OSMOSIS',
-                    'nano': 'NANO',
-                    'xlm': 'STELLAR',
-                    'vet': 'VECHAIN',
-                    'iost': 'IOST',
-                    'zil': 'ZILLIQA',
-                    'xrp': 'RIPPLE',
-                    'tomo': 'TOMOCHAIN',
-                    'xmr': 'MONERO',
-                    'coti': 'COTI',
-                    'xtz': 'TEZOS',
-                    'ada': 'CARDANO',
-                    'waxp': 'WAX',
-                    'theta': 'THETA',
-                    'one': 'HARMONY',
-                    'iotx': 'IOTEX',
-                    'nuls': 'NULS',
-                    'ksm': 'KUSAMA',
-                    'ltc': 'LTC',
-                    'waves': 'WAVES',
-                    'dot': 'POLKADOT',
-                    'steem': 'STEEM',
-                    'qtum': 'QTUM',
-                    'doge': 'DOGECOIN',
-                    'fil': 'FILECOIN',
-                    'avax': 'AVALANCHE_X',
-                    'avaxc': 'AVALANCHE_C',
-                    'xym': 'SYMBOL',
-                    'flux': 'FLUX',
-                    'atom': 'COSMOS',
-                    'xdc': 'XDC',
-                    'kda': 'KADENA',
-                    'icp': 'INTERNETCOMPUTER',
-                    'celo': 'CELO',
-                    'lsk': 'LISK',
-                    'vsys': 'VSYSTEMS',
-                    'kar': 'KARURA',
-                    'xch': 'CHIA',
-                    'flow': 'FLOW',
-                    'band': 'BAND',
-                    'egld': 'ELROND',
-                    'hbar': 'HEDERA',
-                    'xpr': 'PROTON',
-                    'ar': 'ARWEAVE',
-                    'ftm': 'FANTOM',
-                    'kava': 'KAVA',
-                    'kma': 'CALAMARI',
-                    'xec': 'ECASH',
-                    'iota': 'IOTA',
-                    'hnt': 'HELIUM',
-                    'astr': 'ASTAR',
-                    'pdex': 'POLKADEX',
-                    'metis': 'METIS',
-                    'zec': 'ZCASH',
-                    'pokt': 'POCKET',
-                    'oas': 'OASYS',
-                    'etc': 'ETC',
-                    'akt': 'AKASH',
-                    'fsn': 'FUSION',
-                    'scrt': 'SECRET',
-                    'cfg': 'CENTRIFUGE',
-                    'icx': 'ICON',
-                    'kmd': 'KOMODO',
-                    'NEM': 'NEM',
-                    'stx': 'STACKS',
-                    'dgb': 'DIGIBYTE',
-                    'dcr': 'DECRED',
-                    'ckb': 'NERVOS',
-                    'ela': 'ELASTOS',
-                    'hydra': 'HYDRA',
-                    'btm': 'BYTOM',
-                    'oasis': 'OASIS',
-                    'kai': 'KARDIACHAIN',
-                    'nebl': 'NEBLIO',
-                    'zen': 'HORIZEN',
-                    'sdn': 'SHIDEN',
-                    'aurora': 'AURORA',
-                    'lto': 'LTO',
-                    'sxp': 'SOLAR',
+                    // undetermined: xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus),
                 },
                 'marginModes': {
                     'cross': 'MARGIN_TRADE',
@@ -3935,8 +3858,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#borrowMargin
          * @description create a loan to borrow margin
-         * @see https://docs.kucoin.com/#post-borrow-order
-         * @see https://docs.kucoin.com/#isolated-margin-borrowing
+         * @see https://docs.kucoin.com/#1-margin-borrowing
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {string} symbol unified market symbol, required for isolated margin
@@ -3946,6 +3868,7 @@ export default class kucoin extends Exchange {
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         const marginMode = this.safeString(params, 'marginMode'); // cross or isolated
+        const isIsolated = marginMode === 'isolated';
         params = this.omit(params, 'marginMode');
         this.checkRequiredMarginArgument('borrowMargin', symbol, marginMode);
         await this.loadMarkets();
@@ -3954,41 +3877,27 @@ export default class kucoin extends Exchange {
             'currency': currency['id'],
             'size': this.currencyToPrecision(code, amount),
         };
-        let method = undefined;
         const timeInForce = this.safeStringN(params, ['timeInForce', 'type', 'borrowStrategy'], 'IOC');
-        let timeInForceRequest = undefined;
-        if (symbol === undefined) {
-            method = 'privatePostMarginBorrow';
-            timeInForceRequest = 'type';
-        }
-        else {
+        if (isIsolated) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' borrowMargin() requires a symbol parameter for isolated margin');
+            }
             const market = this.market(symbol);
             request['symbol'] = market['id'];
-            timeInForceRequest = 'borrowStrategy';
-            method = 'privatePostIsolatedBorrow';
+            request['isIsolated'] = true;
         }
-        request[timeInForceRequest] = timeInForce;
         params = this.omit(params, ['timeInForce', 'type', 'borrowStrategy']);
-        const response = await this[method](this.extend(request, params));
-        //
-        // Cross
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "orderId": "62df422ccde938000115290a",
-        //             "currency": "USDT"
-        //         }
-        //     }
-        //
-        // Isolated
+        request['timeInForce'] = timeInForce;
+        const response = await this.privatePostMarginBorrow(this.extend(request, params));
         //
         //     {
-        //         "code": "200000",
+        //         "success": true,
+        //         "code": "200",
+        //         "msg": "success",
+        //         "retry": false,
         //         "data": {
-        //             "orderId": "62df44a1c65f300001bc32a8",
-        //             "currency": "USDT",
-        //             "actualSize": "100"
+        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //             "actualSize": 10
         //         }
         //     }
         //
@@ -4000,18 +3909,16 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://docs.kucoin.com/#one-click-repayment
-         * @see https://docs.kucoin.com/#quick-repayment
+         * @see https://docs.kucoin.com/#2-repayment
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kucoin api endpoints
-         * @param {string} [params.sequence] cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
-         * @param {string} [params.seqStrategy] isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
          * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         const marginMode = this.safeString(params, 'marginMode'); // cross or isolated
+        const isIsolated = marginMode === 'isolated';
         params = this.omit(params, 'marginMode');
         this.checkRequiredMarginArgument('repayMargin', symbol, marginMode);
         await this.loadMarkets();
@@ -4019,61 +3926,42 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
             'size': this.currencyToPrecision(code, amount),
-            // 'sequence': 'RECENTLY_EXPIRE_FIRST',  // Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-            // 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  // Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         };
-        let method = undefined;
-        const sequence = this.safeString2(params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
-        let sequenceRequest = undefined;
-        if (symbol === undefined) {
-            method = 'privatePostMarginRepayAll';
-            sequenceRequest = 'sequence';
-        }
-        else {
+        if (isIsolated) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' repayMargin() requires a symbol parameter for isolated margin');
+            }
             const market = this.market(symbol);
             request['symbol'] = market['id'];
-            sequenceRequest = 'seqStrategy';
-            method = 'privatePostIsolatedRepayAll';
+            request['isIsolated'] = true;
         }
-        request[sequenceRequest] = sequence;
-        params = this.omit(params, ['sequence', 'seqStrategy']);
-        const response = await this[method](this.extend(request, params));
+        const response = await this.privatePostMarginRepay(this.extend(request, params));
         //
         //     {
-        //         "code": "200000",
-        //         "data": null
+        //         "success": true,
+        //         "code": "200",
+        //         "msg": "success",
+        //         "retry": false,
+        //         "data": {
+        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //             "actualSize": 10
+        //         }
         //     }
         //
-        return this.parseMarginLoan(response, currency);
+        const data = this.safeValue(response, 'data', {});
+        return this.parseMarginLoan(data, currency);
     }
     parseMarginLoan(info, currency = undefined) {
         //
-        // borrowMargin cross
-        //
         //     {
-        //         "orderId": "62df422ccde938000115290a",
-        //         "currency": "USDT"
-        //     }
-        //
-        // borrowMargin isolated
-        //
-        //     {
-        //         "orderId": "62df44a1c65f300001bc32a8",
-        //         "currency": "USDT",
-        //         "actualSize": "100"
-        //     }
-        //
-        // repayMargin
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": null
+        //         "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //         "actualSize": 10
         //     }
         //
         const timestamp = this.milliseconds();
         const currencyId = this.safeString(info, 'currency');
         return {
-            'id': this.safeString(info, 'orderId'),
+            'id': this.safeString(info, 'orderNo'),
             'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.safeNumber(info, 'actualSize'),
             'symbol': undefined,
@@ -4201,6 +4089,9 @@ export default class kucoin extends Exchange {
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
+        if (errorCode !== '200000') {
+            throw new ExchangeError(feedback);
+        }
         return undefined;
     }
 }

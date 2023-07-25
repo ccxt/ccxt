@@ -72,7 +72,7 @@ class hitbtc extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -813,14 +813,13 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @deprecated
-         * use fetchDepositsWithdrawals instead
+         * fetch history of deposits and withdrawals
          * @see https://api.hitbtc.com/v2#get-transactions-history
-         * @param {string} $code unified $currency $code for the $currency of the transactions, default is null
-         * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
-         * @param {int} [$limit] max number of transactions to return, default is null
+         * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */

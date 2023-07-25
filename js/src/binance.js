@@ -388,8 +388,8 @@ export default class binance extends Exchange {
                         'portfolio/collateralRate': 5,
                         'portfolio/pmLoan': 3.3335,
                         'portfolio/interest-history': 0.6667,
-                        'portfolio/interest-rate': 0.6667,
                         'portfolio/asset-index-price': 0.1,
+                        'portfolio/repay-futures-switch': 3,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -444,6 +444,7 @@ export default class binance extends Exchange {
                         // 'margin/isolated/create': 1, discontinued
                         'margin/isolated/transfer': 4.0002,
                         'margin/isolated/account': 2.0001,
+                        'margin/max-leverage': 300,
                         'bnbBurn': 0.1,
                         'sub-account/virtualSubAccount': 0.1,
                         'sub-account/margin/transfer': 4.0002,
@@ -509,6 +510,7 @@ export default class binance extends Exchange {
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
                         'portfolio/repay': 20.001,
+                        'loan/vip/renew': 40,
                         'loan/vip/borrow': 40,
                         'loan/borrow': 40,
                         'loan/repay': 40,
@@ -517,8 +519,11 @@ export default class binance extends Exchange {
                         'loan/vip/repay': 40,
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
-                        'portfolio/auto-collection': 0.6667,
-                        'portfolio/bnb-transfer': 0.6667,
+                        'portfolio/auto-collection': 150,
+                        'portfolio/asset-collection': 6,
+                        'portfolio/bnb-transfer': 150,
+                        'portfolio/repay-futures-switch': 150,
+                        'portfolio/repay-futures-negative-balance': 150,
                         'lending/auto-invest/plan/add': 0.1,
                         'lending/auto-invest/plan/edit': 0.1,
                         'lending/auto-invest/plan/edit-status': 0.1,
@@ -728,6 +733,10 @@ export default class binance extends Exchange {
                         'adlQuantile': 5,
                         'pmAccountInfo': 5,
                         'orderAmendment': 1,
+                        'order/asyn': 5,
+                        'order/asyn/id': 5,
+                        'trade/asyn': 5,
+                        'trade/asyn/id': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -787,6 +796,8 @@ export default class binance extends Exchange {
                         'userTrades': 5,
                         'exerciseRecord': 5,
                         'bill': 1,
+                        'income/asyn': 5,
+                        'income/asyn/id': 5,
                         'marginAccount': 3,
                         'mmp': 1,
                         'countdownCancelAll': 1,
@@ -893,6 +904,9 @@ export default class binance extends Exchange {
                         'cm/income ': 30,
                         'um/account': 5,
                         'cm/account': 5,
+                        'portfolio/repay-futures-switch': 3,
+                        'um/adlQuantile': 5,
+                        'cm/adlQuantile': 5,
                         'margin/marginLoan': 0.0667,
                         'margin/repayLoan': 0.0667,
                         'margin/marginInterestHistory': 0.1,
@@ -911,6 +925,8 @@ export default class binance extends Exchange {
                         'cm/positionSide/dual': 1,
                         'auto-collection': 0.6667,
                         'bnb-transfer': 0.6667,
+                        'portfolio/repay-futures-switch': 150,
+                        'portfolio/repay-futures-negative-balance': 150,
                         'listenKey': 1, // 1
                     },
                     'put': {
@@ -2599,47 +2615,6 @@ export default class binance extends Exchange {
         //
         // futures (fapi)
         //
-        //     fapiPrivateGetAccount
-        //
-        //     {
-        //         "feeTier":0,
-        //         "canTrade":true,
-        //         "canDeposit":true,
-        //         "canWithdraw":true,
-        //         "updateTime":0,
-        //         "totalInitialMargin":"0.00000000",
-        //         "totalMaintMargin":"0.00000000",
-        //         "totalWalletBalance":"4.54000000",
-        //         "totalUnrealizedProfit":"0.00000000",
-        //         "totalMarginBalance":"4.54000000",
-        //         "totalPositionInitialMargin":"0.00000000",
-        //         "totalOpenOrderInitialMargin":"0.00000000",
-        //         "maxWithdrawAmount":"4.54000000",
-        //         "assets":[
-        //             {
-        //                 "asset":"USDT",
-        //                 "walletBalance":"4.54000000",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "marginBalance":"4.54000000",
-        //                 "maintMargin":"0.00000000",
-        //                 "initialMargin":"0.00000000",
-        //                 "positionInitialMargin":"0.00000000",
-        //                 "openOrderInitialMargin":"0.00000000",
-        //                 "maxWithdrawAmount":"4.54000000"
-        //             }
-        //         ],
-        //         "positions":[
-        //             {
-        //                 "symbol":"BTCUSDT",
-        //                 "initialMargin":"0.00000",
-        //                 "maintMargin":"0.00000",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "positionInitialMargin":"0.00000",
-        //                 "openOrderInitialMargin":"0.00000"
-        //             }
-        //         ]
-        //     }
-        //
         //     fapiPrivateV2GetAccount
         //
         //     {
@@ -3827,7 +3802,7 @@ export default class binance extends Exchange {
             uppercaseType = 'LIMIT_MAKER';
         }
         request['type'] = uppercaseType;
-        const stopPrice = this.safeNumber(params, 'stopPrice');
+        const stopPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
@@ -6305,7 +6280,7 @@ export default class binance extends Exchange {
             method = 'sapiGetAssetTradeFee';
         }
         else if (isLinear) {
-            method = 'fapiPrivateGetAccount';
+            method = 'fapiPrivateV2GetAccount';
         }
         else if (isInverse) {
             method = 'dapiPrivateGetAccount';
@@ -7437,7 +7412,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [subType, query] = this.handleSubTypeAndParams('fetchAccountPositions', undefined, params, 'linear');
         if (this.isLinear(type, subType)) {
-            method = 'fapiPrivateGetAccount';
+            method = 'fapiPrivateV2GetAccount';
         }
         else if (this.isInverse(type, subType)) {
             method = 'dapiPrivateGetAccount';
@@ -7455,6 +7430,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchPositionsRisk
          * @description fetch positions risk
+         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} data on the positions risk
@@ -7475,7 +7451,7 @@ export default class binance extends Exchange {
         [subType, params] = this.handleSubTypeAndParams('fetchPositionsRisk', undefined, params, 'linear');
         params = this.omit(params, 'type');
         if (this.isLinear(type, subType)) {
-            method = 'fapiPrivateGetPositionRisk';
+            method = 'fapiPrivateV2GetPositionRisk';
             // ### Response examples ###
             //
             // For One-way position mode:

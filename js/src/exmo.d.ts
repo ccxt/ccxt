@@ -148,7 +148,7 @@ export default class exmo extends Exchange {
             rate: any;
         };
     };
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
         info: any;

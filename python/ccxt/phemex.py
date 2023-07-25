@@ -3623,6 +3623,11 @@ class phemex(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
+        if symbols is not None:
+            first = self.safe_value(symbols, 0)
+            market = self.market(first)
+            if market['settle'] != 'USD':
+                raise BadSymbol(self.id + ' fetchLeverageTiers() supports USD settled markets only')
         response = self.publicGetCfgV2Products(params)
         #
         #     {

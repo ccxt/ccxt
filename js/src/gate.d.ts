@@ -108,14 +108,6 @@ export default class gate extends Exchange {
         previousFundingDatetime: any;
     };
     fetchNetworkDepositAddress(code: string, params?: {}): Promise<{}>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-        code: string;
-        currency: string;
-        address: any;
-        tag: any;
-        network: any;
-    }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
         code: string;

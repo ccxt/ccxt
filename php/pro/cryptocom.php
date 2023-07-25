@@ -23,6 +23,9 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchOHLCV' => true,
+                'createOrderWs' => true,
+                'cancelOrderWs' => true,
+                'cancelAllOrders' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -203,7 +206,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             }
             $messageHash = 'user.trade';
             $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
-            $trades = Async\await($this->watch_private($messageHash, $params));
+            $trades = Async\await($this->watch_private_subscribe($messageHash, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -340,7 +343,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             }
             $messageHash = 'user.order';
             $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
-            $orders = Async\await($this->watch_private($messageHash, $params));
+            $orders = Async\await($this->watch_private_subscribe($messageHash, $params));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -350,33 +353,34 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     public function handle_orders(Client $client, $message, $subscription = null) {
         //
-        // {
-        //     "method" => "subscribe",
-        //     "result" => {
-        //       "instrument_name" => "ETH_CRO",
-        //       "subscription" => "user.order.ETH_CRO",
-        //       "channel" => "user.order",
-        //       "data" => array(
-        //         {
-        //           "status" => "ACTIVE",
-        //           "side" => "BUY",
-        //           "price" => 1,
-        //           "quantity" => 1,
-        //           "order_id" => "366455245775097673",
-        //           "client_oid" => "my_order_0002",
-        //           "create_time" => 1588758017375,
-        //           "update_time" => 1588758017411,
-        //           "type" => "LIMIT",
-        //           "instrument_name" => "ETH_CRO",
-        //           "cumulative_quantity" => 0,
-        //           "cumulative_value" => 0,
-        //           "avg_price" => 0,
-        //           "fee_currency" => "CRO",
-        //           "time_in_force":"GOOD_TILL_CANCEL"
-        //         }
-        //       ),
-        //       "channel" => "user.order.ETH_CRO"
-        //     }
+        //    {
+        //        "method" => "subscribe",
+        //        "result" => {
+        //          "instrument_name" => "ETH_CRO",
+        //          "subscription" => "user.order.ETH_CRO",
+        //          "channel" => "user.order",
+        //          "data" => array(
+        //            {
+        //              "status" => "ACTIVE",
+        //              "side" => "BUY",
+        //              "price" => 1,
+        //              "quantity" => 1,
+        //              "order_id" => "366455245775097673",
+        //              "client_oid" => "my_order_0002",
+        //              "create_time" => 1588758017375,
+        //              "update_time" => 1588758017411,
+        //              "type" => "LIMIT",
+        //              "instrument_name" => "ETH_CRO",
+        //              "cumulative_quantity" => 0,
+        //              "cumulative_value" => 0,
+        //              "avg_price" => 0,
+        //              "fee_currency" => "CRO",
+        //              "time_in_force":"GOOD_TILL_CANCEL"
+        //            }
+        //          ),
+        //          "channel" => "user.order.ETH_CRO"
+        //        }
+        //    }
         //
         $channel = $this->safe_string($message, 'channel');
         $symbolSpecificMessageHash = $this->safe_string($message, 'subscription');
@@ -407,7 +411,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             $messageHash = 'user.balance';
-            return Async\await($this->watch_private($messageHash, $params));
+            return Async\await($this->watch_private_subscribe($messageHash, $params));
         }) ();
     }
 
@@ -472,6 +476,109 @@ class cryptocom extends \ccxt\async\cryptocom {
             $this->balance = $this->safe_balance($this->balance);
         }
         $client->resolve ($this->balance, $messageHash);
+        $messageHashRequest = $this->safe_string($message, 'id');
+        $client->resolve ($this->balance, $messageHashRequest);
+    }
+
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $params = $this->createOrderRequest ($symbol, $type, $side, $amount, $price, $params);
+            $request = array(
+                'method' => 'private/create-order',
+                'params' => $params,
+            );
+            $messageHash = $this->nonce();
+            return Async\await($this->watch_private_request($messageHash, $request));
+        }) ();
+    }
+
+    public function handle_order(Client $client, $message) {
+        //
+        //    {
+        //        "id" => 1,
+        //        "method" => "private/create-$order",
+        //        "code" => 0,
+        //        "result" => {
+        //            "client_oid" => "c5f682ed-7108-4f1c-b755-972fcdca0f02",
+        //            "order_id" => "18342311"
+        //        }
+        //    }
+        //
+        $messageHash = $this->safe_string($message, 'id');
+        $rawOrder = $this->safe_value($message, 'result', array());
+        $order = $this->parse_order($rawOrder);
+        $client->resolve ($order, $messageHash);
+    }
+
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+             * @param {string} $id the order $id of the order to cancel
+             * @param {string} [$symbol] unified $symbol of the market the order was made in
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $params = array_merge(array(
+                'order_id' => $id,
+            ), $params);
+            $request = array(
+                'method' => 'private/cancel-order',
+                'params' => $params,
+            );
+            $messageHash = $this->nonce();
+            return Async\await($this->watch_private_request($messageHash, $request));
+        }) ();
+    }
+
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+             * @param {string} $symbol unified $market $symbol of the orders to cancel
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @return {array} Returns exchange raw message array(@link https://docs.ccxt.com/#/?id=order-structure)
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array(
+                'method' => 'private/cancel-all-orders',
+                'params' => array_merge(array(), $params),
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['params']['instrument_name'] = $market['id'];
+            }
+            $messageHash = $this->nonce();
+            return Async\await($this->watch_private_request($messageHash, $request));
+        }) ();
+    }
+
+    public function handle_cancel_all_orders(Client $client, $message) {
+        //
+        //    {
+        //        "id" => 1688914586647,
+        //        "method" => "private/cancel-all-orders",
+        //        "code" => 0
+        //    }
+        //
+        $messageHash = $this->safe_string($message, 'id');
+        $client->resolve ($message, $messageHash);
     }
 
     public function watch_public($messageHash, $params = array ()) {
@@ -490,7 +597,20 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function watch_private($messageHash, $params = array ()) {
+    public function watch_private_request($nonce, $params = array ()) {
+        return Async\async(function () use ($nonce, $params) {
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['private'];
+            $request = array(
+                'id' => $nonce,
+                'nonce' => $nonce,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, (string) $nonce, $message, true));
+        }) ();
+    }
+
+    public function watch_private_subscribe($messageHash, $params = array ()) {
         return Async\async(function () use ($messageHash, $params) {
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
@@ -508,15 +628,17 @@ class cryptocom extends \ccxt\async\cryptocom {
     }
 
     public function handle_error_message(Client $client, $message) {
-        // {
-        //     id => 0,
-        //     code => 10004,
-        //     method => 'subscribe',
-        //     $message => 'invalid channel array("channels":["trade.BTCUSD-PERP"])'
-        // }
-        $errorCode = $this->safe_integer($message, 'code');
+        //
+        //    {
+        //        id => 0,
+        //        code => 10004,
+        //        method => 'subscribe',
+        //        $message => 'invalid channel array("channels":["trade.BTCUSD-PERP"])'
+        //    }
+        //
+        $errorCode = $this->safe_string($message, 'code');
         try {
-            if ($errorCode) {
+            if ($errorCode && $errorCode !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                 $messageString = $this->safe_value($message, 'message');
@@ -539,48 +661,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function handle_message(Client $client, $message) {
-        // ping
-        // {
-        //     "id" => 1587523073344,
-        //     "method" => "public/heartbeat",
-        //     "code" => 0
-        // }
-        // auth
-        //  array( id => 1648132625434, $method => 'public/auth', code => 0 )
-        // ohlcv
-        // {
-        //     code => 0,
-        //     $method => 'subscribe',
-        //     $result => {
-        //       instrument_name => 'BTC_USDT',
-        //       subscription => 'candlestick.1m.BTC_USDT',
-        //       $channel => 'candlestick',
-        //       depth => 300,
-        //       interval => '1m',
-        //       data => [ [Object] ]
-        //     }
-        //   }
-        // ticker
-        // {
-        //     "info":{
-        //        "instrument_name":"BTC_USDT",
-        //        "subscription":"ticker.BTC_USDT",
-        //        "channel":"ticker",
-        //        "data":array( array( ) )
-        //
-        if ($this->handle_error_message($client, $message)) {
-            return;
-        }
-        $subject = $this->safe_string($message, 'method');
-        if ($subject === 'public/heartbeat') {
-            $this->handle_ping($client, $message);
-            return;
-        }
-        if ($subject === 'public/auth') {
-            $this->handle_authenticate($client, $message);
-            return;
-        }
+    public function handle_subscribe(Client $client, $message) {
         $methods = array(
             'candlestick' => array($this, 'handle_ohlcv'),
             'ticker' => array($this, 'handle_ticker'),
@@ -599,6 +680,57 @@ class cryptocom extends \ccxt\async\cryptocom {
         $method = $this->safe_value($methods, $channel);
         if ($method !== null) {
             $method($client, $result);
+        }
+    }
+
+    public function handle_message(Client $client, $message) {
+        //
+        // ping
+        //    {
+        //        "id" => 1587523073344,
+        //        "method" => "public/heartbeat",
+        //        "code" => 0
+        //    }
+        // auth
+        //     array( id => 1648132625434, $method => 'public/auth', code => 0 )
+        // ohlcv
+        //    {
+        //        code => 0,
+        //        $method => 'subscribe',
+        //        result => {
+        //          instrument_name => 'BTC_USDT',
+        //          subscription => 'candlestick.1m.BTC_USDT',
+        //          channel => 'candlestick',
+        //          depth => 300,
+        //          interval => '1m',
+        //          data => [ [Object] ]
+        //        }
+        //      }
+        // ticker
+        //    {
+        //        "info":{
+        //           "instrument_name":"BTC_USDT",
+        //           "subscription":"ticker.BTC_USDT",
+        //           "channel":"ticker",
+        //           "data":array( array( ) )
+        //
+        if ($this->handle_error_message($client, $message)) {
+            return;
+        }
+        $method = $this->safe_string($message, 'method');
+        $methods = array(
+            '' => array($this, 'handle_ping'),
+            'public/heartbeat' => array($this, 'handle_ping'),
+            'public/auth' => array($this, 'handle_authenticate'),
+            'private/create-order' => array($this, 'handle_order'),
+            'private/cancel-order' => array($this, 'handle_order'),
+            'private/cancel-all-orders' => array($this, 'handle_cancel_all_orders'),
+            'private/close-position' => array($this, 'handle_order'),
+            'subscribe' => array($this, 'handle_subscribe'),
+        );
+        $callMethod = $this->safe_value($methods, $method);
+        if ($callMethod !== null) {
+            $callMethod($client, $message);
         }
     }
 
