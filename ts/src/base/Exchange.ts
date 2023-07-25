@@ -1709,7 +1709,7 @@ export default class Exchange {
     }
 
     selectWsMethodHandler (methods, channel) {
-        let method = this.safeValue (methods, channel);
+        const method = this.safeValue (methods, channel);
         const customHandlers = this.safeValue (this.options, 'customWsMessageHandlers', {});
         return this.safeValue (customHandlers, channel, method);
     }
