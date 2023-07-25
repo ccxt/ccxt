@@ -108,7 +108,7 @@ export default class bitfinex2 extends Exchange {
         };
     };
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     nonce(): number;

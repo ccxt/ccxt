@@ -320,13 +320,7 @@ class cryptocom extends cryptocom$1 {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRX': 'TRON',
                     'TRC20': 'TRON',
-                },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
                 },
                 'broker': 'CCXT_',
             },
@@ -375,6 +369,7 @@ class cryptocom extends cryptocom$1 {
                     '50001': errors.BadRequest,
                     '9010001': errors.OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
+                'broad': {},
             },
         });
     }
@@ -999,26 +994,7 @@ class cryptocom extends cryptocom$1 {
         const order = this.safeValue(response, 'result', {});
         return this.parseOrder(order, market);
     }
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptocom#createOrder
-         * @description create a trade order
-         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-         * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-         * @param {float} [params.stopPrice] price to trigger a stop order
-         * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
-         * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets();
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const request = {
@@ -1133,7 +1109,31 @@ class cryptocom extends cryptocom$1 {
             request['type'] = uppercaseType;
         }
         params = this.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
-        const response = await this.v1PrivatePostPrivateCreateOrder(this.extend(request, params));
+        return this.extend(request, params);
+    }
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#createOrder
+         * @description create a trade order
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+         * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
+         * @param {float} [params.stopPrice] price to trigger a stop order
+         * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
+         * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const response = await this.v1PrivatePostPrivateCreateOrder(request);
         //
         //     {
         //         "id": 1686804664362,
@@ -1156,7 +1156,7 @@ class cryptocom extends cryptocom$1 {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
          * @param {string} symbol unified market symbol of the orders to cancel
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1174,7 +1174,7 @@ class cryptocom extends cryptocom$1 {
          * @description cancels an open order
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
          * @param {string} id the order id of the order to cancel
-         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {string} [symbol] unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

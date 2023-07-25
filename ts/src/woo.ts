@@ -83,7 +83,7 @@ export default class woo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -1824,7 +1824,7 @@ export default class woo extends Exchange {
         const request = {
             'token_side': 'DEPOSIT',
         };
-        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1841,18 +1841,17 @@ export default class woo extends Exchange {
         const request = {
             'token_side': 'WITHDRAW',
         };
-        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
     }
 
-    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name woo#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name woo#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */

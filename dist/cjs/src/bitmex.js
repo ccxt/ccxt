@@ -227,34 +227,15 @@ class bitmex extends bitmex$1 {
                 'oldPrecision': false,
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
                     'BEP20': 'bsc',
-                    'BSC': 'bsc',
                     'TRC20': 'tron',
-                    'TRON': 'tron',
-                    'TRX': 'tron',
-                    'AVALANCHEC': 'avax',
+                    'AVAXC': 'avax',
                     'NEAR': 'near',
-                    'TEZOS': 'xtz',
                     'XTZ': 'xtz',
-                    'POLKADOT': 'dot',
                     'DOT': 'dot',
-                    'SOLANA': 'sol',
                     'SOL': 'sol',
-                    'CARDANO': 'ada',
-                },
-                'networksById': {
-                    'btc': 'BTC',
-                    'eth': 'ERC20',
-                    'bsc': 'BEP20',
-                    'tron': 'TRC20',
-                    'avax': 'AVALANCHEC',
-                    'near': 'NEAR',
-                    'xtz': 'TEZOS',
-                    'dot': 'POLKADOT',
-                    'sol': 'SOLANA',
-                    'ada': 'CARDANO',
+                    'ADA': 'ada',
                 },
             },
             'commonCurrencies': {
@@ -1184,15 +1165,14 @@ class bitmex extends bitmex$1 {
         //
         return this.parseLedger(response, currency, since, limit);
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name bitmex#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name bitmex#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -1220,6 +1200,7 @@ class bitmex extends bitmex$1 {
     }
     parseTransactionStatus(status) {
         const statuses = {
+            'Confirmed': 'pending',
             'Canceled': 'canceled',
             'Completed': 'ok',
             'Pending': 'pending',
@@ -1267,7 +1248,8 @@ class bitmex extends bitmex$1 {
             addressFrom = this.safeString(transaction, 'tx');
         }
         const amountString = this.safeString(transaction, 'amount');
-        const amount = this.convertToRealAmount(currency['code'], amountString);
+        const amountStringAbs = Precise["default"].stringAbs(amountString);
+        const amount = this.convertToRealAmount(currency['code'], amountStringAbs);
         const feeCostString = this.safeString(transaction, 'fee');
         const feeCost = this.convertToRealAmount(currency['code'], feeCostString);
         let status = this.safeString(transaction, 'transactStatus');
@@ -1280,7 +1262,7 @@ class bitmex extends bitmex$1 {
             'txid': this.safeString(transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': this.safeString(transaction, 'network'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), currency['code']),
             'amount': amount,
             'status': status,
             'timestamp': transactTime,

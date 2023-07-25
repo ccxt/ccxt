@@ -611,8 +611,9 @@ class deribit extends \ccxt\async\deribit {
             $order = $this->parse_order($data);
             $orders = array( $order );
         }
+        $cachedOrders = $this->orders;
         for ($i = 0; $i < count($orders); $i++) {
-            $this->orders.append ($orders[$i]);
+            $cachedOrders->append ($orders[$i]);
         }
         $client->resolve ($this->orders, $channel);
     }

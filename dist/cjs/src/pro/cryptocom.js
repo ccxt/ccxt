@@ -20,6 +20,9 @@ class cryptocom extends cryptocom$1 {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchOHLCV': true,
+                'createOrderWs': true,
+                'cancelOrderWs': true,
+                'cancelAllOrders': true,
             },
             'urls': {
                 'api': {
@@ -191,7 +194,7 @@ class cryptocom extends cryptocom$1 {
         }
         let messageHash = 'user.trade';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
-        const trades = await this.watchPrivate(messageHash, params);
+        const trades = await this.watchPrivateSubscribe(messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -323,7 +326,7 @@ class cryptocom extends cryptocom$1 {
         }
         let messageHash = 'user.order';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
-        const orders = await this.watchPrivate(messageHash, params);
+        const orders = await this.watchPrivateSubscribe(messageHash, params);
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
@@ -331,33 +334,34 @@ class cryptocom extends cryptocom$1 {
     }
     handleOrders(client, message, subscription = undefined) {
         //
-        // {
-        //     "method": "subscribe",
-        //     "result": {
-        //       "instrument_name": "ETH_CRO",
-        //       "subscription": "user.order.ETH_CRO",
-        //       "channel": "user.order",
-        //       "data": [
-        //         {
-        //           "status": "ACTIVE",
-        //           "side": "BUY",
-        //           "price": 1,
-        //           "quantity": 1,
-        //           "order_id": "366455245775097673",
-        //           "client_oid": "my_order_0002",
-        //           "create_time": 1588758017375,
-        //           "update_time": 1588758017411,
-        //           "type": "LIMIT",
-        //           "instrument_name": "ETH_CRO",
-        //           "cumulative_quantity": 0,
-        //           "cumulative_value": 0,
-        //           "avg_price": 0,
-        //           "fee_currency": "CRO",
-        //           "time_in_force":"GOOD_TILL_CANCEL"
-        //         }
-        //       ],
-        //       "channel": "user.order.ETH_CRO"
-        //     }
+        //    {
+        //        "method": "subscribe",
+        //        "result": {
+        //          "instrument_name": "ETH_CRO",
+        //          "subscription": "user.order.ETH_CRO",
+        //          "channel": "user.order",
+        //          "data": [
+        //            {
+        //              "status": "ACTIVE",
+        //              "side": "BUY",
+        //              "price": 1,
+        //              "quantity": 1,
+        //              "order_id": "366455245775097673",
+        //              "client_oid": "my_order_0002",
+        //              "create_time": 1588758017375,
+        //              "update_time": 1588758017411,
+        //              "type": "LIMIT",
+        //              "instrument_name": "ETH_CRO",
+        //              "cumulative_quantity": 0,
+        //              "cumulative_value": 0,
+        //              "avg_price": 0,
+        //              "fee_currency": "CRO",
+        //              "time_in_force":"GOOD_TILL_CANCEL"
+        //            }
+        //          ],
+        //          "channel": "user.order.ETH_CRO"
+        //        }
+        //    }
         //
         const channel = this.safeString(message, 'channel');
         const symbolSpecificMessageHash = this.safeString(message, 'subscription');
@@ -388,7 +392,7 @@ class cryptocom extends cryptocom$1 {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const messageHash = 'user.balance';
-        return await this.watchPrivate(messageHash, params);
+        return await this.watchPrivateSubscribe(messageHash, params);
     }
     handleBalance(client, message) {
         //
@@ -451,6 +455,104 @@ class cryptocom extends cryptocom$1 {
             this.balance = this.safeBalance(this.balance);
         }
         client.resolve(this.balance, messageHash);
+        const messageHashRequest = this.safeString(message, 'id');
+        client.resolve(this.balance, messageHashRequest);
+    }
+    async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#createOrderWs
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets();
+        params = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const request = {
+            'method': 'private/create-order',
+            'params': params,
+        };
+        const messageHash = this.nonce();
+        return await this.watchPrivateRequest(messageHash, request);
+    }
+    handleOrder(client, message) {
+        //
+        //    {
+        //        "id": 1,
+        //        "method": "private/create-order",
+        //        "code": 0,
+        //        "result": {
+        //            "client_oid": "c5f682ed-7108-4f1c-b755-972fcdca0f02",
+        //            "order_id": "18342311"
+        //        }
+        //    }
+        //
+        const messageHash = this.safeString(message, 'id');
+        const rawOrder = this.safeValue(message, 'result', {});
+        const order = this.parseOrder(rawOrder);
+        client.resolve(order, messageHash);
+    }
+    async cancelOrderWs(id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#cancelOrder
+         * @description cancels an open order
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+         * @param {string} id the order id of the order to cancel
+         * @param {string} [symbol] unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        params = this.extend({
+            'order_id': id,
+        }, params);
+        const request = {
+            'method': 'private/cancel-order',
+            'params': params,
+        };
+        const messageHash = this.nonce();
+        return await this.watchPrivateRequest(messageHash, request);
+    }
+    async cancelAllOrdersWs(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#cancelAllOrdersWs
+         * @description cancel all open orders
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+         * @param {string} symbol unified market symbol of the orders to cancel
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        const request = {
+            'method': 'private/cancel-all-orders',
+            'params': this.extend({}, params),
+        };
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['params']['instrument_name'] = market['id'];
+        }
+        const messageHash = this.nonce();
+        return await this.watchPrivateRequest(messageHash, request);
+    }
+    handleCancelAllOrders(client, message) {
+        //
+        //    {
+        //        "id": 1688914586647,
+        //        "method": "private/cancel-all-orders",
+        //        "code": 0
+        //    }
+        //
+        const messageHash = this.safeString(message, 'id');
+        client.resolve(message, messageHash);
     }
     async watchPublic(messageHash, params = {}) {
         const url = this.urls['api']['ws']['public'];
@@ -465,7 +567,17 @@ class cryptocom extends cryptocom$1 {
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash);
     }
-    async watchPrivate(messageHash, params = {}) {
+    async watchPrivateRequest(nonce, params = {}) {
+        await this.authenticate();
+        const url = this.urls['api']['ws']['private'];
+        const request = {
+            'id': nonce,
+            'nonce': nonce,
+        };
+        const message = this.extend(request, params);
+        return await this.watch(url, nonce.toString(), message, true);
+    }
+    async watchPrivateSubscribe(messageHash, params = {}) {
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
         const id = this.nonce();
@@ -480,15 +592,17 @@ class cryptocom extends cryptocom$1 {
         return await this.watch(url, messageHash, message, messageHash);
     }
     handleErrorMessage(client, message) {
-        // {
-        //     id: 0,
-        //     code: 10004,
-        //     method: 'subscribe',
-        //     message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
-        // }
-        const errorCode = this.safeInteger(message, 'code');
+        //
+        //    {
+        //        id: 0,
+        //        code: 10004,
+        //        method: 'subscribe',
+        //        message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
+        //    }
+        //
+        const errorCode = this.safeString(message, 'code');
         try {
-            if (errorCode) {
+            if (errorCode && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue(message, 'message');
@@ -512,48 +626,7 @@ class cryptocom extends cryptocom$1 {
             return true;
         }
     }
-    handleMessage(client, message) {
-        // ping
-        // {
-        //     "id": 1587523073344,
-        //     "method": "public/heartbeat",
-        //     "code": 0
-        // }
-        // auth
-        //  { id: 1648132625434, method: 'public/auth', code: 0 }
-        // ohlcv
-        // {
-        //     code: 0,
-        //     method: 'subscribe',
-        //     result: {
-        //       instrument_name: 'BTC_USDT',
-        //       subscription: 'candlestick.1m.BTC_USDT',
-        //       channel: 'candlestick',
-        //       depth: 300,
-        //       interval: '1m',
-        //       data: [ [Object] ]
-        //     }
-        //   }
-        // ticker
-        // {
-        //     "info":{
-        //        "instrument_name":"BTC_USDT",
-        //        "subscription":"ticker.BTC_USDT",
-        //        "channel":"ticker",
-        //        "data":[ { } ]
-        //
-        if (this.handleErrorMessage(client, message)) {
-            return;
-        }
-        const subject = this.safeString(message, 'method');
-        if (subject === 'public/heartbeat') {
-            this.handlePing(client, message);
-            return;
-        }
-        if (subject === 'public/auth') {
-            this.handleAuthenticate(client, message);
-            return;
-        }
+    handleSubscribe(client, message) {
         const methods = {
             'candlestick': this.handleOHLCV,
             'ticker': this.handleTicker,
@@ -572,6 +645,56 @@ class cryptocom extends cryptocom$1 {
         const method = this.safeValue(methods, channel);
         if (method !== undefined) {
             method.call(this, client, result);
+        }
+    }
+    handleMessage(client, message) {
+        //
+        // ping
+        //    {
+        //        "id": 1587523073344,
+        //        "method": "public/heartbeat",
+        //        "code": 0
+        //    }
+        // auth
+        //     { id: 1648132625434, method: 'public/auth', code: 0 }
+        // ohlcv
+        //    {
+        //        code: 0,
+        //        method: 'subscribe',
+        //        result: {
+        //          instrument_name: 'BTC_USDT',
+        //          subscription: 'candlestick.1m.BTC_USDT',
+        //          channel: 'candlestick',
+        //          depth: 300,
+        //          interval: '1m',
+        //          data: [ [Object] ]
+        //        }
+        //      }
+        // ticker
+        //    {
+        //        "info":{
+        //           "instrument_name":"BTC_USDT",
+        //           "subscription":"ticker.BTC_USDT",
+        //           "channel":"ticker",
+        //           "data":[ { } ]
+        //
+        if (this.handleErrorMessage(client, message)) {
+            return;
+        }
+        const method = this.safeString(message, 'method');
+        const methods = {
+            '': this.handlePing,
+            'public/heartbeat': this.handlePing,
+            'public/auth': this.handleAuthenticate,
+            'private/create-order': this.handleOrder,
+            'private/cancel-order': this.handleOrder,
+            'private/cancel-all-orders': this.handleCancelAllOrders,
+            'private/close-position': this.handleOrder,
+            'subscribe': this.handleSubscribe,
+        };
+        const callMethod = this.safeValue(methods, method);
+        if (callMethod !== undefined) {
+            callMethod.call(this, client, message);
         }
     }
     authenticate(params = {}) {

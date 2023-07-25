@@ -476,6 +476,7 @@ class huobi(Exchange, ImplicitAPI):
                             # Trading
                             'v1/order/orders/place': 0.2,
                             'v1/order/batch-orders': 0.4,
+                            'v1/order/auto/place': 0.2,
                             'v1/order/orders/{order-id}/submitcancel': 0.2,
                             'v1/order/orders/submitCancelClientOrder': 0.2,
                             'v1/order/orders/batchCancelOpenOrders': 0.4,
@@ -617,6 +618,7 @@ class huobi(Exchange, ImplicitAPI):
                             # Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
                             'linear-swap-api/v3/unified_account_info': 1,
+                            'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
                         },
                         'post': {
@@ -643,6 +645,7 @@ class huobi(Exchange, ImplicitAPI):
                             'api/v3/contract_financial_record': 1,
                             'api/v3/contract_financial_record_exact': 1,
                             # Future Trade Interface
+                            'api/v1/contract-cancel-after': 1,
                             'api/v1/contract_order': 1,
                             'v1/contract_batchorder': 1,
                             'api/v1/contract_cancel': 1,
@@ -700,6 +703,7 @@ class huobi(Exchange, ImplicitAPI):
                             'swap-api/v3/swap_financial_record': 1,
                             'swap-api/v3/swap_financial_record_exact': 1,
                             # Swap Trade Interface
+                            'swap-api/v1/swap-cancel-after': 1,
                             'swap-api/v1/swap_order': 1,
                             'swap-api/v1/swap_batchorder': 1,
                             'swap-api/v1/swap_cancel': 1,
@@ -797,6 +801,7 @@ class huobi(Exchange, ImplicitAPI):
                             'linear-swap-api/v1/swap_cross_matchresults': 1,
                             'linear-swap-api/v1/swap_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v1/linear-cancel-after': 1,
                             'linear-swap-api/v1/swap_switch_position_mode': 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
                             'linear-swap-api/v3/swap_matchresults': 1,
@@ -807,6 +812,7 @@ class huobi(Exchange, ImplicitAPI):
                             'linear-swap-api/v3/swap_cross_hisorders': 1,
                             'linear-swap-api/v3/swap_hisorders_exact': 1,
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
+                            'linear-swap-api/v3/fix_position_margin_change': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
                             # Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
@@ -858,6 +864,7 @@ class huobi(Exchange, ImplicitAPI):
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
                     'maintain': OnMaintenance,
+                    'API key has no permission': PermissionDenied,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: API key has no permission [API Key没有权限]","data":null}
                 },
                 'exact': {
                     # err-code
@@ -2250,12 +2257,9 @@ class huobi(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrderTrades', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'fetchSpotOrderTrades',
-            # 'swap': 'fetchContractOrderTrades',
-            # 'future': 'fetchContractOrderTrades',
-        })
-        return await getattr(self, method)(id, symbol, since, limit, params)
+        if marketType != 'spot':
+            raise NotSupported(self.id + ' fetchOrderTrades() is only supported for spot markets')
+        return await self.fetch_spot_order_trades(id, symbol, since, limit, params)
 
     async def fetch_spot_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
@@ -2645,15 +2649,29 @@ class huobi(Exchange, ImplicitAPI):
             'code': None,
         }
 
-    async def fetch_account_id_by_type(self, type, params={}):
+    async def fetch_account_id_by_type(self, type, marginMode=None, symbol=None, params={}):
         accounts = await self.load_accounts()
-        accountId = self.safe_value(params, 'account-id')
+        accountId = self.safe_value_2(params, 'accountId', 'account-id')
         if accountId is not None:
             return accountId
-        indexedAccounts = self.index_by(accounts, 'type')
+        if type == 'spot':
+            if marginMode == 'cross':
+                type = 'super-margin'
+            elif marginMode == 'isolated':
+                type = 'margin'
+        marketId = None if (symbol is None) else self.market_id(symbol)
+        for i in range(0, len(accounts)):
+            account = accounts[i]
+            info = self.safe_value(account, 'info')
+            subtype = self.safe_string(info, 'subtype', None)
+            typeFromAccount = self.safe_string(account, 'type')
+            if type == 'margin':
+                if subtype == marketId:
+                    return self.safe_string(account, 'id')
+            elif type == typeFromAccount:
+                return self.safe_string(account, 'id')
         defaultAccount = self.safe_value(accounts, 0, {})
-        account = self.safe_value(indexedAccounts, type, defaultAccount)
-        return self.safe_string(account, 'id')
+        return self.safe_string(defaultAccount, 'id')
 
     async def fetch_currencies(self, params={}):
         """
@@ -2834,7 +2852,7 @@ class huobi(Exchange, ImplicitAPI):
                     method = 'spotPrivateGetV1CrossMarginAccountsBalance'
             else:
                 await self.load_accounts()
-                accountId = await self.fetch_account_id_by_type(type, params)
+                accountId = await self.fetch_account_id_by_type(type, None, None, params)
                 request['account-id'] = accountId
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
         elif isUnifiedAccount:
@@ -3599,17 +3617,15 @@ class huobi(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'fetchSpotOrders',
-            'swap': 'fetchContractOrders',
-            'future': 'fetchContractOrders',
-        })
-        if method is None:
-            raise NotSupported(self.id + ' fetchOrders() does not support ' + marketType + ' markets yet')
         contract = (marketType == 'swap') or (marketType == 'future')
         if contract and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders')
-        return await getattr(self, method)(symbol, since, limit, params)
+        response = None
+        if contract:
+            response = await self.fetch_contract_orders(symbol, since, limit, params)
+        else:
+            response = await self.fetch_spot_orders(symbol, since, limit, params)
+        return response
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -3626,14 +3642,12 @@ class huobi(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'fetchClosedSpotOrders',
-            'swap': 'fetchClosedContractOrders',
-            'future': 'fetchClosedContractOrders',
-        })
-        if method is None:
-            raise NotSupported(self.id + ' fetchClosedOrders() does not support ' + marketType + ' markets yet')
-        return await getattr(self, method)(symbol, since, limit, params)
+        response = None
+        if marketType == 'spot':
+            response = await self.fetch_closed_spot_orders(symbol, since, limit, params)
+        else:
+            response = await self.fetch_closed_contract_orders(symbol, since, limit, params)
+        return response
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -4262,6 +4276,15 @@ class huobi(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
+        see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
+        see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -4281,20 +4304,32 @@ class huobi(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'createSpotOrder',
-            'swap': 'createContractOrder',
-            'future': 'createContractOrder',
-        })
-        if method is None:
-            raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' markets yet')
-        return await getattr(self, method)(symbol, type, side, amount, price, query)
+        response = None
+        if marketType == 'spot':
+            response = await self.create_spot_order(symbol, type, side, amount, price, query)
+        else:
+            response = await self.create_contract_order(symbol, type, side, amount, price, query)
+        return response
 
     async def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
+        """
+         * @ignore
+        create a spot trade order
+        see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)
-        accountId = await self.fetch_account_id_by_type(market['type'])
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        accountId = await self.fetch_account_id_by_type(market['type'], marginMode, symbol)
         request = {
             # spot -----------------------------------------------------------
             'account-id': accountId,
@@ -4318,7 +4353,6 @@ class huobi(Exchange, ImplicitAPI):
         else:
             defaultOperator = 'lte' if (side == 'sell') else 'gte'
             stopOperator = self.safe_string(params, 'operator', defaultOperator)
-            params = self.omit(params, ['stopPrice', 'stop-price'])
             request['stop-price'] = self.price_to_precision(symbol, stopPrice)
             request['operator'] = stopOperator
             if (orderType == 'limit') or (orderType == 'limit-fok'):
@@ -4337,7 +4371,12 @@ class huobi(Exchange, ImplicitAPI):
             request['client-order-id'] = brokerId + self.uuid()
         else:
             request['client-order-id'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'client-order-id', 'postOnly'])
+        if marginMode == 'cross':
+            request['source'] = 'super-margin-api'
+        elif marginMode == 'isolated':
+            request['source'] = 'margin-api'
+        elif marginMode == 'c2c':
+            request['source'] = 'c2c-margin-api'
         if (orderType == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:
@@ -4359,6 +4398,7 @@ class huobi(Exchange, ImplicitAPI):
         limitOrderTypes = self.safe_value(options, 'limitOrderTypes', {})
         if orderType in limitOrderTypes:
             request['price'] = self.price_to_precision(symbol, price)
+        params = self.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator'])
         response = await self.spotPrivatePostV1OrderOrdersPlace(self.extend(request, params))
         #
         # spot
@@ -4388,6 +4428,21 @@ class huobi(Exchange, ImplicitAPI):
         }
 
     async def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
+        """
+         * @ignore
+        create a contract trade order
+        see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         market = self.market(symbol)
         request = {
             'contract_code': market['id'],
@@ -6597,7 +6652,7 @@ class huobi(Exchange, ImplicitAPI):
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
-        accountId = await self.fetch_account_id_by_type('spot', params)
+        accountId = await self.fetch_account_id_by_type('spot', None, None, params)
         request = {
             'accountId': accountId,
             # 'currency': code,
@@ -6795,9 +6850,7 @@ class huobi(Exchange, ImplicitAPI):
             '1d': '1day',
         }
         market = self.market(symbol)
-        amountType = self.safe_number_2(params, 'amount_type', 'amountType')
-        if amountType is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1(cont), or 2(cryptocurrency)')
+        amountType = self.safe_integer_2(params, 'amount_type', 'amountType', 2)
         request = {
             'period': timeframes[timeframe],
             'amount_type': amountType,
@@ -7114,7 +7167,7 @@ class huobi(Exchange, ImplicitAPI):
         marginMode = 'cross' if (marginMode is None) else marginMode
         marginAccounts = self.safe_value(self.options, 'marginAccounts', {})
         accountType = self.get_supported_mapping(marginMode, marginAccounts)
-        accountId = await self.fetch_account_id_by_type(accountType, params)
+        accountId = await self.fetch_account_id_by_type(accountType, marginMode, symbol, params)
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),

@@ -589,8 +589,9 @@ class deribit extends deribit$1 {
             const order = this.parseOrder(data);
             orders = [order];
         }
+        const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
-            this.orders.append(orders[i]);
+            cachedOrders.append(orders[i]);
         }
         client.resolve(this.orders, channel);
     }

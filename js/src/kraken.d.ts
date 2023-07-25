@@ -152,6 +152,20 @@ export default class kraken extends Exchange {
         };
     }>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parseAccount(account: any): string;
+    transferOut(code: string, amount: any, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    parseTransfer(transfer: any, currency?: any): {
+        info: any;
+        id: string;
+        timestamp: any;
+        datetime: any;
+        currency: string;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: string;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

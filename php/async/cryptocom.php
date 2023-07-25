@@ -325,13 +325,7 @@ class cryptocom extends Exchange {
                 'networks' => array(
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
-                    'TRX' => 'TRON',
                     'TRC20' => 'TRON',
-                ),
-                'networksById' => array(
-                    'BSC' => 'BEP20',
-                    'ETH' => 'ERC20',
-                    'TRON' => 'TRC20',
                 ),
                 'broker' => 'CCXT_',
             ),
@@ -380,6 +374,7 @@ class cryptocom extends Exchange {
                     '50001' => '\\ccxt\\BadRequest',
                     '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
+                'broad' => array(),
             ),
         ));
     }
@@ -1011,6 +1006,108 @@ class cryptocom extends Exchange {
         }) ();
     }
 
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $uppercaseType = strtoupper($type);
+        $request = array(
+            'instrument_name' => $market['id'],
+            'side' => strtoupper($side),
+            'quantity' => $this->amount_to_precision($symbol, $amount),
+        );
+        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        if ($clientOrderId === null) {
+            $clientOrderId = $broker . $this->uuid22();
+        }
+        $request['client_oid'] = $clientOrderId;
+        $marketType = null;
+        $marginMode = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        list($marginMode, $params) = $this->custom_handle_margin_mode_and_params('createOrder', $params);
+        if (($marketType === 'margin') || ($marginMode !== null)) {
+            $request['spot_margin'] = 'MARGIN';
+        } elseif ($marketType === 'spot') {
+            $request['spot_margin'] = 'SPOT';
+        }
+        $timeInForce = $this->safe_string_upper_2($params, 'timeInForce', 'time_in_force');
+        if ($timeInForce !== null) {
+            if ($timeInForce === 'GTC') {
+                $request['time_in_force'] = 'GOOD_TILL_CANCEL';
+            } elseif ($timeInForce === 'IOC') {
+                $request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+            } elseif ($timeInForce === 'FOK') {
+                $request['time_in_force'] = 'FILL_OR_KILL';
+            } else {
+                $request['time_in_force'] = $timeInForce;
+            }
+        }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if (($postOnly) || ($timeInForce === 'PO')) {
+            $request['exec_inst'] = 'POST_ONLY';
+            $request['time_in_force'] = 'GOOD_TILL_CANCEL';
+        }
+        $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
+        $isTrigger = ($triggerPrice !== null);
+        $isStopLossTrigger = ($stopLossPrice !== null);
+        $isTakeProfitTrigger = ($takeProfitPrice !== null);
+        if ($isTrigger) {
+            $request['ref_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $price = (string) $price;
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        $request['type'] = 'STOP_LIMIT';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LIMIT';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT';
+                    } else {
+                        $request['type'] = 'STOP_LOSS';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LOSS';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+        } elseif ($isStopLossTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
+                $request['type'] = 'STOP_LIMIT';
+            } else {
+                $request['type'] = 'STOP_LOSS';
+            }
+            $request['ref_price'] = $this->price_to_precision($symbol, $stopLossPrice);
+        } elseif ($isTakeProfitTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                $request['type'] = 'TAKE_PROFIT_LIMIT';
+            } else {
+                $request['type'] = 'TAKE_PROFIT';
+            }
+            $request['ref_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        } else {
+            $request['type'] = $uppercaseType;
+        }
+        $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        return array_merge($request, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1031,104 +1128,8 @@ class cryptocom extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $uppercaseType = strtoupper($type);
-            $request = array(
-                'instrument_name' => $market['id'],
-                'side' => strtoupper($side),
-                'quantity' => $this->amount_to_precision($symbol, $amount),
-            );
-            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-            if ($clientOrderId === null) {
-                $clientOrderId = $broker . $this->uuid22();
-            }
-            $request['client_oid'] = $clientOrderId;
-            $marketType = null;
-            $marginMode = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
-            list($marginMode, $params) = $this->custom_handle_margin_mode_and_params('createOrder', $params);
-            if (($marketType === 'margin') || ($marginMode !== null)) {
-                $request['spot_margin'] = 'MARGIN';
-            } elseif ($marketType === 'spot') {
-                $request['spot_margin'] = 'SPOT';
-            }
-            $timeInForce = $this->safe_string_upper_2($params, 'timeInForce', 'time_in_force');
-            if ($timeInForce !== null) {
-                if ($timeInForce === 'GTC') {
-                    $request['time_in_force'] = 'GOOD_TILL_CANCEL';
-                } elseif ($timeInForce === 'IOC') {
-                    $request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
-                } elseif ($timeInForce === 'FOK') {
-                    $request['time_in_force'] = 'FILL_OR_KILL';
-                } else {
-                    $request['time_in_force'] = $timeInForce;
-                }
-            }
-            $postOnly = $this->safe_value($params, 'postOnly', false);
-            if (($postOnly) || ($timeInForce === 'PO')) {
-                $request['exec_inst'] = 'POST_ONLY';
-                $request['time_in_force'] = 'GOOD_TILL_CANCEL';
-            }
-            $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
-            $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
-            $isTrigger = ($triggerPrice !== null);
-            $isStopLossTrigger = ($stopLossPrice !== null);
-            $isTakeProfitTrigger = ($takeProfitPrice !== null);
-            if ($isTrigger) {
-                $request['ref_price'] = $this->price_to_precision($symbol, $triggerPrice);
-                $price = (string) $price;
-                if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                    if ($side === 'buy') {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'TAKE_PROFIT_LIMIT';
-                        } else {
-                            $request['type'] = 'STOP_LIMIT';
-                        }
-                    } else {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'STOP_LIMIT';
-                        } else {
-                            $request['type'] = 'TAKE_PROFIT_LIMIT';
-                        }
-                    }
-                } else {
-                    if ($side === 'buy') {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'TAKE_PROFIT';
-                        } else {
-                            $request['type'] = 'STOP_LOSS';
-                        }
-                    } else {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'STOP_LOSS';
-                        } else {
-                            $request['type'] = 'TAKE_PROFIT';
-                        }
-                    }
-                }
-            } elseif ($isStopLossTrigger) {
-                if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
-                    $request['type'] = 'STOP_LIMIT';
-                } else {
-                    $request['type'] = 'STOP_LOSS';
-                }
-                $request['ref_price'] = $this->price_to_precision($symbol, $stopLossPrice);
-            } elseif ($isTakeProfitTrigger) {
-                if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                    $request['type'] = 'TAKE_PROFIT_LIMIT';
-                } else {
-                    $request['type'] = 'TAKE_PROFIT';
-                }
-                $request['ref_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
-            } else {
-                $request['type'] = $uppercaseType;
-            }
-            $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-            $response = Async\await($this->v1PrivatePostPrivateCreateOrder (array_merge($request, $params)));
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->v1PrivatePostPrivateCreateOrder ($request));
             //
             //     {
             //         "id" => 1686804664362,
@@ -1152,7 +1153,7 @@ class cryptocom extends Exchange {
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
              * @param {string} $symbol unified $market $symbol of the orders to cancel
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} Returns exchange raw messagearray(@link https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1171,7 +1172,7 @@ class cryptocom extends Exchange {
              * cancels an open order
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
              * @param {string} $id the order $id of the order to cancel
-             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {string} [$symbol] unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */

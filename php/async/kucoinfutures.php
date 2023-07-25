@@ -23,7 +23,7 @@ class kucoinfutures extends kucoin {
             'countries' => array( 'SC' ),
             'rateLimit' => 75,
             'version' => 'v1',
-            'certified' => false,
+            'certified' => true,
             'pro' => true,
             'comment' => 'Platform 2.0',
             'quoteJsonNumbers' => false,

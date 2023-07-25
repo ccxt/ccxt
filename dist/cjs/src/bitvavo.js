@@ -263,12 +263,7 @@ class bitvavo extends bitvavo$1 {
                 'BITVAVO-ACCESS-WINDOW': 10000,
                 'networks': {
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                },
-                'networksById': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
                 },
             },
             'precisionMode': number.SIGNIFICANT_DIGITS,
