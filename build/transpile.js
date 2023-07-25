@@ -2505,8 +2505,6 @@ class Transpiler {
                         // add `await exchange.close()` to instantiated variables
                         for (const exchLineMatches of matches) {
                             // we presume all methods to be in main scope, so adding just 4 spaces
-                            matchedBody += '    # ... etc\n'
-                            matchedBody += '    # after you are done working with the exchange, you should close it\n'
                             matchedBody += '    await ' + exchLineMatches[1] + '.close()\n'
                         }
                         return matchedBody;
