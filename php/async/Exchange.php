@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.34';
+$version = '4.0.38';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.34';
+    const VERSION = '4.0.38';
 
     public $browser;
     public $marketsLoading = null;
@@ -396,7 +396,7 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
         }
-        if ($tail) {
+        if ($tail && $limit !== null) {
             return $this->arraySlice ($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
@@ -422,7 +422,7 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
         }
-        if ($tail) {
+        if ($tail && $limit !== null) {
             return $this->arraySlice ($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
@@ -2503,6 +2503,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
+    }
+
+    public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOHLCVWs() is not supported yet');
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {

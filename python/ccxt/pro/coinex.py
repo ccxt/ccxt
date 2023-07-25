@@ -30,7 +30,8 @@ class coinex(ccxt.async_support.coinex):
                 'watchMyTrades': False,  # can query but can't subscribe
                 'watchOrders': True,
                 'watchOrderBook': True,
-                'watchOHLCV': False,  # only for swap markets
+                'watchOHLCV': True,  # only for swap markets
+                'fetchOHLCVWs': True,
             },
             'urls': {
                 'api': {
@@ -345,6 +346,23 @@ class coinex(ccxt.async_support.coinex):
 
     def handle_ohlcv(self, client: Client, message):
         #
+        #  spot
+        #     {
+        #         error: null,
+        #         result: [
+        #           [
+        #             1673846940,
+        #             '21148.74',
+        #             '21148.38',
+        #             '21148.75',
+        #             '21138.66',
+        #             '1.57060173',
+        #             '33214.9138778914'
+        #           ],
+        #         ]
+        #         id: 1,
+        #     }
+        #  swap
         #     {
         #         method: 'kline.update',
         #         params: [
@@ -361,10 +379,16 @@ class coinex(ccxt.async_support.coinex):
         #         id: null
         #     }
         #
-        candles = self.safe_value(message, 'params', [])
+        candles = self.safe_value_2(message, 'params', 'result', [])
         messageHash = 'ohlcv'
+        id = self.safe_string(message, 'id')
         ohlcvs = self.parse_ohlcvs(candles)
-        keysLength = self.ohlcvs
+        if id is not None:
+            # spot subscription response
+            client.resolve(ohlcvs, messageHash)
+            return
+        keys = list(self.ohlcvs.keys())
+        keysLength = len(keys)
         if keysLength == 0:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs = ArrayCacheByTimestamp(limit)
@@ -485,6 +509,7 @@ class coinex(ccxt.async_support.coinex):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -499,14 +524,17 @@ class coinex(ccxt.async_support.coinex):
         type = None
         type, params = self.handle_market_type_and_params('watchOHLCV', market, params)
         if type != 'swap':
-            raise NotSupported(self.id + ' watchOHLCV() is only supported for swap markets')
+            raise NotSupported(self.id + ' watchOHLCV() is only supported for swap markets. Try using fetchOHLCV() instead')
         url = self.urls['api']['ws'][type]
         messageHash = 'ohlcv'
         watchOHLCVWarning = self.safe_value(self.options, 'watchOHLCVWarning', True)
         client = self.safe_value(self.clients, url, {})
-        existingSubscription = self.safe_value(client.subscriptions, messageHash)
+        clientSub = self.safe_value(client, 'subscriptions', {})
+        existingSubscription = self.safe_value(clientSub, messageHash)
+        subSymbol = self.safe_string(existingSubscription, 'symbol')
+        subTimeframe = self.safe_string(existingSubscription, 'timeframe')
         # due to nature of coinex response can only watch one symbol at a time
-        if watchOHLCVWarning and existingSubscription is not None and (existingSubscription['symbol'] != symbol or existingSubscription['timeframe'] != timeframe):
+        if watchOHLCVWarning and existingSubscription is not None and (subSymbol != symbol or subTimeframe != timeframe):
             raise ExchangeError(self.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress self warning set watchOHLCVWarning to False in options')
         timeframes = self.safe_value(self.options, 'timeframes', {})
         subscribe = {
@@ -514,7 +542,7 @@ class coinex(ccxt.async_support.coinex):
             'id': self.request_id(),
             'params': [
                 market['id'],
-                self.safe_string(timeframes, timeframe, timeframe),
+                self.safe_integer(timeframes, timeframe),
             ],
         }
         subscription = {
@@ -525,6 +553,48 @@ class coinex(ccxt.async_support.coinex):
         ohlcvs = await self.watch(url, messageHash, request, messageHash, subscription)
         if self.newUpdates:
             limit = ohlcvs.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcvs, since, limit, 0)
+
+    async def fetch_ohlcv_ws(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
+        query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to query OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :param int|None params['end']: the end time for spot markets, self.seconds() is set
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        type, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
+        url = self.urls['api']['ws'][type]
+        symbol = market['symbol']
+        messageHash = 'ohlcv'
+        timeframes = self.safe_value(self.options, 'timeframes', {})
+        timeframe = self.safe_string(timeframes, timeframe, timeframe)
+        if since is None:
+            since = 1640995200  # January 1, 2022
+        id = self.request_id()
+        subscribe = {
+            'method': 'kline.query',
+            'params': [
+                market['id'],
+                self.parse_to_int(since / 1000),
+                self.safe_integer(params, 'end', self.seconds()),
+                self.parse_to_int(timeframe),
+            ],
+            'id': id,
+        }
+        subscription = {
+            'id': id,
+            'future': messageHash,
+        }
+        subscriptionHash = id
+        request = self.deep_extend(subscribe, query)
+        ohlcvs = await self.watch(url, messageHash, request, subscriptionHash, subscription)
         return self.filter_by_since_limit(ohlcvs, since, limit, 0)
 
     def handle_delta(self, bookside, delta):
@@ -917,6 +987,8 @@ class coinex(ccxt.async_support.coinex):
         subscription = self.safe_value(client.subscriptions, id)
         if subscription is not None:
             futureIndex = self.safe_string(subscription, 'future')
+            if futureIndex == 'ohlcv':
+                return self.handle_ohlcv(client, message)
             future = self.safe_value(client.futures, futureIndex)
             if future is not None:
                 future.resolve(True)

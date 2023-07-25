@@ -135,6 +135,8 @@ interface Exchange {
     privateMarginPatchLoansLoanId(params?: {}): Promise<implicitReturnType>;
     privateMarginPatchLoanRecordsLoanRecordId(params?: {}): Promise<implicitReturnType>;
     privateMarginDeleteLoansLoanId(params?: {}): Promise<implicitReturnType>;
+    privateFlash_swapGetCurrencies(params?: {}): Promise<implicitReturnType>;
+    privateFlash_swapGetCurrencyPairs(params?: {}): Promise<implicitReturnType>;
     privateFlash_swapGetOrders(params?: {}): Promise<implicitReturnType>;
     privateFlash_swapGetOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateFlash_swapPostOrders(params?: {}): Promise<implicitReturnType>;

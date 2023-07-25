@@ -360,6 +360,8 @@ class gate extends Exchange {
                     ),
                     'flash_swap' => array(
                         'get' => array(
+                            'currencies' => 1.5,
+                            'currency_pairs' => 1.5,
                             'orders' => 1.5,
                             'orders/{order_id}' => 1.5,
                         ),
@@ -770,6 +772,7 @@ class gate extends Exchange {
                     'REPAY_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TOO_MANY_CURRENCY_PAIRS' => '\\ccxt\\InvalidOrder',
                     'TOO_MANY_ORDERS' => '\\ccxt\\InvalidOrder',
+                    'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded',
                     'MIXED_ACCOUNT_TYPE' => '\\ccxt\\InvalidOrder',
                     'AUTO_BORROW_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TRADE_RESTRICTED' => '\\ccxt\\InsufficientFunds',
