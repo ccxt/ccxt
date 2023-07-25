@@ -257,6 +257,7 @@ export default class bitget extends Exchange {
                             'position/singlePosition-v2': 2,
                             'position/allPosition': 4, // 5 times/1s (UID) => 20/5 = 4
                             'position/allPosition-v2': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'position/history-position': 1,
                             'account/accountBill': 2,
                             'account/accountBusinessBill': 4,
                             'order/current': 1, // 20 times/1s (UID) => 20/20 = 1
@@ -1010,6 +1011,9 @@ export default class bitget extends Exchange {
                 'networksById': {
                     'TRC20': 'TRX',
                     'BSC': 'BEP20',
+                },
+                'fetchPositions': {
+                    'method': 'privateMixGetPositionAllPositionV2', // or privateMixGetPositionHistoryPosition
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
@@ -3888,6 +3892,8 @@ export default class bitget extends Exchange {
          */
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
+        const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
+        const method = this.safeString (fetchPositionsOptions, 'method', 'privateMixGetPositionAllPositionV2');
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
@@ -3902,7 +3908,25 @@ export default class bitget extends Exchange {
         const request = {
             'productType': productType,
         };
-        const response = await this.privateMixGetPositionAllPositionV2 (this.extend (request, params));
+        if (method === 'privateMixGetPositionHistoryPosition') {
+            // endTime and startTime mandatory
+            let since = this.safeInteger2 (params, 'startTime', 'since');
+            if (since === undefined) {
+                since = this.milliseconds () - 7889400000; // 3 months ago
+            }
+            request['startTime'] = since;
+            let until = this.safeInteger2 (params, 'endTime', 'until');
+            if (until === undefined) {
+                until = this.milliseconds ();
+            }
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        if (method === 'privateMixGetPositionAllPositionV2') {
+            response = await this.privateMixGetPositionAllPositionV2 (this.extend (request, params));
+        } else {
+            response = await this.privateMixGetPositionHistoryPosition (this.extend (request, params));
+        }
         //
         //     {
         //       code: '00000',
