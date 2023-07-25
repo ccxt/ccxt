@@ -2505,12 +2505,17 @@ class Transpiler {
                         // add `await exchange.close()` to instantiated variables
                         for (const exchLineMatches of matches) {
                             // we presume all methods to be in main scope, so adding just 4 spaces
-                            matchedBody = matchedBody + '    await ' + exchLineMatches[1] + '.close()\n'
+                            matchedBody += '    # ... etc\n'
+                            matchedBody += '    # after you are done working with the exchange, you should close it\n'
+                            matchedBody += '    await ' + exchLineMatches[1] + '.close()\n'
                         }
                         return matchedBody;
                     });
                     // place main-scope await function calls within asyncio
                     finalBodies.pyAsync = finalBodies.pyAsync.replace (new RegExp ('await ' + funcName + '\\((.*?)\\)', 'g'), function(wholeMatch, innerMatch){ return '\nasyncio.run(' + wholeMatch.replace('await ','').trim() + ')';})
+                }
+                if (tsContent.includes ('ccxt.pro.')) {
+                    fileHeaders.pyAsync += 'import ccxt.pro\n\n';
                 }
 
                 // write files
