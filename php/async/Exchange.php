@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.36';
+$version = '4.0.37';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.36';
+    const VERSION = '4.0.37';
 
     public $browser;
     public $marketsLoading = null;
@@ -396,7 +396,7 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
         }
-        if ($tail) {
+        if ($tail && $limit !== null) {
             return $this->arraySlice ($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
@@ -422,7 +422,7 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
         }
-        if ($tail) {
+        if ($tail && $limit !== null) {
             return $this->arraySlice ($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
