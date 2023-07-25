@@ -479,6 +479,7 @@ export default class Exchange {
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': 'emulated',
+                'fetchCurrenciesWs': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
@@ -500,9 +501,11 @@ export default class Exchange {
                 'fetchLeverageTiers': undefined,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
+                'fetchMarketsWs': undefined,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': undefined,
+                'fetchOHLCVWs': undefined,
                 'fetchOpenInterest': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
@@ -1055,7 +1058,23 @@ export default class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
+    fetchCurrenciesWs (params = {}) {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
+        return new Promise ((resolve, reject) => resolve (this.currencies));
+    }
+
     fetchMarkets (params = {}): Promise<Market[]> {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
+        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
+    }
+
+    fetchMarketsWs (params = {}): Promise<Market[]> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -2460,6 +2479,14 @@ export default class Exchange {
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
+    }
+
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        let message = '';
+        if (this.has['fetchTradesWs']) {
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
+        }
+        throw new NotSupported (this.id + ' fetchOHLCVWs() is not supported yet' + message);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {

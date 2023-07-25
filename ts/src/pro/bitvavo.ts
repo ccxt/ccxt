@@ -215,6 +215,23 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    handleFetchOHLCV (client: Client, message) {
+        //
+        //    {
+        //        action: 'getCandles',
+        //        response: [
+        //            [1690325820000, '26453', '26453', '26436', '26447', '0.01626246'],
+        //            [1690325760000, '26454', '26454', '26453', '26453', '0.00037707']
+        //        ]
+        //    }
+        //
+        const action = this.safeString (message, 'action');
+        const response = this.safeValue (message, 'response');
+        const ohlcv = this.parseOHLCVs (response, undefined, undefined, undefined);
+        const messageHash = this.buildMessageHash (action);
+        client.resolve (ohlcv, messageHash);
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //     {
@@ -645,6 +662,7 @@ export default class bitvavo extends bitvavoRest {
         /**
          * @method
          * @name bitvavo#fetchOrderWs
+         * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
@@ -667,6 +685,7 @@ export default class bitvavo extends bitvavoRest {
         /**
          * @method
          * @name bitvavo#fetchOrdersWs
+         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -850,6 +869,26 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (withdrawals, messageHash);
     }
 
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#fetchOHLCVWs
+         * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const request = this.fetchOHLCVRequest (symbol, timeframe, since, limit, params);
+        const action = 'getCandles';
+        const ohlcv = await this.watchRequest (action, request);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
     async fetchDepositsWs (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -904,6 +943,59 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         return await this.watchRequest ('privateGetAccount', params);
+    }
+
+    async fetchMarketsWs (params = {}) {
+        /**
+         * @method
+         * @name bitvavo#fetchMarketsWs
+         * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+         * @description retrieves data on all markets for bitvavo
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        return await this.watchRequest ('getMarkets', params);
+    }
+
+    async fetchCurrenciesWs (params = {}) {
+        /**
+         * @method
+         * @name bitvavo#fetchCurrenciesWs
+         * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+         * @description fetches all available currencies on an exchange
+         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets ();
+        return await this.watchRequest ('getAssets', params);
+    }
+
+    handleFetchCurrencies (client: Client, message) {
+        //
+        //    {
+        //        action: 'getAssets',
+        //        response: [{
+        //                symbol: '1INCH',
+        //                name: '1inch',
+        //                decimals: 8,
+        //                depositFee: '0',
+        //                depositConfirmations: 64,
+        //                depositStatus: 'OK',
+        //                withdrawalFee: '13',
+        //                withdrawalMinAmount: '13',
+        //                withdrawalStatus: 'OK',
+        //                networks: [Array],
+        //                message: ''
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const action = this.safeString (message, 'action');
+        const messageHash = this.buildMessageHash (action, message);
+        const response = this.safeValue (message, 'response');
+        const currencies = this.parseCurrencies (response);
+        client.resolve (currencies, messageHash);
     }
 
     handleTradingFees (client, message) {
@@ -996,11 +1088,39 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (order, messageHash);
     }
 
+    handleMarkets (client: Client, message) {
+        //
+        //    {
+        //        action: 'getMarkets',
+        //        response: [{
+        //                market: '1INCH-EUR',
+        //                status: 'trading',
+        //                base: '1INCH',
+        //                quote: 'EUR',
+        //                pricePrecision: 5,
+        //                minOrderInBaseAsset: '2',
+        //                minOrderInQuoteAsset: '5',
+        //                maxOrderInBaseAsset: '1000000000',
+        //                maxOrderInQuoteAsset: '1000000000',
+        //                orderTypes: [Array]
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const action = this.safeString (message, 'action');
+        const response = this.safeValue (message, 'response', {});
+        const markets = this.parseMarkets (response);
+        const messageHash = this.buildMessageHash (action, response);
+        client.resolve (markets, messageHash);
+    }
+
     buildMessageHash (action, params = {}) {
         const methods = {
             'privateCreateOrder': this.actionAndMarketMessageHash,
             'privateUpdateOrder': this.actionAndOrderIdMessageHash,
             'privateCancelOrder': this.actionAndOrderIdMessageHash,
+            'privateGetOrder': this.actionAndOrderIdMessageHash,
             'privateGetTrades': this.actionAndMarketMessageHash,
         };
         const method = this.safeValue (methods, action);
@@ -1270,6 +1390,9 @@ export default class bitvavo extends bitvavoRest {
             'privateGetWithdrawalHistory': this.handleWithdraws,
             'privateWithdrawAssets': this.handleWithdraw,
             'privateGetTrades': this.handleMyTrades,
+            'getAssets': this.handleFetchCurrencies,
+            'getCandles': this.handleFetchOHLCV,
+            'getMarkets': this.handleMarkets,
         };
         const event = this.safeString2 (message, 'event', 'action');
         const method = this.safeValue (methods, event);

@@ -314,13 +314,12 @@ export default class bitvavo extends Exchange {
         /**
          * @method
          * @name bitvavo#fetchMarkets
+         * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
          * @description retrieves data on all markets for bitvavo
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
-        const currencies = this.currencies;
-        const currenciesById = this.indexBy (currencies, 'symbol');
         //
         //     [
         //         {
@@ -335,9 +334,15 @@ export default class bitvavo extends Exchange {
         //         }
         //     ]
         //
+        return this.parseMarkets (response);
+    }
+
+    parseMarkets (markets) {
+        const currencies = this.currencies;
+        const currenciesById = this.indexBy (currencies, 'symbol');
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
             const id = this.safeString (market, 'market');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
@@ -401,6 +406,7 @@ export default class bitvavo extends Exchange {
         /**
          * @method
          * @name bitvavo#fetchCurrencies
+         * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} an associative dictionary of currencies
@@ -439,9 +445,46 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrencies (currencies) {
+        //
+        //     [
+        //         {
+        //             "symbol": "USDT",
+        //             "displayTicker": "USDT",
+        //             "name": "Tether",
+        //             "slug": "tether",
+        //             "popularity": -1,
+        //             "decimals": 6,
+        //             "depositFee": "0",
+        //             "depositConfirmations": 64,
+        //             "depositStatus": "OK",
+        //             "withdrawalFee": "3.2",
+        //             "withdrawalMinAmount": "3.2",
+        //             "withdrawalStatus": "OK",
+        //             "networks": [
+        //               "ETH"
+        //             ],
+        //             "light": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        //               }
+        //             },
+        //             "dark": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        //               }
+        //             },
+        //             "visibility": "PUBLIC",
+        //             "message": ""
+        //         },
+        //     ]
+        //
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
             const networks = {};
@@ -872,19 +915,7 @@ export default class bitvavo extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitvavo#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
+    fetchOHLCVRequest (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
@@ -905,7 +936,26 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 1440, max 1440
         }
-        const response = await this.publicGetMarketCandles (this.extend (request, params));
+        return this.extend (request, params);
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#fetchOHLCV
+         * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.fetchOHLCVRequest (symbol, timeframe, since, limit, params);
+        const response = await this.publicGetMarketCandles (request);
         //
         //     [
         //         [1590383700000,"8088.5","8088.5","8088.5","8088.5","0.04788623"],
@@ -1312,6 +1362,7 @@ export default class bitvavo extends Exchange {
         /**
          * @method
          * @name bitvavo#fetchOrders
+         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
