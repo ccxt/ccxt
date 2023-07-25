@@ -727,7 +727,33 @@ export default class bingx extends Exchange {
         //        filledTime: '2023-07-04T20:56:01.000+0800'
         //    }
         //
-        let time = this.safeInteger2 (trade, 'time', 'filledTm');
+        //
+        // ws
+        //
+        // spot
+        //
+        //    {
+        //        E: 1690214529432,
+        //        T: 1690214529386,
+        //        e: 'trade',
+        //        m: true,
+        //        p: '29110.19',
+        //        q: '0.1868',
+        //        s: 'BTC-USDT',
+        //        t: '57903921'
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        q: '0.0421',
+        //        p: '29023.5',
+        //        T: 1690221401344,
+        //        m: false,
+        //        s: 'BTC-USDT'
+        //    }
+        //
+        let time = this.safeIntegerN (trade, [ 'time', 'filledTm', 'T' ]);
         const datetimeId = this.safeString (trade, 'filledTm');
         if (datetimeId !== undefined) {
             time = this.parse8601 (datetimeId);
@@ -738,7 +764,7 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (trade, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         return this.safeTrade ({
-            'id': this.safeString2 (trade, 'id', 'orderId'),
+            'id': this.safeStringN (trade, [ 'id', 'orderId', 't' ]),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601 (time),
@@ -746,9 +772,9 @@ export default class bingx extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'takerOrMaker': (isBuyerMaker === true) ? 'maker' : 'taker',
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString2 (trade, 'qty', 'amount'),
+            'takerOrMaker': (isBuyerMaker === true || this.safeValue (trade, 'm')) ? 'maker' : 'taker',
+            'price': this.safeString2 (trade, 'price', 'p'),
+            'amount': this.safeStringN (trade, [ 'qty', 'amount', 'q' ]),
             'cost': cost,
             'fee': {
                 'cost': this.parseNumber (Precise.stringAbs (this.safeString (trade, 'commission'))),

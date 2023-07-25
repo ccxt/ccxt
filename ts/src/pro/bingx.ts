@@ -3,6 +3,7 @@
 
 import bingxRest from '../bingx.js';
 import { BadRequest } from '../base/errors.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -66,8 +67,110 @@ export default class bingx extends bingxRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    handleTrades (client: Client, message) {
+        //
+        // spot
+        // first snapshot
+        //
+        //    {
+        //      id: 'd83b78ce-98be-4dc2-b847-12fe471b5bc5',
+        //      code: 0,
+        //      msg: 'SUCCESS',
+        //      timestamp: 1690214699854
+        //    }
+        //
+        // subsequent updates
+        //
+        //     {
+        //         code: 0,
+        //         data: {
+        //           E: 1690214529432,
+        //           T: 1690214529386,
+        //           e: 'trade',
+        //           m: true,
+        //           p: '29110.19',
+        //           q: '0.1868',
+        //           s: 'BTC-USDT',
+        //           t: '57903921'
+        //         },
+        //         dataType: 'BTC-USDT@trade',
+        //         success: true
+        //     }
+        //
+        //
+        // swap
+        // first snapshot
+        //
+        //    {
+        //        id: '2aed93b1-6e1e-4038-aeba-f5eeaec2ca48',
+        //        code: 0,
+        //        msg: '',
+        //        dataType: '',
+        //        data: null
+        //    }
+        //
+        // subsequent updates
+        //
+        //
+        //    {
+        //        code: 0,
+        //        dataType: 'BTC-USDT@trade',
+        //        data: [
+        //            {
+        //                q: '0.0421',
+        //                p: '29023.5',
+        //                T: 1690221401344,
+        //                m: false,
+        //                s: 'BTC-USDT'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (message, 'data', []);
+        const messageHash = this.safeString (message, 'dataType');
+        const marketId = messageHash.split ('@')[0];
+        let marketType = undefined;
+        if (Array.isArray (data)) {
+            marketType = 'swap';
+        } else {
+            marketType = 'spot';
+        }
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const symbol = market['symbol'];
+        let trades = undefined;
+        if (Array.isArray (data)) {
+            trades = this.parseTrades (data, market);
+        } else {
+            trades = [ this.parseTrade (data, market) ];
+        }
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        for (let j = 0; j < trades.length; j++) {
+            stored.append (trades[j]);
+        }
+        client.resolve (stored, messageHash);
+    }
+
     handleMessage (client: Client, message) {
-        console.log (message);
-        process.exit ();
+        // TODO: Handle ping-pong -> see bybit as example
+        let table = this.safeString (message, 'e');
+        const dataType = this.safeString (message, 'dataType');
+        if (table === undefined && dataType !== undefined) {
+            table = dataType.split ('@')[1];
+        }
+        const methods = {
+            'trade': this.handleTrades,
+        };
+        const method = this.safeValue (methods, table);
+        if (method !== undefined) {
+            return method.call (this, client, message);
+        }
+        // console.log (message);
+        // process.exit ();
     }
 }
