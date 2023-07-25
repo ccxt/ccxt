@@ -44,6 +44,7 @@ export default class delta extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode': false,
@@ -1382,6 +1383,8 @@ export default class delta extends Exchange {
         const price = this.safeString (params, 'price');
         if (price === 'mark') {
             request['symbol'] = 'MARK:' + market['id'];
+        } else if (price === 'index') {
+            request['symbol'] = market['info']['spot_index']['symbol'];
         } else {
             request['symbol'] = market['id'];
         }
