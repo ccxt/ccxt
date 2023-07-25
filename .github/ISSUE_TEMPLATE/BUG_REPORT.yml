@@ -23,7 +23,7 @@ body:
         - This question is directly related to ccxt
         - You have read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions
         - You have read the [How to submit a good issue](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
-        - Make sure your local version of CCXT is up to date, buy comparing your `ccxt.version` output to [this version](https://github.com/ccxt/ccxt/blob/master/package.json#L3)
+        - Make sure your local version of CCXT is up to date, by comparing your `ccxt.version` output to [this version](https://github.com/ccxt/ccxt/blob/master/package.json#L3)
         - You have read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
 
         ---
