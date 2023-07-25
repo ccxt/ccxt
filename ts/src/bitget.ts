@@ -3922,9 +3922,11 @@ export default class bitget extends Exchange {
             request['endTime'] = until;
         }
         let response = undefined;
+        let isHistory = false;
         if (method === 'privateMixGetPositionAllPositionV2') {
             response = await this.privateMixGetPositionAllPositionV2 (this.extend (request, params));
         } else {
+            isHistory = true;
             response = await this.privateMixGetPositionHistoryPosition (this.extend (request, params));
         }
         //
@@ -3954,8 +3956,41 @@ export default class bitget extends Exchange {
         //         }
         //       ]
         //     }
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 0,
+        //         "data": {
+        //           "list": [
+        //             {
+        //               "symbol": "ETHUSDT_UMCBL",
+        //               "marginCoin": "USDT",
+        //               "holdSide": "short",
+        //               "openAvgPrice": "1206.7",
+        //               "closeAvgPrice": "1206.8",
+        //               "marginMode": "fixed",
+        //               "openTotalPos": "1.15",
+        //               "closeTotalPos": "1.15",
+        //               "pnl": "-0.11",
+        //               "netProfit": "-1.780315",
+        //               "totalFunding": "0",
+        //               "openFee": "-0.83",
+        //               "closeFee": "-0.83",
+        //               "ctime": "1689300233897",
+        //               "utime": "1689300238205"
+        //             }
+        //           ],
+        //           "endId": "1062308959580516352"
+        //         }
+        //       }
         //
-        const position = this.safeValue (response, 'data', []);
+        let position = [];
+        if (!isHistory) {
+            position = this.safeValue (response, 'data', []);
+        } else {
+            const data = this.safeValue (response, 'data', {});
+            position = this.safeValue (data, 'list', []);
+        }
         const result = [];
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i]));
@@ -3984,6 +4019,26 @@ export default class bitget extends Exchange {
         //         liquidationPrice: '0',
         //         keepMarginRate: '0.004',
         //         cTime: '1645922194988'
+        //     }
+        //
+        // history
+        //
+        //     {
+        //       "symbol": "ETHUSDT_UMCBL",
+        //       "marginCoin": "USDT",
+        //       "holdSide": "short",
+        //       "openAvgPrice": "1206.7",
+        //       "closeAvgPrice": "1206.8",
+        //       "marginMode": "fixed",
+        //       "openTotalPos": "1.15",
+        //       "closeTotalPos": "1.15",
+        //       "pnl": "-0.11",
+        //       "netProfit": "-1.780315",
+        //       "totalFunding": "0",
+        //       "openFee": "-0.83",
+        //       "closeFee": "-0.83",
+        //       "ctime": "1689300233897",
+        //       "utime": "1689300238205"
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
@@ -4060,7 +4115,7 @@ export default class bitget extends Exchange {
             'contracts': contracts,
             'contractSize': contractSizeNumber,
             'markPrice': this.parseNumber (markPrice),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber (position, 'closeAvgPrice'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
