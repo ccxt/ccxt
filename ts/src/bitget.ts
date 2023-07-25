@@ -3912,7 +3912,7 @@ export default class bitget extends Exchange {
             // endTime and startTime mandatory
             let since = this.safeInteger2 (params, 'startTime', 'since');
             if (since === undefined) {
-                since = this.milliseconds () - 7889400000; // 3 months ago
+                since = this.milliseconds () - 7689600000; // 3 months ago
             }
             request['startTime'] = since;
             let until = this.safeInteger2 (params, 'endTime', 'until');
