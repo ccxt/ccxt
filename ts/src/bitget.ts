@@ -4044,7 +4044,7 @@ export default class bitget extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (position, 'cTime');
+        const timestamp = this.safeInteger2 (position, 'cTime', 'ctime');
         let marginMode = this.safeString (position, 'marginMode');
         let collateral = undefined;
         let initialMargin = undefined;
@@ -4069,13 +4069,16 @@ export default class bitget extends Exchange {
         const contractSizeNumber = this.safeValue (market, 'contractSize');
         const contractSize = this.numberToString (contractSizeNumber);
         const baseAmount = this.safeString (position, 'total');
-        const entryPrice = this.safeString (position, 'averageOpenPrice');
+        const entryPrice = this.safeString2 (position, 'averageOpenPrice', 'openAvgPrice');
         const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate');
         const openNotional = Precise.stringMul (entryPrice, baseAmount);
         if (initialMargin === undefined) {
             initialMargin = Precise.stringDiv (openNotional, leverage);
         }
-        const contracts = this.parseNumber (Precise.stringDiv (baseAmount, contractSize));
+        let contracts = this.parseNumber (Precise.stringDiv (baseAmount, contractSize));
+        if (contracts === undefined) {
+            contracts = this.safeNumber (position, 'closeTotalPos');
+        }
         const markPrice = this.safeString (position, 'marketPrice');
         const notional = Precise.stringMul (baseAmount, markPrice);
         const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
@@ -4120,7 +4123,7 @@ export default class bitget extends Exchange {
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'utime'),
             'maintenanceMargin': this.parseNumber (maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
             'collateral': this.parseNumber (collateral),
