@@ -1214,7 +1214,7 @@ export default class Exchange {
                 }
             }
         }
-        if (tail) {
+        if (tail && limit !== undefined) {
             return this.arraySlice(result, -limit);
         }
         return this.filterByLimit(result, limit, key);
@@ -1239,7 +1239,7 @@ export default class Exchange {
                 }
             }
         }
-        if (tail) {
+        if (tail && limit !== undefined) {
             return this.arraySlice(result, -limit);
         }
         return this.filterByLimit(result, limit, key);
