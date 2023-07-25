@@ -45,11 +45,13 @@ class delta extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -1355,7 +1357,8 @@ class delta extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+             * @see https://docs.delta.exchange/#get-ohlc-candles
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1366,7 +1369,6 @@ class delta extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe);
@@ -1380,6 +1382,15 @@ class delta extends Exchange {
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $limit * $duration);
             }
+            $price = $this->safe_string($params, 'price');
+            if ($price === 'mark') {
+                $request['symbol'] = 'MARK:' . $market['id'];
+            } elseif ($price === 'index') {
+                $request['symbol'] = $market['info']['spot_index']['symbol'];
+            } else {
+                $request['symbol'] = $market['id'];
+            }
+            $params = $this->omit($params, 'price');
             $response = Async\await($this->publicGetHistoryCandles (array_merge($request, $params)));
             //
             //     {

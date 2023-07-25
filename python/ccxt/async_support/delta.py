@@ -54,11 +54,13 @@ class delta(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
+                'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -1318,6 +1320,7 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://docs.delta.exchange/#get-ohlc-candles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1328,7 +1331,6 @@ class delta(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
@@ -1341,6 +1343,14 @@ class delta(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['start'] = start
             request['end'] = self.sum(start, limit * duration)
+        price = self.safe_string(params, 'price')
+        if price == 'mark':
+            request['symbol'] = 'MARK:' + market['id']
+        elif price == 'index':
+            request['symbol'] = market['info']['spot_index']['symbol']
+        else:
+            request['symbol'] = market['id']
+        params = self.omit(params, 'price')
         response = await self.publicGetHistoryCandles(self.extend(request, params))
         #
         #     {
