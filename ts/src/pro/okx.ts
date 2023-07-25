@@ -93,6 +93,7 @@ export default class okx extends okxRest {
                     // 'inflate': true,
                 },
                 'checksum': true,
+                'customWsHandlers': {},
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong
@@ -1364,7 +1365,9 @@ export default class okx extends okxRest {
                 'orders': this.handleOrders,
                 'orders-algo': this.handleOrders,
             };
-            const method = this.safeValue (methods, channel);
+            let method = this.safeValue (methods, channel);
+            const customHandlers = this.safeValue (this.options, 'customWsHandlers', {});
+            method = this.safeValue (customHandlers, channel, method);
             if (method === undefined) {
                 if (channel.indexOf ('candle') === 0) {
                     this.handleOHLCV (client, message);
