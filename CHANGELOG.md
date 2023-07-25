@@ -1,3 +1,48 @@
+## 4.0.38 (2023-07-24)
+
+*  fix(base): protect filterBy agains undefined limit [9a8e60f677](https://github.com/ccxt/ccxt/commits/9a8e60f677e982a423250d7cbc00bc600e5179bf)
+*  binance: add apis [0cf82cca56](https://github.com/ccxt/ccxt/commits/0cf82cca56ed29bbb0bf51a468b882c942a6ccf6)
+*  gate: add apis [5e360d3cdc](https://github.com/ccxt/ccxt/commits/5e360d3cdc080a2e25d6a4fe76997379af18adc7)
+*  fix(coinex): setLeverage limits and refactor [fc82894531](https://github.com/ccxt/ccxt/commits/fc828945317a1d427e56aefb6e9f2ad3d44a5404)
+*  typo [9446e60977](https://github.com/ccxt/ccxt/commits/9446e6097796234644d3050c0c0f86d9a1e010c7)
+*  removal [19208d8673](https://github.com/ccxt/ccxt/commits/19208d867344ef9ddb2645fa0751d1517bdd68db)
+*  no need of blank issue [41868dc0f4](https://github.com/ccxt/ccxt/commits/41868dc0f419aff36c35b434abbc92fa65a97b69)
+*  4.0.37 [4d27d03b97](https://github.com/ccxt/ccxt/commits/4d27d03b97ed5c045ed2ec4b3d6bd1f7ffeced5b)
+*  4.0.38 [7afaee2db2](https://github.com/ccxt/ccxt/commits/7afaee2db26c6ef04926fdbeef3e293c1692577d)
+
+
+## 4.0.36 (2023-07-24)
+
+*  fix build [0df279e574](https://github.com/ccxt/ccxt/commits/0df279e5743f597d2860ca2550645b23ec537aff)
+*  fix types [861829ac80](https://github.com/ccxt/ccxt/commits/861829ac805249959f918bc042b8e939f7bd4e94)
+*  add method to base [8abe3de198](https://github.com/ccxt/ccxt/commits/8abe3de1986253ba097529adb16e4c744215dd95)
+*  binance added triggerPrice to editOrder [969de3bb8b](https://github.com/ccxt/ccxt/commits/969de3bb8bdfe4d0ef90f3502f76ff8ab9287b7a)
+*  add uncamelcase exception [9f1cb16810](https://github.com/ccxt/ccxt/commits/9f1cb16810a459b89117ded89fa7ef1ff971897b)
+*  add invocation call parsing [c41103a2b2](https://github.com/ccxt/ccxt/commits/c41103a2b2e9810f11cfee0fe55e427aa9156a80)
+*  several fixes [f8a0cbb717](https://github.com/ccxt/ccxt/commits/f8a0cbb7178b4ea65ebd14ce8c8f8395234dc31c)
+*  small fix [73f3231b42](https://github.com/ccxt/ccxt/commits/73f3231b4246d2e103e651f2adc45dfef7302b5f)
+*  remove parse to int [aebed73cdf](https://github.com/ccxt/ccxt/commits/aebed73cdfc289eb6881075d613741822771710f)
+*  add return [39b415f49c](https://github.com/ccxt/ccxt/commits/39b415f49c11cf11a19f3895a0d47b6d1dd2a96d)
+*  fix handleOHLCV [60b1a93875](https://github.com/ccxt/ccxt/commits/60b1a9387541a911915dd14d3710e17b0ba4bc63)
+*  fix python linting [49c8afda71](https://github.com/ccxt/ccxt/commits/49c8afda7197848817115c3d7c1b5a0d6082a848)
+*  okx: add apis [4be503b257](https://github.com/ccxt/ccxt/commits/4be503b257fcfa08cf69e1992835363fa3047fe1)
+*  4.0.36 [04381d01e4](https://github.com/ccxt/ccxt/commits/04381d01e40229d8673911e57246b1fac8d38706)
+
+
+## 4.0.35 (2023-07-23)
+
+*  Update blockchaincom.ts [5fb115a5ca](https://github.com/ccxt/ccxt/commits/5fb115a5cafd7a2650894a2e52fd09f52b04a414)
+*  fix(okx): open interest timestamp [c8e61f2aae](https://github.com/ccxt/ccxt/commits/c8e61f2aae05f14f7b7284ba11aba30118211a4c)
+*  fix(base): emulated fetchMarketLeverageTiers [f5b8821c6d](https://github.com/ccxt/ccxt/commits/f5b8821c6d2d18ccf1184fda4bde5af9219db590)
+*  4.0.35 [d716565555](https://github.com/ccxt/ccxt/commits/d71656555588075f6ee15a921a9a19d4bcef0980)
+
+
+## 4.0.34 (2023-07-21)
+
+*  feat(huobi): fetchOpenInterestHistory default required value [e326900ef0](https://github.com/ccxt/ccxt/commits/e326900ef063250c1d4f1c3730f0f36882c4418d)
+*  4.0.34 [ffaa4ceba4](https://github.com/ccxt/ccxt/commits/ffaa4ceba41015dc0426d4f6b20a0c21c673b837)
+
+
 ## 4.0.33 (2023-07-20)
 
 *  fetchDepositWithdrawFees [cc2bc8d6f0](https://github.com/ccxt/ccxt/commits/cc2bc8d6f0ba313ba6e886b7e8294c9579aafd02)
