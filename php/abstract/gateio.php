@@ -34,11 +34,17 @@ abstract class gateio extends \ccxt\gate {
     public function public_spot_get_candlesticks($params = array()) {
         return $this->request('candlesticks', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_spot_get_time($params = array()) {
+        return $this->request('time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_margin_get_currency_pairs($params = array()) {
         return $this->request('currency_pairs', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_margin_get_currency_pairs_currency_pair($params = array()) {
         return $this->request('currency_pairs/{currency_pair}', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_margin_get_funding_book($params = array()) {
+        return $this->request('funding_book', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_margin_get_cross_currencies($params = array()) {
         return $this->request('cross/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
@@ -46,8 +52,14 @@ abstract class gateio extends \ccxt\gate {
     public function public_margin_get_cross_currencies_currency($params = array()) {
         return $this->request('cross/currencies/{currency}', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_margin_get_funding_book($params = array()) {
-        return $this->request('funding_book', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_margin_get_uni_currency_pairs($params = array()) {
+        return $this->request('uni/currency_pairs', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_margin_get_uni_currency_pairs_currency_pair($params = array()) {
+        return $this->request('uni/currency_pairs/{currency_pair}', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_flash_swap_get_currencies($params = array()) {
+        return $this->request('currencies', array('public', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_futures_get_settle_contracts($params = array()) {
         return $this->request('{settle}/contracts', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -64,6 +76,9 @@ abstract class gateio extends \ccxt\gate {
     public function public_futures_get_settle_candlesticks($params = array()) {
         return $this->request('{settle}/candlesticks', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function public_futures_get_settle_premium_index($params = array()) {
+        return $this->request('{settle}/premium_index', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function public_futures_get_settle_tickers($params = array()) {
         return $this->request('{settle}/tickers', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
@@ -75,6 +90,9 @@ abstract class gateio extends \ccxt\gate {
     }
     public function public_futures_get_settle_contract_stats($params = array()) {
         return $this->request('{settle}/contract_stats', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function public_futures_get_settle_index_constituents_index($params = array()) {
+        return $this->request('{settle}/index_constituents/{index}', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function public_futures_get_settle_liq_orders($params = array()) {
         return $this->request('{settle}/liq_orders', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -166,6 +184,18 @@ abstract class gateio extends \ccxt\gate {
     public function private_wallet_get_sub_account_balances($params = array()) {
         return $this->request('sub_account_balances', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
     }
+    public function private_wallet_get_sub_account_margin_balances($params = array()) {
+        return $this->request('sub_account_margin_balances', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
+    }
+    public function private_wallet_get_sub_account_futures_balances($params = array()) {
+        return $this->request('sub_account_futures_balances', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
+    }
+    public function private_wallet_get_sub_account_cross_margin_balances($params = array()) {
+        return $this->request('sub_account_cross_margin_balances', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
+    }
+    public function private_wallet_get_saved_address($params = array()) {
+        return $this->request('saved_address', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
+    }
     public function private_wallet_get_fee($params = array()) {
         return $this->request('fee', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
     }
@@ -177,6 +207,9 @@ abstract class gateio extends \ccxt\gate {
     }
     public function private_wallet_post_sub_account_transfers($params = array()) {
         return $this->request('sub_account_transfers', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 300));
+    }
+    public function private_wallet_post_sub_account_to_sub_account($params = array()) {
+        return $this->request('sub_account_to_sub_account', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 300));
     }
     public function private_subaccounts_get_sub_accounts($params = array()) {
         return $this->request('sub_accounts', array('private', 'subAccounts'), 'GET', $params, null, null, array("cost" => 1));
@@ -208,8 +241,17 @@ abstract class gateio extends \ccxt\gate {
     public function private_subaccounts_delete_sub_accounts_user_id_keys_key($params = array()) {
         return $this->request('sub_accounts/{user_id}/keys/{key}', array('private', 'subAccounts'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function private_spot_get_fee($params = array()) {
+        return $this->request('fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_spot_get_batch_fee($params = array()) {
+        return $this->request('batch_fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_spot_get_accounts($params = array()) {
         return $this->request('accounts', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_spot_get_account_book($params = array()) {
+        return $this->request('account_book', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_spot_get_open_orders($params = array()) {
         return $this->request('open_orders', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -232,11 +274,17 @@ abstract class gateio extends \ccxt\gate {
     public function private_spot_post_batch_orders($params = array()) {
         return $this->request('batch_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_spot_post_cross_liquidate_orders($params = array()) {
+        return $this->request('cross_liquidate_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_spot_post_orders($params = array()) {
         return $this->request('orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_spot_post_cancel_batch_orders($params = array()) {
         return $this->request('cancel_batch_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_spot_post_countdown_cancel_all($params = array()) {
+        return $this->request('countdown_cancel_all', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_spot_post_price_orders($params = array()) {
         return $this->request('price_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
@@ -265,6 +313,12 @@ abstract class gateio extends \ccxt\gate {
     public function private_margin_get_funding_accounts($params = array()) {
         return $this->request('funding_accounts', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function private_margin_get_auto_repay($params = array()) {
+        return $this->request('auto_repay', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_margin_get_transferable($params = array()) {
+        return $this->request('transferable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function private_margin_get_loans($params = array()) {
         return $this->request('loans', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
@@ -277,14 +331,11 @@ abstract class gateio extends \ccxt\gate {
     public function private_margin_get_loan_records($params = array()) {
         return $this->request('loan_records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
-    public function private_margin_get_loan_records_load_record_id($params = array()) {
-        return $this->request('loan_records/{load_record_id}', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    public function private_margin_get_loan_records_loan_record_id($params = array()) {
+        return $this->request('loan_records/{loan_record_id}', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
-    public function private_margin_get_auto_repay($params = array()) {
-        return $this->request('auto_repay', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function private_margin_get_transferable($params = array()) {
-        return $this->request('transferable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    public function private_margin_get_borrowable($params = array()) {
+        return $this->request('borrowable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_margin_get_cross_accounts($params = array()) {
         return $this->request('cross/accounts', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -298,23 +349,38 @@ abstract class gateio extends \ccxt\gate {
     public function private_margin_get_cross_loans_loan_id($params = array()) {
         return $this->request('cross/loans/{loan_id}', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
-    public function private_margin_get_cross_loans_repayments($params = array()) {
-        return $this->request('cross/loans/repayments', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    public function private_margin_get_cross_repayments($params = array()) {
+        return $this->request('cross/repayments', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_margin_get_cross_interest_records($params = array()) {
+        return $this->request('cross/interest_records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_margin_get_cross_transferable($params = array()) {
         return $this->request('cross/transferable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
-    public function private_margin_get_loan_records_loan_record_id($params = array()) {
-        return $this->request('loan_records/{loan_record_id}', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function private_margin_get_borrowable($params = array()) {
-        return $this->request('borrowable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function private_margin_get_cross_repayments($params = array()) {
-        return $this->request('cross/repayments', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    public function private_margin_get_cross_estimate_rate($params = array()) {
+        return $this->request('cross/estimate_rate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_margin_get_cross_borrowable($params = array()) {
         return $this->request('cross/borrowable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_margin_get_uni_estimate_rate($params = array()) {
+        return $this->request('uni/estimate_rate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_margin_get_uni_loans($params = array()) {
+        return $this->request('uni/loans', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_margin_get_uni_loan_records($params = array()) {
+        return $this->request('uni/loan_records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_margin_get_uni_interest_records($params = array()) {
+        return $this->request('uni/interest_records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_margin_get_uni_borrowable($params = array()) {
+        return $this->request('uni/borrowable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_margin_post_auto_repay($params = array()) {
+        return $this->request('auto_repay', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function private_margin_post_loans($params = array()) {
         return $this->request('loans', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
@@ -325,17 +391,14 @@ abstract class gateio extends \ccxt\gate {
     public function private_margin_post_loans_loan_id_repayment($params = array()) {
         return $this->request('loans/{loan_id}/repayment', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
     }
-    public function private_margin_post_auto_repay($params = array()) {
-        return $this->request('auto_repay', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
-    }
     public function private_margin_post_cross_loans($params = array()) {
         return $this->request('cross/loans', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
     }
-    public function private_margin_post_cross_loans_repayments($params = array()) {
-        return $this->request('cross/loans/repayments', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
-    }
     public function private_margin_post_cross_repayments($params = array()) {
         return $this->request('cross/repayments', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_margin_post_uni_loans($params = array()) {
+        return $this->request('uni/loans', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function private_margin_patch_loans_loan_id($params = array()) {
         return $this->request('loans/{loan_id}', array('private', 'margin'), 'PATCH', $params, null, null, array("cost" => 1.5));
@@ -345,6 +408,24 @@ abstract class gateio extends \ccxt\gate {
     }
     public function private_margin_delete_loans_loan_id($params = array()) {
         return $this->request('loans/{loan_id}', array('private', 'margin'), 'DELETE', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_flash_swap_get_currencies($params = array()) {
+        return $this->request('currencies', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_flash_swap_get_currency_pairs($params = array()) {
+        return $this->request('currency_pairs', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_flash_swap_get_orders($params = array()) {
+        return $this->request('orders', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_flash_swap_get_orders_order_id($params = array()) {
+        return $this->request('orders/{order_id}', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_flash_swap_post_orders($params = array()) {
+        return $this->request('orders', array('private', 'flash_swap'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_flash_swap_post_orders_preview($params = array()) {
+        return $this->request('orders/preview', array('private', 'flash_swap'), 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function private_futures_get_settle_accounts($params = array()) {
         return $this->request('{settle}/accounts', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -358,8 +439,14 @@ abstract class gateio extends \ccxt\gate {
     public function private_futures_get_settle_positions_contract($params = array()) {
         return $this->request('{settle}/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function private_futures_get_settle_dual_comp_positions_contract($params = array()) {
+        return $this->request('{settle}/dual_comp/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function private_futures_get_settle_orders($params = array()) {
         return $this->request('{settle}/orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_futures_get_settle_orders_timerange($params = array()) {
+        return $this->request('{settle}/orders_timerange', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_futures_get_settle_orders_order_id($params = array()) {
         return $this->request('{settle}/orders/{order_id}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -367,23 +454,26 @@ abstract class gateio extends \ccxt\gate {
     public function private_futures_get_settle_my_trades($params = array()) {
         return $this->request('{settle}/my_trades', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function private_futures_get_settle_my_trades_timerange($params = array()) {
+        return $this->request('{settle}/my_trades_timerange', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function private_futures_get_settle_position_close($params = array()) {
         return $this->request('{settle}/position_close', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_futures_get_settle_liquidates($params = array()) {
         return $this->request('{settle}/liquidates', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function private_futures_get_settle_auto_deleverages($params = array()) {
+        return $this->request('{settle}/auto_deleverages', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_futures_get_settle_fee($params = array()) {
+        return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function private_futures_get_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_futures_get_settle_price_orders_order_id($params = array()) {
         return $this->request('{settle}/price_orders/{order_id}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function private_futures_get_settle_dual_comp_positions_contract($params = array()) {
-        return $this->request('{settle}/dual_comp/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function private_futures_get_settle_auto_deleverages($params = array()) {
-        return $this->request('{settle}/auto_deleverages', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_futures_post_settle_positions_contract_margin($params = array()) {
         return $this->request('{settle}/positions/{contract}/margin', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
@@ -397,9 +487,6 @@ abstract class gateio extends \ccxt\gate {
     public function private_futures_post_settle_dual_mode($params = array()) {
         return $this->request('{settle}/dual_mode', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
     }
-    public function private_futures_post_settle_dual_comp_positions_contract($params = array()) {
-        return $this->request('{settle}/dual_comp/positions/{contract}', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
-    }
     public function private_futures_post_settle_dual_comp_positions_contract_margin($params = array()) {
         return $this->request('{settle}/dual_comp/positions/{contract}/margin', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
     }
@@ -412,8 +499,17 @@ abstract class gateio extends \ccxt\gate {
     public function private_futures_post_settle_orders($params = array()) {
         return $this->request('{settle}/orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
     }
+    public function private_futures_post_settle_batch_orders($params = array()) {
+        return $this->request('{settle}/batch_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_futures_post_settle_countdown_cancel_all($params = array()) {
+        return $this->request('{settle}/countdown_cancel_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
     public function private_futures_post_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_futures_put_settle_orders_order_id($params = array()) {
+        return $this->request('{settle}/orders/{order_id}', array('private', 'futures'), 'PUT', $params, null, null, array("cost" => 1.5));
     }
     public function private_futures_delete_settle_orders($params = array()) {
         return $this->request('{settle}/orders', array('private', 'futures'), 'DELETE', $params, null, null, array("cost" => 1.5));
@@ -454,14 +550,14 @@ abstract class gateio extends \ccxt\gate {
     public function private_delivery_get_settle_liquidates($params = array()) {
         return $this->request('{settle}/liquidates', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function private_delivery_get_settle_settlements($params = array()) {
+        return $this->request('{settle}/settlements', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function private_delivery_get_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_delivery_get_settle_price_orders_order_id($params = array()) {
         return $this->request('{settle}/price_orders/{order_id}', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function private_delivery_get_settle_settlements($params = array()) {
-        return $this->request('{settle}/settlements', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_delivery_post_settle_positions_contract_margin($params = array()) {
         return $this->request('{settle}/positions/{contract}/margin', array('private', 'delivery'), 'POST', $params, null, null, array("cost" => 1.5));
@@ -489,6 +585,9 @@ abstract class gateio extends \ccxt\gate {
     }
     public function private_delivery_delete_settle_price_orders_order_id($params = array()) {
         return $this->request('{settle}/price_orders/{order_id}', array('private', 'delivery'), 'DELETE', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_options_get_my_settlements($params = array()) {
+        return $this->request('my_settlements', array('private', 'options'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function private_options_get_accounts($params = array()) {
         return $this->request('accounts', array('private', 'options'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -523,12 +622,6 @@ abstract class gateio extends \ccxt\gate {
     public function private_options_delete_orders_order_id($params = array()) {
         return $this->request('orders/{order_id}', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.5));
     }
-    public function private_rebate_get_agency_transaction_history($params = array()) {
-        return $this->request('agency/transaction_history', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function private_rebate_get_agency_commission_history($params = array()) {
-        return $this->request('agency/commission_history', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
     public function private_earn_get_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.5));
     }
@@ -546,6 +639,27 @@ abstract class gateio extends \ccxt\gate {
     }
     public function private_earn_patch_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'PATCH', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_account_get_detail($params = array()) {
+        return $this->request('detail', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_account_get_stp_groups($params = array()) {
+        return $this->request('stp_groups', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_account_get_stp_groups_stp_id_users($params = array()) {
+        return $this->request('stp_groups/{stp_id}/users', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_account_post_stp_groups($params = array()) {
+        return $this->request('stp_groups', array('private', 'account'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_account_post_stp_groups_stp_id_users($params = array()) {
+        return $this->request('stp_groups/{stp_id}/users', array('private', 'account'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_rebate_get_agency_transaction_history($params = array()) {
+        return $this->request('agency/transaction_history', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_rebate_get_agency_commission_history($params = array()) {
+        return $this->request('agency/commission_history', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function publicWalletGetCurrencyChains($params = array()) {
         return $this->request('currency_chains', array('public', 'wallet'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -574,11 +688,17 @@ abstract class gateio extends \ccxt\gate {
     public function publicSpotGetCandlesticks($params = array()) {
         return $this->request('candlesticks', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicSpotGetTime($params = array()) {
+        return $this->request('time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicMarginGetCurrencyPairs($params = array()) {
         return $this->request('currency_pairs', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicMarginGetCurrencyPairsCurrencyPair($params = array()) {
         return $this->request('currency_pairs/{currency_pair}', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMarginGetFundingBook($params = array()) {
+        return $this->request('funding_book', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicMarginGetCrossCurrencies($params = array()) {
         return $this->request('cross/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
@@ -586,8 +706,14 @@ abstract class gateio extends \ccxt\gate {
     public function publicMarginGetCrossCurrenciesCurrency($params = array()) {
         return $this->request('cross/currencies/{currency}', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicMarginGetFundingBook($params = array()) {
-        return $this->request('funding_book', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicMarginGetUniCurrencyPairs($params = array()) {
+        return $this->request('uni/currency_pairs', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMarginGetUniCurrencyPairsCurrencyPair($params = array()) {
+        return $this->request('uni/currency_pairs/{currency_pair}', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicFlash_swapGetCurrencies($params = array()) {
+        return $this->request('currencies', array('public', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicFuturesGetSettleContracts($params = array()) {
         return $this->request('{settle}/contracts', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -604,6 +730,9 @@ abstract class gateio extends \ccxt\gate {
     public function publicFuturesGetSettleCandlesticks($params = array()) {
         return $this->request('{settle}/candlesticks', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function publicFuturesGetSettlePremiumIndex($params = array()) {
+        return $this->request('{settle}/premium_index', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function publicFuturesGetSettleTickers($params = array()) {
         return $this->request('{settle}/tickers', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
@@ -615,6 +744,9 @@ abstract class gateio extends \ccxt\gate {
     }
     public function publicFuturesGetSettleContractStats($params = array()) {
         return $this->request('{settle}/contract_stats', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function publicFuturesGetSettleIndexConstituentsIndex($params = array()) {
+        return $this->request('{settle}/index_constituents/{index}', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function publicFuturesGetSettleLiqOrders($params = array()) {
         return $this->request('{settle}/liq_orders', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -706,6 +838,18 @@ abstract class gateio extends \ccxt\gate {
     public function privateWalletGetSubAccountBalances($params = array()) {
         return $this->request('sub_account_balances', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
     }
+    public function privateWalletGetSubAccountMarginBalances($params = array()) {
+        return $this->request('sub_account_margin_balances', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
+    }
+    public function privateWalletGetSubAccountFuturesBalances($params = array()) {
+        return $this->request('sub_account_futures_balances', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
+    }
+    public function privateWalletGetSubAccountCrossMarginBalances($params = array()) {
+        return $this->request('sub_account_cross_margin_balances', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
+    }
+    public function privateWalletGetSavedAddress($params = array()) {
+        return $this->request('saved_address', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
+    }
     public function privateWalletGetFee($params = array()) {
         return $this->request('fee', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 300));
     }
@@ -717,6 +861,9 @@ abstract class gateio extends \ccxt\gate {
     }
     public function privateWalletPostSubAccountTransfers($params = array()) {
         return $this->request('sub_account_transfers', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 300));
+    }
+    public function privateWalletPostSubAccountToSubAccount($params = array()) {
+        return $this->request('sub_account_to_sub_account', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 300));
     }
     public function privateSubAccountsGetSubAccounts($params = array()) {
         return $this->request('sub_accounts', array('private', 'subAccounts'), 'GET', $params, null, null, array("cost" => 1));
@@ -748,8 +895,17 @@ abstract class gateio extends \ccxt\gate {
     public function privateSubAccountsDeleteSubAccountsUserIdKeysKey($params = array()) {
         return $this->request('sub_accounts/{user_id}/keys/{key}', array('private', 'subAccounts'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function privateSpotGetFee($params = array()) {
+        return $this->request('fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotGetBatchFee($params = array()) {
+        return $this->request('batch_fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateSpotGetAccounts($params = array()) {
         return $this->request('accounts', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotGetAccountBook($params = array()) {
+        return $this->request('account_book', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateSpotGetOpenOrders($params = array()) {
         return $this->request('open_orders', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -772,11 +928,17 @@ abstract class gateio extends \ccxt\gate {
     public function privateSpotPostBatchOrders($params = array()) {
         return $this->request('batch_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privateSpotPostCrossLiquidateOrders($params = array()) {
+        return $this->request('cross_liquidate_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privateSpotPostOrders($params = array()) {
         return $this->request('orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateSpotPostCancelBatchOrders($params = array()) {
         return $this->request('cancel_batch_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotPostCountdownCancelAll($params = array()) {
+        return $this->request('countdown_cancel_all', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateSpotPostPriceOrders($params = array()) {
         return $this->request('price_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
@@ -805,6 +967,12 @@ abstract class gateio extends \ccxt\gate {
     public function privateMarginGetFundingAccounts($params = array()) {
         return $this->request('funding_accounts', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function privateMarginGetAutoRepay($params = array()) {
+        return $this->request('auto_repay', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateMarginGetTransferable($params = array()) {
+        return $this->request('transferable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function privateMarginGetLoans($params = array()) {
         return $this->request('loans', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
@@ -817,14 +985,11 @@ abstract class gateio extends \ccxt\gate {
     public function privateMarginGetLoanRecords($params = array()) {
         return $this->request('loan_records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
-    public function privateMarginGetLoanRecordsLoadRecordId($params = array()) {
-        return $this->request('loan_records/{load_record_id}', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    public function privateMarginGetLoanRecordsLoanRecordId($params = array()) {
+        return $this->request('loan_records/{loan_record_id}', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
-    public function privateMarginGetAutoRepay($params = array()) {
-        return $this->request('auto_repay', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function privateMarginGetTransferable($params = array()) {
-        return $this->request('transferable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    public function privateMarginGetBorrowable($params = array()) {
+        return $this->request('borrowable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateMarginGetCrossAccounts($params = array()) {
         return $this->request('cross/accounts', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -838,23 +1003,38 @@ abstract class gateio extends \ccxt\gate {
     public function privateMarginGetCrossLoansLoanId($params = array()) {
         return $this->request('cross/loans/{loan_id}', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
-    public function privateMarginGetCrossLoansRepayments($params = array()) {
-        return $this->request('cross/loans/repayments', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    public function privateMarginGetCrossRepayments($params = array()) {
+        return $this->request('cross/repayments', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateMarginGetCrossInterestRecords($params = array()) {
+        return $this->request('cross/interest_records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateMarginGetCrossTransferable($params = array()) {
         return $this->request('cross/transferable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
-    public function privateMarginGetLoanRecordsLoanRecordId($params = array()) {
-        return $this->request('loan_records/{loan_record_id}', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function privateMarginGetBorrowable($params = array()) {
-        return $this->request('borrowable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function privateMarginGetCrossRepayments($params = array()) {
-        return $this->request('cross/repayments', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    public function privateMarginGetCrossEstimateRate($params = array()) {
+        return $this->request('cross/estimate_rate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateMarginGetCrossBorrowable($params = array()) {
         return $this->request('cross/borrowable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateMarginGetUniEstimateRate($params = array()) {
+        return $this->request('uni/estimate_rate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateMarginGetUniLoans($params = array()) {
+        return $this->request('uni/loans', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateMarginGetUniLoanRecords($params = array()) {
+        return $this->request('uni/loan_records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateMarginGetUniInterestRecords($params = array()) {
+        return $this->request('uni/interest_records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateMarginGetUniBorrowable($params = array()) {
+        return $this->request('uni/borrowable', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateMarginPostAutoRepay($params = array()) {
+        return $this->request('auto_repay', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function privateMarginPostLoans($params = array()) {
         return $this->request('loans', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
@@ -865,17 +1045,14 @@ abstract class gateio extends \ccxt\gate {
     public function privateMarginPostLoansLoanIdRepayment($params = array()) {
         return $this->request('loans/{loan_id}/repayment', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
     }
-    public function privateMarginPostAutoRepay($params = array()) {
-        return $this->request('auto_repay', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
-    }
     public function privateMarginPostCrossLoans($params = array()) {
         return $this->request('cross/loans', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
     }
-    public function privateMarginPostCrossLoansRepayments($params = array()) {
-        return $this->request('cross/loans/repayments', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
-    }
     public function privateMarginPostCrossRepayments($params = array()) {
         return $this->request('cross/repayments', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateMarginPostUniLoans($params = array()) {
+        return $this->request('uni/loans', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function privateMarginPatchLoansLoanId($params = array()) {
         return $this->request('loans/{loan_id}', array('private', 'margin'), 'PATCH', $params, null, null, array("cost" => 1.5));
@@ -885,6 +1062,24 @@ abstract class gateio extends \ccxt\gate {
     }
     public function privateMarginDeleteLoansLoanId($params = array()) {
         return $this->request('loans/{loan_id}', array('private', 'margin'), 'DELETE', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFlash_swapGetCurrencies($params = array()) {
+        return $this->request('currencies', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFlash_swapGetCurrencyPairs($params = array()) {
+        return $this->request('currency_pairs', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFlash_swapGetOrders($params = array()) {
+        return $this->request('orders', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFlash_swapGetOrdersOrderId($params = array()) {
+        return $this->request('orders/{order_id}', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFlash_swapPostOrders($params = array()) {
+        return $this->request('orders', array('private', 'flash_swap'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFlash_swapPostOrdersPreview($params = array()) {
+        return $this->request('orders/preview', array('private', 'flash_swap'), 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function privateFuturesGetSettleAccounts($params = array()) {
         return $this->request('{settle}/accounts', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -898,8 +1093,14 @@ abstract class gateio extends \ccxt\gate {
     public function privateFuturesGetSettlePositionsContract($params = array()) {
         return $this->request('{settle}/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function privateFuturesGetSettleDualCompPositionsContract($params = array()) {
+        return $this->request('{settle}/dual_comp/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function privateFuturesGetSettleOrders($params = array()) {
         return $this->request('{settle}/orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFuturesGetSettleOrdersTimerange($params = array()) {
+        return $this->request('{settle}/orders_timerange', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateFuturesGetSettleOrdersOrderId($params = array()) {
         return $this->request('{settle}/orders/{order_id}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -907,23 +1108,26 @@ abstract class gateio extends \ccxt\gate {
     public function privateFuturesGetSettleMyTrades($params = array()) {
         return $this->request('{settle}/my_trades', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function privateFuturesGetSettleMyTradesTimerange($params = array()) {
+        return $this->request('{settle}/my_trades_timerange', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function privateFuturesGetSettlePositionClose($params = array()) {
         return $this->request('{settle}/position_close', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateFuturesGetSettleLiquidates($params = array()) {
         return $this->request('{settle}/liquidates', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function privateFuturesGetSettleAutoDeleverages($params = array()) {
+        return $this->request('{settle}/auto_deleverages', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFuturesGetSettleFee($params = array()) {
+        return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function privateFuturesGetSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateFuturesGetSettlePriceOrdersOrderId($params = array()) {
         return $this->request('{settle}/price_orders/{order_id}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function privateFuturesGetSettleDualCompPositionsContract($params = array()) {
-        return $this->request('{settle}/dual_comp/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function privateFuturesGetSettleAutoDeleverages($params = array()) {
-        return $this->request('{settle}/auto_deleverages', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateFuturesPostSettlePositionsContractMargin($params = array()) {
         return $this->request('{settle}/positions/{contract}/margin', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
@@ -937,9 +1141,6 @@ abstract class gateio extends \ccxt\gate {
     public function privateFuturesPostSettleDualMode($params = array()) {
         return $this->request('{settle}/dual_mode', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
     }
-    public function privateFuturesPostSettleDualCompPositionsContract($params = array()) {
-        return $this->request('{settle}/dual_comp/positions/{contract}', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
-    }
     public function privateFuturesPostSettleDualCompPositionsContractMargin($params = array()) {
         return $this->request('{settle}/dual_comp/positions/{contract}/margin', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
     }
@@ -952,8 +1153,17 @@ abstract class gateio extends \ccxt\gate {
     public function privateFuturesPostSettleOrders($params = array()) {
         return $this->request('{settle}/orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
     }
+    public function privateFuturesPostSettleBatchOrders($params = array()) {
+        return $this->request('{settle}/batch_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFuturesPostSettleCountdownCancelAll($params = array()) {
+        return $this->request('{settle}/countdown_cancel_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
     public function privateFuturesPostSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFuturesPutSettleOrdersOrderId($params = array()) {
+        return $this->request('{settle}/orders/{order_id}', array('private', 'futures'), 'PUT', $params, null, null, array("cost" => 1.5));
     }
     public function privateFuturesDeleteSettleOrders($params = array()) {
         return $this->request('{settle}/orders', array('private', 'futures'), 'DELETE', $params, null, null, array("cost" => 1.5));
@@ -994,14 +1204,14 @@ abstract class gateio extends \ccxt\gate {
     public function privateDeliveryGetSettleLiquidates($params = array()) {
         return $this->request('{settle}/liquidates', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function privateDeliveryGetSettleSettlements($params = array()) {
+        return $this->request('{settle}/settlements', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function privateDeliveryGetSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateDeliveryGetSettlePriceOrdersOrderId($params = array()) {
         return $this->request('{settle}/price_orders/{order_id}', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function privateDeliveryGetSettleSettlements($params = array()) {
-        return $this->request('{settle}/settlements', array('private', 'delivery'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateDeliveryPostSettlePositionsContractMargin($params = array()) {
         return $this->request('{settle}/positions/{contract}/margin', array('private', 'delivery'), 'POST', $params, null, null, array("cost" => 1.5));
@@ -1029,6 +1239,9 @@ abstract class gateio extends \ccxt\gate {
     }
     public function privateDeliveryDeleteSettlePriceOrdersOrderId($params = array()) {
         return $this->request('{settle}/price_orders/{order_id}', array('private', 'delivery'), 'DELETE', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateOptionsGetMySettlements($params = array()) {
+        return $this->request('my_settlements', array('private', 'options'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateOptionsGetAccounts($params = array()) {
         return $this->request('accounts', array('private', 'options'), 'GET', $params, null, null, array("cost" => 1.5));
@@ -1063,12 +1276,6 @@ abstract class gateio extends \ccxt\gate {
     public function privateOptionsDeleteOrdersOrderId($params = array()) {
         return $this->request('orders/{order_id}', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.5));
     }
-    public function privateRebateGetAgencyTransactionHistory($params = array()) {
-        return $this->request('agency/transaction_history', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
-    public function privateRebateGetAgencyCommissionHistory($params = array()) {
-        return $this->request('agency/commission_history', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.5));
-    }
     public function privateEarnGetUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.5));
     }
@@ -1086,5 +1293,26 @@ abstract class gateio extends \ccxt\gate {
     }
     public function privateEarnPatchUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'PATCH', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateAccountGetDetail($params = array()) {
+        return $this->request('detail', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateAccountGetStpGroups($params = array()) {
+        return $this->request('stp_groups', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateAccountGetStpGroupsStpIdUsers($params = array()) {
+        return $this->request('stp_groups/{stp_id}/users', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateAccountPostStpGroups($params = array()) {
+        return $this->request('stp_groups', array('private', 'account'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateAccountPostStpGroupsStpIdUsers($params = array()) {
+        return $this->request('stp_groups/{stp_id}/users', array('private', 'account'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateRebateGetAgencyTransactionHistory($params = array()) {
+        return $this->request('agency/transaction_history', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateRebateGetAgencyCommissionHistory($params = array()) {
+        return $this->request('agency/commission_history', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.5));
     }
 }

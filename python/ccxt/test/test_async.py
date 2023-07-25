@@ -89,7 +89,6 @@ rootDir = current_dir + '/../../../'
 rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
 ext = 'py'
-httpsAgent = None
 
 
 def dump(*args):
@@ -131,11 +130,6 @@ async def call_method(testFiles, methodName, exchange, skippedProperties, args):
 
 def exception_message(exc):
     return '[' + type(exc).__name__ + '] ' + str(exc)[0:500]
-
-
-def add_proxy(exchange, http_proxy):
-    # just add a simple redirect through proxy
-    exchange.aiohttp_proxy = http_proxy  # todo: needs to be same a js/php with redirect proxy prop
 
 
 def exit_script():
@@ -202,7 +196,6 @@ class testMainClass(baseMainTestClass):
         exchangeArgs = {
             'verbose': self.verbose,
             'debug': self.debug,
-            'httpsAgent': httpsAgent,
             'enableRateLimit': True,
             'timeout': 30000,
         }
@@ -268,9 +261,7 @@ class testMainClass(baseMainTestClass):
         if exchange.alias:
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
-        proxy = exchange.safe_string(skippedSettingsForExchange, 'httpProxy')
-        if proxy is not None:
-            add_proxy(exchange, proxy)
+        exchange.httpsProxy = exchange.safe_string(skippedSettingsForExchange, 'httpsProxy')
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
 
@@ -582,65 +573,65 @@ class testMainClass(baseMainTestClass):
         #     await test('InsufficientFunds', exchange, symbol, balance)  # danger zone - won't execute with non-empty balance
         # }
         tests = {
-            'signIn': [exchange],
-            'fetchBalance': [exchange],
-            'fetchAccounts': [exchange],
-            'fetchTransactionFees': [exchange],
-            'fetchTradingFees': [exchange],
-            'fetchStatus': [exchange],
-            'fetchOrders': [exchange, symbol],
-            'fetchOpenOrders': [exchange, symbol],
-            'fetchClosedOrders': [exchange, symbol],
-            'fetchMyTrades': [exchange, symbol],
-            'fetchLeverageTiers': [exchange, symbol],
-            'fetchLedger': [exchange, code],
-            'fetchTransactions': [exchange, code],
-            'fetchDeposits': [exchange, code],
-            'fetchWithdrawals': [exchange, code],
-            'fetchBorrowRates': [exchange, code],
-            'fetchBorrowRate': [exchange, code],
-            'fetchBorrowInterest': [exchange, code, symbol],
-            'addMargin': [exchange, symbol],
-            'reduceMargin': [exchange, symbol],
-            'setMargin': [exchange, symbol],
-            'setMarginMode': [exchange, symbol],
-            'setLeverage': [exchange, symbol],
-            'cancelAllOrders': [exchange, symbol],
-            'cancelOrder': [exchange, symbol],
-            'cancelOrders': [exchange, symbol],
-            'fetchCanceledOrders': [exchange, symbol],
-            'fetchClosedOrder': [exchange, symbol],
-            'fetchOpenOrder': [exchange, symbol],
-            'fetchOrder': [exchange, symbol],
-            'fetchOrderTrades': [exchange, symbol],
-            'fetchPosition': [exchange, symbol],
-            'fetchDeposit': [exchange, code],
-            'createDepositAddress': [exchange, code],
-            'fetchDepositAddress': [exchange, code],
-            'fetchDepositAddresses': [exchange, code],
-            'fetchDepositAddressesByNetwork': [exchange, code],
-            'editOrder': [exchange, symbol],
-            'fetchBorrowRateHistory': [exchange, symbol],
-            'fetchBorrowRatesPerSymbol': [exchange, symbol],
-            'fetchLedgerEntry': [exchange, code],
-            'fetchWithdrawal': [exchange, code],
-            'transfer': [exchange, code],
-            'withdraw': [exchange, code],
+            'signIn': [],
+            'fetchBalance': [],
+            'fetchAccounts': [],
+            'fetchTransactionFees': [],
+            'fetchTradingFees': [],
+            'fetchStatus': [],
+            'fetchOrders': [symbol],
+            'fetchOpenOrders': [symbol],
+            'fetchClosedOrders': [symbol],
+            'fetchMyTrades': [symbol],
+            'fetchLeverageTiers': [symbol],
+            'fetchLedger': [code],
+            'fetchTransactions': [code],
+            'fetchDeposits': [code],
+            'fetchWithdrawals': [code],
+            'fetchBorrowRates': [code],
+            'fetchBorrowRate': [code],
+            'fetchBorrowInterest': [code, symbol],
+            'addMargin': [symbol],
+            'reduceMargin': [symbol],
+            'setMargin': [symbol],
+            'setMarginMode': [symbol],
+            'setLeverage': [symbol],
+            'cancelAllOrders': [symbol],
+            'cancelOrder': [symbol],
+            'cancelOrders': [symbol],
+            'fetchCanceledOrders': [symbol],
+            'fetchClosedOrder': [symbol],
+            'fetchOpenOrder': [symbol],
+            'fetchOrder': [symbol],
+            'fetchOrderTrades': [symbol],
+            'fetchPosition': [symbol],
+            'fetchDeposit': [code],
+            'createDepositAddress': [code],
+            'fetchDepositAddress': [code],
+            'fetchDepositAddresses': [code],
+            'fetchDepositAddressesByNetwork': [code],
+            'editOrder': [symbol],
+            'fetchBorrowRateHistory': [symbol],
+            'fetchBorrowRatesPerSymbol': [symbol],
+            'fetchLedgerEntry': [code],
+            'fetchWithdrawal': [code],
+            'transfer': [code],
+            'withdraw': [code],
         }
         market = exchange.market(symbol)
         isSpot = market['spot']
         if isSpot:
-            tests['fetchCurrencies'] = [exchange, symbol]
+            tests['fetchCurrencies'] = [symbol]
         else:
             # derivatives only
-            tests['fetchPositions'] = [exchange, [symbol]]
-            tests['fetchPosition'] = [exchange, symbol]
-            tests['fetchPositionRisk'] = [exchange, symbol]
-            tests['setPositionMode'] = [exchange, symbol]
-            tests['setMarginMode'] = [exchange, symbol]
-            tests['fetchOpenInterestHistory'] = [exchange, symbol]
-            tests['fetchFundingRateHistory'] = [exchange, symbol]
-            tests['fetchFundingHistory'] = [exchange, symbol]
+            tests['fetchPositions'] = [symbol]  # self test fetches all positions for 1 symbol
+            tests['fetchPosition'] = [symbol]
+            tests['fetchPositionRisk'] = [symbol]
+            tests['setPositionMode'] = [symbol]
+            tests['setMarginMode'] = [symbol]
+            tests['fetchOpenInterestHistory'] = [symbol]
+            tests['fetchFundingRateHistory'] = [symbol]
+            tests['fetchFundingHistory'] = [symbol]
         combinedPublicPrivateTests = exchange.deep_extend(self.publicTests, tests)
         testNames = list(combinedPublicPrivateTests.keys())
         promises = []
@@ -655,7 +646,8 @@ class testMainClass(baseMainTestClass):
             success = results[i]
             if not success:
                 errors.append(testName)
-        if len(errors) > 0:
+        errorsCnt = len(errors)  # PHP transpile count($errors)
+        if errorsCnt > 0:
             raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
         else:
             if self.info:

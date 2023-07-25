@@ -1,5 +1,9 @@
 import Exchange from './abstract/delta.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class delta
+ * @extends Exchange
+ */
 export default class delta extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -75,10 +79,10 @@ export default class delta extends Exchange {
         marginRatio: any;
     };
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -115,6 +119,101 @@ export default class delta extends Exchange {
         address: string;
         tag: string;
         network: string;
+        info: any;
+    };
+    fetchFundingRate(symbol: string, params?: {}): Promise<{
+        info: any;
+        symbol: any;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    }>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
+    addMargin(symbol: string, amount: any, params?: {}): Promise<{
+        info: any;
+        type: any;
+        amount: any;
+        total: number;
+        code: any;
+        symbol: any;
+        status: any;
+    }>;
+    reduceMargin(symbol: string, amount: any, params?: {}): Promise<{
+        info: any;
+        type: any;
+        amount: any;
+        total: number;
+        code: any;
+        symbol: any;
+        status: any;
+    }>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<{
+        info: any;
+        type: any;
+        amount: any;
+        total: number;
+        code: any;
+        symbol: any;
+        status: any;
+    }>;
+    parseMarginModification(data: any, market?: any): {
+        info: any;
+        type: any;
+        amount: any;
+        total: number;
+        code: any;
+        symbol: any;
+        status: any;
+    };
+    fetchOpenInterest(symbol: string, params?: {}): Promise<{
+        symbol: any;
+        baseVolume: number;
+        quoteVolume: number;
+        openInterestAmount: number;
+        openInterestValue: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    parseOpenInterest(interest: any, market?: any): {
+        symbol: any;
+        baseVolume: number;
+        quoteVolume: number;
+        openInterestAmount: number;
+        openInterestValue: number;
+        timestamp: number;
+        datetime: string;
         info: any;
     };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

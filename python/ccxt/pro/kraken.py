@@ -5,13 +5,24 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -29,6 +40,11 @@ class kraken(ccxt.async_support.kraken):
                 'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'createOrderWs': True,
+                'editOrderWs': True,
+                'cancelOrderWs': True,
+                'cancelOrdersWs': True,
+                'cancelAllOrdersWs': True,
                 # 'watchHeartbeat': True,
                 # 'watchStatus': True,
             },
@@ -38,6 +54,7 @@ class kraken(ccxt.async_support.kraken):
                         'public': 'wss://ws.kraken.com',
                         'private': 'wss://ws-auth.kraken.com',
                         'beta': 'wss://beta-ws.kraken.com',
+                        'beta-private': 'wss://beta-ws-auth.kraken.com',
                     },
                 },
             },
@@ -57,13 +74,232 @@ class kraken(ccxt.async_support.kraken):
                         'Event(s) not found': BadRequest,
                     },
                     'broad': {
+                        'Already subscribed': BadRequest,
                         'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                        'Malformed request': BadRequest,
+                        'Pair field must be an array': BadRequest,
+                        'Pair field unsupported for self subscription type': BadRequest,
+                        'Pair(s) not found': BadSymbol,
+                        'Subscription book depth must be an integer': BadRequest,
+                        'Subscription depth not supported': BadRequest,
+                        'Subscription field must be an object': BadRequest,
+                        'Subscription name invalid': BadRequest,
+                        'Subscription object unsupported field': BadRequest,
+                        'Subscription ohlc interval must be an integer': BadRequest,
+                        'Subscription ohlc interval not supported': BadRequest,
+                        'Subscription ohlc requires interval': BadRequest,
+                        'EAccount:Invalid permissions': PermissionDenied,
+                        'EAuth:Account temporary disabled': AccountSuspended,
+                        'EAuth:Account unconfirmed': AuthenticationError,
+                        'EAuth:Rate limit exceeded': RateLimitExceeded,
+                        'EAuth:Too many requests': RateLimitExceeded,
+                        'EDatabase: Internal error(to be deprecated)': ExchangeError,
+                        'EGeneral:Internal error[:<code>]': ExchangeError,
+                        'EGeneral:Invalid arguments': BadRequest,
+                        'EOrder:Cannot open opposing position': InvalidOrder,
+                        'EOrder:Cannot open position': InvalidOrder,
+                        'EOrder:Insufficient funds(insufficient user funds)': InsufficientFunds,
+                        'EOrder:Insufficient margin(exchange does not have sufficient funds to allow margin trading)': InsufficientFunds,
+                        'EOrder:Invalid price': InvalidOrder,
+                        'EOrder:Margin allowance exceeded': InvalidOrder,
+                        'EOrder:Margin level too low': InvalidOrder,
+                        'EOrder:Margin position size exceeded(client would exceed the maximum position size for self pair)': InvalidOrder,
+                        'EOrder:Order minimum not met(volume too low)': InvalidOrder,
+                        'EOrder:Orders limit exceeded': InvalidOrder,
+                        'EOrder:Positions limit exceeded': InvalidOrder,
+                        'EOrder:Rate limit exceeded': RateLimitExceeded,
+                        'EOrder:Scheduled orders limit exceeded': InvalidOrder,
+                        'EOrder:Unknown position': OrderNotFound,
+                        'EOrder:Unknown order': OrderNotFound,
+                        'EOrder:Invalid order': InvalidOrder,
+                        'EService:Deadline elapsed': ExchangeNotAvailable,
+                        'EService:Market in cancel_only mode': NotSupported,
+                        'EService:Market in limit_only mode': NotSupported,
+                        'EService:Market in post_only mode': NotSupported,
+                        'EService:Unavailable': ExchangeNotAvailable,
+                        'ETrade:Invalid request': BadRequest,
                     },
                 },
             },
         })
 
-    def handle_ticker(self, client: Client, message, subscription):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+        """
+        see https://docs.kraken.com/websockets/#message-addOrder
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        token = await self.authenticate()
+        market = self.market(symbol)
+        url = self.urls['api']['ws']['private']
+        requestId = self.request_id()
+        messageHash = requestId
+        request = {
+            'event': 'addOrder',
+            'token': token,
+            'reqid': requestId,
+            'ordertype': type,
+            'type': side,
+            'pair': market['wsId'],
+            'volume': self.amount_to_precision(symbol, amount),
+        }
+        request, params = self.orderRequest('createOrderWs()', symbol, type, request, price, params)
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+
+    def handle_create_edit_order(self, client, message):
+        #
+        #  createOrder
+        #    {
+        #        descr: 'sell 0.00010000 XBTUSDT @ market',
+        #        event: 'addOrderStatus',
+        #        reqid: 1,
+        #        status: 'ok',
+        #        txid: 'OAVXZH-XIE54-JCYYDG'
+        #    }
+        #  editOrder
+        #    {
+        #        "descr": "order edited price = 9000.00000000",
+        #        "event": "editOrderStatus",
+        #        "originaltxid": "O65KZW-J4AW3-VFS74A",
+        #        "reqid": 3,
+        #        "status": "ok",
+        #        "txid": "OTI672-HJFAO-XOIPPK"
+        #    }
+        #
+        order = self.parse_order(message)
+        messageHash = self.safe_value(message, 'reqid')
+        client.resolve(order, messageHash)
+
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+        """
+        edit a trade order
+        see https://docs.kraken.com/websockets/#message-editOrder
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        token = await self.authenticate()
+        market = self.market(symbol)
+        url = self.urls['api']['ws']['private']
+        requestId = self.request_id()
+        messageHash = requestId
+        request = {
+            'event': 'editOrder',
+            'token': token,
+            'reqid': requestId,
+            'orderid': id,
+            'pair': market['wsId'],
+            'volume': self.amount_to_precision(symbol, amount),
+        }
+        request, params = self.orderRequest('editOrderWs()', symbol, type, request, price, params)
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+
+    async def cancel_orders_ws(self, ids: List[str], symbol: Optional[str] = None, params={}):
+        """
+        see https://docs.kraken.com/websockets/#message-cancelOrder
+        cancel multiple orders
+        :param str[] ids: order ids
+        :param str symbol: unified market symbol, default is None
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        token = await self.authenticate()
+        url = self.urls['api']['ws']['private']
+        requestId = self.request_id()
+        messageHash = requestId
+        request = {
+            'event': 'cancelOrder',
+            'token': token,
+            'reqid': requestId,
+            'txid': ids,
+        }
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+
+    async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+        """
+        see https://docs.kraken.com/websockets/#message-cancelOrder
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        token = await self.authenticate()
+        url = self.urls['api']['ws']['private']
+        requestId = self.request_id()
+        messageHash = requestId
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId', id)
+        params = self.omit(params, ['userref', 'clientOrderId'])
+        request = {
+            'event': 'cancelOrder',
+            'token': token,
+            'reqid': requestId,
+            'txid': [clientOrderId],
+        }
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+
+    def handle_cancel_order(self, client, message):
+        #
+        #  success
+        #    {
+        #        "event": "cancelOrderStatus",
+        #        "status": "ok"
+        #        "reqid": 1,
+        #    }
+        #
+        reqId = self.safe_value(message, 'reqid')
+        client.resolve(message, reqId)
+
+    async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
+        """
+        see https://docs.kraken.com/websockets/#message-cancelAll
+        cancel all open orders
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        if symbol is not None:
+            raise NotSupported(self.id + ' cancelAllOrdersWs() does not support cancelling orders in a specific market.')
+        await self.load_markets()
+        token = await self.authenticate()
+        url = self.urls['api']['ws']['private']
+        requestId = self.request_id()
+        messageHash = requestId
+        request = {
+            'event': 'cancelAll',
+            'token': token,
+            'reqid': requestId,
+        }
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+
+    def handle_cancel_all_orders(self, client, message):
+        #
+        #    {
+        #        "count": 2,
+        #        "event": "cancelAllStatus",
+        #        "status": "ok",
+        #        "reqId": 1
+        #    }
+        #
+        reqId = self.safe_value(message, 'reqid')
+        client.resolve(message, reqId)
+
+    def handle_ticker(self, client, message, subscription):
         #
         #     [
         #         0,  # channelID
@@ -231,7 +467,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the kraken api endpoint
+        :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_public('ticker', symbol, params)
@@ -240,10 +476,10 @@ class kraken(ccxt.async_support.kraken):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -251,14 +487,14 @@ class kraken(ccxt.async_support.kraken):
         trades = await self.watch_public(name, symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the kraken api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         name = 'book'
@@ -278,10 +514,10 @@ class kraken(ccxt.async_support.kraken):
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         name = 'ohlc'
@@ -306,7 +542,7 @@ class kraken(ccxt.async_support.kraken):
         ohlcv = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(kraken, self).load_markets(reload, params)
@@ -555,10 +791,10 @@ class kraken(ccxt.async_support.kraken):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         return await self.watch_private('ownTrades', symbol, since, limit, params)
 
@@ -704,11 +940,11 @@ class kraken(ccxt.async_support.kraken):
         """
         see https://docs.kraken.com/websockets/#message-openOrders
         watches information on multiple orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.watch_private('openOrders', symbol, since, limit, params)
 
@@ -1034,6 +1270,10 @@ class kraken(ccxt.async_support.kraken):
                     'heartbeat': self.handle_heartbeat,
                     'systemStatus': self.handle_system_status,
                     'subscriptionStatus': self.handle_subscription_status,
+                    'addOrderStatus': self.handle_create_edit_order,
+                    'editOrderStatus': self.handle_create_edit_order,
+                    'cancelOrderStatus': self.handle_cancel_order,
+                    'cancelAllStatus': self.handle_cancel_all_orders,
                 }
                 method = self.safe_value(methods, event)
                 if method is None:

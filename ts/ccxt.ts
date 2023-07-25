@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.104';
+const version = '4.0.39';
 
 (Exchange as any).ccxtVersion = version
 
@@ -55,6 +55,7 @@ import binance from  './src/binance.js'
 import binancecoinm from  './src/binancecoinm.js'
 import binanceus from  './src/binanceus.js'
 import binanceusdm from  './src/binanceusdm.js'
+import bingx from  './src/bingx.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
 import bitbay from  './src/bitbay.js'
@@ -81,7 +82,6 @@ import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
-import btcex from  './src/btcex.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btctradeua from  './src/btctradeua.js'
 import btcturk from  './src/btcturk.js'
@@ -141,7 +141,6 @@ import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
-import stex from  './src/stex.js'
 import tidex from  './src/tidex.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
@@ -150,7 +149,6 @@ import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
-import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
@@ -171,14 +169,15 @@ import bitgetPro from  './src/pro/bitget.js'
 import bitmartPro from  './src/pro/bitmart.js'
 import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
+import bitpandaPro from  './src/pro/bitpanda.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
-import btcexPro from  './src/pro/btcex.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
+import coinbasePro from  './src/pro/coinbase.js'
 import coinbaseprimePro from  './src/pro/coinbaseprime.js'
 import coinbaseproPro from  './src/pro/coinbasepro.js'
 import coinexPro from  './src/pro/coinex.js'
@@ -208,6 +207,8 @@ import okcoinPro from  './src/pro/okcoin.js'
 import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
+import poloniexPro from  './src/pro/poloniex.js'
+import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
 import probitPro from  './src/pro/probit.js'
 import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
@@ -224,6 +225,7 @@ const exchanges = {
     'binancecoinm':           binancecoinm,
     'binanceus':              binanceus,
     'binanceusdm':            binanceusdm,
+    'bingx':                  bingx,
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
     'bitbay':                 bitbay,
@@ -250,7 +252,6 @@ const exchanges = {
     'blockchaincom':          blockchaincom,
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
-    'btcex':                  btcex,
     'btcmarkets':             btcmarkets,
     'btctradeua':             btctradeua,
     'btcturk':                btcturk,
@@ -310,7 +311,6 @@ const exchanges = {
     'poloniex':               poloniex,
     'poloniexfutures':        poloniexfutures,
     'probit':                 probit,
-    'stex':                   stex,
     'tidex':                  tidex,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
@@ -319,7 +319,6 @@ const exchanges = {
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
     'woo':                    woo,
-    'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zonda':                  zonda,
@@ -340,14 +339,15 @@ const pro = {
     'bitmart':                bitmartPro,
     'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
+    'bitpanda':               bitpandaPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
     'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
-    'btcex':                  btcexPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
+    'coinbase':               coinbasePro,
     'coinbaseprime':          coinbaseprimePro,
     'coinbasepro':            coinbaseproPro,
     'coinex':                 coinexPro,
@@ -377,6 +377,8 @@ const pro = {
     'okex':                   okexPro,
     'okx':                    okxPro,
     'phemex':                 phemexPro,
+    'poloniex':               poloniexPro,
+    'poloniexfutures':        poloniexfuturesPro,
     'probit':                 probitPro,
     'upbit':                  upbitPro,
     'wazirx':                 wazirxPro,
@@ -464,6 +466,7 @@ export {
     binancecoinm,
     binanceus,
     binanceusdm,
+    bingx,
     bit2c,
     bitbank,
     bitbay,
@@ -490,7 +493,6 @@ export {
     blockchaincom,
     btcalpha,
     btcbox,
-    btcex,
     btcmarkets,
     btctradeua,
     btcturk,
@@ -550,7 +552,6 @@ export {
     poloniex,
     poloniexfutures,
     probit,
-    stex,
     tidex,
     timex,
     tokocrypto,
@@ -559,7 +560,6 @@ export {
     wazirx,
     whitebit,
     woo,
-    xt,
     yobit,
     zaif,
     zonda,    

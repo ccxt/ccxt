@@ -26,6 +26,11 @@ class kraken extends \ccxt\async\kraken {
                 'watchTicker' => true,
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
+                'createOrderWs' => true,
+                'editOrderWs' => true,
+                'cancelOrderWs' => true,
+                'cancelOrdersWs' => true,
+                'cancelAllOrdersWs' => true,
                 // 'watchHeartbeat' => true,
                 // 'watchStatus' => true,
             ),
@@ -35,6 +40,7 @@ class kraken extends \ccxt\async\kraken {
                         'public' => 'wss://ws.kraken.com',
                         'private' => 'wss://ws-auth.kraken.com',
                         'beta' => 'wss://beta-ws.kraken.com',
+                        'beta-private' => 'wss://beta-ws-auth.kraken.com',
                     ),
                 ),
             ),
@@ -54,14 +60,252 @@ class kraken extends \ccxt\async\kraken {
                         'Event(s) not found' => '\\ccxt\\BadRequest',
                     ),
                     'broad' => array(
+                        'Already subscribed' => '\\ccxt\\BadRequest',
                         'Currency pair not in ISO 4217-A3 format' => '\\ccxt\\BadSymbol',
+                        'Malformed request' => '\\ccxt\\BadRequest',
+                        'Pair field must be an array' => '\\ccxt\\BadRequest',
+                        'Pair field unsupported for this subscription type' => '\\ccxt\\BadRequest',
+                        'Pair(s) not found' => '\\ccxt\\BadSymbol',
+                        'Subscription book depth must be an integer' => '\\ccxt\\BadRequest',
+                        'Subscription depth not supported' => '\\ccxt\\BadRequest',
+                        'Subscription field must be an object' => '\\ccxt\\BadRequest',
+                        'Subscription name invalid' => '\\ccxt\\BadRequest',
+                        'Subscription object unsupported field' => '\\ccxt\\BadRequest',
+                        'Subscription ohlc interval must be an integer' => '\\ccxt\\BadRequest',
+                        'Subscription ohlc interval not supported' => '\\ccxt\\BadRequest',
+                        'Subscription ohlc requires interval' => '\\ccxt\\BadRequest',
+                        'EAccount:Invalid permissions' => '\\ccxt\\PermissionDenied',
+                        'EAuth:Account temporary disabled' => '\\ccxt\\AccountSuspended',
+                        'EAuth:Account unconfirmed' => '\\ccxt\\AuthenticationError',
+                        'EAuth:Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                        'EAuth:Too many requests' => '\\ccxt\\RateLimitExceeded',
+                        'EDatabase => Internal error (to be deprecated)' => '\\ccxt\\ExchangeError',
+                        'EGeneral:Internal error[:<code>]' => '\\ccxt\\ExchangeError',
+                        'EGeneral:Invalid arguments' => '\\ccxt\\BadRequest',
+                        'EOrder:Cannot open opposing position' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Cannot open position' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Insufficient funds (insufficient user funds)' => '\\ccxt\\InsufficientFunds',
+                        'EOrder:Insufficient margin (exchange does not have sufficient funds to allow margin trading)' => '\\ccxt\\InsufficientFunds',
+                        'EOrder:Invalid price' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Margin allowance exceeded' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Margin level too low' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Margin position size exceeded (client would exceed the maximum position size for this pair)' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Order minimum not met (volume too low)' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Orders limit exceeded' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Positions limit exceeded' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                        'EOrder:Scheduled orders limit exceeded' => '\\ccxt\\InvalidOrder',
+                        'EOrder:Unknown position' => '\\ccxt\\OrderNotFound',
+                        'EOrder:Unknown order' => '\\ccxt\\OrderNotFound',
+                        'EOrder:Invalid order' => '\\ccxt\\InvalidOrder',
+                        'EService:Deadline elapsed' => '\\ccxt\\ExchangeNotAvailable',
+                        'EService:Market in cancel_only mode' => '\\ccxt\\NotSupported',
+                        'EService:Market in limit_only mode' => '\\ccxt\\NotSupported',
+                        'EService:Market in post_only mode' => '\\ccxt\\NotSupported',
+                        'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',
+                        'ETrade:Invalid request' => '\\ccxt\\BadRequest',
                     ),
                 ),
             ),
         ));
     }
 
-    public function handle_ticker(Client $client, $message, $subscription) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * @see https://docs.kraken.com/websockets/#message-addOrder
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $token = Async\await($this->authenticate());
+            $market = $this->market($symbol);
+            $url = $this->urls['api']['ws']['private'];
+            $requestId = $this->request_id();
+            $messageHash = $requestId;
+            $request = array(
+                'event' => 'addOrder',
+                'token' => $token,
+                'reqid' => $requestId,
+                'ordertype' => $type,
+                'type' => $side,
+                'pair' => $market['wsId'],
+                'volume' => $this->amount_to_precision($symbol, $amount),
+            );
+            list($request, $params) = $this->orderRequest ('createOrderWs()', $symbol, $type, $request, $price, $params);
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+        }) ();
+    }
+
+    public function handle_create_edit_order($client, $message) {
+        //
+        //  createOrder
+        //    {
+        //        descr => 'sell 0.00010000 XBTUSDT @ market',
+        //        event => 'addOrderStatus',
+        //        reqid => 1,
+        //        status => 'ok',
+        //        txid => 'OAVXZH-XIE54-JCYYDG'
+        //    }
+        //  editOrder
+        //    {
+        //        "descr" => "order edited price = 9000.00000000",
+        //        "event" => "editOrderStatus",
+        //        "originaltxid" => "O65KZW-J4AW3-VFS74A",
+        //        "reqid" => 3,
+        //        "status" => "ok",
+        //        "txid" => "OTI672-HJFAO-XOIPPK"
+        //    }
+        //
+        $order = $this->parse_order($message);
+        $messageHash = $this->safe_value($message, 'reqid');
+        $client->resolve ($order, $messageHash);
+    }
+
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @see https://docs.kraken.com/websockets/#message-editOrder
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $token = Async\await($this->authenticate());
+            $market = $this->market($symbol);
+            $url = $this->urls['api']['ws']['private'];
+            $requestId = $this->request_id();
+            $messageHash = $requestId;
+            $request = array(
+                'event' => 'editOrder',
+                'token' => $token,
+                'reqid' => $requestId,
+                'orderid' => $id,
+                'pair' => $market['wsId'],
+                'volume' => $this->amount_to_precision($symbol, $amount),
+            );
+            list($request, $params) = $this->orderRequest ('editOrderWs()', $symbol, $type, $request, $price, $params);
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+        }) ();
+    }
+
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * @see https://docs.kraken.com/websockets/#message-cancelOrder
+             * cancel multiple orders
+             * @param {string[]} $ids order $ids
+             * @param {string} $symbol unified market $symbol, default is null
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $token = Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['private'];
+            $requestId = $this->request_id();
+            $messageHash = $requestId;
+            $request = array(
+                'event' => 'cancelOrder',
+                'token' => $token,
+                'reqid' => $requestId,
+                'txid' => $ids,
+            );
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+        }) ();
+    }
+
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * @see https://docs.kraken.com/websockets/#message-cancelOrder
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $token = Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['private'];
+            $requestId = $this->request_id();
+            $messageHash = $requestId;
+            $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId', $id);
+            $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
+            $request = array(
+                'event' => 'cancelOrder',
+                'token' => $token,
+                'reqid' => $requestId,
+                'txid' => array( $clientOrderId ),
+            );
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+        }) ();
+    }
+
+    public function handle_cancel_order($client, $message) {
+        //
+        //  success
+        //    {
+        //        "event" => "cancelOrderStatus",
+        //        "status" => "ok"
+        //        "reqid" => 1,
+        //    }
+        //
+        $reqId = $this->safe_value($message, 'reqid');
+        $client->resolve ($message, $reqId);
+    }
+
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://docs.kraken.com/websockets/#message-cancelAll
+             * cancel all open orders
+             * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol !== null) {
+                throw new NotSupported($this->id . ' cancelAllOrdersWs () does not support cancelling orders in a specific market.');
+            }
+            Async\await($this->load_markets());
+            $token = Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['private'];
+            $requestId = $this->request_id();
+            $messageHash = $requestId;
+            $request = array(
+                'event' => 'cancelAll',
+                'token' => $token,
+                'reqid' => $requestId,
+            );
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+        }) ();
+    }
+
+    public function handle_cancel_all_orders($client, $message) {
+        //
+        //    {
+        //        "count" => 2,
+        //        "event" => "cancelAllStatus",
+        //        "status" => "ok",
+        //        "reqId" => 1
+        //    }
+        //
+        $reqId = $this->safe_value($message, 'reqid');
+        $client->resolve ($message, $reqId);
+    }
+
+    public function handle_ticker($client, $message, $subscription) {
         //
         //     array(
         //         0, // channelID
@@ -242,7 +486,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the kraken api endpoint
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public('ticker', $symbol, $params));
@@ -254,10 +498,10 @@ class kraken extends \ccxt\async\kraken {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -266,7 +510,7 @@ class kraken extends \ccxt\async\kraken {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -275,8 +519,8 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the kraken api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $name = 'book';
@@ -301,10 +545,10 @@ class kraken extends \ccxt\async\kraken {
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $name = 'ohlc';
@@ -330,7 +574,7 @@ class kraken extends \ccxt\async\kraken {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -619,10 +863,10 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches information on multiple trades made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             return Async\await($this->watch_private('ownTrades', $symbol, $since, $limit, $params));
         }) ();
@@ -783,11 +1027,11 @@ class kraken extends \ccxt\async\kraken {
             /**
              * @see https://docs.kraken.com/websockets/#message-openOrders
              * watches information on multiple orders made by the user
-             * @param {string|null} $symbol unified market $symbol of the market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->watch_private('openOrders', $symbol, $since, $limit, $params));
         }) ();
@@ -1141,6 +1385,10 @@ class kraken extends \ccxt\async\kraken {
                     'heartbeat' => array($this, 'handle_heartbeat'),
                     'systemStatus' => array($this, 'handle_system_status'),
                     'subscriptionStatus' => array($this, 'handle_subscription_status'),
+                    'addOrderStatus' => array($this, 'handle_create_edit_order'),
+                    'editOrderStatus' => array($this, 'handle_create_edit_order'),
+                    'cancelOrderStatus' => array($this, 'handle_cancel_order'),
+                    'cancelAllStatus' => array($this, 'handle_cancel_all_orders'),
                 );
                 $method = $this->safe_value($methods, $event);
                 if ($method === null) {

@@ -8,6 +8,10 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class coinone
+ * @extends Exchange
+ */
 class coinone extends coinone$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -102,7 +106,7 @@ class coinone extends coinone$1 {
                         'order/limit_sell/',
                         'order/complete_orders/',
                         'order/limit_orders/',
-                        'order/order_info/',
+                        'order/query_order/',
                         'transaction/auth_number/',
                         'transaction/history/',
                         'transaction/krw/history/',
@@ -136,8 +140,8 @@ class coinone extends coinone$1 {
          * @method
          * @name coinone#fetchMarkets
          * @description retrieves data on all markets for coinone
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const request = {
             'currency': 'all',
@@ -252,7 +256,7 @@ class coinone extends coinone$1 {
          * @method
          * @name coinone#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the coinone api endpoint
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -265,8 +269,8 @@ class coinone extends coinone$1 {
          * @name coinone#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinone api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -284,8 +288,8 @@ class coinone extends coinone$1 {
          * @method
          * @name coinone#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the coinone api endpoint
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -314,7 +318,7 @@ class coinone extends coinone$1 {
          * @name coinone#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinone api endpoint
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -451,10 +455,10 @@ class coinone extends coinone$1 {
          * @name coinone#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the coinone api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -493,8 +497,8 @@ class coinone extends coinone$1 {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the coinone api endpoint
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (type !== 'limit') {
@@ -524,7 +528,7 @@ class coinone extends coinone$1 {
          * @name coinone#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the coinone api endpoint
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -536,34 +540,37 @@ class coinone extends coinone$1 {
             'order_id': id,
             'currency': market['id'],
         };
-        const response = await this.privatePostOrderOrderInfo(this.extend(request, params));
+        const response = await this.privatePostOrderQueryOrder(this.extend(request, params));
         //
         //     {
         //         "result": "success",
         //         "errorCode": "0",
-        //         "status": "live",
-        //         "info": {
-        //             "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
-        //             "currency": "BTC",
-        //             "type": "bid",
-        //             "price": "2922000.0",
-        //             "qty": "115.4950",
-        //             "remainQty": "45.4950",
-        //             "feeRate": "0.0003",
-        //             "fee": "0",
-        //             "timestamp": "1499340941"
-        //         }
+        //         "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        //         "baseCurrency": "KRW",
+        //         "targetCurrency": "BTC",
+        //         "price": "10011000.0",
+        //         "originalQty": "3.0",
+        //         "executedQty": "0.62",
+        //         "canceledQty": "1.125",
+        //         "remainQty": "1.255",
+        //         "status": "partially_filled",
+        //         "side": "bid",
+        //         "orderedAt": 1499340941,
+        //         "updatedAt": 1499341142,
+        //         "feeRate": "0.002",
+        //         "fee": "0.00124",
+        //         "averageExecutedPrice": "10011000.0"
         //     }
         //
-        const info = this.safeValue(response, 'info', {});
-        info['status'] = this.safeString(info, 'status');
-        return this.parseOrder(info, market);
+        return this.parseOrder(response, market);
     }
     parseOrderStatus(status) {
         const statuses = {
             'live': 'open',
             'partially_filled': 'open',
+            'partially_canceled': 'open',
             'filled': 'closed',
+            'canceled': 'canceled',
         };
         return this.safeString(statuses, status, status);
     }
@@ -580,16 +587,23 @@ class coinone extends coinone$1 {
         // fetchOrder
         //
         //     {
-        //         "status": "live", // injected in fetchOrder
-        //         "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
-        //         "currency": "BTC",
-        //         "type": "bid",
-        //         "price": "2922000.0",
-        //         "qty": "115.4950",
-        //         "remainQty": "45.4950",
-        //         "feeRate": "0.0003",
-        //         "fee": "0",
-        //         "timestamp": "1499340941"
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        //         "baseCurrency": "KRW",
+        //         "targetCurrency": "BTC",
+        //         "price": "10011000.0",
+        //         "originalQty": "3.0",
+        //         "executedQty": "0.62",
+        //         "canceledQty": "1.125",
+        //         "remainQty": "1.255",
+        //         "status": "partially_filled",
+        //         "side": "bid",
+        //         "orderedAt": 1499340941,
+        //         "updatedAt": 1499341142,
+        //         "feeRate": "0.002",
+        //         "fee": "0.00124",
+        //         "averageExecutedPrice": "10011000.0"
         //     }
         //
         // fetchOpenOrders
@@ -605,9 +619,14 @@ class coinone extends coinone$1 {
         //     }
         //
         const id = this.safeString(order, 'orderId');
-        const priceString = this.safeString(order, 'price');
-        const timestamp = this.safeTimestamp(order, 'timestamp');
-        let side = this.safeString(order, 'type');
+        const baseId = this.safeString(order, 'baseCurrency');
+        const quoteId = this.safeString(order, 'targetCurrency');
+        const base = this.safeCurrencyCode(baseId, market['base']);
+        const quote = this.safeCurrencyCode(quoteId, market['quote']);
+        const symbol = base + '/' + quote;
+        market = this.safeMarket(symbol, market, '/');
+        const timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
+        let side = this.safeString2(order, 'type', 'side');
         if (side === 'ask') {
             side = 'sell';
         }
@@ -615,7 +634,7 @@ class coinone extends coinone$1 {
             side = 'buy';
         }
         const remainingString = this.safeString(order, 'remainQty');
-        const amountString = this.safeString(order, 'qty');
+        const amountString = this.safeString2(order, 'originalQty', 'qty');
         let status = this.safeString(order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
@@ -627,9 +646,6 @@ class coinone extends coinone$1 {
             }
         }
         status = this.parseOrderStatus(status);
-        const symbol = market['symbol'];
-        const base = market['base'];
-        const quote = market['quote'];
         let fee = undefined;
         const feeCostString = this.safeString(order, 'fee');
         if (feeCostString !== undefined) {
@@ -652,13 +668,13 @@ class coinone extends coinone$1 {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': priceString,
+            'price': this.safeString(order, 'price'),
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
-            'average': undefined,
+            'average': this.safeString(order, 'averageExecutedPrice'),
             'amount': amountString,
-            'filled': undefined,
+            'filled': this.safeString(order, 'executedQty'),
             'remaining': remainingString,
             'status': status,
             'fee': fee,
@@ -671,10 +687,10 @@ class coinone extends coinone$1 {
          * @name coinone#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the coinone api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
@@ -713,10 +729,10 @@ class coinone extends coinone$1 {
          * @name coinone#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the coinone api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
@@ -757,7 +773,7 @@ class coinone extends coinone$1 {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the coinone api endpoint
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -793,8 +809,8 @@ class coinone extends coinone$1 {
          * @method
          * @name coinone#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
-         * @param {[string]|undefined} codes list of unified currency codes, default is undefined
-         * @param {object} params extra parameters specific to the coinone api endpoint
+         * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+         * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();

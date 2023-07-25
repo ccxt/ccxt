@@ -84,12 +84,16 @@ export interface Order {
     filled: number;
     id: string;
     info: any;
-    lastTradeTimestamp: number;
+    lastTradeTimestamp?: number;
+    lastUpdateTimestamp?: number;
     price: number;
     remaining: number;
     side: 'buy' | 'sell' | string;
     status: 'open' | 'closed' | 'canceled' | string;
+    stopLossPrice?: number;
+    stopPrice?: number;
     symbol: string;
+    takeProfitPrice?: number;
     timeInForce?: string;
     timestamp: number;
     trades: Trade[];

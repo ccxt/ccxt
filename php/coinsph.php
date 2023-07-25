@@ -54,7 +54,7 @@ class coinsph extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
                 'fetchDeposit' => null,
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
@@ -166,6 +166,10 @@ class coinsph extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'openapi/wallet/v1/config/getall' => 10,
+                        'openapi/wallet/v1/deposit/address' => 10,
+                        'openapi/wallet/v1/deposit/history' => 1,
+                        'openapi/wallet/v1/withdraw/history' => 1,
                         'openapi/v1/account' => 10,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders' => array( 'cost' => 3, 'noSymbol' => 40 ),
@@ -176,16 +180,32 @@ class coinsph extends Exchange {
                         'openapi/v1/myTrades' => 10,
                         'openapi/v1/capital/deposit/history' => 1,
                         'openapi/v1/capital/withdraw/history' => 1,
+                        'openapi/v3/payment-request/get-payment-request' => 1,
+                        'merchant-api/v1/get-invoices' => 1,
+                        'openapi/account/v3/crypto-accounts' => 1,
+                        'openapi/transfer/v3/transfers/{id}' => 1,
                     ),
                     'post' => array(
+                        'openapi/wallet/v1/withdraw/apply' => 600,
                         'openapi/v1/order/test' => 1,
                         'openapi/v1/order' => 1,
                         'openapi/v1/capital/withdraw/apply' => 1,
                         'openapi/v1/capital/deposit/apply' => 1,
+                        'openapi/v3/payment-request/payment-requests' => 1,
+                        'openapi/v3/payment-request/delete-payment-request' => 1,
+                        'openapi/v3/payment-request/payment-request-reminder' => 1,
+                        'openapi/v1/userDataStream' => 1,
+                        'merchant-api/v1/invoices' => 1,
+                        'merchant-api/v1/invoices-cancel' => 1,
+                        'openapi/convert/v1/get-supported-trading-pairs' => 1,
+                        'openapi/convert/v1/get-quote' => 1,
+                        'openapi/convert/v1/accpet-quote' => 1,
+                        'openapi/transfer/v3/transfers' => 1,
                     ),
                     'delete' => array(
                         'openapi/v1/order' => 1,
                         'openapi/v1/openOrders' => 1,
+                        'openapi/v1/userDataStream' => 1,
                     ),
                 ),
             ),
@@ -247,6 +267,14 @@ class coinsph extends Exchange {
                 ),
                 'fetchTickers' => array(
                     'method' => 'publicGetOpenapiQuoteV1Ticker24hr', // publicGetOpenapiQuoteV1TickerPrice, publicGetOpenapiQuoteV1TickerBookTicker
+                ),
+                'networks' => array(
+                    // all networks => 'ETH', 'TRX', 'BSC', 'ARBITRUM', 'RON', 'BTC', 'XRP'
+                    // you can call api privateGetOpenapiWalletV1ConfigGetall to check which network is supported for the currency
+                    'TRC20' => 'TRX',
+                    'ERC20' => 'ETH',
+                    'BEP20' => 'BSC',
+                    'ARB' => 'ARBITRUM',
                 ),
             ),
             // https://coins-docs.github.io/errors/
@@ -399,7 +427,7 @@ class coinsph extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
          */
         $response = $this->publicGetOpenapiV1Ping ($params);
@@ -415,7 +443,7 @@ class coinsph extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->publicGetOpenapiV1Time ($params);
@@ -428,8 +456,8 @@ class coinsph extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for coinsph
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetOpenapiV1ExchangeInfo ($params);
         //
@@ -563,8 +591,8 @@ class coinsph extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -589,7 +617,7 @@ class coinsph extends Exchange {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
@@ -687,8 +715,8 @@ class coinsph extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return (default 100, max 200)
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -723,10 +751,10 @@ class coinsph extends Exchange {
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch (default 500, max 1000)
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch (default 500, max 1000)
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -786,10 +814,10 @@ class coinsph extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch (default 500, max 1000)
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch (default 500, max 1000)
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -825,10 +853,10 @@ class coinsph extends Exchange {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve (default 500, max 1000)
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve (default 500, max 1000)
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -854,10 +882,10 @@ class coinsph extends Exchange {
          * fetch all the trades made from a single order
          * @param {string} $id order $id
          * @param {string} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades to retrieve
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades to retrieve
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
@@ -958,7 +986,7 @@ class coinsph extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
@@ -1007,15 +1035,15 @@ class coinsph extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         // todo => add test order low priority
@@ -1112,7 +1140,7 @@ class coinsph extends Exchange {
          * fetches information on an order made by the user
          * @param {int|string} $id order $id
          * @param {string} $symbol not used by coinsph fetchOrder ()
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -1131,11 +1159,11 @@ class coinsph extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1151,11 +1179,11 @@ class coinsph extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve (default 500, max 1000)
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of  orde structures to retrieve (default 500, max 1000)
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -1180,8 +1208,8 @@ class coinsph extends Exchange {
         /**
          * cancels an open order
          * @param {string} $id order $id
-         * @param {string|null} $symbol not used by coinsph cancelOrder ()
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {string} $symbol not used by coinsph cancelOrder ()
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -1200,9 +1228,9 @@ class coinsph extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel open orders of $market
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -1389,7 +1417,7 @@ class coinsph extends Exchange {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
@@ -1414,7 +1442,7 @@ class coinsph extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
          */
         $this->load_markets();
@@ -1464,11 +1492,12 @@ class coinsph extends Exchange {
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal to coins_ph account
+         * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address not used by coinsph withdraw ()
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $options = $this->safe_value($this->options, 'withdraw');
@@ -1476,16 +1505,24 @@ class coinsph extends Exchange {
         if ($warning) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
+        $networkCode = $this->safe_string($params, 'network');
+        $networkId = $this->network_code_to_id($networkCode, $code);
+        if ($networkId === null) {
+            throw new BadRequest($this->id . ' withdraw() require network parameter');
+        }
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
             'amount' => $this->number_to_string($amount),
+            'network' => $networkId,
+            'address' => $address,
         );
         if ($tag !== null) {
             $request['withdrawOrderId'] = $tag;
         }
-        $response = $this->privatePostOpenapiV1CapitalWithdrawApply (array_merge($request, $params));
+        $params = $this->omit($params, 'network');
+        $response = $this->privatePostOpenapiWalletV1WithdrawApply (array_merge($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 
@@ -1495,8 +1532,8 @@ class coinsph extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to deposit
          * @param {string} $address not used by coinsph deposit ()
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $options = $this->safe_value($this->options, 'deposit');
@@ -1520,11 +1557,12 @@ class coinsph extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
+         * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
          * @param {string} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         // todo => returns an empty array - find out why
         $this->load_markets();
@@ -1540,18 +1578,47 @@ class coinsph extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiV1CapitalDepositHistory (array_merge($request, $params));
+        $response = $this->privateGetOpenapiWalletV1DepositHistory (array_merge($request, $params));
+        //
+        // array(
+        //     array(
+        //         "id" => "d_769800519366885376",
+        //         "amount" => "0.001",
+        //         "coin" => "BNB",
+        //         "network" => "BNB",
+        //         "status" => 0,
+        //         "address" => "bnb136ns6lfw4zs5hg4n85vdthaad7hq5m4gtkgf23",
+        //         "addressTag" => "101764890",
+        //         "txId" => "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
+        //         "insertTime" => 1661493146000,
+        //         "confirmNo" => 10,
+        //     ),
+        //     {
+        //         "id" => "d_769754833590042625",
+        //         "amount":"0.5",
+        //         "coin":"IOTA",
+        //         "network":"IOTA",
+        //         "status":1,
+        //         "address":"SIZ9VLMHWATXKV99LH99CIGFJFUMLEHGWVZVNNZXRJJVWBPHYWPPBOSDORZ9EQSHCZAMPVAPGFYQAUUV9DROOXJLNW",
+        //         "addressTag":"",
+        //         "txId":"ESBFVQUTPIWQNJSPXFNHNYHSQNTGKRVKPRABQWTAXCDWOAKDKYWPTVG9BGXNVNKTLEJGESAVXIKIZ9999",
+        //         "insertTime":1599620082000,
+        //         "confirmNo" => 20,
+        //     }
+        // )
+        //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
+         * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
          * @param {string} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the coinsph api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         // todo => returns an empty array - find out why
         $this->load_markets();
@@ -1567,7 +1634,41 @@ class coinsph extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiV1CapitalWithdrawHistory (array_merge($request, $params));
+        $response = $this->privateGetOpenapiWalletV1WithdrawHistory (array_merge($request, $params));
+        //
+        // array(
+        //     array(
+        //         "id" => "459890698271244288",
+        //         "amount" => "0.01",
+        //         "transactionFee" => "0",
+        //         "coin" => "ETH",
+        //         "status" => 1,
+        //         "address" => "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        //         "addressTag" => "",
+        //         "txId" => "0x4ae2fed36a90aada978fc31c38488e8b60d7435cfe0b4daed842456b4771fcf7",
+        //         "applyTime" => 1673601139000,
+        //         "network" => "ETH",
+        //         "withdrawOrderId" => "thomas123",
+        //         "info" => "",
+        //         "confirmNo" => 100
+        //     ),
+        //     {
+        //         "id" => "451899190746456064",
+        //         "amount" => "0.00063",
+        //         "transactionFee" => "0.00037",
+        //         "coin" => "ETH",
+        //         "status" => 1,
+        //         "address" => "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        //         "addressTag" => "",
+        //         "txId" => "0x62690ca4f9d6a8868c258e2ce613805af614d9354dda7b39779c57b2e4da0260",
+        //         "applyTime" => 1671695815000,
+        //         "network" => "ETH",
+        //         "withdrawOrderId" => "",
+        //         "info" => "",
+        //         "confirmNo" => 100
+        //     }
+        // )
+        //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -1668,14 +1769,62 @@ class coinsph extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             '0' => 'pending',
-            '1' => 'canceled',
-            '2' => 'pending',
-            '3' => 'failed',
-            '4' => 'pending',
-            '5' => 'failed',
-            '6' => 'ok',
+            '1' => 'ok',
+            '2' => 'failed',
+            '3' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {string} [$params->network] network for fetch deposit address
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $networkCode = $this->safe_string($params, 'network');
+        $networkId = $this->network_code_to_id($networkCode, $code);
+        if ($networkId === null) {
+            throw new BadRequest($this->id . ' fetchDepositAddress() require network parameter');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'network' => $networkId,
+        );
+        $params = $this->omit($params, 'network');
+        $response = $this->privateGetOpenapiWalletV1DepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         "coin" => "ETH",
+        //         "address" => "0xfe98628173830bf79c59f04585ce41f7de168784",
+        //         "addressTag" => ""
+        //     }
+        //
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         "coin" => "ETH",
+        //         "address" => "0xfe98628173830bf79c59f04585ce41f7de168784",
+        //         "addressTag" => ""
+        //     }
+        //
+        $currencyId = $this->safe_string($depositAddress, 'coin');
+        $parsedCurrency = $this->safe_currency_code($currencyId, $currency);
+        return array(
+            'currency' => $parsedCurrency,
+            'address' => $this->safe_string($depositAddress, 'address'),
+            'tag' => $this->safe_string($depositAddress, 'addressTag'),
+            'network' => null,
+            'info' => $depositAddress,
+        );
     }
 
     public function url_encode_query($query = array ()) {

@@ -18,7 +18,7 @@ export default class krakenfutures extends krakenfuturesRest {
     parseWsOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleOrder(client: Client, message: any): any;
     handleOrderSnapshot(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleTicker(client: Client, message: any): any;
     parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
     handleOrderBookSnapshot(client: Client, message: any): void;

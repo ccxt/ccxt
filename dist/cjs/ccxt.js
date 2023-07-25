@@ -21,6 +21,7 @@ var binance = require('./src/binance.js');
 var binancecoinm = require('./src/binancecoinm.js');
 var binanceus = require('./src/binanceus.js');
 var binanceusdm = require('./src/binanceusdm.js');
+var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
 var bitbay = require('./src/bitbay.js');
@@ -47,7 +48,6 @@ var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
 var btcalpha = require('./src/btcalpha.js');
 var btcbox = require('./src/btcbox.js');
-var btcex = require('./src/btcex.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btctradeua = require('./src/btctradeua.js');
 var btcturk = require('./src/btcturk.js');
@@ -107,7 +107,6 @@ var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
 var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
-var stex = require('./src/stex.js');
 var tidex = require('./src/tidex.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
@@ -116,7 +115,6 @@ var wavesexchange = require('./src/wavesexchange.js');
 var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
-var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
@@ -134,14 +132,15 @@ var bitget$1 = require('./src/pro/bitget.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
+var bitpanda$1 = require('./src/pro/bitpanda.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bittrex$1 = require('./src/pro/bittrex.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
-var btcex$1 = require('./src/pro/btcex.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
+var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbaseprime$1 = require('./src/pro/coinbaseprime.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
 var coinex$1 = require('./src/pro/coinex.js');
@@ -171,6 +170,8 @@ var okcoin$1 = require('./src/pro/okcoin.js');
 var okex$1 = require('./src/pro/okex.js');
 var okx$1 = require('./src/pro/okx.js');
 var phemex$1 = require('./src/pro/phemex.js');
+var poloniex$1 = require('./src/pro/poloniex.js');
+var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
 var probit$1 = require('./src/pro/probit.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
@@ -179,7 +180,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.104';
+const version = '4.0.39';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -191,6 +192,7 @@ const exchanges = {
     'binancecoinm': binancecoinm,
     'binanceus': binanceus,
     'binanceusdm': binanceusdm,
+    'bingx': bingx,
     'bit2c': bit2c,
     'bitbank': bitbank,
     'bitbay': bitbay,
@@ -217,7 +219,6 @@ const exchanges = {
     'blockchaincom': blockchaincom,
     'btcalpha': btcalpha,
     'btcbox': btcbox,
-    'btcex': btcex,
     'btcmarkets': btcmarkets,
     'btctradeua': btctradeua,
     'btcturk': btcturk,
@@ -277,7 +278,6 @@ const exchanges = {
     'poloniex': poloniex,
     'poloniexfutures': poloniexfutures,
     'probit': probit,
-    'stex': stex,
     'tidex': tidex,
     'timex': timex,
     'tokocrypto': tokocrypto,
@@ -286,7 +286,6 @@ const exchanges = {
     'wazirx': wazirx,
     'whitebit': whitebit,
     'woo': woo,
-    'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
     'zonda': zonda,
@@ -306,14 +305,15 @@ const pro = {
     'bitmart': bitmart$1,
     'bitmex': bitmex$1,
     'bitopro': bitopro$1,
+    'bitpanda': bitpanda$1,
     'bitrue': bitrue$1,
     'bitstamp': bitstamp$1,
     'bittrex': bittrex$1,
     'bitvavo': bitvavo$1,
     'blockchaincom': blockchaincom$1,
-    'btcex': btcex$1,
     'bybit': bybit$1,
     'cex': cex$1,
+    'coinbase': coinbase$1,
     'coinbaseprime': coinbaseprime$1,
     'coinbasepro': coinbasepro$1,
     'coinex': coinex$1,
@@ -343,6 +343,8 @@ const pro = {
     'okex': okex$1,
     'okx': okx$1,
     'phemex': phemex$1,
+    'poloniex': poloniex$1,
+    'poloniexfutures': poloniexfutures$1,
     'probit': probit$1,
     'upbit': upbit$1,
     'wazirx': wazirx$1,
@@ -398,6 +400,7 @@ exports.binance = binance;
 exports.binancecoinm = binancecoinm;
 exports.binanceus = binanceus;
 exports.binanceusdm = binanceusdm;
+exports.bingx = bingx;
 exports.bit2c = bit2c;
 exports.bitbank = bitbank;
 exports.bitbay = bitbay;
@@ -424,7 +427,6 @@ exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
 exports.btcalpha = btcalpha;
 exports.btcbox = btcbox;
-exports.btcex = btcex;
 exports.btcmarkets = btcmarkets;
 exports.btctradeua = btctradeua;
 exports.btcturk = btcturk;
@@ -484,7 +486,6 @@ exports.phemex = phemex;
 exports.poloniex = poloniex;
 exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
-exports.stex = stex;
 exports.tidex = tidex;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;
@@ -493,7 +494,6 @@ exports.wavesexchange = wavesexchange;
 exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
-exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
 exports.zonda = zonda;

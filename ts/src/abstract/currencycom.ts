@@ -62,6 +62,7 @@ interface Exchange {
     privateGetV2TradingPositionsHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV2Transactions (params?: {}): Promise<implicitReturnType>;
     privateGetV2Withdrawals (params?: {}): Promise<implicitReturnType>;
+    privateGetV2FetchOrder (params?: {}): Promise<implicitReturnType>;
     privatePostV1Order (params?: {}): Promise<implicitReturnType>;
     privatePostV1UpdateTradingPosition (params?: {}): Promise<implicitReturnType>;
     privatePostV1UpdateTradingOrder (params?: {}): Promise<implicitReturnType>;
