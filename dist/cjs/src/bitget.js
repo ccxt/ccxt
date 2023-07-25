@@ -255,6 +255,7 @@ class bitget extends bitget$1 {
                             'position/singlePosition-v2': 2,
                             'position/allPosition': 4,
                             'position/allPosition-v2': 4,
+                            'position/history-position': 1,
                             'account/accountBill': 2,
                             'account/accountBusinessBill': 4,
                             'order/current': 1,
@@ -1008,6 +1009,9 @@ class bitget extends bitget$1 {
                 'networksById': {
                     'TRC20': 'TRX',
                     'BSC': 'BEP20',
+                },
+                'fetchPositions': {
+                    'method': 'privateMixGetPositionAllPositionV2', // or privateMixGetPositionHistoryPosition
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
@@ -3880,6 +3884,8 @@ class bitget extends bitget$1 {
          */
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         await this.loadMarkets();
+        const fetchPositionsOptions = this.safeValue(this.options, 'fetchPositions', {});
+        const method = this.safeString(fetchPositionsOptions, 'method', 'privateMixGetPositionAllPositionV2');
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString(symbols, 0);
@@ -3894,7 +3900,28 @@ class bitget extends bitget$1 {
         const request = {
             'productType': productType,
         };
-        const response = await this.privateMixGetPositionAllPositionV2(this.extend(request, params));
+        if (method === 'privateMixGetPositionHistoryPosition') {
+            // endTime and startTime mandatory
+            let since = this.safeInteger2(params, 'startTime', 'since');
+            if (since === undefined) {
+                since = this.milliseconds() - 7689600000; // 3 months ago
+            }
+            request['startTime'] = since;
+            let until = this.safeInteger2(params, 'endTime', 'until');
+            if (until === undefined) {
+                until = this.milliseconds();
+            }
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        let isHistory = false;
+        if (method === 'privateMixGetPositionAllPositionV2') {
+            response = await this.privateMixGetPositionAllPositionV2(this.extend(request, params));
+        }
+        else {
+            isHistory = true;
+            response = await this.privateMixGetPositionHistoryPosition(this.extend(request, params));
+        }
         //
         //     {
         //       code: '00000',
@@ -3922,8 +3949,42 @@ class bitget extends bitget$1 {
         //         }
         //       ]
         //     }
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 0,
+        //         "data": {
+        //           "list": [
+        //             {
+        //               "symbol": "ETHUSDT_UMCBL",
+        //               "marginCoin": "USDT",
+        //               "holdSide": "short",
+        //               "openAvgPrice": "1206.7",
+        //               "closeAvgPrice": "1206.8",
+        //               "marginMode": "fixed",
+        //               "openTotalPos": "1.15",
+        //               "closeTotalPos": "1.15",
+        //               "pnl": "-0.11",
+        //               "netProfit": "-1.780315",
+        //               "totalFunding": "0",
+        //               "openFee": "-0.83",
+        //               "closeFee": "-0.83",
+        //               "ctime": "1689300233897",
+        //               "utime": "1689300238205"
+        //             }
+        //           ],
+        //           "endId": "1062308959580516352"
+        //         }
+        //       }
         //
-        const position = this.safeValue(response, 'data', []);
+        let position = [];
+        if (!isHistory) {
+            position = this.safeValue(response, 'data', []);
+        }
+        else {
+            const data = this.safeValue(response, 'data', {});
+            position = this.safeValue(data, 'list', []);
+        }
         const result = [];
         for (let i = 0; i < position.length; i++) {
             result.push(this.parsePosition(position[i]));
@@ -3953,10 +4014,30 @@ class bitget extends bitget$1 {
         //         cTime: '1645922194988'
         //     }
         //
+        // history
+        //
+        //     {
+        //       "symbol": "ETHUSDT_UMCBL",
+        //       "marginCoin": "USDT",
+        //       "holdSide": "short",
+        //       "openAvgPrice": "1206.7",
+        //       "closeAvgPrice": "1206.8",
+        //       "marginMode": "fixed",
+        //       "openTotalPos": "1.15",
+        //       "closeTotalPos": "1.15",
+        //       "pnl": "-0.11",
+        //       "netProfit": "-1.780315",
+        //       "totalFunding": "0",
+        //       "openFee": "-0.83",
+        //       "closeFee": "-0.83",
+        //       "ctime": "1689300233897",
+        //       "utime": "1689300238205"
+        //     }
+        //
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger(position, 'cTime');
+        const timestamp = this.safeInteger2(position, 'cTime', 'ctime');
         let marginMode = this.safeString(position, 'marginMode');
         let collateral = undefined;
         let initialMargin = undefined;
@@ -3983,13 +4064,16 @@ class bitget extends bitget$1 {
         const contractSizeNumber = this.safeValue(market, 'contractSize');
         const contractSize = this.numberToString(contractSizeNumber);
         const baseAmount = this.safeString(position, 'total');
-        const entryPrice = this.safeString(position, 'averageOpenPrice');
+        const entryPrice = this.safeString2(position, 'averageOpenPrice', 'openAvgPrice');
         const maintenanceMarginPercentage = this.safeString(position, 'keepMarginRate');
         const openNotional = Precise["default"].stringMul(entryPrice, baseAmount);
         if (initialMargin === undefined) {
             initialMargin = Precise["default"].stringDiv(openNotional, leverage);
         }
-        const contracts = this.parseNumber(Precise["default"].stringDiv(baseAmount, contractSize));
+        let contracts = this.parseNumber(Precise["default"].stringDiv(baseAmount, contractSize));
+        if (contracts === undefined) {
+            contracts = this.safeNumber(position, 'closeTotalPos');
+        }
         const markPrice = this.safeString(position, 'marketPrice');
         const notional = Precise["default"].stringMul(baseAmount, markPrice);
         const initialMarginPercentage = Precise["default"].stringDiv(initialMargin, notional);
@@ -4030,12 +4114,12 @@ class bitget extends bitget$1 {
             'contracts': contracts,
             'contractSize': contractSizeNumber,
             'markPrice': this.parseNumber(markPrice),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(position, 'closeAvgPrice'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(position, 'utime'),
             'maintenanceMargin': this.parseNumber(maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentage),
             'collateral': this.parseNumber(collateral),

@@ -102,7 +102,7 @@ class bitstamp extends Exchange {
                 '6h' => '21600',
                 '12h' => '43200',
                 '1d' => '86400',
-                '1w' => '259200',
+                '3d' => '259200',
             ),
             'requiredCredentials' => array(
                 'apiKey' => true,
