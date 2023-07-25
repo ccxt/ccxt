@@ -1699,12 +1699,19 @@ export default class Exchange {
 
     getDefaultOptions () {
         return {
+            'customWsMessageHandlers': {},
             'defaultNetworkCodeReplacements': {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
             },
         };
+    }
+
+    selectWsMethodHandler (methods, channel) {
+        let method = this.safeValue (methods, channel);
+        const customHandlers = this.safeValue (this.options, 'customWsMessageHandlers', {});
+        return this.safeValue (customHandlers, channel, method);
     }
 
     safeLedgerEntry (entry: object, currency: object = undefined) {
