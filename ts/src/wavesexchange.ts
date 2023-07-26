@@ -105,17 +105,17 @@ export default class wavesexchange extends Exchange {
                     'matcher': 'https://matcher-testnet.wx.network',
                     'node': 'https://nodes-testnet.wavesnodes.com',
                     'public': 'https://api-testnet.wavesplatform.com/v0',
-                    'private': 'https://api-testnet.waves.exchange/v1',
-                    'forward': 'https://testnet.waves.exchange/api/v1/forward/matcher',
-                    'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
+                    'private': 'https://api-testnet.wx.network/v1',
+                    'forward': 'https://testnet.wx.network/api/v1/forward/matcher',
+                    'market': 'https://testnet.wx.network/api/v1/forward/marketdata/api/v1',
                 },
                 'api': {
                     'matcher': 'https://matcher.wx.network',
-                    'node': 'https://nodes.waves.exchange',
+                    'node': 'https://nodes.wx.network',
                     'public': 'https://api.wavesplatform.com/v0',
-                    'private': 'https://api.waves.exchange/v1',
-                    'forward': 'https://waves.exchange/api/v1/forward/matcher',
-                    'market': 'https://waves.exchange/api/v1/forward/marketdata/api/v1',
+                    'private': 'https://api.wx.network/v1',
+                    'forward': 'https://wx.network/api/v1/forward/matcher',
+                    'market': 'https://wx.network/api/v1/forward/marketdata/api/v1',
                 },
                 'doc': 'https://docs.wx.network',
                 'www': 'https://wx.network',
@@ -432,7 +432,7 @@ export default class wavesexchange extends Exchange {
             // currencies can have any name because you can create you own token
             // as a result someone can create a fake token called BTC
             // we use this mapping to determine the real tokens
-            // https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
+            // https://docs.wx.network/en/waves-matcher/matcher-api#asset-pair
             const response = await this.matcherGetMatcherSettings ();
             // {
             //   "orderVersions": [
@@ -737,7 +737,7 @@ export default class wavesexchange extends Exchange {
             const expiresDelta = 60 * 60 * 24 * 7;
             let seconds = this.sum (this.seconds (), expiresDelta);
             seconds = seconds.toString ();
-            const clientId = 'waves.exchange';
+            const clientId = 'wx.network';
             // W for production, T for testnet
             const defaultMessagePrefix = this.safeString (this.options, 'messagePrefix', 'W');
             const message = defaultMessagePrefix + ':' + clientId + ':' + seconds;
@@ -2318,8 +2318,8 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://docs.waves.exchange/en/api/gateways/deposit/currencies
-         * @see https://docs.waves.exchange/en/api/gateways/withdraw/currencies
+         * @see https://docs.wx.network/en/api/gateways/deposit/currencies
+         * @see https://docs.wx.network/en/api/gateways/withdraw/currencies
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
