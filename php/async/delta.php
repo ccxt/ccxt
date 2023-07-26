@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\delta as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\Precise;
 use React\Async;
@@ -30,6 +31,7 @@ class delta extends Exchange {
                 'swap' => null,
                 'future' => null,
                 'option' => null,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -50,6 +52,7 @@ class delta extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
@@ -64,6 +67,7 @@ class delta extends Exchange {
                 'fetchTransfers' => null,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => null,
+                'reduceMargin' => true,
                 'transfer' => false,
                 'withdraw' => false,
             ),
@@ -193,13 +197,7 @@ class delta extends Exchange {
             'options' => array(
                 'networks' => array(
                     'TRC20' => 'TRC20(TRON)',
-                    'TRX' => 'TRC20(TRON)',
                     'BEP20' => 'BEP20(BSC)',
-                    'BSC' => 'BEP20(BSC)',
-                ),
-                'networksById' => array(
-                    'BEP20(BSC)' => 'BSC',
-                    'TRC20(TRON)' => 'TRC20',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -2441,6 +2439,248 @@ class delta extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+        );
+    }
+
+    public function add_margin(string $symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * add margin
+             * @see https://docs.delta.exchange/#add-remove-position-margin
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount amount of margin to add
+             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+             */
+            return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
+        }) ();
+    }
+
+    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * remove margin from a position
+             * @see https://docs.delta.exchange/#add-remove-position-margin
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount the $amount of margin to remove
+             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+             */
+            return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
+        }) ();
+    }
+
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $type, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $amount = (string) $amount;
+            if ($type === 'reduce') {
+                $amount = Precise::string_mul($amount, '-1');
+            }
+            $request = array(
+                'product_id' => $market['numericId'],
+                'delta_margin' => $amount,
+            );
+            $response = Async\await($this->privatePostPositionsChangeMargin (array_merge($request, $params)));
+            //
+            //     {
+            //         "result" => array(
+            //             "auto_topup" => false,
+            //             "bankruptcy_price" => "24934.12",
+            //             "commission" => "0.01197072",
+            //             "created_at" => "2023-07-20T03:49:09.159401Z",
+            //             "entry_price" => "29926.8",
+            //             "liquidation_price" => "25083.754",
+            //             "margin" => "4.99268",
+            //             "margin_mode" => "isolated",
+            //             "product_id" => 84,
+            //             "product_symbol" => "BTCUSDT",
+            //             "realized_cashflow" => "0",
+            //             "realized_funding" => "0",
+            //             "realized_pnl" => "0",
+            //             "size" => 1,
+            //             "updated_at" => "2023-07-20T03:49:09.159401Z",
+            //             "user_id" => 30084879
+            //         ),
+            //         "success" => true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_margin_modification($result, $market);
+        }) ();
+    }
+
+    public function parse_margin_modification($data, $market = null) {
+        //
+        //     {
+        //         "auto_topup" => false,
+        //         "bankruptcy_price" => "24934.12",
+        //         "commission" => "0.01197072",
+        //         "created_at" => "2023-07-20T03:49:09.159401Z",
+        //         "entry_price" => "29926.8",
+        //         "liquidation_price" => "25083.754",
+        //         "margin" => "4.99268",
+        //         "margin_mode" => "isolated",
+        //         "product_id" => 84,
+        //         "product_symbol" => "BTCUSDT",
+        //         "realized_cashflow" => "0",
+        //         "realized_funding" => "0",
+        //         "realized_pnl" => "0",
+        //         "size" => 1,
+        //         "updated_at" => "2023-07-20T03:49:09.159401Z",
+        //         "user_id" => 30084879
+        //     }
+        //
+        $marketId = $this->safe_string($data, 'product_symbol');
+        $market = $this->safe_market($marketId, $market);
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'total' => $this->safe_number($data, 'margin'),
+            'code' => null,
+            'symbol' => $market['symbol'],
+            'status' => null,
+        );
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * retrieves the open interest of a derivative $market
+             * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            //
+            //     {
+            //         "result" => array(
+            //             "close" => 894.0,
+            //             "contract_type" => "call_options",
+            //             "greeks" => array(
+            //                 "delta" => "0.67324861",
+            //                 "gamma" => "0.00022178",
+            //                 "rho" => "4.34638266",
+            //                 "spot" => "30178.53195697",
+            //                 "theta" => "-35.64972577",
+            //                 "vega" => "16.34381277"
+            //             ),
+            //             "high" => 946.0,
+            //             "low" => 893.0,
+            //             "mark_price" => "1037.07582681",
+            //             "mark_vol" => "0.35899491",
+            //             "oi" => "0.0910",
+            //             "oi_change_usd_6h" => "-90.5500",
+            //             "oi_contracts" => "91",
+            //             "oi_value" => "0.0910",
+            //             "oi_value_symbol" => "BTC",
+            //             "oi_value_usd" => "2746.3549",
+            //             "open" => 946.0,
+            //             "price_band" => array(
+            //                 "lower_limit" => "133.37794509",
+            //                 "upper_limit" => "5663.66930164"
+            //             ),
+            //             "product_id" => 116171,
+            //             "quotes" => array(
+            //                 "ask_iv" => "0.36932389",
+            //                 "ask_size" => "1321",
+            //                 "best_ask" => "1054",
+            //                 "best_bid" => "1020",
+            //                 "bid_iv" => "0.34851914",
+            //                 "bid_size" => "2202",
+            //                 "impact_mid_price" => null,
+            //                 "mark_iv" => "0.35896335"
+            //             ),
+            //             "size" => 152,
+            //             "spot_price" => "30178.53195697",
+            //             "strike_price" => "29500",
+            //             "symbol" => "C-BTC-29500-280723",
+            //             "timestamp" => 1689834695286094,
+            //             "turnover" => 4546.601744940001,
+            //             "turnover_symbol" => "USDT",
+            //             "turnover_usd" => 4546.601744940001,
+            //             "volume" => 0.15200000000000002
+            //         ),
+            //         "success" => true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_open_interest($result, $market);
+        }) ();
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "close" => 894.0,
+        //         "contract_type" => "call_options",
+        //         "greeks" => array(
+        //             "delta" => "0.67324861",
+        //             "gamma" => "0.00022178",
+        //             "rho" => "4.34638266",
+        //             "spot" => "30178.53195697",
+        //             "theta" => "-35.64972577",
+        //             "vega" => "16.34381277"
+        //         ),
+        //         "high" => 946.0,
+        //         "low" => 893.0,
+        //         "mark_price" => "1037.07582681",
+        //         "mark_vol" => "0.35899491",
+        //         "oi" => "0.0910",
+        //         "oi_change_usd_6h" => "-90.5500",
+        //         "oi_contracts" => "91",
+        //         "oi_value" => "0.0910",
+        //         "oi_value_symbol" => "BTC",
+        //         "oi_value_usd" => "2746.3549",
+        //         "open" => 946.0,
+        //         "price_band" => array(
+        //             "lower_limit" => "133.37794509",
+        //             "upper_limit" => "5663.66930164"
+        //         ),
+        //         "product_id" => 116171,
+        //         "quotes" => array(
+        //             "ask_iv" => "0.36932389",
+        //             "ask_size" => "1321",
+        //             "best_ask" => "1054",
+        //             "best_bid" => "1020",
+        //             "bid_iv" => "0.34851914",
+        //             "bid_size" => "2202",
+        //             "impact_mid_price" => null,
+        //             "mark_iv" => "0.35896335"
+        //         ),
+        //         "size" => 152,
+        //         "spot_price" => "30178.53195697",
+        //         "strike_price" => "29500",
+        //         "symbol" => "C-BTC-29500-280723",
+        //         "timestamp" => 1689834695286094,
+        //         "turnover" => 4546.601744940001,
+        //         "turnover_symbol" => "USDT",
+        //         "turnover_usd" => 4546.601744940001,
+        //         "volume" => 0.15200000000000002
+        //     }
+        //
+        $timestamp = $this->safe_integer_product($interest, 'timestamp', 0.001);
+        $marketId = $this->safe_string($interest, 'symbol');
+        return array(
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'baseVolume' => $this->safe_number($interest, 'oi_value'),
+            'quoteVolume' => $this->safe_number($interest, 'oi_value_usd'),
+            'openInterestAmount' => $this->safe_number($interest, 'oi_contracts'),
+            'openInterestValue' => $this->safe_number($interest, 'oi'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
         );
     }
 

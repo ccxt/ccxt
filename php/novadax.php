@@ -74,7 +74,7 @@ class novadax extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -1250,7 +1250,7 @@ class novadax extends Exchange {
         $request = array(
             'type' => 'coin_in',
         );
-        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1266,17 +1266,16 @@ class novadax extends Exchange {
         $request = array(
             'type' => 'coin_out',
         );
-        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @deprecated
-         * use fetchDepositsWithdrawals instead
+         * fetch history of deposits and withdrawals
          * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
-         * @param {string} $code unified $currency $code for the $currency of the transactions, default is null
-         * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
-         * @param {int} [$limit] max number of transactions to return, default is null
+         * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the novadax api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
@@ -1348,7 +1347,7 @@ class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        // fetchTransactions
+        // fetchDepositsWithdrawals
         //
         //     {
         //         "id" => "DR562339304588709888",

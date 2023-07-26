@@ -198,6 +198,8 @@ export default class hollaex extends Exchange {
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
+                    'BNB': 'bnb',
+                    'MATIC': 'matic',
                 },
             },
         });
@@ -323,6 +325,7 @@ export default class hollaex extends Exchange {
          * @method
          * @name hollaex#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://apidocs.hollaex.com/#constants
          * @param {object} [params] extra parameters specific to the hollaex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1703,13 +1706,11 @@ export default class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
         }
         params = this.omit (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const networkId = this.safeStringLower2 (networks, network, code, network);
         const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-            'network': networkId,
+            'network': this.networkCodeToId (network, code),
         };
         const response = await this.privatePostUserWithdrawal (this.extend (request, params));
         //
@@ -1723,6 +1724,124 @@ export default class hollaex extends Exchange {
         //     }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    "bch":{
+        //        "id":4,
+        //        "fullname":"Bitcoin Cash",
+        //        "symbol":"bch",
+        //        "active":true,
+        //        "verified":true,
+        //        "allow_deposit":true,
+        //        "allow_withdrawal":true,
+        //        "withdrawal_fee":0.0001,
+        //        "min":0.001,
+        //        "max":100000,
+        //        "increment_unit":0.001,
+        //        "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //        "code":"bch",
+        //        "is_public":true,
+        //        "meta":{},
+        //        "estimated_price":null,
+        //        "description":null,
+        //        "type":"blockchain",
+        //        "network":null,
+        //        "standard":null,
+        //        "issuer":"HollaEx",
+        //        "withdrawal_fees":null,
+        //        "created_at":"2019-08-09T10:45:43.367Z",
+        //        "updated_at":"2021-12-13T03:08:32.372Z",
+        //        "created_by":1,
+        //        "owner_id":1
+        //    }
+        //
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        const allowWithdrawal = this.safeValue (fee, 'allow_withdrawal');
+        if (allowWithdrawal) {
+            result['withdraw'] = { 'fee': this.safeNumber (fee, 'withdrawal_fee'), 'percentage': false };
+        }
+        const withdrawalFees = this.safeValue (fee, 'withdrawal_fees');
+        if (withdrawalFees !== undefined) {
+            const keys = Object.keys (withdrawalFees);
+            const keysLength = keys.length;
+            for (let i = 0; i < keysLength; i++) {
+                const key = keys[i];
+                const value = withdrawalFees[key];
+                const currencyId = this.safeString (value, 'symbol');
+                const currencyCode = this.safeCurrencyCode (currencyId);
+                const networkCode = this.networkIdToCode (key, currencyCode);
+                const networkCodeUpper = networkCode.toUpperCase (); // default to the upper case network code
+                const withdrawalFee = this.safeNumber (value, 'value');
+                result['networks'][networkCodeUpper] = {
+                    'deposit': undefined,
+                    'withdraw': withdrawalFee,
+                };
+            }
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name hollaex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://apidocs.hollaex.com/#constants
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} [params] extra parameters specific to the hollaex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        const response = await this.publicGetConstants (params);
+        //
+        //     {
+        //         "coins":{
+        //             "bch":{
+        //                 "id":4,
+        //                 "fullname":"Bitcoin Cash",
+        //                 "symbol":"bch",
+        //                 "active":true,
+        //                 "verified":true,
+        //                 "allow_deposit":true,
+        //                 "allow_withdrawal":true,
+        //                 "withdrawal_fee":0.0001,
+        //                 "min":0.001,
+        //                 "max":100000,
+        //                 "increment_unit":0.001,
+        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //                 "code":"bch",
+        //                 "is_public":true,
+        //                 "meta":{},
+        //                 "estimated_price":null,
+        //                 "description":null,
+        //                 "type":"blockchain",
+        //                 "network":null,
+        //                 "standard":null,
+        //                 "issuer":"HollaEx",
+        //                 "withdrawal_fees":null,
+        //                 "created_at":"2019-08-09T10:45:43.367Z",
+        //                 "updated_at":"2021-12-13T03:08:32.372Z",
+        //                 "created_by":1,
+        //                 "owner_id":1
+        //             },
+        //         },
+        //         "network":"https://api.hollaex.network"
+        //     }
+        //
+        const coins = this.safeValue (response, 'coins');
+        return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
     normalizeNumberIfNeeded (number) {

@@ -59,7 +59,7 @@ class coinbasepro extends coinbasepro$1 {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -1485,17 +1485,16 @@ class coinbasepro extends coinbasepro$1 {
         }
         return this.parseLedger(response, currency, since, limit);
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
+         * @name coinbasepro#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @param {string} [params.id] account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
@@ -1510,7 +1509,7 @@ class coinbasepro extends coinbasepro$1 {
                 const accountsByCurrencyCode = this.indexBy(this.accounts, 'code');
                 const account = this.safeValue(accountsByCurrencyCode, code);
                 if (account === undefined) {
-                    throw new errors.ExchangeError(this.id + ' fetchTransactions() could not find account id for ' + code);
+                    throw new errors.ExchangeError(this.id + ' fetchDepositsWithdrawals() could not find account id for ' + code);
                 }
                 id = account['id'];
             }
@@ -1605,7 +1604,7 @@ class coinbasepro extends coinbasepro$1 {
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        return await this.fetchTransactions(code, since, limit, this.extend({ 'type': 'deposit' }, params));
+        return await this.fetchDepositsWithdrawals(code, since, limit, this.extend({ 'type': 'deposit' }, params));
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1618,7 +1617,7 @@ class coinbasepro extends coinbasepro$1 {
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        return await this.fetchTransactions(code, since, limit, this.extend({ 'type': 'withdraw' }, params));
+        return await this.fetchDepositsWithdrawals(code, since, limit, this.extend({ 'type': 'withdraw' }, params));
     }
     parseTransactionStatus(transaction) {
         const canceled = this.safeValue(transaction, 'canceled_at');

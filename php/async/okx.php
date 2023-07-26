@@ -403,6 +403,7 @@ class okx extends Exchange {
                         'account/set-riskOffset-type' => 2,
                         'account/activate-option' => 4,
                         'account/set-auto-loan' => 4,
+                        'account/set-account-level' => 4,
                         'account/mmp-reset' => 4,
                         'account/mmp-config' => 100,
                         // subaccount
@@ -800,25 +801,119 @@ class okx extends Exchange {
             'options' => array(
                 'sandboxMode' => false,
                 'defaultNetwork' => 'ERC20',
+                'defaultNetworks' => array(
+                    'ETH' => 'ERC20',
+                    'BTC' => 'BTC',
+                    'USDT' => 'TRC20',
+                ),
                 'networks' => array(
                     'BTC' => 'Bitcoin',
-                    'OMNI' => 'Omni',
-                    'SOL' => 'Solana',
+                    'BTCLN' => 'Lightning',
+                    'BEP20' => 'BSC',
+                    'ERC20' => 'ERC20',
+                    'TRC20' => 'TRC20',
+                    'CRC20' => 'Crypto',
+                    // sorted
+                    'ACA' => 'Acala',
+                    'ALGO' => 'Algorand',
+                    'BHP' => 'BHP',
+                    'APT' => 'Aptos',
+                    'ARBONE' => 'Arbitrum one',
+                    'AVAXC' => 'Avalanche C-Chain',
+                    'AVAXX' => 'Avalanche X-Chain',
+                    'ARK' => 'ARK',
+                    'AR' => 'Arweave',
+                    'ASTR' => 'Astar',
+                    'BCH' => 'BitcoinCash',
+                    'BSV' => 'Bitcoin SV',
+                    'BTM' => 'Bytom',
+                    'ADA' => 'Cardano',
+                    'CSPR' => 'Casper',
+                    'CELO' => 'CELO',
+                    'XCH' => 'Chia',
+                    'CHZ' => 'Chiliz',
+                    'ATOM' => 'Cosmos',
+                    'TRUE' => 'TrueChain',
+                    'DCR' => 'Decred',
+                    'DGB' => 'Digibyte',
+                    'DOGE' => 'Dogecoin',
+                    'XEC' => 'XEC',
+                    'EGLD' => 'Elrond',
+                    'EOS' => 'EOS',
+                    'ETC' => 'Ethereum Classic',
+                    'ETHW' => 'EthereumPow',
+                    'FTM' => 'Fantom',
+                    'FIL' => 'Filecoin',
+                    'FLOW' => 'FLOW',
+                    'FSN' => 'Fusion',
+                    'ONE' => 'Harmony',
+                    'HBAR' => 'Hedera',
+                    'HNT' => 'Helium',
+                    'ZEN' => 'Horizen',
+                    'ICX' => 'ICON',
+                    'ICP' => 'Dfinity',
+                    'IOST' => 'IOST',
+                    'IOTA' => 'MIOTA',
+                    'KDA' => 'Kadena',
+                    'KAR' => 'KAR',
+                    'KLAY' => 'Klaytn',
+                    'KSM' => 'Kusama',
+                    'LSK' => 'Lisk',
                     'LTC' => 'Litecoin',
+                    'METIS' => 'Metis',
+                    'MINA' => 'Mina',
+                    'XMR' => 'Monero',
+                    'GLRM' => 'Moonbeam',
+                    'MOVR' => 'Moonriver',
+                    'NANO' => 'Nano',
+                    'NEAR' => 'NEAR',
+                    'NAS' => 'Nebulas',
+                    'NEM' => 'New Economy Movement',
+                    'NULS' => 'NULS',
+                    'OASYS' => 'OASYS',
+                    'OKC' => 'OKC',
+                    'ONT' => 'Ontology',
+                    'OPTIMISM' => 'Optimism',
+                    'LAT' => 'PlatON',
+                    'DOT' => 'Polkadot',
                     'MATIC' => 'Polygon',
-                    'OP' => 'Optimism',
-                    'ARB' => 'Arbitrum one',
-                    'AVAX' => 'Avalanche C-Chain',
-                ),
-                'networksById' => array(
-                    'Bitcoin' => 'BTC',
-                    'Omni' => 'OMNI',
-                    'Solana' => 'SOL',
-                    'Litecoin' => 'LTC',
-                    'Polygon' => 'MATIC',
-                    'Optimism' => 'OP',
-                    'Arbitrum one' => 'ARB',
-                    'Avalanche C-Chain' => 'AVAX',
+                    'RVN' => 'Ravencoin',
+                    'XRP' => 'Ripple',
+                    'SC' => 'Siacoin',
+                    'SOL' => 'Solana',
+                    'STX' => 'l-Stacks',
+                    'XLM' => 'Stellar Lumens',
+                    'XTZ' => 'Tezos',
+                    'TON' => 'TON',
+                    'THETA' => 'Theta',
+                    'VSYS' => 'VSYSTEMS',
+                    'WAVES' => 'WAVES',
+                    'WAX' => 'Wax',
+                    'ZEC' => 'Zcash',
+                    'ZIL' => 'Zilliqa',
+                    'ZKSYNC' => 'ZKSYNC',
+                    // 'NEON3' => 'N3', // tbd
+                    // undetermined : "CELO-TOKEN", "Digital Cash", Khala
+                    // todo => uncomment below after consensus
+                    // 'AELF' => 'AELF',
+                    // 'BITCOINDIAMOND' => 'Bitcoin Diamond',
+                    // 'BITCOINGOLD' => 'BitcoinGold',
+                    // 'YOYOW' => 'YOYOW',
+                    // 'QTUM' => 'Quantum',
+                    // 'INTCHAIN' => 'INTCHAIN',
+                    // 'YOUCHAIN' => 'YOUCHAIN',
+                    // 'RONIN' => 'Ronin',
+                    // 'OEC' => 'OEC',
+                    // 'WAYIKICHAIN' => 'WGRT',
+                    // 'MDNA' => 'DNA',
+                    // 'STEP' => 'Step Network',
+                    // 'EMINER' => 'Eminer',
+                    // 'CYBERMILES' => 'CyberMiles',
+                    // 'HYPERCASH' => 'HyperCash',
+                    // 'CONFLUX' => 'Conflux',
+                    // 'CORTEX' => 'Cortex',
+                    // 'TERRA' => 'Terra',
+                    // 'TERRACLASSIC' => 'Terra Classic',
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -2625,8 +2720,9 @@ class okx extends Exchange {
     }
 
     public function edit_order_request(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
         $request = array(
-            'instId' => $this->market_id($symbol),
+            'instId' => $market['id'],
         );
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -2634,13 +2730,49 @@ class okx extends Exchange {
         } else {
             $request['ordId'] = $id;
         }
-        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
+        $stopLossTriggerPrice = $this->safe_value_2($params, 'stopLossPrice', 'newSlTriggerPx');
+        $stopLossPrice = $this->safe_value($params, 'newSlOrdPx');
+        $stopLossTriggerPriceType = $this->safe_string($params, 'newSlTriggerPxType', 'last');
+        $takeProfitTriggerPrice = $this->safe_value_2($params, 'takeProfitPrice', 'newTpTriggerPx');
+        $takeProfitPrice = $this->safe_value($params, 'newTpOrdPx');
+        $takeProfitTriggerPriceType = $this->safe_string($params, 'newTpTriggerPxType', 'last');
+        $stopLoss = $this->safe_value($params, 'stopLoss');
+        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $stopLossDefined = ($stopLoss !== null);
+        $takeProfitDefined = ($takeProfit !== null);
+        if ($stopLossTriggerPrice !== null) {
+            $request['newSlTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+            $request['newSlOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
+            $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
+        }
+        if ($takeProfitTriggerPrice !== null) {
+            $request['newTpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+            $request['newTpOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
+            $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
+        }
+        if ($stopLossDefined) {
+            $stopLossTriggerPrice = $this->safe_value($stopLoss, 'triggerPrice');
+            $stopLossPrice = $this->safe_value($stopLoss, 'price');
+            $stopLossType = $this->safe_string($stopLoss, 'type');
+            $request['newSlTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+            $request['newSlOrdPx'] = ($stopLossType === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
+            $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
+        }
+        if ($takeProfitDefined) {
+            $takeProfitTriggerPrice = $this->safe_value($takeProfit, 'triggerPrice');
+            $takeProfitPrice = $this->safe_value($takeProfit, 'price');
+            $takeProfitType = $this->safe_string($takeProfit, 'type');
+            $request['newTpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+            $request['newTpOrdPx'] = ($takeProfitType === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
+            $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
+        }
         if ($amount !== null) {
             $request['newSz'] = $this->amount_to_precision($symbol, $amount);
         }
         if ($price !== null) {
             $request['newPx'] = $this->price_to_precision($symbol, $price);
         }
+        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ));
         return array_merge($request, $params);
     }
 
@@ -2656,15 +2788,27 @@ class okx extends Exchange {
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->clientOrderId] client $order $id, uses $id if not passed
+             * @param {float} [$params->stopLossPrice] stop loss trigger $price
+             * @param {float} [$params->newSlOrdPx] the stop loss $order $price, set to stopLossPrice if the $type is $market
+             * @param {string} [$params->newSlTriggerPxType] 'last', 'index' or 'mark' used to specify the stop loss trigger $price $type, default is 'last'
+             * @param {float} [$params->takeProfitPrice] take profit trigger $price
+             * @param {float} [$params->newTpOrdPx] the take profit $order $price, set to takeProfitPrice if the $type is $market
+             * @param {string} [$params->newTpTriggerPxType] 'last', 'index' or 'mark' used to specify the take profit trigger $price $type, default is 'last'
+             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
+             * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+             * @param {float} [$params->stopLoss.price] used for stop loss limit orders, not used for stop loss $market $price orders
+             * @param {string} [$params->stopLoss.type] 'market' or 'limit' used to specify the stop loss $price $type
+             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered
+             * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+             * @param {float} [$params->takeProfit.price] used for take profit limit orders, not used for take profit $market $price orders
+             * @param {string} [$params->takeProfit.type] 'market' or 'limit' used to specify the take profit $price $type
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-            $response = Async\await($this->privatePostTradeAmendOrder ($request));
+            $response = Async\await($this->privatePostTradeAmendOrder (array_merge($request, $params)));
             //
             //     {
             //        "code" => "0",
@@ -3982,6 +4126,7 @@ class okx extends Exchange {
         //
         //     {
         //        "chain" => "ETH-OKExChain",
+        //        "addrEx" => array( "comment" => "6040348" ), // some currencies like TON may have this field,
         //        "ctAddr" => "72315c",
         //        "ccy" => "ETH",
         //        "to" => "6",
@@ -3990,8 +4135,11 @@ class okx extends Exchange {
         //     }
         //
         $address = $this->safe_string($depositAddress, 'addr');
-        $tag = $this->safe_string_2($depositAddress, 'tag', 'pmtId');
-        $tag = $this->safe_string($depositAddress, 'memo', $tag);
+        $tag = $this->safe_string_n($depositAddress, array( 'tag', 'pmtId', 'memo' ));
+        if ($tag === null) {
+            $addrEx = $this->safe_value($depositAddress, 'addrEx', array());
+            $tag = $this->safe_string($addrEx, 'comment');
+        }
         $currencyId = $this->safe_string($depositAddress, 'ccy');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
@@ -6328,7 +6476,7 @@ class okx extends Exchange {
         $id = $this->safe_string($interest, 'instId');
         $market = $this->safe_market($id, $market);
         $time = $this->safe_integer($interest, 'ts');
-        $timestamp = $this->safe_number($interest, 0, $time);
+        $timestamp = $this->safe_integer($interest, 0, $time);
         $baseVolume = null;
         $quoteVolume = null;
         $openInterestAmount = null;
@@ -6541,7 +6689,7 @@ class okx extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $settlements = $this->parse_settlements($data, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
         }) ();
     }
 

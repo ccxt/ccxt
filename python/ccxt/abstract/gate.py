@@ -136,6 +136,8 @@ class ImplicitAPI:
     private_margin_patch_loans_loan_id = privateMarginPatchLoansLoanId = Entry('loans/{loan_id}', ['private', 'margin'], 'PATCH', {'cost': 1.5})
     private_margin_patch_loan_records_loan_record_id = privateMarginPatchLoanRecordsLoanRecordId = Entry('loan_records/{loan_record_id}', ['private', 'margin'], 'PATCH', {'cost': 1.5})
     private_margin_delete_loans_loan_id = privateMarginDeleteLoansLoanId = Entry('loans/{loan_id}', ['private', 'margin'], 'DELETE', {'cost': 1.5})
+    private_flash_swap_get_currencies = privateFlash_swapGetCurrencies = Entry('currencies', ['private', 'flash_swap'], 'GET', {'cost': 1.5})
+    private_flash_swap_get_currency_pairs = privateFlash_swapGetCurrencyPairs = Entry('currency_pairs', ['private', 'flash_swap'], 'GET', {'cost': 1.5})
     private_flash_swap_get_orders = privateFlash_swapGetOrders = Entry('orders', ['private', 'flash_swap'], 'GET', {'cost': 1.5})
     private_flash_swap_get_orders_order_id = privateFlash_swapGetOrdersOrderId = Entry('orders/{order_id}', ['private', 'flash_swap'], 'GET', {'cost': 1.5})
     private_flash_swap_post_orders = privateFlash_swapPostOrders = Entry('orders', ['private', 'flash_swap'], 'POST', {'cost': 1.5})

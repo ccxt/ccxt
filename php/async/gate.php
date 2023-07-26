@@ -85,7 +85,6 @@ class gate extends Exchange {
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'createDepositAddress' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -361,6 +360,8 @@ class gate extends Exchange {
                     ),
                     'flash_swap' => array(
                         'get' => array(
+                            'currencies' => 1.5,
+                            'currency_pairs' => 1.5,
                             'orders' => 1.5,
                             'orders/{order_id}' => 1.5,
                         ),
@@ -771,6 +772,7 @@ class gate extends Exchange {
                     'REPAY_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TOO_MANY_CURRENCY_PAIRS' => '\\ccxt\\InvalidOrder',
                     'TOO_MANY_ORDERS' => '\\ccxt\\InvalidOrder',
+                    'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded',
                     'MIXED_ACCOUNT_TYPE' => '\\ccxt\\InvalidOrder',
                     'AUTO_BORROW_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TRADE_RESTRICTED' => '\\ccxt\\InsufficientFunds',
@@ -1767,19 +1769,6 @@ class gate extends Exchange {
                 );
             }
             return $result;
-        }) ();
-    }
-
-    public function create_deposit_address(string $code, $params = array ()) {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * create a currency deposit address
-             * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
-             * @param {string} $code unified currency $code of the currency for the deposit address
-             * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
-             */
-            return Async\await($this->fetch_deposit_address($code, $params));
         }) ();
     }
 

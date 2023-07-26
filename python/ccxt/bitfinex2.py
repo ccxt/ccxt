@@ -82,7 +82,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'withdraw': True,
             },
             'timeframes': {
@@ -1916,7 +1916,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         "Invalid bitcoin address(abcdef)",  # TEXT Text of the notification
         #     ]
         #
-        # fetchTransactions
+        # fetchDepositsWithdrawals
         #
         #     [
         #         13293039,  # ID
@@ -2128,13 +2128,12 @@ class bitfinex2(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
@@ -2349,8 +2348,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' returned empty response')
         if statusCode == 500:
             # See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            errorCode = self.number_to_string(response[1])
-            errorText = response[2]
+            errorCode = self.safe_string(response, 1, '')
+            errorText = self.safe_string(response, 2, '')
             feedback = self.id + ' ' + errorText
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

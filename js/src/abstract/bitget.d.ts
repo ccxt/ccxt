@@ -39,8 +39,6 @@ interface Exchange {
     publicMarginGetCrossPublicTierData(params?: {}): Promise<implicitReturnType>;
     publicMarginGetIsolatedPublicTierData(params?: {}): Promise<implicitReturnType>;
     publicMarginGetPublicCurrencies(params?: {}): Promise<implicitReturnType>;
-    publicMarginGetCrossAccountAssets(params?: {}): Promise<implicitReturnType>;
-    publicMarginGetIsolatedAccountAssets(params?: {}): Promise<implicitReturnType>;
     privateSpotGetWalletDepositAddress(params?: {}): Promise<implicitReturnType>;
     privateSpotGetWalletWithdrawalList(params?: {}): Promise<implicitReturnType>;
     privateSpotGetWalletDepositList(params?: {}): Promise<implicitReturnType>;
@@ -48,6 +46,8 @@ interface Exchange {
     privateSpotGetAccountAssets(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountAssetsLite(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountTransferRecords(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetConvertCurrencies(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetConvertConvertRecord(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransfer(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransferV2(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletSubTransfer(params?: {}): Promise<implicitReturnType>;
@@ -93,6 +93,8 @@ interface Exchange {
     privateSpotPostTraceProfitProfitHisDetailList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceProfitWaitProfitDetailList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceUserGetTraderInfo(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostConvertQuotedPrice(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostConvertTrade(params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccount(params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccounts(params?: {}): Promise<implicitReturnType>;
     privateMixGetPositionSinglePosition(params?: {}): Promise<implicitReturnType>;
@@ -213,6 +215,8 @@ interface Exchange {
     privateMarginGetCrossInterestList(params?: {}): Promise<implicitReturnType>;
     privateMarginGetCrossLiquidationList(params?: {}): Promise<implicitReturnType>;
     privateMarginGetCrossFinList(params?: {}): Promise<implicitReturnType>;
+    privateMarginGetCrossAccountAssets(params?: {}): Promise<implicitReturnType>;
+    privateMarginGetIsolatedAccountAssets(params?: {}): Promise<implicitReturnType>;
     privateMarginPostCrossAccountBorrow(params?: {}): Promise<implicitReturnType>;
     privateMarginPostIsolatedAccountBorrow(params?: {}): Promise<implicitReturnType>;
     privateMarginPostCrossAccountRepay(params?: {}): Promise<implicitReturnType>;

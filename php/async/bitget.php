@@ -187,8 +187,6 @@ class bitget extends Exchange {
                             'cross/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'isolated/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'public/currencies' => 1, // 20 times/1s (IP) => 20/20 = 1
-                            'cross/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'isolated/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
                         ),
                     ),
                 ),
@@ -202,6 +200,8 @@ class bitget extends Exchange {
                             'account/assets' => 2,
                             'account/assets-lite' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'account/transferRecords' => 1, // 20 times/1s (UID) => 20/20 = 1
+                            'convert/currencies' => 2,
+                            'convert/convert-record' => 2,
                         ),
                         'post' => array(
                             'wallet/transfer' => 4,
@@ -249,6 +249,8 @@ class bitget extends Exchange {
                             'trace/profit/profitHisDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/profit/waitProfitDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/user/getTraderInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'convert/quoted-price' => 4,
+                            'convert/trade' => 4,
                         ),
                     ),
                     'mix' => array(
@@ -395,6 +397,8 @@ class bitget extends Exchange {
                             'cross/interest/list' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'cross/liquidation/list' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'cross/fin/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'isolated/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
                         ),
                         'post' => array(
                             'cross/account/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2

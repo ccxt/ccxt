@@ -71,7 +71,7 @@ class lykke extends lykke$1 {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchWithdrawals': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -1109,7 +1109,7 @@ class lykke extends lykke$1 {
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
         //
-        // fetchTransactions
+        // fetchDepositsWithdrawals
         //     {
         //         "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
         //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
@@ -1163,15 +1163,14 @@ class lykke extends lykke$1 {
             'fee': fee,
         };
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name lykke#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name lykke#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the lykke api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
