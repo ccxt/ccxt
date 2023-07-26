@@ -71,6 +71,7 @@ const {
     , safeStringLower2
     , yymmdd
     , base58ToBinary
+    , binaryToBase58
     , safeTimestamp2
     , rawencode
     , keysort
@@ -393,6 +394,7 @@ export default class Exchange {
     uuid22 = uuid22
     safeIntegerProduct2 = safeIntegerProduct2
     safeIntegerProduct = safeIntegerProduct
+    binaryToBase58 = binaryToBase58
     base58ToBinary = base58ToBinary
     base64ToBinary = base64ToBinary
     safeTimestamp2 = safeTimestamp2
