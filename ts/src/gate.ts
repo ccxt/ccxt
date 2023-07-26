@@ -802,6 +802,7 @@ export default class gate extends Exchange {
                     'RISK_LIMIT_TOO_LOW': BadRequest, // {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
                     'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,  // {"label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument: Trigger.Price must < last_price"}
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder, // {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
+                    'POSITION_HOLDING': BadRequest,
                 },
                 'broad': {},
             },
