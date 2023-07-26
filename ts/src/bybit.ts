@@ -5065,7 +5065,9 @@ export default class bybit extends Exchange {
         } else {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            if (market['linear']) {
+            if (market['spot']) {
+                request['category'] = 'spot';
+            } else if (market['linear']) {
                 request['category'] = 'linear';
             } else {
                 request['category'] = 'inverse';
@@ -5074,7 +5076,11 @@ export default class bybit extends Exchange {
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
         if (isStop) {
-            request['orderFilter'] = 'StopOrder';
+            if (market['spot']) {
+                request['orderFilter'] = 'tpslOrder';
+            } else {
+                request['orderFilter'] = 'StopOrder';
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -5176,16 +5182,13 @@ export default class bybit extends Exchange {
         if (isInverse && isLinearSettle) {
             throw new ArgumentsRequired (this.id + ' fetchOrders with inverse subType requires settle to not be USDT or USDC');
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount) {
-            return await this.fetchUnifiedAccountOrders (symbol, since, limit, query);
-        } else if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchOrders() only support ' + type + ' markets for unified trade account, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
+            return await this.fetchUnifiedAccountOrders (symbol, since, limit, params);
         } else if (enableUnifiedMargin && !isInverse) {
-            return await this.fetchUnifiedMarginOrders (symbol, since, limit, query);
+            return await this.fetchUnifiedMarginOrders (symbol, since, limit, params);
         } else {
-            return await this.fetchDerivativesOrders (symbol, since, limit, query);
+            return await this.fetchDerivativesOrders (symbol, since, limit, params);
         }
     }
 
