@@ -478,7 +478,7 @@ export default class woo extends wooRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     parseWsOrder (order, market = undefined) {

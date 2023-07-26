@@ -128,8 +128,8 @@ export default class poloniex extends poloniexRest {
          * @description Connects to a websocket channel
          * @param {string} name name of the channel
          * @param {boolean} isPrivate true for the authenticated url, false for the public url
-         * @param {[string]|undefined} symbols CCXT market symbols
-         * @param {object} params extra parameters specific to the poloniex api
+         * @param {string[]|undefined} symbols CCXT market symbols
+         * @param {object} [params] extra parameters specific to the poloniex api
          * @returns {object} data from the websocket stream
          */
         const publicOrPrivate = isPrivate ? 'private' : 'public';
@@ -162,10 +162,10 @@ export default class poloniex extends poloniexRest {
          * @see https://docs.poloniex.com/#public-channels-market-data-candlesticks
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns [[int]] A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const timeframes = this.safeValue(this.options, 'timeframes', {});
@@ -186,7 +186,7 @@ export default class poloniex extends poloniexRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets();
@@ -201,7 +201,7 @@ export default class poloniex extends poloniexRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets();
@@ -220,10 +220,10 @@ export default class poloniex extends poloniexRest {
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs.poloniex.com/#public-channels-market-data-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -241,8 +241,8 @@ export default class poloniex extends poloniexRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.poloniex.com/#public-channels-market-data-book-level-2
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit not used by poloniex watchOrderBook
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {int} [limit] not used by poloniex watchOrderBook
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -258,11 +258,11 @@ export default class poloniex extends poloniexRest {
          * @name poloniex#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since not used by poloniex watchOrders
-         * @param {int|undefined} limit not used by poloniex watchOrders
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] not used by poloniex watchOrders
+         * @param {int} [limit] not used by poloniex watchOrders
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
@@ -283,11 +283,11 @@ export default class poloniex extends poloniexRest {
          * @name poloniex#watchMyTrades
          * @description watches information on multiple trades made by the user using orders stream
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since not used by poloniex watchMyTrades
-         * @param {int|undefined} limit not used by poloniex watchMyTrades
-         * @param {object} params extra parameters specific to the poloniex strean
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] not used by poloniex watchMyTrades
+         * @param {int} [limit] not used by poloniex watchMyTrades
+         * @param {object} [params] extra parameters specific to the poloniex strean
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
@@ -309,11 +309,11 @@ export default class poloniex extends poloniexRest {
          * @name poloniex#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
-         * @param {string|undefined} symbol not used by poloniex watchBalance
-         * @param {int|undefined} since not used by poloniex watchBalance
-         * @param {int|undefined} limit not used by poloniex watchBalance
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol not used by poloniex watchBalance
+         * @param {int} [since] not used by poloniex watchBalance
+         * @param {int} [limit] not used by poloniex watchBalance
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
         const name = 'balances';

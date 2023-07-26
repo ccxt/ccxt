@@ -1,5 +1,9 @@
 import Exchange from './abstract/bittrex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bittrex
+ * @extends Exchange
+ */
 export default class bittrex extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;

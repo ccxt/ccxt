@@ -17,9 +17,11 @@
         }
     },
     "alpaca": {
+        "skip": true,
         "skipWs": true
     },
     "ascendex": {
+        "skip": "03/06: 502 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -308,9 +310,15 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "fetchTickers": {
+            "fetchTicker": {
+                "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027",
                 "baseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152",
                 "quoteVolume": "quoteVolume >= baseVolume * low <<< bitstamp fetchTickers"
+            },
+            "fetchTickers": {
+                "bid": "same",
+                "baseVolume": "same",
+                "quoteVolume": "same"
             }
         }
     },
@@ -322,10 +330,14 @@
                 "precision":"not provided",
                 "active": "not provided"
             },
-            "fetchCurrencies":{
-            },
             "fetchOrderBook": "bid/ask might be 0",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": "same",
+            "fetchTicker": {
+                "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027"
+            },
+            "fetchTickers": {
+                "bid": "same"
+            }
         }
     },
     "bl3p": {
@@ -477,6 +489,7 @@
         }
     },
     "bybit": {
+        "skip": "2023-07-13 exchange not available with 403 forbidden error code",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
@@ -494,6 +507,10 @@
     },
     "bigone": {
         "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            },
             "fetchTickers": {
                 "bid": "broken bid-ask",
                 "ask": "broken bid-ask"
@@ -637,21 +654,28 @@
         }
     },
     "delta": {
+        "skip": "failing bid /ask test",
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
+            "fetchOrderBook": "ask crossing bids test failing",
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "ask": "failing the test",
+                "bid": "failing the test"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "ask": "failing the test",
+                "bid": "failing the test"
             }
         }
     },
     "deribit": {
         "skipWs": true,
         "skipMethods": {
+            "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
             "fetchTickers": "something wrong"
         }
@@ -896,6 +920,9 @@
     "kucoin": {
         "skipWs": true,
         "skipMethods":{
+            "fetchCurrencies": {
+                "networks": "not yet implemented"
+            },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
             },
@@ -1297,6 +1324,7 @@
         }
     },
     "zaif": {
+        "skip": "2023-07-13 403 Forbidden",
         "skipMethods": {
             "fetchCurrencies": {
                 "info": "key is missing"
@@ -1313,6 +1341,26 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
+            }
+        }
+    },
+    "bingx": {
+        "skipMethods": {
+            "loadMarkets": "some coins not detected",
+            "fetchTrades": {
+                "side": "undefined"
+            },
+            "fetchTicker": "spot not supported",
+            "fetchTickers": {
+                "quoteVolume": "not supported"
+            },
+            "fetchOHLCV": "spot not supported",
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "precision": "not provided"
+            },
+            "fetchOrderBook": {
+                "ask": "multiple ask prices are equal in ob https://app.travis-ci.com/github/ccxt/ccxt/builds/264706670#L2228"
             }
         }
     }

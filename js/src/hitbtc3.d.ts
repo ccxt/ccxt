@@ -1,5 +1,9 @@
 import Exchange from './abstract/hitbtc3.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class hitbtc3
+ * @extends Exchange
+ */
 export default class hitbtc3 extends Exchange {
     describe(): any;
     nonce(): number;
@@ -58,7 +62,7 @@ export default class hitbtc3 extends Exchange {
             rate: any;
         };
     };
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;

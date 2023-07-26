@@ -1,5 +1,9 @@
 import Exchange from './abstract/hitbtc.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class hitbtc
+ * @extends Exchange
+ */
 export default class hitbtc extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;
@@ -52,7 +56,7 @@ export default class hitbtc extends Exchange {
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;

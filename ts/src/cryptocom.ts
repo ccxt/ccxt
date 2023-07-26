@@ -8,6 +8,10 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
 
+/**
+ * @class cryptocom
+ * @extends Exchange
+ */
 export default class cryptocom extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -22,9 +26,10 @@ export default class cryptocom extends Exchange {
                 'CORS': false,
                 'spot': true,
                 'margin': true,
-                'swap': undefined, // has but not fully implemented
-                'future': undefined, // has but not fully implemented
-                'option': undefined,
+                'swap': true,
+                'future': true,
+                'option': true,
+                'addMargin': false,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -49,9 +54,14 @@ export default class cryptocom extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -61,6 +71,7 @@ export default class cryptocom extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
                 'fetchStatus': false,
                 'fetchTicker': true,
@@ -73,9 +84,11 @@ export default class cryptocom extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
                 'repayMargin': true,
                 'setLeverage': false,
                 'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -155,6 +168,8 @@ export default class cryptocom extends Exchange {
                             'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
                             'private/get-accounts': 10 / 3,
+                            'private/get-withdrawal-history': 10 / 3,
+                            'private/get-deposit-history': 10 / 3,
                         },
                     },
                 },
@@ -306,13 +321,7 @@ export default class cryptocom extends Exchange {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRX': 'TRON',
                     'TRC20': 'TRON',
-                },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
                 },
                 'broker': 'CCXT_',
             },
@@ -361,6 +370,7 @@ export default class cryptocom extends Exchange {
                     '50001': BadRequest,
                     '9010001': OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
+                'broad': {},
             },
         });
     }
@@ -371,8 +381,8 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchMarkets
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
          * @description retrieves data on all markets for cryptocom
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.v1PublicGetPublicGetInstruments (params);
         //
@@ -560,9 +570,10 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -619,7 +630,7 @@ export default class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -635,11 +646,11 @@ export default class cryptocom extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
          * @param {string} symbol unified market symbol of the market the orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for, max date range is one day
-         * @param {int|undefined} limit the maximum number of order structures to retrieve, default 100 max 100
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] the earliest time in ms to fetch orders for, max date range is one day
+         * @param {int} [limit] the maximum number of order structures to retrieve, default 100 max 100
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -711,11 +722,11 @@ export default class cryptocom extends Exchange {
          * @description get a list of the most recent trades for a particular symbol
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch, maximum date range is one day
-         * @param {int|undefined} limit the maximum number of trades to fetch
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch, maximum date range is one day
+         * @param {int} [limit] the maximum number of trades to fetch
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -766,11 +777,11 @@ export default class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -823,8 +834,8 @@ export default class cryptocom extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the number of order book entries to return, max 50
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int} [limit] the number of order book entries to return, max 50
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -884,7 +895,7 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -941,8 +952,8 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -991,26 +1002,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptocom#createOrder
-         * @description create a trade order
-         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK' or 'PO'
-         * @param {string|undefined} params.ref_price_type 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-         * @param {float|undefined} params.stopPrice price to trigger a stop order
-         * @param {float|undefined} params.stopLossPrice price to trigger a stop-loss trigger order
-         * @param {float|undefined} params.takeProfitPrice price to trigger a take-profit trigger order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const request = {
@@ -1109,7 +1101,32 @@ export default class cryptocom extends Exchange {
             request['type'] = uppercaseType;
         }
         params = this.omit (params, [ 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        const response = await this.v1PrivatePostPrivateCreateOrder (this.extend (request, params));
+        return this.extend (request, params);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#createOrder
+         * @description create a trade order
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+         * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
+         * @param {float} [params.stopPrice] price to trigger a stop order
+         * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
+         * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.v1PrivatePostPrivateCreateOrder (request);
         //
         //     {
         //         "id": 1686804664362,
@@ -1131,9 +1148,9 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#cancelAllOrders
          * @description cancel all open orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
-         * @param {string|undefined} symbol unified market symbol of the orders to cancel
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the orders to cancel
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1152,8 +1169,8 @@ export default class cryptocom extends Exchange {
          * @description cancels an open order
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
          * @param {string} id the order id of the order to cancel
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {string} [symbol] unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1187,11 +1204,11 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of open order structures to retrieve
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1249,12 +1266,12 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for, maximum date range is one day
-         * @param {int|undefined} limit the maximum number of trade structures to retrieve
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for, maximum date range is one day
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1328,11 +1345,12 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#withdraw
          * @description make a withdrawal
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -1346,7 +1364,13 @@ export default class cryptocom extends Exchange {
         if (tag !== undefined) {
             request['address_tag'] = tag;
         }
-        const response = await this.v2PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId !== undefined) {
+            request['network_id'] = networkId;
+        }
+        const response = await this.v1PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
         //
         //    {
         //        "id":-1,
@@ -1374,7 +1398,7 @@ export default class cryptocom extends Exchange {
          * @description fetch a dictionary of addresses for a currency, indexed by network
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
          * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
          */
         await this.loadMarkets ();
@@ -1435,7 +1459,7 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const network = this.safeStringUpper (params, 'network');
@@ -1467,11 +1491,13 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -1487,26 +1513,34 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.v2PrivatePostPrivateGetDepositHistory (this.extend (request, params));
-        // {
-        //     "id": 11,
-        //     "method": "private/get-deposit-history",
-        //     "code": 0,
-        //     "result": {
-        //       "deposit_list": [
-        //         {
-        //           "currency": "XRP",
-        //           "fee": 1.0,
-        //           "create_time": 1607063412000,
-        //           "id": "2220",
-        //           "update_time": 1607063460000,
-        //           "amount": 100,
-        //           "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //           "status": "1"
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['end_ts'] = until;
+        }
+        const response = await this.v1PrivatePostPrivateGetDepositHistory (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1688701375714,
+        //         "method": "private/get-deposit-history",
+        //         "code": 0,
+        //         "result": {
+        //             "deposit_list": [
+        //                 {
+        //                     "currency": "BTC",
+        //                     "fee": 0,
+        //                     "create_time": 1688023659000,
+        //                     "id": "6201135",
+        //                     "update_time": 1688178509000,
+        //                     "amount": 0.00114571,
+        //                     "address": "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //                     "status": "1",
+        //                     "txid": "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
+        //                 },
+        //             ]
         //         }
-        //       ]
         //     }
-        // }
+        //
         const data = this.safeValue (response, 'result', {});
         const depositList = this.safeValue (data, 'deposit_list', []);
         return this.parseTransactions (depositList, currency, since, limit);
@@ -1517,11 +1551,13 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -1537,28 +1573,34 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.v2PrivatePostPrivateGetWithdrawalHistory (this.extend (request, params));
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['end_ts'] = until;
+        }
+        const response = await this.v1PrivatePostPrivateGetWithdrawalHistory (this.extend (request, params));
         //
         //     {
-        //       id: 1640704829096,
-        //       method: 'private/get-withdrawal-history',
-        //       code: 0,
-        //       result: {
-        //         withdrawal_list: [
-        //           {
-        //             currency: 'DOGE',
-        //             client_wid: '',
-        //             fee: 50,
-        //             create_time: 1640425168000,
-        //             id: '3180557',
-        //             update_time: 1640425168000,
-        //             amount: 1102.64092,
-        //             address: 'DDrGGqmp5Ddo1QH9tUvDfoL4u4rqys5975',
-        //             status: '5',
-        //             txid: 'ce23e9e21b6c38eef953070a05110e6dca2fd2bcc76d3381000547b9ff5290b2/0'
-        //           }
-        //         ]
-        //       }
+        //         "id": 1688613879534,
+        //         "method": "private/get-withdrawal-history",
+        //         "code": 0,
+        //         "result": {
+        //             "withdrawal_list": [
+        //                 {
+        //                     "currency": "BTC",
+        //                     "client_wid": "",
+        //                     "fee": 0.0005,
+        //                     "create_time": 1688613850000,
+        //                     "id": "5275977",
+        //                     "update_time": 1688613850000,
+        //                     "amount": 0.0005,
+        //                     "address": "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+        //                     "status": "1",
+        //                     "txid": "",
+        //                     "network_id": "BTC"
+        //                 }
+        //             ]
+        //         }
         //     }
         //
         const data = this.safeValue (response, 'result', {});
@@ -1575,7 +1617,7 @@ export default class cryptocom extends Exchange {
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
@@ -1611,11 +1653,11 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @param {string|undefined} code unified currency code of the currency transferred
-         * @param {int|undefined} since the earliest time in ms to fetch transfers for
-         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         if (!('direction' in params)) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
@@ -2013,28 +2055,31 @@ export default class cryptocom extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "currency": "XRP",
-        //         "fee": 1.0,
-        //         "create_time": 1607063412000,
-        //         "id": "2220",
-        //         "update_time": 1607063460000,
-        //         "amount": 100,
-        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //         "status": "1"
+        //         "currency": "BTC",
+        //         "fee": 0,
+        //         "create_time": 1688023659000,
+        //         "id": "6201135",
+        //         "update_time": 1688178509000,
+        //         "amount": 0.00114571,
+        //         "address": "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //         "status": "1",
+        //         "txid": "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "currency": "XRP",
-        //         "client_wid": "my_withdrawal_002",
-        //         "fee": 1.0,
-        //         "create_time": 1607063412000,
-        //         "id": "2220",
-        //         "update_time": 1607063460000,
-        //         "amount": 100,
-        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //         "status": "1"
+        //         "currency": "BTC",
+        //         "client_wid": "",
+        //         "fee": 0.0005,
+        //         "create_time": 1688613850000,
+        //         "id": "5775977",
+        //         "update_time": 1688613850000,
+        //         "amount": 0.0005,
+        //         "address": "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+        //         "status": "1",
+        //         "txid": "",
+        //         "network_id": "BTC"
         //     }
         //
         // withdraw
@@ -2059,24 +2104,20 @@ export default class cryptocom extends Exchange {
             type = 'deposit';
             status = this.parseDepositStatus (rawStatus);
         }
-        const id = this.safeString (transaction, 'id');
         const addressString = this.safeString (transaction, 'address');
         const [ address, tag ] = this.parseAddress (addressString);
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeInteger (transaction, 'create_time');
-        const amount = this.safeNumber (transaction, 'amount');
-        const txId = this.safeString (transaction, 'txid');
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const updated = this.safeInteger (transaction, 'update_time');
         return {
             'info': transaction,
-            'id': id,
-            'txid': txId,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
@@ -2087,10 +2128,10 @@ export default class cryptocom extends Exchange {
             'tagTo': tag,
             'tagFrom': undefined,
             'type': type,
-            'amount': amount,
+            'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': this.safeInteger (transaction, 'update_time'),
             'internal': undefined,
             'fee': fee,
         };
@@ -2104,8 +2145,8 @@ export default class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {string} symbol unified market symbol, not used by cryptocom.repayMargin ()
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -2139,8 +2180,8 @@ export default class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {string} symbol unified market symbol, not used by cryptocom.repayMargin ()
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -2276,7 +2317,7 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchBorrowRates
          * @description fetch the borrow interest rates of all currencies
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
@@ -2334,8 +2375,8 @@ export default class cryptocom extends Exchange {
          * @ignore
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[string|undefined, object]} the marginMode in lowercase
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);
@@ -2410,8 +2451,8 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
-         * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
@@ -2427,11 +2468,11 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry
-         * @param {int|undefined} limit max number of ledger entries to return
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
+         * @param {string} code unified currency code
+         * @param {int} [since] timestamp in ms of the earliest ledger entry
+         * @param {int} [limit] max number of ledger entries to return
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
@@ -2572,7 +2613,7 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets ();
@@ -2656,11 +2697,11 @@ export default class cryptocom extends Exchange {
          * @description fetches historical settlement records
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
          * @param {string} symbol unified market symbol of the settlement history
-         * @param {int|undefined} since timestamp in ms
-         * @param {int|undefined} limit number of records
-         * @param {object} params exchange specific params
-         * @param {int|undefined} params.type 'future', 'option'
-         * @returns {[object]} a list of [settlement history objects]
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @param {int} [params.type] 'future', 'option'
+         * @returns {object[]} a list of [settlement history objects]
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2745,12 +2786,12 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchFundingRateHistory
          * @description fetches historical funding rates
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
-         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} limit the maximum amount of [funding rate structures] to fetch
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
-         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
@@ -2816,7 +2857,7 @@ export default class cryptocom extends Exchange {
          * @description fetch data on a single open contract trade position
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
          * @param {string} symbol unified market symbol of the market the position is held in
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -2858,9 +2899,9 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchPositions
          * @description fetch all open positions
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
-         * @param {[string]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

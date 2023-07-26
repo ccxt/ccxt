@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "3.1.59",
+  "version": "4.0.37",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 130+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -24,6 +24,7 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
+    "build-docs": "node jsdoc2md.js",
     "tsBuild": "tsc || true",
     "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
     "emitAPI": "node build/generateImplicitAPI.js",
@@ -115,6 +116,7 @@
     "eslint-plugin-import": "2.25.4",
     "esmify": "^2.1.1",
     "https-proxy-agent": "^5.0.1",
+    "jsdoc-to-markdown": "^8.0.0",
     "ololog": "1.1.155",
     "piscina": "^3.2.0",
     "replace-in-file": "^6.3.5",

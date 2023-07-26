@@ -36,7 +36,7 @@ class bybit extends Exchange {
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
-                'option' => null,
+                'option' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -82,6 +82,7 @@ class bybit extends Exchange {
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => true,
+                'fetchSettlementHistory' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -229,6 +230,7 @@ class bybit extends Exchange {
                         'derivatives/v3/public/open-interest' => 1,
                         'derivatives/v3/public/insurance' => 1,
                         // v5
+                        'v5/market/time' => 1,
                         'v5/market/kline' => 1,
                         'v5/market/mark-price-kline' => 1,
                         'v5/market/index-price-kline' => 1,
@@ -1094,6 +1096,8 @@ class bybit extends Exchange {
                 'recvWindow' => 5 * 1000, // 5 sec default
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+                'loadAllOptions' => false, // load all possible option markets, adds signficant load time
+                'loadExpiredOptions' => false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 'brokerId' => 'CCXT',
                 'accountsByType' => array(
                     'spot' => 'SPOT',
@@ -1251,7 +1255,7 @@ class bybit extends Exchange {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
              * @see https://bybit-exchange.github.io/docs/v3/server-time
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetV3PublicTime ($params));
@@ -1276,7 +1280,7 @@ class bybit extends Exchange {
             /**
              * fetches all available currencies on an exchange
              * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} an associative dictionary of currencies
              */
             if (!$this->check_required_credentials(false)) {
@@ -1406,35 +1410,34 @@ class bybit extends Exchange {
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * retrieves data on all $markets for bybit
+             * retrieves data on all markets for bybit
              * @see https://bybit-exchange.github.io/docs/v5/market/instrument
-             * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing market data
+             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @return {array[]} an array of objects representing market data
              */
             if ($this->options['adjustForTimeDifference']) {
                 Async\await($this->load_time_difference());
             }
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
             $promisesUnresolved = array(
                 $this->fetch_spot_markets($params),
-                $this->fetch_derivatives_markets(array( 'category' => 'linear' )),
-                $this->fetch_derivatives_markets(array( 'category' => 'inverse' )),
+                $this->fetch_future_markets(array( 'category' => 'linear' )),
+                $this->fetch_future_markets(array( 'category' => 'inverse' )),
+                $this->fetch_option_markets(array( 'baseCoin' => 'BTC' )),
+                $this->fetch_option_markets(array( 'baseCoin' => 'ETH' )),
+                $this->fetch_option_markets(array( 'baseCoin' => 'SOL' )),
             );
-            if ($type === 'option') {
-                $promisesUnresolved[] = $this->fetch_derivatives_markets(array( 'category' => 'option' ));
-            }
             $promises = Async\await(Promise\all($promisesUnresolved));
             $spotMarkets = $promises[0];
             $linearMarkets = $promises[1];
             $inverseMarkets = $promises[2];
-            $markets = $spotMarkets;
-            $markets = $this->array_concat($markets, $linearMarkets);
-            if ($type === 'option') {
-                $optionMarkets = $promises[3];
-                $markets = $this->array_concat($markets, $optionMarkets);
-            }
-            return $this->array_concat($markets, $inverseMarkets);
+            $btcOptionMarkets = $promises[3];
+            $ethOptionMarkets = $promises[4];
+            $solOptionMarkets = $promises[5];
+            $futureMarkets = $this->array_concat($linearMarkets, $inverseMarkets);
+            $optionMarkets = $this->array_concat($btcOptionMarkets, $ethOptionMarkets);
+            $optionMarkets = $this->array_concat($optionMarkets, $solOptionMarkets);
+            $derivativeMarkets = $this->array_concat($futureMarkets, $optionMarkets);
+            return $this->array_concat($spotMarkets, $derivativeMarkets);
         }) ();
     }
 
@@ -1548,7 +1551,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_derivatives_markets($params) {
+    public function fetch_future_markets($params) {
         return Async\async(function () use ($params) {
             $params = array_merge($params);
             $params['limit'] = 1000; // minimize number of requests
@@ -1570,8 +1573,6 @@ class bybit extends Exchange {
                     $paginationCursor = $this->safe_string($dataNew, 'nextPageCursor');
                 }
             }
-            //
-            // $linear $response
             //
             //     {
             //         "retCode" => 0,
@@ -1616,43 +1617,6 @@ class bybit extends Exchange {
             //         "time" => 1672712495660
             //     }
             //
-            // $option $response
-            //
-            //     {
-            //         "retCode" => 0,
-            //         "retMsg" => "OK",
-            //         "result" => {
-            //             "category" => "option",
-            //             "nextPageCursor" => "",
-            //             "list" => array(
-            //                 {
-            //                     "category" => "option",
-            //                     "symbol" => "ETH-3JAN23-1250-P",
-            //                     "status" => "ONLINE",
-            //                     "baseCoin" => "ETH",
-            //                     "quoteCoin" => "USD",
-            //                     "settleCoin" => "USDC",
-            //                     "optionsType" => "Put",
-            //                     "launchTime" => "1672560000000",
-            //                     "deliveryTime" => "1672732800000",
-            //                     "deliveryFeeRate" => "0.00015",
-            //                     "priceFilter" => array(
-            //                         "minPrice" => "0.1",
-            //                         "maxPrice" => "10000000",
-            //                         "tickSize" => "0.1"
-            //                     ),
-            //                     "lotSizeFilter" => array(
-            //                         "maxOrderQty" => "1500",
-            //                         "minOrderQty" => "0.1",
-            //                         "qtyStep" => "0.1"
-            //                     }
-            //                 }
-            //             )
-            //         ),
-            //         "retExtInfo" => array(),
-            //         "time" => 1672712537130
-            //     }
-            //
             $result = array();
             $category = $this->safe_string($data, 'category');
             for ($i = 0; $i < count($markets); $i++) {
@@ -1685,17 +1649,13 @@ class bybit extends Exchange {
                 $priceFilter = $this->safe_value($market, 'priceFilter', array());
                 $leverage = $this->safe_value($market, 'leverageFilter', array());
                 $status = $this->safe_string($market, 'status');
-                $active = ($status === 'Trading');
                 $swap = $linearPerpetual || $inversePerpetual;
                 $future = $inverseFutures || $linearFutures;
-                $option = ($category === 'option');
                 $type = null;
                 if ($swap) {
                     $type = 'swap';
                 } elseif ($future) {
                     $type = 'future';
-                } elseif ($option) {
-                    $type = 'option';
                 }
                 $expiry = null;
                 // some swaps have deliveryTime meaning delisting time
@@ -1706,22 +1666,9 @@ class bybit extends Exchange {
                     }
                 }
                 $expiryDatetime = $this->iso8601($expiry);
-                $strike = null;
-                $optionType = null;
                 $symbol = $symbol . ':' . $settle;
                 if ($expiry !== null) {
                     $symbol = $symbol . '-' . $this->yymmdd($expiry);
-                    if ($option) {
-                        $splitId = explode('-', $id);
-                        $strike = $this->safe_string($splitId, 2);
-                        $optionLetter = $this->safe_string($splitId, 3);
-                        $symbol = $symbol . '-' . $strike . '-' . $optionLetter;
-                        if ($optionLetter === 'P') {
-                            $optionType = 'put';
-                        } elseif ($optionLetter === 'C') {
-                            $optionType = 'call';
-                        }
-                    }
                 }
                 $contractSize = $inverse ? $this->safe_number_2($lotSizeFilter, 'minTradingQty', 'minOrderQty') : $this->parse_number('1');
                 $result[] = array(
@@ -1738,8 +1685,8 @@ class bybit extends Exchange {
                     'margin' => null,
                     'swap' => $swap,
                     'future' => $future,
-                    'option' => $option,
-                    'active' => $active,
+                    'option' => false,
+                    'active' => ($status === 'Trading'),
                     'contract' => true,
                     'linear' => $linear,
                     'inverse' => $inverse,
@@ -1748,8 +1695,8 @@ class bybit extends Exchange {
                     'contractSize' => $contractSize,
                     'expiry' => $expiry,
                     'expiryDatetime' => $expiryDatetime,
-                    'strike' => $strike,
-                    'optionType' => $optionType,
+                    'strike' => null,
+                    'optionType' => null,
                     'precision' => array(
                         'amount' => $this->safe_number($lotSizeFilter, 'qtyStep'),
                         'price' => $this->safe_number($priceFilter, 'tickSize'),
@@ -1774,6 +1721,142 @@ class bybit extends Exchange {
                     ),
                     'info' => $market,
                 );
+            }
+            return $result;
+        }) ();
+    }
+
+    public function fetch_option_markets($params) {
+        return Async\async(function () use ($params) {
+            $request = array(
+                'category' => 'option',
+            );
+            $response = Async\await($this->publicGetV5MarketInstrumentsInfo (array_merge($request, $params)));
+            $data = $this->safe_value($response, 'result', array());
+            $markets = $this->safe_value($data, 'list', array());
+            if ($this->options['loadAllOptions']) {
+                $request['limit'] = 1000;
+                $paginationCursor = $this->safe_string($data, 'nextPageCursor');
+                if ($paginationCursor !== null) {
+                    while ($paginationCursor !== null) {
+                        $request['cursor'] = $paginationCursor;
+                        $responseInner = Async\await($this->publicGetDerivativesV3PublicInstrumentsInfo (array_merge($request, $params)));
+                        $dataNew = $this->safe_value($responseInner, 'result', array());
+                        $rawMarkets = $this->safe_value($dataNew, 'list', array());
+                        $rawMarketsLength = count($rawMarkets);
+                        if ($rawMarketsLength === 0) {
+                            break;
+                        }
+                        $markets = $this->array_concat($rawMarkets, $markets);
+                        $paginationCursor = $this->safe_string($dataNew, 'nextPageCursor');
+                    }
+                }
+            }
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "success",
+            //         "result" => {
+            //             "category" => "option",
+            //             "nextPageCursor" => "0%2C2",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "BTC-29DEC23-80000-C",
+            //                     "status" => "Trading",
+            //                     "baseCoin" => "BTC",
+            //                     "quoteCoin" => "USD",
+            //                     "settleCoin" => "USDC",
+            //                     "optionsType" => "Call",
+            //                     "launchTime" => "1688630400000",
+            //                     "deliveryTime" => "1703836800000",
+            //                     "deliveryFeeRate" => "0.00015",
+            //                     "priceFilter" => array(
+            //                         "minPrice" => "5",
+            //                         "maxPrice" => "10000000",
+            //                         "tickSize" => "5"
+            //                     ),
+            //                     "lotSizeFilter" => array(
+            //                         "maxOrderQty" => "500",
+            //                         "minOrderQty" => "0.01",
+            //                         "qtyStep" => "0.01"
+            //                     }
+            //                 ),
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1688873094448
+            //     }
+            //
+            $result = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $id = $this->safe_string($market, 'symbol');
+                $baseId = $this->safe_string($market, 'baseCoin');
+                $quoteId = $this->safe_string($market, 'quoteCoin');
+                $settleId = $this->safe_string($market, 'settleCoin');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $settle = $this->safe_currency_code($settleId);
+                $lotSizeFilter = $this->safe_value($market, 'lotSizeFilter', array());
+                $priceFilter = $this->safe_value($market, 'priceFilter', array());
+                $status = $this->safe_string($market, 'status');
+                $expiry = $this->safe_integer($market, 'deliveryTime');
+                $splitId = explode('-', $id);
+                $strike = $this->safe_string($splitId, 2);
+                $optionLetter = $this->safe_string($splitId, 3);
+                $isActive = ($status === 'Trading');
+                if ($isActive || ($this->options['loadAllOptions']) || ($this->options['loadExpiredOptions'])) {
+                    $result[] = array(
+                        'id' => $id,
+                        'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'settle' => $settle,
+                        'baseId' => $baseId,
+                        'quoteId' => $quoteId,
+                        'settleId' => $settleId,
+                        'type' => 'option',
+                        'spot' => false,
+                        'margin' => false,
+                        'swap' => false,
+                        'future' => false,
+                        'option' => true,
+                        'active' => $isActive,
+                        'contract' => true,
+                        'linear' => null,
+                        'inverse' => null,
+                        'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
+                        'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
+                        'contractSize' => $this->safe_number($lotSizeFilter, 'minOrderQty'),
+                        'expiry' => $expiry,
+                        'expiryDatetime' => $this->iso8601($expiry),
+                        'strike' => $this->parse_number($strike),
+                        'optionType' => $this->safe_string_lower($market, 'optionsType'),
+                        'precision' => array(
+                            'amount' => $this->safe_number($lotSizeFilter, 'qtyStep'),
+                            'price' => $this->safe_number($priceFilter, 'tickSize'),
+                        ),
+                        'limits' => array(
+                            'leverage' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'amount' => array(
+                                'min' => $this->safe_number($lotSizeFilter, 'minOrderQty'),
+                                'max' => $this->safe_number($lotSizeFilter, 'maxOrderQty'),
+                            ),
+                            'price' => array(
+                                'min' => $this->safe_number($priceFilter, 'minPrice'),
+                                'max' => $this->safe_number($priceFilter, 'maxPrice'),
+                            ),
+                            'cost' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                        'info' => $market,
+                    );
+                }
             }
             return $result;
         }) ();
@@ -1903,7 +1986,7 @@ class bybit extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://bybit-exchange.github.io/docs/v5/market/tickers
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $this->check_required_symbol('fetchTicker', $symbol);
@@ -1976,8 +2059,8 @@ class bybit extends Exchange {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @see https://bybit-exchange.github.io/docs/v5/market/tickers
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
@@ -2098,10 +2181,10 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/v5/market/preimum-index-kline
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $this->check_required_symbol('fetchOHLCV', $symbol);
             Async\await($this->load_markets());
@@ -2247,8 +2330,8 @@ class bybit extends Exchange {
             /**
              * fetches funding rates for multiple markets
              * @see https://bybit-exchange.github.io/docs/v5/market/tickers
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
@@ -2327,12 +2410,12 @@ class bybit extends Exchange {
             /**
              * fetches historical funding rate prices
              * @see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
-             * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
-             * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @param {int|null} $params->until $timestamp in ms of the latest funding rate
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
@@ -2659,10 +2742,10 @@ class bybit extends Exchange {
              * get the list of most recent $trades for a particular $symbol
              * @see https://bybit-exchange.github.io/docs/v5/market/recent-trade
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             $this->check_required_symbol('fetchTrades', $symbol);
             Async\await($this->load_markets());
@@ -2723,8 +2806,8 @@ class bybit extends Exchange {
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://bybit-exchange.github.io/docs/v5/market/orderbook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $this->check_required_symbol('fetchOrderBook', $symbol);
@@ -3064,7 +3147,7 @@ class bybit extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -3468,8 +3551,8 @@ class bybit extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
-             * @param {string|null} $symbol unified $symbol of the $market the order was made in
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -3553,8 +3636,8 @@ class bybit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -3612,10 +3695,10 @@ class bybit extends Exchange {
             );
             if ($market['spot']) {
                 $request['category'] = 'spot';
-            } elseif ($market['linear']) {
-                $request['category'] = 'linear';
             } elseif ($market['option']) {
                 $request['category'] = 'option';
+            } elseif ($market['linear']) {
+                $request['category'] = 'linear';
             } else {
                 throw new NotSupported($this->id . ' createOrder does not allow inverse $market orders for ' . $symbol . ' markets');
             }
@@ -3730,16 +3813,18 @@ class bybit extends Exchange {
             if (($type === 'market') && ($side === 'buy')) {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    $cost = $this->safe_number($params, 'cost');
-                    $params = $this->omit($params, 'cost');
-                    if ($price === null && $cost === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
-                    } else {
+                    $cost = $this->safe_number_2($params, 'cost', 'orderQty');
+                    $params = $this->omit($params, array( 'cost', 'orderQty' ));
+                    if ($cost !== null) {
+                        $request['orderQty'] = $this->cost_to_precision($symbol, $cost);
+                    } elseif ($price !== null) {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $quoteAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
-                        $request['orderQty'] = $this->cost_to_precision($symbol, $amount);
+                        $costString = Precise::string_mul($amountString, $priceString);
+                        $cost = $this->parse_number($costString);
+                        $request['orderQty'] = $this->cost_to_precision($symbol, $cost);
+                    } else {
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
                     }
                 } else {
                     $request['orderQty'] = $this->cost_to_precision($symbol, $amount);
@@ -4156,10 +4241,10 @@ class bybit extends Exchange {
                 // Valid for option only.
                 // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
             );
-            if ($market['linear']) {
-                $request['category'] = 'linear';
-            } else {
+            if ($market['option']) {
                 $request['category'] = 'option';
+            } elseif ($market['linear']) {
+                $request['category'] = 'linear';
             }
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
@@ -4610,7 +4695,7 @@ class bybit extends Exchange {
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -4877,9 +4962,9 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
-             * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -5239,10 +5324,10 @@ class bybit extends Exchange {
             /**
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -5337,11 +5422,11 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -5366,9 +5451,9 @@ class bybit extends Exchange {
             /**
              * fetches information on multiple canceled orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since timestamp in ms of the earliest order, default is null
-             * @param {int|null} $limit max number of orders to return, default is null
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {int} [$since] timestamp in ms of the earliest order, default is null
+             * @param {int} [$limit] max number of orders to return, default is null
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -5781,11 +5866,11 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open orders for
-             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -5826,11 +5911,11 @@ class bybit extends Exchange {
             /**
              * fetch all the trades made from a single order
              * @param {string} $id order $id
-             * @param {string|null} $symbol unified market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch trades for
-             * @param {int|null} $limit the maximum number of trades to retrieve
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @param {string} $symbol unified market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trades to retrieve
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              *
              */
             $request = array();
@@ -6185,10 +6270,10 @@ class bybit extends Exchange {
             /**
              * fetch all trades made by the user
              * @param {string} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch trades for
-             * @param {int|null} $limit the maximum number of trades structures to retrieve
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -6257,7 +6342,7 @@ class bybit extends Exchange {
              * fetch a dictionary of addresses for a $currency, indexed by network
              * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
              * @param {string} $code unified $currency $code of the $currency for the deposit address
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
              */
             Async\await($this->load_markets());
@@ -6302,7 +6387,7 @@ class bybit extends Exchange {
              * fetch the deposit address for a $currency associated with this account
              * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
              * @param {string} $code unified $currency $code
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
@@ -6349,15 +6434,15 @@ class bybit extends Exchange {
             /**
              * fetch all deposits made to an account
              * @see https://bybit-exchange.github.io/docs/v5/asset/deposit-record
-             * @param {string|null} $code unified $currency $code
-             * @param {int|null} $since the earliest time in ms to fetch deposits for, default = 30 days before the current time
-             * @param {int|null} $limit the maximum number of deposits structures to retrieve, default = 50, max = 50
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @param {int|null} $params->until the latest time in ms to fetch deposits for, default = 30 days after $since
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch deposits for, default = 30 days before the current time
+             * @param {int} [$limit] the maximum number of deposits structures to retrieve, default = 50, max = 50
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch deposits for, default = 30 days after $since
              *
              * EXCHANGE SPECIFIC PARAMETERS
-             * @param {string|null} $params->cursor used for pagination
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @param {string} [$params->cursor] used for pagination
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
             */
             Async\await($this->load_markets());
             $request = array(
@@ -6415,10 +6500,10 @@ class bybit extends Exchange {
              * fetch all withdrawals made from an account
              * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
              * @param {string} $code unified $currency $code
-             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+             * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -6592,10 +6677,10 @@ class bybit extends Exchange {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
              * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
-             * @param {string|null} $code unified $currency $code, default is null
-             * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
-             * @param {int|null} $limit max number of ledger entrys to return, default is null
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {string} $code unified $currency $code, default is null
+             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());
@@ -6855,8 +6940,8 @@ class bybit extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
-             * @param {string|null} $tag
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -6900,7 +6985,7 @@ class bybit extends Exchange {
             /**
              * fetch data on a single open contract trade $position
              * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             $this->check_required_symbol('fetchPosition', $symbol);
@@ -7081,7 +7166,7 @@ class bybit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $positions = $this->safe_value_2($result, 'list', 'dataList', array());
             $timestamp = $this->safe_integer($response, 'time');
-            $first = $this->safe_value($positions, 0);
+            $first = $this->safe_value($positions, 0, array());
             $position = $this->parse_position($first, $market);
             return array_merge($position, array(
                 'timestamp' => $timestamp,
@@ -7330,9 +7415,9 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
-             * @param {[string]|null} $symbols list of unified market $symbols
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $symbolsLength = count($symbols);
@@ -7664,7 +7749,7 @@ class bybit extends Exchange {
              * set the level of $leverage for a $market
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} response from the exchange
              */
             $this->check_required_symbol('setLeverage', $symbol);
@@ -7722,8 +7807,8 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/v5/position/position-$mode
              * @see https://bybit-exchange.github.io/docs/derivatives/contract/position-$mode
              * @param {bool} $hedged
-             * @param {string|null} $symbol used for unified account with inverse $market
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {string} $symbol used for unified account with inverse $market
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} $response from the exchange
              */
             Async\await($this->load_markets());
@@ -7850,9 +7935,9 @@ class bybit extends Exchange {
              * Retrieves the open interest of a derivative trading pair
              * @see https://bybit-exchange.github.io/docs/v5/market/open-interest
              * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {array} $params exchange specific parameters
-             * @param {string|null} $params->interval 5m, 15m, 30m, 1h, 4h, 1d
-             * @param {string|null} $params->category "linear" or "inverse"
+             * @param {array} [$params] exchange specific parameters
+             * @param {string} [$params->interval] 5m, 15m, 30m, 1h, 4h, 1d
+             * @param {string} [$params->category] "linear" or "inverse"
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?$id=interest-history-structure)
              */
             Async\await($this->load_markets());
@@ -7912,9 +7997,9 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/v5/market/open-interest
              * @param {string} $symbol Unified $market $symbol
              * @param {string} $timeframe "5m", 15m, 30m, 1h, 4h, 1d
-             * @param {int} $since Not used by Bybit
-             * @param {int} $limit The number of open interest structures to return. Max 200, default 50
-             * @param {array} $params Exchange specific parameters
+             * @param {int} [$since] Not used by Bybit
+             * @param {int} [$limit] The number of open interest structures to return. Max 200, default 50
+             * @param {array} [$params] Exchange specific parameters
              * @return An array of open interest structures
              */
             if ($timeframe === '1m') {
@@ -7960,7 +8045,7 @@ class bybit extends Exchange {
              * fetch the rate of interest to borrow a $currency for margin trading
              * @see https://bybit-exchange.github.io/docs/spot/v3/#t-queryinterestquota
              * @param {string} $code unified $currency $code
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structure~
              */
             Async\await($this->load_markets());
@@ -8013,12 +8098,12 @@ class bybit extends Exchange {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing currency for margin trading
-             * @param {string|null} $code unified currency $code
-             * @param {string|null} $symbol unified market $symbol when fetch $interest in isolated markets
-             * @param {number|null} $since the earliest time in ms to fetch borrrow $interest for
-             * @param {number|null} $limit the maximum number of structures to retrieve
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
+             * @param {string} $code unified currency $code
+             * @param {string} $symbol unified market $symbol when fetch $interest in isolated markets
+             * @param {number} [$since] the earliest time in ms to fetch borrrow $interest for
+             * @param {number} [$limit] the maximum number of structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -8089,8 +8174,8 @@ class bybit extends Exchange {
              * @param {float} $amount amount to $transfer
              * @param {string} $fromAccount account to $transfer from
              * @param {string} $toAccount account to $transfer to
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @param {string} $params->transferId UUID, which is unique across the platform
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {string} [$params->transferId] UUID, which is unique across the platform
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
              */
             Async\await($this->load_markets());
@@ -8152,11 +8237,11 @@ class bybit extends Exchange {
             /**
              * fetch a history of internal $transfers made on an account
              * @see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
-             * @param {string|null} $code unified $currency $code of the $currency transferred
-             * @param {int|null} $since the earliest time in ms to fetch $transfers for
-             * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
-             * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             * @param {string} $code unified $currency $code of the $currency transferred
+             * @param {int} [$since] the earliest time in ms to fetch $transfers for
+             * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -8207,8 +8292,8 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/spot/v3/#t-borrowmarginloan
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {string|null} $symbol not used by bybit.borrowMargin ()
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {string} $symbol not used by bybit.borrowMargin ()
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -8249,8 +8334,8 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/spot/v3/#t-repaymarginloan
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
-             * @param {string|null} $symbol not used by bybit.repayMargin ()
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {string} $symbol not used by bybit.repayMargin ()
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -8406,7 +8491,7 @@ class bybit extends Exchange {
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
              * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
              * @param {string} $symbol unified $market $symbol
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
              */
             Async\await($this->load_markets());
@@ -8476,7 +8561,7 @@ class bybit extends Exchange {
              * fetch the trading $fees for a $market
              * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
              * @param {string} $symbol unified $market $symbol
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
@@ -8517,7 +8602,7 @@ class bybit extends Exchange {
             /**
              * fetch the trading $fees for multiple markets
              * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
@@ -8615,8 +8700,8 @@ class bybit extends Exchange {
             /**
              * fetch deposit and withdraw fees
              * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
-             * @param {[string]|null} $codes list of unified currency $codes
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {string[]|null} $codes list of unified currency $codes
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
              */
             $this->check_required_credentials();
@@ -8656,6 +8741,100 @@ class bybit extends Exchange {
             $rows = $this->safe_value($data, 'rows', array());
             return $this->parse_deposit_withdraw_fees($rows, $codes, 'coin');
         }) ();
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical settlement records
+             * @see https://bybit-exchange.github.io/docs/v5/market/delivery-price
+             * @param {string} $symbol unified $market $symbol of the settlement history
+             * @param {int} [$since] timestamp in ms
+             * @param {int} [$limit] number of records
+             * @param {array} [$params] exchange specific $params
+             * @return {array[]} a list of [settlement history objects]
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+            if ($type === 'option') {
+                $request['category'] = 'option';
+            } else {
+                $subType = null;
+                list($subType, $params) = $this->handle_sub_type_and_params('fetchSettlementHistory', $market, $params, 'linear');
+                $request['category'] = $subType;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetV5MarketDeliveryPrice (array_merge($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "success",
+            //         "result" => array(
+            //             "category" => "option",
+            //             "nextPageCursor" => "0%2C3",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "SOL-27JUN23-20-C",
+            //                     "deliveryPrice" => "16.62258889",
+            //                     "deliveryTime" => "1687852800000"
+            //                 ),
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1689043527231
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'list', array());
+            $settlements = $this->parse_settlements($data, $market);
+            $sorted = $this->sort_by($settlements, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        //     {
+        //         "symbol" => "SOL-27JUN23-20-C",
+        //         "deliveryPrice" => "16.62258889",
+        //         "deliveryTime" => "1687852800000"
+        //     }
+        //
+        $timestamp = $this->safe_integer($settlement, 'deliveryTime');
+        $marketId = $this->safe_string($settlement, 'symbol');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'deliveryPrice'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_settlements($settlements, $market) {
+        //
+        //     array(
+        //         {
+        //             "symbol" => "SOL-27JUN23-20-C",
+        //             "deliveryPrice" => "16.62258889",
+        //             "deliveryTime" => "1687852800000"
+        //         }
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

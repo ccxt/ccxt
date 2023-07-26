@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitbns.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitbns
+ * @extends Exchange
+ */
 export default class bitbns extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{

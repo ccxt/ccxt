@@ -1,5 +1,9 @@
 import Exchange from './abstract/bkex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bkex
+ * @extends Exchange
+ */
 export default class bkex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

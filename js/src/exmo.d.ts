@@ -1,5 +1,9 @@
 import Exchange from './abstract/exmo.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class exmo
+ * @extends Exchange
+ */
 export default class exmo extends Exchange {
     describe(): any;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<{
@@ -144,7 +148,7 @@ export default class exmo extends Exchange {
             rate: any;
         };
     };
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
         info: any;

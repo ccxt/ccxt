@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitmart.js';
 import { Int, OrderSide, Balances, OrderType } from './base/types.js';
+/**
+ * @class bitmart
+ * @extends Exchange
+ */
 export default class bitmart extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

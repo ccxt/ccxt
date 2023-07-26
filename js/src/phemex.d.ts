@@ -1,5 +1,9 @@
 import Exchange from './abstract/phemex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class phemex
+ * @extends Exchange
+ */
 export default class phemex extends Exchange {
     describe(): any;
     parseSafeNumber(value?: any): any;

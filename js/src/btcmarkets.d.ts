@@ -1,9 +1,13 @@
 import Exchange from './abstract/btcmarkets.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class btcmarkets
+ * @extends Exchange
+ */
 export default class btcmarkets extends Exchange {
     describe(): any;
     fetchTransactionsWithMethod(method: any, code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;

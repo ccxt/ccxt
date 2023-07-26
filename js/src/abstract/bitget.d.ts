@@ -1,6 +1,7 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
+    publicSpotGetNoticeQueryAllNotices(params?: {}): Promise<implicitReturnType>;
     publicSpotGetPublicTime(params?: {}): Promise<implicitReturnType>;
     publicSpotGetPublicCurrencies(params?: {}): Promise<implicitReturnType>;
     publicSpotGetPublicProducts(params?: {}): Promise<implicitReturnType>;
@@ -12,6 +13,7 @@ interface Exchange {
     publicSpotGetMarketCandles(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketDepth(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketSpotVipLevel(params?: {}): Promise<implicitReturnType>;
+    publicSpotGetMarketHistoryCandles(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketContracts(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketDepth(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketTicker(params?: {}): Promise<implicitReturnType>;
@@ -28,13 +30,15 @@ interface Exchange {
     publicMixGetMarketMarkPrice(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketSymbolLeverage(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketQueryPositionLever(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketOpenLimit(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketHistoryCandles(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketHistoryIndexCandles(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketHistoryMarkCandles(params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicInterestRateAndLimit(params?: {}): Promise<implicitReturnType>;
     publicMarginGetIsolatedPublicInterestRateAndLimit(params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicTierData(params?: {}): Promise<implicitReturnType>;
     publicMarginGetIsolatedPublicTierData(params?: {}): Promise<implicitReturnType>;
     publicMarginGetPublicCurrencies(params?: {}): Promise<implicitReturnType>;
-    publicMarginGetCrossAccountAssets(params?: {}): Promise<implicitReturnType>;
-    publicMarginGetIsolatedAccountAssets(params?: {}): Promise<implicitReturnType>;
     privateSpotGetWalletDepositAddress(params?: {}): Promise<implicitReturnType>;
     privateSpotGetWalletWithdrawalList(params?: {}): Promise<implicitReturnType>;
     privateSpotGetWalletDepositList(params?: {}): Promise<implicitReturnType>;
@@ -42,6 +46,8 @@ interface Exchange {
     privateSpotGetAccountAssets(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountAssetsLite(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountTransferRecords(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetConvertCurrencies(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetConvertConvertRecord(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransfer(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransferV2(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletSubTransfer(params?: {}): Promise<implicitReturnType>;
@@ -87,6 +93,8 @@ interface Exchange {
     privateSpotPostTraceProfitProfitHisDetailList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceProfitWaitProfitDetailList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceUserGetTraderInfo(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostConvertQuotedPrice(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostConvertTrade(params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccount(params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccounts(params?: {}): Promise<implicitReturnType>;
     privateMixGetPositionSinglePosition(params?: {}): Promise<implicitReturnType>;
@@ -207,6 +215,8 @@ interface Exchange {
     privateMarginGetCrossInterestList(params?: {}): Promise<implicitReturnType>;
     privateMarginGetCrossLiquidationList(params?: {}): Promise<implicitReturnType>;
     privateMarginGetCrossFinList(params?: {}): Promise<implicitReturnType>;
+    privateMarginGetCrossAccountAssets(params?: {}): Promise<implicitReturnType>;
+    privateMarginGetIsolatedAccountAssets(params?: {}): Promise<implicitReturnType>;
     privateMarginPostCrossAccountBorrow(params?: {}): Promise<implicitReturnType>;
     privateMarginPostIsolatedAccountBorrow(params?: {}): Promise<implicitReturnType>;
     privateMarginPostCrossAccountRepay(params?: {}): Promise<implicitReturnType>;

@@ -30,9 +30,10 @@ class cryptocom extends Exchange {
                 'CORS' => false,
                 'spot' => true,
                 'margin' => true,
-                'swap' => null, // has but not fully implemented
-                'future' => null, // has but not fully implemented
-                'option' => null,
+                'swap' => true,
+                'future' => true,
+                'option' => true,
+                'addMargin' => false,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -57,9 +58,14 @@ class cryptocom extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -69,6 +75,7 @@ class cryptocom extends Exchange {
                 'fetchPosition' => true,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
@@ -81,9 +88,11 @@ class cryptocom extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
                 'repayMargin' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -163,6 +172,8 @@ class cryptocom extends Exchange {
                             'private/get-currency-networks' => 10 / 3,
                             'private/get-deposit-address' => 10 / 3,
                             'private/get-accounts' => 10 / 3,
+                            'private/get-withdrawal-history' => 10 / 3,
+                            'private/get-deposit-history' => 10 / 3,
                         ),
                     ),
                 ),
@@ -314,13 +325,7 @@ class cryptocom extends Exchange {
                 'networks' => array(
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
-                    'TRX' => 'TRON',
                     'TRC20' => 'TRON',
-                ),
-                'networksById' => array(
-                    'BSC' => 'BEP20',
-                    'ETH' => 'ERC20',
-                    'TRON' => 'TRC20',
                 ),
                 'broker' => 'CCXT_',
             ),
@@ -369,6 +374,7 @@ class cryptocom extends Exchange {
                     '50001' => '\\ccxt\\BadRequest',
                     '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
+                'broad' => array(),
             ),
         ));
     }
@@ -378,8 +384,8 @@ class cryptocom extends Exchange {
             /**
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
              * retrieves $data on all markets for cryptocom
-             * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market $data
+             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @return {array[]} an array of objects representing $market $data
              */
             $response = Async\await($this->v1PublicGetPublicGetInstruments ($params));
             //
@@ -567,9 +573,10 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+             * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -626,7 +633,7 @@ class cryptocom extends Exchange {
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$tickers
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -642,11 +649,11 @@ class cryptocom extends Exchange {
              * fetches information on multiple $orders made by the user
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
              * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for, max date range is one day
-             * @param {int|null} $limit the maximum number of order structures to retrieve, default 100 max 100
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {int} [$since] the earliest time in ms to fetch $orders for, max date range is one day
+             * @param {int} [$limit] the maximum number of order structures to retrieve, default 100 max 100
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -718,11 +725,11 @@ class cryptocom extends Exchange {
              * get a list of the most recent $trades for a particular $symbol
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$trades
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch, maximum date range is one day
-             * @param {int|null} $limit the maximum number of $trades to fetch
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch, maximum date range is one day
+             * @param {int} [$limit] the maximum number of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -773,11 +780,11 @@ class cryptocom extends Exchange {
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -830,8 +837,8 @@ class cryptocom extends Exchange {
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the number of order book entries to return, max 50
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$limit] the number of order book entries to return, max 50
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -891,7 +898,7 @@ class cryptocom extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -948,8 +955,8 @@ class cryptocom extends Exchange {
             /**
              * fetches information on an $order made by the user
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$order-detail
-             * @param {string|null} $symbol unified $symbol of the $market the $order was made in
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {string} $symbol unified $symbol of the $market the $order was made in
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -999,6 +1006,108 @@ class cryptocom extends Exchange {
         }) ();
     }
 
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $uppercaseType = strtoupper($type);
+        $request = array(
+            'instrument_name' => $market['id'],
+            'side' => strtoupper($side),
+            'quantity' => $this->amount_to_precision($symbol, $amount),
+        );
+        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        if ($clientOrderId === null) {
+            $clientOrderId = $broker . $this->uuid22();
+        }
+        $request['client_oid'] = $clientOrderId;
+        $marketType = null;
+        $marginMode = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        list($marginMode, $params) = $this->custom_handle_margin_mode_and_params('createOrder', $params);
+        if (($marketType === 'margin') || ($marginMode !== null)) {
+            $request['spot_margin'] = 'MARGIN';
+        } elseif ($marketType === 'spot') {
+            $request['spot_margin'] = 'SPOT';
+        }
+        $timeInForce = $this->safe_string_upper_2($params, 'timeInForce', 'time_in_force');
+        if ($timeInForce !== null) {
+            if ($timeInForce === 'GTC') {
+                $request['time_in_force'] = 'GOOD_TILL_CANCEL';
+            } elseif ($timeInForce === 'IOC') {
+                $request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+            } elseif ($timeInForce === 'FOK') {
+                $request['time_in_force'] = 'FILL_OR_KILL';
+            } else {
+                $request['time_in_force'] = $timeInForce;
+            }
+        }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if (($postOnly) || ($timeInForce === 'PO')) {
+            $request['exec_inst'] = 'POST_ONLY';
+            $request['time_in_force'] = 'GOOD_TILL_CANCEL';
+        }
+        $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
+        $isTrigger = ($triggerPrice !== null);
+        $isStopLossTrigger = ($stopLossPrice !== null);
+        $isTakeProfitTrigger = ($takeProfitPrice !== null);
+        if ($isTrigger) {
+            $request['ref_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $price = (string) $price;
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        $request['type'] = 'STOP_LIMIT';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LIMIT';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT';
+                    } else {
+                        $request['type'] = 'STOP_LOSS';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LOSS';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+        } elseif ($isStopLossTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
+                $request['type'] = 'STOP_LIMIT';
+            } else {
+                $request['type'] = 'STOP_LOSS';
+            }
+            $request['ref_price'] = $this->price_to_precision($symbol, $stopLossPrice);
+        } elseif ($isTakeProfitTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                $request['type'] = 'TAKE_PROFIT_LIMIT';
+            } else {
+                $request['type'] = 'TAKE_PROFIT';
+            }
+            $request['ref_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        } else {
+            $request['type'] = $uppercaseType;
+        }
+        $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        return array_merge($request, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1008,115 +1117,19 @@ class cryptocom extends Exchange {
              * @param {string} $type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of base currency
-             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @param {string|null} $params->timeInForce 'GTC', 'IOC', 'FOK' or 'PO'
-             * @param {string|null} $params->ref_price_type 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
-             * @param {float|null} $params->stopPrice $price to trigger a stop order
-             * @param {float|null} $params->stopLossPrice $price to trigger a stop-loss trigger order
-             * @param {float|null} $params->takeProfitPrice $price to trigger a take-profit trigger order
+             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+             * @param {string} [$params->ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
+             * @param {float} [$params->stopPrice] $price to trigger a stop order
+             * @param {float} [$params->stopLossPrice] $price to trigger a stop-loss trigger order
+             * @param {float} [$params->takeProfitPrice] $price to trigger a take-profit trigger order
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $uppercaseType = strtoupper($type);
-            $request = array(
-                'instrument_name' => $market['id'],
-                'side' => strtoupper($side),
-                'quantity' => $this->amount_to_precision($symbol, $amount),
-            );
-            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-            if ($clientOrderId === null) {
-                $clientOrderId = $broker . $this->uuid22();
-            }
-            $request['client_oid'] = $clientOrderId;
-            $marketType = null;
-            $marginMode = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
-            list($marginMode, $params) = $this->custom_handle_margin_mode_and_params('createOrder', $params);
-            if (($marketType === 'margin') || ($marginMode !== null)) {
-                $request['spot_margin'] = 'MARGIN';
-            } elseif ($marketType === 'spot') {
-                $request['spot_margin'] = 'SPOT';
-            }
-            $timeInForce = $this->safe_string_upper_2($params, 'timeInForce', 'time_in_force');
-            if ($timeInForce !== null) {
-                if ($timeInForce === 'GTC') {
-                    $request['time_in_force'] = 'GOOD_TILL_CANCEL';
-                } elseif ($timeInForce === 'IOC') {
-                    $request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
-                } elseif ($timeInForce === 'FOK') {
-                    $request['time_in_force'] = 'FILL_OR_KILL';
-                } else {
-                    $request['time_in_force'] = $timeInForce;
-                }
-            }
-            $postOnly = $this->safe_value($params, 'postOnly', false);
-            if (($postOnly) || ($timeInForce === 'PO')) {
-                $request['exec_inst'] = 'POST_ONLY';
-                $request['time_in_force'] = 'GOOD_TILL_CANCEL';
-            }
-            $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
-            $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
-            $isTrigger = ($triggerPrice !== null);
-            $isStopLossTrigger = ($stopLossPrice !== null);
-            $isTakeProfitTrigger = ($takeProfitPrice !== null);
-            if ($isTrigger) {
-                $request['ref_price'] = $this->price_to_precision($symbol, $triggerPrice);
-                $price = (string) $price;
-                if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                    if ($side === 'buy') {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'TAKE_PROFIT_LIMIT';
-                        } else {
-                            $request['type'] = 'STOP_LIMIT';
-                        }
-                    } else {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'STOP_LIMIT';
-                        } else {
-                            $request['type'] = 'TAKE_PROFIT_LIMIT';
-                        }
-                    }
-                } else {
-                    if ($side === 'buy') {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'TAKE_PROFIT';
-                        } else {
-                            $request['type'] = 'STOP_LOSS';
-                        }
-                    } else {
-                        if (Precise::string_lt($price, $triggerPrice)) {
-                            $request['type'] = 'STOP_LOSS';
-                        } else {
-                            $request['type'] = 'TAKE_PROFIT';
-                        }
-                    }
-                }
-            } elseif ($isStopLossTrigger) {
-                if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
-                    $request['type'] = 'STOP_LIMIT';
-                } else {
-                    $request['type'] = 'STOP_LOSS';
-                }
-                $request['ref_price'] = $this->price_to_precision($symbol, $stopLossPrice);
-            } elseif ($isTakeProfitTrigger) {
-                if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                    $request['type'] = 'TAKE_PROFIT_LIMIT';
-                } else {
-                    $request['type'] = 'TAKE_PROFIT';
-                }
-                $request['ref_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
-            } else {
-                $request['type'] = $uppercaseType;
-            }
-            $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-            $response = Async\await($this->v1PrivatePostPrivateCreateOrder (array_merge($request, $params)));
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->v1PrivatePostPrivateCreateOrder ($request));
             //
             //     {
             //         "id" => 1686804664362,
@@ -1138,9 +1151,9 @@ class cryptocom extends Exchange {
             /**
              * cancel all open orders
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
-             * @param {string|null} $symbol unified $market $symbol of the orders to cancel
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol of the orders to cancel
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @return {array} Returns exchange raw messagearray(@link https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1159,8 +1172,8 @@ class cryptocom extends Exchange {
              * cancels an open order
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
              * @param {string} $id the order $id of the order to cancel
-             * @param {string|null} $symbol unified $symbol of the $market the order was made in
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {string} [$symbol] unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1194,11 +1207,11 @@ class cryptocom extends Exchange {
             /**
              * fetch all unfilled currently open $orders
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-$orders
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open $orders for
-             * @param {int|null} $limit the maximum number of open order structures to retrieve
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open $orders for
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1256,12 +1269,12 @@ class cryptocom extends Exchange {
             /**
              * fetch all $trades made by the user
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$trades
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch $trades for, maximum date range is one day
-             * @param {int|null} $limit the maximum number of trade structures to retrieve
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $trades for, maximum date range is one day
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1335,11 +1348,12 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
-             * @param {string|null} $tag
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -1353,7 +1367,13 @@ class cryptocom extends Exchange {
             if ($tag !== null) {
                 $request['address_tag'] = $tag;
             }
-            $response = Async\await($this->v2PrivatePostPrivateCreateWithdrawal (array_merge($request, $params)));
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            $networkId = $this->network_code_to_id($networkCode);
+            if ($networkId !== null) {
+                $request['network_id'] = $networkId;
+            }
+            $response = Async\await($this->v1PrivatePostPrivateCreateWithdrawal (array_merge($request, $params)));
             //
             //    {
             //        "id":-1,
@@ -1381,7 +1401,7 @@ class cryptocom extends Exchange {
              * fetch a dictionary of $addresses for a $currency, indexed by $network
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-$address
              * @param {string} $code unified $currency $code of the $currency for the deposit $address
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~ indexed by the $network
              */
             Async\await($this->load_markets());
@@ -1442,7 +1462,7 @@ class cryptocom extends Exchange {
             /**
              * fetch the deposit address for a currency associated with this account
              * @param {string} $code unified currency $code
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             $network = $this->safe_string_upper($params, 'network');
@@ -1474,11 +1494,13 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
-             * @param {string|null} $code unified $currency $code
-             * @param {int|null} $since the earliest time in ms to fetch deposits for
-             * @param {int|null} $limit the maximum number of deposits structures to retrieve
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch deposits for
+             * @param {int} [$limit] the maximum number of deposits structures to retrieve
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -1494,26 +1516,34 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->v2PrivatePostPrivateGetDepositHistory (array_merge($request, $params)));
-            // {
-            //     "id" => 11,
-            //     "method" => "private/get-deposit-history",
-            //     "code" => 0,
-            //     "result" => {
-            //       "deposit_list" => array(
-            //         {
-            //           "currency" => "XRP",
-            //           "fee" => 1.0,
-            //           "create_time" => 1607063412000,
-            //           "id" => "2220",
-            //           "update_time" => 1607063460000,
-            //           "amount" => 100,
-            //           "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-            //           "status" => "1"
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            $params = $this->omit($params, array( 'until', 'till' ));
+            if ($until !== null) {
+                $request['end_ts'] = $until;
+            }
+            $response = Async\await($this->v1PrivatePostPrivateGetDepositHistory (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => 1688701375714,
+            //         "method" => "private/get-deposit-history",
+            //         "code" => 0,
+            //         "result" => {
+            //             "deposit_list" => array(
+            //                 array(
+            //                     "currency" => "BTC",
+            //                     "fee" => 0,
+            //                     "create_time" => 1688023659000,
+            //                     "id" => "6201135",
+            //                     "update_time" => 1688178509000,
+            //                     "amount" => 0.00114571,
+            //                     "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+            //                     "status" => "1",
+            //                     "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
+            //                 ),
+            //             )
             //         }
-            //       )
             //     }
-            // }
+            //
             $data = $this->safe_value($response, 'result', array());
             $depositList = $this->safe_value($data, 'deposit_list', array());
             return $this->parse_transactions($depositList, $currency, $since, $limit);
@@ -1524,11 +1554,13 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
-             * @param {string|null} $code unified $currency $code
-             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+             * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -1544,28 +1576,34 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->v2PrivatePostPrivateGetWithdrawalHistory (array_merge($request, $params)));
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            $params = $this->omit($params, array( 'until', 'till' ));
+            if ($until !== null) {
+                $request['end_ts'] = $until;
+            }
+            $response = Async\await($this->v1PrivatePostPrivateGetWithdrawalHistory (array_merge($request, $params)));
             //
             //     {
-            //       id => 1640704829096,
-            //       method => 'private/get-withdrawal-history',
-            //       $code => 0,
-            //       result => {
-            //         withdrawal_list => array(
-            //           {
-            //             $currency => 'DOGE',
-            //             client_wid => '',
-            //             fee => 50,
-            //             create_time => 1640425168000,
-            //             id => '3180557',
-            //             update_time => 1640425168000,
-            //             amount => 1102.64092,
-            //             address => 'DDrGGqmp5Ddo1QH9tUvDfoL4u4rqys5975',
-            //             status => '5',
-            //             txid => 'ce23e9e21b6c38eef953070a05110e6dca2fd2bcc76d3381000547b9ff5290b2/0'
-            //           }
-            //         )
-            //       }
+            //         "id" => 1688613879534,
+            //         "method" => "private/get-withdrawal-history",
+            //         "code" => 0,
+            //         "result" => {
+            //             "withdrawal_list" => array(
+            //                 {
+            //                     "currency" => "BTC",
+            //                     "client_wid" => "",
+            //                     "fee" => 0.0005,
+            //                     "create_time" => 1688613850000,
+            //                     "id" => "5275977",
+            //                     "update_time" => 1688613850000,
+            //                     "amount" => 0.0005,
+            //                     "address" => "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+            //                     "status" => "1",
+            //                     "txid" => "",
+            //                     "network_id" => "BTC"
+            //                 }
+            //             )
+            //         }
             //     }
             //
             $data = $this->safe_value($response, 'result', array());
@@ -1582,7 +1620,7 @@ class cryptocom extends Exchange {
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
@@ -1618,11 +1656,11 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
-             * @param {string|null} $code unified $currency $code of the $currency transferred
-             * @param {int|null} $since the earliest time in ms to fetch transfers for
-             * @param {int|null} $limit the maximum number of  transfers structures to retrieve
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structures~
+             * @param {string} $code unified $currency $code of the $currency transferred
+             * @param {int} [$since] the earliest time in ms to fetch transfers for
+             * @param {int} [$limit] the maximum number of  transfers structures to retrieve
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structures~
              */
             if (!(is_array($params) && array_key_exists('direction', $params))) {
                 throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
@@ -2021,28 +2059,31 @@ class cryptocom extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "currency" => "XRP",
-        //         "fee" => 1.0,
-        //         "create_time" => 1607063412000,
-        //         "id" => "2220",
-        //         "update_time" => 1607063460000,
-        //         "amount" => 100,
-        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //         "status" => "1"
+        //         "currency" => "BTC",
+        //         "fee" => 0,
+        //         "create_time" => 1688023659000,
+        //         "id" => "6201135",
+        //         "update_time" => 1688178509000,
+        //         "amount" => 0.00114571,
+        //         "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //         "status" => "1",
+        //         "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "currency" => "XRP",
-        //         "client_wid" => "my_withdrawal_002",
-        //         "fee" => 1.0,
-        //         "create_time" => 1607063412000,
-        //         "id" => "2220",
-        //         "update_time" => 1607063460000,
-        //         "amount" => 100,
-        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //         "status" => "1"
+        //         "currency" => "BTC",
+        //         "client_wid" => "",
+        //         "fee" => 0.0005,
+        //         "create_time" => 1688613850000,
+        //         "id" => "5775977",
+        //         "update_time" => 1688613850000,
+        //         "amount" => 0.0005,
+        //         "address" => "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+        //         "status" => "1",
+        //         "txid" => "",
+        //         "network_id" => "BTC"
         //     }
         //
         // withdraw
@@ -2067,24 +2108,20 @@ class cryptocom extends Exchange {
             $type = 'deposit';
             $status = $this->parse_deposit_status($rawStatus);
         }
-        $id = $this->safe_string($transaction, 'id');
         $addressString = $this->safe_string($transaction, 'address');
         list($address, $tag) = $this->parse_address($addressString);
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_integer($transaction, 'create_time');
-        $amount = $this->safe_number($transaction, 'amount');
-        $txId = $this->safe_string($transaction, 'txid');
         $feeCost = $this->safe_number($transaction, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $updated = $this->safe_integer($transaction, 'update_time');
         return array(
             'info' => $transaction,
-            'id' => $id,
-            'txid' => $txId,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => null,
@@ -2095,10 +2132,10 @@ class cryptocom extends Exchange {
             'tagTo' => $tag,
             'tagFrom' => null,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
             'status' => $status,
-            'updated' => $updated,
+            'updated' => $this->safe_integer($transaction, 'update_time'),
             'internal' => null,
             'fee' => $fee,
         );
@@ -2111,8 +2148,8 @@ class cryptocom extends Exchange {
              * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
-             * @param {string|null} $symbol unified market $symbol, not used by cryptocom.repayMargin ()
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {string} $symbol unified market $symbol, not used by cryptocom.repayMargin ()
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -2146,8 +2183,8 @@ class cryptocom extends Exchange {
              * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {string|null} $symbol unified market $symbol, not used by cryptocom.repayMargin ()
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {string} $symbol unified market $symbol, not used by cryptocom.repayMargin ()
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -2285,7 +2322,7 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest $rates of all currencies
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
              */
             Async\await($this->load_markets());
@@ -2343,8 +2380,8 @@ class cryptocom extends Exchange {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
@@ -2418,8 +2455,8 @@ class cryptocom extends Exchange {
             /**
              * fetch deposit and withdraw fees
              * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
-             * @param {[string]|null} $codes list of unified currency $codes
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {string[]|null} $codes list of unified currency $codes
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
              */
             Async\await($this->load_markets());
@@ -2435,11 +2472,11 @@ class cryptocom extends Exchange {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-             * @param {string|null} $code unified $currency $code
-             * @param {int|null} $since timestamp in ms of the earliest $ledger entry
-             * @param {int|null} $limit max number of $ledger entries to return
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] timestamp in ms of the earliest $ledger entry
+             * @param {int} [$limit] max number of $ledger entries to return
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ledger-structure $ledger structure}
              */
             Async\await($this->load_markets());
@@ -2580,7 +2617,7 @@ class cryptocom extends Exchange {
             /**
              * fetch all the $accounts associated with a profile
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$accounts
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
              */
             Async\await($this->load_markets());
@@ -2664,11 +2701,11 @@ class cryptocom extends Exchange {
              * fetches historical settlement records
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
              * @param {string} $symbol unified $market $symbol of the settlement history
-             * @param {int|null} $since timestamp in ms
-             * @param {int|null} $limit number of records
-             * @param {array} $params exchange specific $params
-             * @param {int|null} $params->type 'future', 'option'
-             * @return {[array]} a list of [settlement history objects]
+             * @param {int} [$since] timestamp in ms
+             * @param {int} [$limit] number of records
+             * @param {array} [$params] exchange specific $params
+             * @param {int} [$params->type] 'future', 'option'
+             * @return {array[]} a list of [settlement history objects]
              */
             Async\await($this->load_markets());
             $market = null;
@@ -2753,12 +2790,12 @@ class cryptocom extends Exchange {
             /**
              * fetches historical funding $rates
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
-             * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
-             * @param {int|null} $limit the maximum amount of [funding rate structures] to fetch
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @param {int|null} $params->until $timestamp in ms for the ending date filter, default is the current time
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+             * @param {int} [$limit] the maximum amount of [funding rate structures] to fetch
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @param {int} [$params->until] $timestamp in ms for the ending date filter, default is the current time
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
@@ -2824,7 +2861,7 @@ class cryptocom extends Exchange {
              * fetch $data on a single open contract trade position
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
@@ -2866,9 +2903,9 @@ class cryptocom extends Exchange {
             /**
              * fetch all open $positions
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$positions
-             * @param {[string]|null} $symbols list of unified $market $symbols
-             * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);

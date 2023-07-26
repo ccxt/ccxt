@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitvavo.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitvavo
+ * @extends Exchange
+ */
 export default class bitvavo extends Exchange {
     describe(): any;
     currencyToPrecision(code: any, fee: any, networkCode?: any): any;
@@ -7,7 +11,6 @@ export default class bitvavo extends Exchange {
     priceToPrecision(symbol: any, price: any): any;
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchCurrenciesFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
