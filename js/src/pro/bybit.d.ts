@@ -10,7 +10,7 @@ export default class bybit extends bybitRest {
     handleTicker(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any): number[];
+    parseWsOHLCV(ohlcv: any, market?: any): number[];
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
@@ -23,7 +23,7 @@ export default class bybit extends bybitRest {
     handleMyTrades(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any, subscription?: any): void;
-    parseWsSpotOrder(order: any, market?: any): any;
+    parseWsSpotOrder(order: any, market?: any): import("../base/types.js").Order;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     parseWsBalance(balance: any, accountType?: any): void;

@@ -20,7 +20,7 @@ export default class poloniex extends poloniexRest {
     parseStatus(status: any): string;
     parseWsOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleOrder(client: Client, message: any): any;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleTicker(client: Client, message: any): any;
     handleOrderBook(client: Client, message: any): void;
     handleBalance(client: Client, message: any): void;

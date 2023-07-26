@@ -1,7 +1,17 @@
 import Exchange from './abstract/bitmex.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitmex
+ * @extends Exchange
+ */
 export default class bitmex extends Exchange {
     describe(): any;
+    fetchCurrencies(params?: {}): Promise<{}>;
+    convertFromRealAmount(code: any, amount: any): number;
+    convertToRealAmount(code: any, amount: any): number;
+    amountToPrecision(symbol: any, amount: any): any;
+    convertFromRawQuantity(symbol: any, rawQuantity: any, currencySide?: string): number;
+    convertFromRawCost(symbol: any, rawQuantity: any): number;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
@@ -24,7 +34,7 @@ export default class bitmex extends Exchange {
         type: string;
         currency: any;
         amount: number;
-        before: any;
+        before: number;
         after: number;
         status: string;
         fee: {
@@ -33,7 +43,7 @@ export default class bitmex extends Exchange {
         };
     };
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -60,7 +70,7 @@ export default class bitmex extends Exchange {
             rate: any;
         };
     };
-    fetchTicker(symbol: string, params?: {}): Promise<any>;
+    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -68,17 +78,15 @@ export default class bitmex extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
-    parseOrder(order: any, market?: any): any;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): any;
-    convertValue(value: any, market?: any): any;
-    isFiat(currency: any): boolean;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
@@ -138,9 +146,22 @@ export default class bitmex extends Exchange {
         currency: string;
         address: any;
         tag: any;
-        network: string;
+        network: any;
         info: any;
     }>;
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     nonce(): number;
