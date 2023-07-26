@@ -5056,11 +5056,11 @@ export default class bitget extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    async fetchPositionsForSymbol (symbol, params = {}) {
+    async fetchPositionsBySymbol (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['linear'] || !market['swap']) {
-            throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not yet supported for ' + symbol + ' market. Coming soon...');
+            throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not yet supported for ' + symbol + ' market. Coming soon...');
         }
         const request = {
             'symbol': market['id'],
