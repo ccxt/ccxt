@@ -68,6 +68,7 @@ export default class delta extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': true,
+                'setLeverage': true,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -2705,6 +2706,38 @@ export default class delta extends Exchange {
         //     }
         //
         return await this.privateGetProductsProductIdOrdersLeverage (this.extend (request, params));
+    }
+
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.delta.exchange/#change-order-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol ('setLeverage', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_id': market['numericId'],
+            'leverage': leverage,
+        };
+        //
+        //     {
+        //         "result": {
+        //             "leverage": "20",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84
+        //         },
+        //         "success": true
+        //     }
+        //
+        return await this.privatePostProductsProductIdOrdersLeverage (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
