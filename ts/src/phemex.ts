@@ -2435,7 +2435,7 @@ export default class phemex extends Exchange {
                 if (stopLossDefined) {
                     const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
                     if (stopLossTriggerPrice === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order'');
+                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['stopLossRp'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
