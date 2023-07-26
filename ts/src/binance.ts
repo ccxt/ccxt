@@ -3677,15 +3677,16 @@ export default class binance extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' editSpotOrder() does not support ' + market['type'] + ' orders');
         }
-        const request = {
-            'symbol': market['id'],
-            'side': side.toUpperCase (),
-        };
         const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
         let response = undefined;
         if (market['spot']) {
-            response = await this.privatePostOrderCancelReplace (this.extend (request, params));
+            const payload = this.editSpotOrderRequest (id, symbol, type, side, amount, price, params);
+            response = await this.privatePostOrderCancelReplace (payload);
         } else {
+            const request = {
+                'symbol': market['id'],
+                'side': side.toUpperCase (),
+            };
             request['orderId'] = id;
             request['quantity'] = this.amountToPrecision (symbol, amount);
             if (price !== undefined) {
