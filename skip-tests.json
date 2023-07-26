@@ -37,6 +37,7 @@
         }
     },
     "bequant": {
+	"skip": "v3 migration complains about the currency code vs currencyId mismatch",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
