@@ -45,6 +45,7 @@ export default class delta extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
@@ -2674,6 +2675,37 @@ export default class delta extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': interest,
         };
+    }
+
+    async fetchLeverage (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.delta.exchange/#get-order-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_id': market['numericId'],
+        };
+        //
+        //     {
+        //         "result": {
+        //             "index_symbol": null,
+        //             "leverage": "10",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84,
+        //             "user_id": 30084879
+        //         },
+        //         "success": true
+        //     }
+        //
+        return await this.privateGetProductsProductIdOrdersLeverage (this.extend (request, params));
     }
 
     async setLeverage (leverage, symbol: string = undefined, params = {}) {
