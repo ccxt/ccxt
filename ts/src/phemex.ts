@@ -2435,7 +2435,7 @@ export default class phemex extends Exchange {
                 if (stopLossDefined) {
                     const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
                     if (stopLossTriggerPrice === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop-loss order');
+                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order'');
                     }
                     if (market['settle'] === 'USDT') {
                         request['stopLossRp'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
@@ -2460,7 +2460,7 @@ export default class phemex extends Exchange {
                 if (takeProfitDefined) {
                     const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
                     if (takeProfitTriggerPrice === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take-profit order');
+                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"] for a take profit order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['takeProfitRp'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
@@ -2476,7 +2476,7 @@ export default class phemex extends Exchange {
                             }
                         } else {
                             if ((takeProfitTriggerPriceType !== 'ByMarkPrice') && (takeProfitTriggerPriceType !== 'ByLastPrice')) {
-                                throw new InvalidOrder (this.id + ' createOrder() take-profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"');
+                                throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"');
                             }
                         }
                         request['tpTrigger'] = takeProfitTriggerPriceType;
