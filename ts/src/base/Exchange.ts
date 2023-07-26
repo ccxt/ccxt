@@ -4225,9 +4225,9 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * @param {string} argument the argument to check
-         * @param {string} argumentName the name of the argument to check
          * @param {string} methodName the name of the method that the argument is being checked for
+         * @param {string} argument the argument's actual value provided
+         * @param {string} argumentName the name of the argument being checked (for logging purposes)
          * @param {string[]} options a list of options that the argument can be
          * @returns {undefined}
          */
