@@ -155,6 +155,7 @@ class gate(Exchange, ImplicitAPI):
                 'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'setPositionMode': True,
                 'signIn': False,
                 'transfer': True,
                 'withdraw': True,
@@ -822,6 +823,7 @@ class gate(Exchange, ImplicitAPI):
                     'RISK_LIMIT_TOO_LOW': BadRequest,  # {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
                     'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument: Trigger.Price must < last_price"}
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
+                    'POSITION_HOLDING': BadRequest,
                 },
                 'broad': {},
             },
@@ -5658,6 +5660,21 @@ class gate(Exchange, ImplicitAPI):
             'dnw': 'deposit/withdraw',
         }
         return self.safe_string(ledgerType, type, type)
+
+    async def set_position_mode(self, hedged, symbol=None, params={}):
+        """
+        set dual/hedged mode to True or False for a swap market, make sure all positions are closed and no orders are open before setting dual mode
+        see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+        :param bool hedged: set to True to enable dual mode
+        :param str|None symbol: if passed, dual mode is set for all markets with the same settle currency
+        :param dict params: extra parameters specific to the gate api endpoint
+        :param str params['settle']: settle currency
+        :returns dict: response from the exchange
+        """
+        market = self.market(symbol) if (symbol is not None) else None
+        request, query = self.prepare_request(market, 'swap', params)
+        request['dual_mode'] = hedged
+        return await self.privateFuturesPostSettleDualMode(self.extend(request, query))
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

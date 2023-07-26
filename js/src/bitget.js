@@ -2865,7 +2865,7 @@ export default class bitget extends Exchange {
                 request[timeInForceKey] = 'ioc';
             }
         }
-        const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly']);
+        const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly']);
         const response = await this[method](this.extend(request, omitted));
         //
         //     {

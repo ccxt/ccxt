@@ -2872,7 +2872,7 @@ class bitget extends Exchange {
                     $request[$timeInForceKey] = 'ioc';
                 }
             }
-            $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly' ));
+            $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly' ));
             $response = Async\await($this->$method (array_merge($request, $omitted)));
             //
             //     {

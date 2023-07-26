@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.37'
+__version__ = '4.0.38'
 
 # -----------------------------------------------------------------------------
 
@@ -952,6 +952,7 @@ class Exchange(BaseExchange):
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
         symbol = self.safe_string(order, 'symbol')
         side = self.safe_string(order, 'side')
+        status = self.safe_string(order, 'status')
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
@@ -1035,14 +1036,18 @@ class Exchange(BaseExchange):
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
                 amount = Precise.string_add(filled, remaining)
-            elif self.safe_string(order, 'status') == 'closed':
+            elif status == 'closed':
                 amount = filled
         if filled is None:
             if amount is not None and remaining is not None:
                 filled = Precise.string_sub(amount, remaining)
+            elif status == 'closed' and amount is not None:
+                filled = amount
         if remaining is None:
             if amount is not None and filled is not None:
                 remaining = Precise.string_sub(amount, filled)
+            elif status == 'closed':
+                remaining = '0'
         # ensure that the average field is calculated correctly
         inverse = self.safe_value(market, 'inverse', False)
         contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
@@ -1137,7 +1142,7 @@ class Exchange(BaseExchange):
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'status': self.safe_string(order, 'status'),
+            'status': status,
             'fee': self.safe_value(order, 'fee'),
         })
 
@@ -2810,9 +2815,9 @@ class Exchange(BaseExchange):
     def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """
          * @ignore
-        :param str argument: the argument to check
-        :param str argumentName: the name of the argument to check
         :param str methodName: the name of the method that the argument is being checked for
+        :param str argument: the argument's actual value provided
+        :param str argumentName: the name of the argument being checked(for logging purposes)
         :param str[] options: a list of options that the argument can be
         :returns None:
         """

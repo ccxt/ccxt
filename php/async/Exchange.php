@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.37';
+$version = '4.0.38';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.37';
+    const VERSION = '4.0.38';
 
     public $browser;
     public $marketsLoading = null;
@@ -824,6 +824,7 @@ class Exchange extends \ccxt\Exchange {
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
         $symbol = $this->safe_string($order, 'symbol');
         $side = $this->safe_string($order, 'side');
+        $status = $this->safe_string($order, 'status');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
         $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
@@ -933,18 +934,22 @@ class Exchange extends \ccxt\Exchange {
             // ensure $amount = $filled . $remaining
             if ($filled !== null && $remaining !== null) {
                 $amount = Precise::string_add($filled, $remaining);
-            } elseif ($this->safe_string($order, 'status') === 'closed') {
+            } elseif ($status === 'closed') {
                 $amount = $filled;
             }
         }
         if ($filled === null) {
             if ($amount !== null && $remaining !== null) {
                 $filled = Precise::string_sub($amount, $remaining);
+            } elseif ($status === 'closed' && $amount !== null) {
+                $filled = $amount;
             }
         }
         if ($remaining === null) {
             if ($amount !== null && $filled !== null) {
                 $remaining = Precise::string_sub($amount, $filled);
+            } elseif ($status === 'closed') {
+                $remaining = '0';
             }
         }
         // ensure that the $average field is calculated correctly
@@ -1054,7 +1059,7 @@ class Exchange extends \ccxt\Exchange {
             'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
-            'status' => $this->safe_string($order, 'status'),
+            'status' => $status,
             'fee' => $this->safe_value($order, 'fee'),
         ));
     }
@@ -3192,9 +3197,9 @@ class Exchange extends \ccxt\Exchange {
     public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
         /**
          * @ignore
-         * @param {string} $argument the $argument to check
-         * @param {string} $argumentName the name of the $argument to check
          * @param {string} $methodName the name of the method that the $argument is being checked for
+         * @param {string} $argument the argument's actual value provided
+         * @param {string} $argumentName the name of the $argument being checked (for logging purposes)
          * @param {string[]} $options a list of $options that the $argument can be
          * @return {null}
          */

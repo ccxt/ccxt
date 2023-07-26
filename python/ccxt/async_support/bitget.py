@@ -2744,7 +2744,7 @@ class bitget(Exchange, ImplicitAPI):
                 request[timeInForceKey] = 'fok'
             elif timeInForce == 'ioc':
                 request[timeInForceKey] = 'ioc'
-        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly'])
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly'])
         response = await getattr(self, method)(self.extend(request, omitted))
         #
         #     {

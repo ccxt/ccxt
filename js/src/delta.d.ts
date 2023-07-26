@@ -216,6 +216,8 @@ export default class delta extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchLeverage(symbol: string, params?: {}): Promise<any>;
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

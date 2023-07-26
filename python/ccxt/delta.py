@@ -55,6 +55,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
                 'fetchLedger': True,
+                'fetchLeverage': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
@@ -77,6 +78,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': None,
                 'reduceMargin': True,
+                'setLeverage': True,
                 'transfer': False,
                 'withdraw': False,
             },
@@ -2551,6 +2553,63 @@ class delta(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': interest,
         }
+
+    def fetch_leverage(self, symbol: str, params={}):
+        """
+        fetch the set leverage for a market
+        see https://docs.delta.exchange/#get-order-leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['numericId'],
+        }
+        #
+        #     {
+        #         "result": {
+        #             "index_symbol": null,
+        #             "leverage": "10",
+        #             "margin_mode": "isolated",
+        #             "order_margin": "0",
+        #             "product_id": 84,
+        #             "user_id": 30084879
+        #         },
+        #         "success": True
+        #     }
+        #
+        return self.privateGetProductsProductIdOrdersLeverage(self.extend(request, params))
+
+    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+        """
+        set the level of leverage for a market
+        see https://docs.delta.exchange/#change-order-leverage
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_symbol('setLeverage', symbol)
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['numericId'],
+            'leverage': leverage,
+        }
+        #
+        #     {
+        #         "result": {
+        #             "leverage": "20",
+        #             "margin_mode": "isolated",
+        #             "order_margin": "0",
+        #             "product_id": 84
+        #         },
+        #         "success": True
+        #     }
+        #
+        return self.privatePostProductsProductIdOrdersLeverage(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)

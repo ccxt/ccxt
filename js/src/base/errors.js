@@ -90,7 +90,13 @@ class BadSymbol extends BadRequest {
         this.name = 'BadSymbol';
     }
 }
-class MarginModeAlreadySet extends BadRequest {
+class NoChange extends BadRequest {
+    constructor(message) {
+        super(message);
+        this.name = 'NoChange';
+    }
+}
+class MarginModeAlreadySet extends NoChange {
     constructor(message) {
         super(message);
         this.name = 'MarginModeAlreadySet';

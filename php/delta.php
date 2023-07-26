@@ -40,6 +40,7 @@ class delta extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
@@ -62,6 +63,7 @@ class delta extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => null,
                 'reduceMargin' => true,
+                'setLeverage' => true,
                 'transfer' => false,
                 'withdraw' => false,
             ),
@@ -2618,6 +2620,65 @@ class delta extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         );
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()) {
+        /**
+         * fetch the set leverage for a $market
+         * @see https://docs.delta.exchange/#get-order-leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the delta api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_id' => $market['numericId'],
+        );
+        //
+        //     {
+        //         "result" => array(
+        //             "index_symbol" => null,
+        //             "leverage" => "10",
+        //             "margin_mode" => "isolated",
+        //             "order_margin" => "0",
+        //             "product_id" => 84,
+        //             "user_id" => 30084879
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        return $this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params));
+    }
+
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @see https://docs.delta.exchange/#change-order-$leverage
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the delta api endpoint
+         * @return {array} response from the exchange
+         */
+        $this->check_required_symbol('setLeverage', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_id' => $market['numericId'],
+            'leverage' => $leverage,
+        );
+        //
+        //     {
+        //         "result" => array(
+        //             "leverage" => "20",
+        //             "margin_mode" => "isolated",
+        //             "order_margin" => "0",
+        //             "product_id" => 84
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        return $this->privatePostProductsProductIdOrdersLeverage (array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

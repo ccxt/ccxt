@@ -43,6 +43,7 @@ class delta extends delta$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
@@ -65,6 +66,7 @@ class delta extends delta$1 {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': true,
+                'setLeverage': true,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -2636,6 +2638,67 @@ class delta extends delta$1 {
             'datetime': this.iso8601(timestamp),
             'info': interest,
         };
+    }
+    async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.delta.exchange/#get-order-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'product_id': market['numericId'],
+        };
+        //
+        //     {
+        //         "result": {
+        //             "index_symbol": null,
+        //             "leverage": "10",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84,
+        //             "user_id": 30084879
+        //         },
+        //         "success": true
+        //     }
+        //
+        return await this.privateGetProductsProductIdOrdersLeverage(this.extend(request, params));
+    }
+    async setLeverage(leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.delta.exchange/#change-order-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol('setLeverage', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'product_id': market['numericId'],
+            'leverage': leverage,
+        };
+        //
+        //     {
+        //         "result": {
+        //             "leverage": "20",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84
+        //         },
+        //         "success": true
+        //     }
+        //
+        return await this.privatePostProductsProductIdOrdersLeverage(this.extend(request, params));
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams(path, params);
