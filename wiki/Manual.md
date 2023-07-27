@@ -1473,6 +1473,7 @@ import ccxt.async_support as ccxt
 async def print_poloniex_ethbtc_ticker():
     poloniex = ccxt.poloniex()
     print(await poloniex.fetch_ticker('ETH/BTC'))
+    await polonix.close()  # close the exchange instance when you don't need it anymore
 
 asyncio.run(print_poloniex_ethbtc_ticker())
 ```
@@ -5553,7 +5554,7 @@ ex = ccxt.binance({'proxyUrl': 'YOUR_PROXY_URL'})
 ex.proxyUrl = 'YOUR_PROXY_URL';
 ```
 
-while 'YOUR_PROXY_URL' could be like (note the backslash): 
+while 'YOUR_PROXY_URL' could be like (note the backslash):
 - `http://127.0.0.1:8080/`
 - `https://cors-anywhere.herokuapp.com/`
 - `http://your-website.com/sample-script.php?url=`
