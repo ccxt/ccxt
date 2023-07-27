@@ -210,26 +210,25 @@ const sequentialMap = async (input, fn) => {
 }
 
 /*  ------------------------------------------------------------------------ */
-const percentsDoneCalc = () => { 
-    return ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'; 
-};
 
 const testExchange = async (exchange) => {
 
+    const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
+
     // no need to test alias classes
     if (exchange.alias) {
-        log.bright (('[' + percentsDoneCalc() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
         return [];
     }
 
     if (skipSettings[exchange] && skipSettings[exchange].skip) {
         if (!('until' in skipSettings[exchange])) {
-            log.bright (('[' + percentsDoneCalc() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
             return [];
         }
         if (new Date(skipSettings[exchange].until) > new Date()) {
             // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDoneCalc() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
             return [];
         }
     }
@@ -281,7 +280,7 @@ const testExchange = async (exchange) => {
     let logMessage = '';
 
     if (failed) {
-        logMessage += 'FAIL'.red;
+        logMessage+= 'FAIL'.red;
     } else if (hasWarnings) {
         logMessage = ('WARN: ' + (warnings.length ? warnings.join (' ') : '')).yellow;
     } else {
@@ -296,7 +295,8 @@ const testExchange = async (exchange) => {
             logMessage += infoMessages.blue;
         }
     }
-    log.bright (('[' + percentsDoneCalc() + ']').dim, 'Tested', exchange.cyan, logMessage)
+    numExchangesTested++;
+    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, logMessage)
 
 /*  Return collected data to main loop     */
 
@@ -309,8 +309,8 @@ const testExchange = async (exchange) => {
         explain () {
             for (let { language, failed, output, hasWarnings, hasInfo, outputInfo } of completeTests) {
                 if (failed || hasWarnings) {
-                    const skippedExchange = output.indexOf('[SKIPPED]') >= 0;
-                    if (!failed && skippedExchange)
+                    const fullSkip = output.indexOf('[SKIPPED]') >= 0;
+                    if (!failed && fullSkip)
                         continue;
 
                     if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
@@ -370,10 +370,7 @@ async function testAllExchanges () {
     const results = []
 
     for (const exchange of exchanges) {
-        taskPool.run (() => testExchange (exchange).then (x => {
-            numExchangesTested++
-            results.push (x);
-        }))
+        taskPool.run (() => testExchange (exchange).then (x => results.push (x)))
     }
 
     await Promise.all (taskPool.pending)
