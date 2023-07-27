@@ -493,6 +493,7 @@
         }
     },
     "bybit": {
+        "skip": "forbidden location",
         "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": {
