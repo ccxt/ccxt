@@ -58,6 +58,7 @@ export default class delta extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -227,6 +228,108 @@ export default class delta extends Exchange {
                 },
             },
         });
+    }
+
+    convertExpireDate (date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice (0, 2);
+        const month = date.slice (2, 4);
+        const day = date.slice (4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+
+    createExpiredOptionMarket (symbol) {
+        // support expired option contracts
+        const quote = 'USDT';
+        const optionParts = symbol.split ('-');
+        const symbolBase = symbol.split ('/');
+        let base = undefined;
+        let expiry = undefined;
+        let optionType = undefined;
+        if (symbol.indexOf ('/') > -1) {
+            base = this.safeString (symbolBase, 0);
+            expiry = this.safeString (optionParts, 1);
+            optionType = this.safeString (optionParts, 3);
+        } else {
+            base = this.safeString (optionParts, 1);
+            expiry = this.safeString (optionParts, 3);
+            optionType = this.safeString (optionParts, 0);
+        }
+        const settle = quote;
+        const strike = this.safeString (optionParts, 2);
+        const datetime = this.convertExpireDate (expiry);
+        const timestamp = this.parse8601 (datetime);
+        return {
+            'id': optionType + '-' + base + '-' + strike + '-' + expiry,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': false,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': this.parseNumber ('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': this.parseNumber (strike),
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
+    }
+
+    market (symbol) {
+        if (this.markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                return this.markets[symbol];
+            } else if (symbol in this.markets_by_id) {
+                const markets = this.markets_by_id[symbol];
+                return markets[0];
+            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1) || (symbol.indexOf ('C')) || (symbol.indexOf ('P'))) {
+                return this.createExpiredOptionMarket (symbol);
+            }
+        }
+        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+    }
+
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1) || (marketId.indexOf ('C')) || (marketId.indexOf ('P')));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket (marketId);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     async fetchTime (params = {}) {
@@ -2738,6 +2841,167 @@ export default class delta extends Exchange {
         //     }
         //
         return await this.privatePostProductsProductIdOrdersLeverage (this.extend (request, params));
+    }
+
+    async fetchSettlementHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://docs.delta.exchange/#get-product-settlement-prices
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [settlement history objects]
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'states': 'expired',
+        };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.publicGetProducts (this.extend (request, params));
+        //
+        //     {
+        //         "result": [
+        //             {
+        //                 "contract_value": "0.001",
+        //                 "basis_factor_max_limit": "10.95",
+        //                 "maker_commission_rate": "0.0003",
+        //                 "launch_time": "2023-07-19T04:30:03Z",
+        //                 "trading_status": "operational",
+        //                 "product_specs": {
+        //                     "backup_vol_expiry_time": 31536000,
+        //                     "max_deviation_from_external_vol": 0.75,
+        //                     "max_lower_deviation_from_external_vol": 0.75,
+        //                     "max_upper_deviation_from_external_vol": 0.5,
+        //                     "max_volatility": 3,
+        //                     "min_volatility": 0.1,
+        //                     "premium_commission_rate": 0.1,
+        //                     "settlement_index_price": "29993.536675710806",
+        //                     "vol_calculation_method": "orderbook",
+        //                     "vol_expiry_time": 31536000
+        //                 },
+        //                 "description": "BTC call option expiring on 19-7-2023",
+        //                 "settlement_price": "0",
+        //                 "disruption_reason": null,
+        //                 "settling_asset": {},
+        //                 "initial_margin": "1",
+        //                 "tick_size": "0.1",
+        //                 "maintenance_margin": "0.5",
+        //                 "id": 117542,
+        //                 "notional_type": "vanilla",
+        //                 "ui_config": {},
+        //                 "contract_unit_currency": "BTC",
+        //                 "symbol": "C-BTC-30900-190723",
+        //                 "insurance_fund_margin_contribution": "1",
+        //                 "price_band": "2",
+        //                 "annualized_funding": "10.95",
+        //                 "impact_size": 200,
+        //                 "contract_type": "call_options",
+        //                 "position_size_limit": 255633,
+        //                 "max_leverage_notional": "200000",
+        //                 "initial_margin_scaling_factor": "0.000002",
+        //                 "strike_price": "30900",
+        //                 "is_quanto": false,
+        //                 "settlement_time": "2023-07-19T12:00:00Z",
+        //                 "liquidation_penalty_factor": "0.5",
+        //                 "funding_method": "mark_price",
+        //                 "taker_commission_rate": "0.0003",
+        //                 "default_leverage": "100.000000000000000000",
+        //                 "state": "expired",
+        //                 "auction_start_time": null,
+        //                 "short_description": "BTC  Call",
+        //                 "quoting_asset": {},
+        //                 "maintenance_margin_scaling_factor":"0.000002"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const settlements = this.parseSettlements (result, market);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        //     {
+        //         "contract_value": "0.001",
+        //         "basis_factor_max_limit": "10.95",
+        //         "maker_commission_rate": "0.0003",
+        //         "launch_time": "2023-07-19T04:30:03Z",
+        //         "trading_status": "operational",
+        //         "product_specs": {
+        //             "backup_vol_expiry_time": 31536000,
+        //             "max_deviation_from_external_vol": 0.75,
+        //             "max_lower_deviation_from_external_vol": 0.75,
+        //             "max_upper_deviation_from_external_vol": 0.5,
+        //             "max_volatility": 3,
+        //             "min_volatility": 0.1,
+        //             "premium_commission_rate": 0.1,
+        //             "settlement_index_price": "29993.536675710806",
+        //             "vol_calculation_method": "orderbook",
+        //             "vol_expiry_time": 31536000
+        //         },
+        //         "description": "BTC call option expiring on 19-7-2023",
+        //         "settlement_price": "0",
+        //         "disruption_reason": null,
+        //         "settling_asset": {},
+        //         "initial_margin": "1",
+        //         "tick_size": "0.1",
+        //         "maintenance_margin": "0.5",
+        //         "id": 117542,
+        //         "notional_type": "vanilla",
+        //         "ui_config": {},
+        //         "contract_unit_currency": "BTC",
+        //         "symbol": "C-BTC-30900-190723",
+        //         "insurance_fund_margin_contribution": "1",
+        //         "price_band": "2",
+        //         "annualized_funding": "10.95",
+        //         "impact_size": 200,
+        //         "contract_type": "call_options",
+        //         "position_size_limit": 255633,
+        //         "max_leverage_notional": "200000",
+        //         "initial_margin_scaling_factor": "0.000002",
+        //         "strike_price": "30900",
+        //         "is_quanto": false,
+        //         "settlement_time": "2023-07-19T12:00:00Z",
+        //         "liquidation_penalty_factor": "0.5",
+        //         "funding_method": "mark_price",
+        //         "taker_commission_rate": "0.0003",
+        //         "default_leverage": "100.000000000000000000",
+        //         "state": "expired",
+        //         "auction_start_time": null,
+        //         "short_description": "BTC  Call",
+        //         "quoting_asset": {},
+        //         "maintenance_margin_scaling_factor":"0.000002"
+        //     }
+        //
+        const datetime = this.safeString (settlement, 'settlement_time');
+        const marketId = this.safeString (settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'price': this.safeNumber (settlement, 'settlement_price'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        };
+    }
+
+    parseSettlements (settlements, market) {
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push (this.parseSettlement (settlements[i], market));
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
