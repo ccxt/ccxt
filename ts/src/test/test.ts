@@ -18,7 +18,6 @@ process.on ('unhandledRejection', (e: any) => {
 });
 const [ processPath, , exchangeId = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
-const PermissionDenied = ccxt.PermissionDenied;
 const RateLimitExceeded = ccxt.RateLimitExceeded;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const NetworkError = ccxt.NetworkError;
@@ -204,18 +203,9 @@ export default class testMainClass extends baseMainTestClass {
         const skippedSettings = ioFileRead (skippedFile);
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
-        const skipReason = exchange.safeValue (skippedSettingsForExchange, 'skip');
         const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
             exchange.timeout = timeout;
-        }
-        if (skipReason !== undefined) {
-            dump ('[SKIPPED] exchange', exchangeId, skipReason);
-            exitScript ();
-        }
-        if (exchange.alias) {
-            dump ('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
-            exitScript ();
         }
         exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
@@ -296,13 +286,16 @@ export default class testMainClass extends baseMainTestClass {
                 await this.testMethod (methodName, exchange, args, isPublic);
                 return true;
             } catch (e) {
+                if (e instanceof OnMaintenance) {
+                    dump ('[SKIPPED] Exchange is on maintenance', exchangeId);
+                    exitScript ();
+                }
                 const isRateLimitExceeded = (e instanceof RateLimitExceeded);
                 const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
                 const isNetworkError = (e instanceof NetworkError);
                 const isDDoSProtection = (e instanceof DDoSProtection);
-                const isOnMaintenance = (e instanceof OnMaintenance);
                 const isRequestTimeout = (e instanceof RequestTimeout);
-                const tempFailure = (isRateLimitExceeded || isExchangeNotAvailable || isNetworkError || isDDoSProtection || isOnMaintenance || isRequestTimeout);
+                const tempFailure = (isRateLimitExceeded || isExchangeNotAvailable || isNetworkError || isDDoSProtection || isRequestTimeout);
                 if (tempFailure) {
                     // wait and retry again
                     await exchange.sleep (i); // increase wait seconds on every retry
