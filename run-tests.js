@@ -217,16 +217,20 @@ const testExchange = async (exchange) => {
 
     // no need to test alias classes
     if (exchange.alias) {
+        numExchangesTested++;
         log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
         return [];
     }
 
     if (skipSettings[exchange] && skipSettings[exchange].skip) {
         if (!('until' in skipSettings[exchange])) {
+            // if until not specified, skip forever
+            numExchangesTested++;
             log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
             return [];
         }
         if (new Date(skipSettings[exchange].until) > new Date()) {
+            numExchangesTested++;
             // if untilDate has not been yet reached, skip test for exchange
             log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
             return [];
