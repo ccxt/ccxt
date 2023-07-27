@@ -503,11 +503,11 @@ class bybit(ccxt.async_support.bybit):
         """
         watches information on multiple trades made in a market
         see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -983,7 +983,7 @@ class bybit(ccxt.async_support.bybit):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`

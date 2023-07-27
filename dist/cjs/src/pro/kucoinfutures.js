@@ -522,7 +522,7 @@ class kucoinfutures extends kucoinfutures$1 {
         /**
          * @method
          * @name kucoinfutures#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.kucoin.com/futures/#account-balance-events
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}

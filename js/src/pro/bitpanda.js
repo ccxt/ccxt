@@ -81,7 +81,7 @@ export default class bitpanda extends bitpandaRest {
          * @method
          * @name bitpanda#watchBalance
          * @see https://developers.bitpanda.com/exchange/#account-history-channel
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitpanda api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
