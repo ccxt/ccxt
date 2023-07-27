@@ -223,13 +223,11 @@ const testExchange = async (exchange) => {
     }
 
     if (skipSettings[exchange] && skipSettings[exchange].skip) {
-        const until = exchange.safeString (skipSettings[exchange], 'until');
-        if (until === undefined) {
+        if (!('until' in skipSettings[exchange])) {
             log.bright (('[' + percentsDoneCalc() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
             return [];
         }
-        const untilDate = new Date(until);
-        if (untilDate > new Date()) {
+        if (new Date(skipSettings[exchange].until) > new Date()) {
             // if untilDate has not been yet reached, skip test for exchange
             log.bright (('[' + percentsDoneCalc() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
             return [];
