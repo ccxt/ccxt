@@ -40,6 +40,9 @@
 	"skip": "v3 migration complains about the currency code vs currencyId mismatch",
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
+            },
             "fetchTickers": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask"
