@@ -206,6 +206,6 @@ __all__ = [
     'OnMaintenance',
     'InvalidNonce',
     'RequestTimeout',
-    'ContractSettled',
     'NoChange',
+    'ContractSettled',
 ]
