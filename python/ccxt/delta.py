@@ -68,6 +68,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchPosition': True,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchSettlementHistory': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -237,6 +238,99 @@ class delta(Exchange, ImplicitAPI):
                 },
             },
         })
+
+    def convert_expire_date(self, date):
+        # parse YYMMDD to timestamp
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
+    def create_expired_option_market(self, symbol):
+        # support expired option contracts
+        quote = 'USDT'
+        optionParts = symbol.split('-')
+        symbolBase = symbol.split('/')
+        base = None
+        expiry = None
+        optionType = None
+        if symbol.find('/') > -1:
+            base = self.safe_string(symbolBase, 0)
+            expiry = self.safe_string(optionParts, 1)
+            optionType = self.safe_string(optionParts, 3)
+        else:
+            base = self.safe_string(optionParts, 1)
+            expiry = self.safe_string(optionParts, 3)
+            optionType = self.safe_string(optionParts, 0)
+        settle = quote
+        strike = self.safe_string(optionParts, 2)
+        datetime = self.convert_expire_date(expiry)
+        timestamp = self.parse8601(datetime)
+        return {
+            'id': optionType + '-' + base + '-' + strike + '-' + expiry,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': False,
+            'type': 'option',
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': True,
+            'margin': False,
+            'contract': True,
+            'contractSize': self.parse_number('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': 'call' if (optionType == 'C') else 'put',
+            'strike': self.parse_number(strike),
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
+
+    def market(self, symbol):
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if isinstance(symbol, str):
+            if symbol in self.markets:
+                return self.markets[symbol]
+            elif symbol in self.markets_by_id:
+                markets = self.markets_by_id[symbol]
+                return markets[0]
+            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1) or (symbol.find('C')) or (symbol.find('P')):
+                return self.create_expired_option_market(symbol)
+        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
+
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1) or (marketId.find('C')) or (marketId.find('P')))
+        if isOption and not (marketId in self.markets_by_id):
+            # handle expired option contracts
+            return self.create_expired_option_market(marketId)
+        return super(delta, self).safe_market(marketId, market, delimiter, marketType)
 
     def fetch_time(self, params={}):
         """
@@ -2610,6 +2704,159 @@ class delta(Exchange, ImplicitAPI):
         #     }
         #
         return self.privatePostProductsProductIdOrdersLeverage(self.extend(request, params))
+
+    def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical settlement records
+        see https://docs.delta.exchange/#get-product-settlement-prices
+        :param str symbol: unified market symbol of the settlement history
+        :param int [since]: timestamp in ms
+        :param int [limit]: number of records
+        :param dict [params]: exchange specific params
+        :returns dict[]: a list of [settlement history objects]
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'states': 'expired',
+        }
+        if limit is not None:
+            request['page_size'] = limit
+        response = self.publicGetProducts(self.extend(request, params))
+        #
+        #     {
+        #         "result": [
+        #             {
+        #                 "contract_value": "0.001",
+        #                 "basis_factor_max_limit": "10.95",
+        #                 "maker_commission_rate": "0.0003",
+        #                 "launch_time": "2023-07-19T04:30:03Z",
+        #                 "trading_status": "operational",
+        #                 "product_specs": {
+        #                     "backup_vol_expiry_time": 31536000,
+        #                     "max_deviation_from_external_vol": 0.75,
+        #                     "max_lower_deviation_from_external_vol": 0.75,
+        #                     "max_upper_deviation_from_external_vol": 0.5,
+        #                     "max_volatility": 3,
+        #                     "min_volatility": 0.1,
+        #                     "premium_commission_rate": 0.1,
+        #                     "settlement_index_price": "29993.536675710806",
+        #                     "vol_calculation_method": "orderbook",
+        #                     "vol_expiry_time": 31536000
+        #                 },
+        #                 "description": "BTC call option expiring on 19-7-2023",
+        #                 "settlement_price": "0",
+        #                 "disruption_reason": null,
+        #                 "settling_asset": {},
+        #                 "initial_margin": "1",
+        #                 "tick_size": "0.1",
+        #                 "maintenance_margin": "0.5",
+        #                 "id": 117542,
+        #                 "notional_type": "vanilla",
+        #                 "ui_config": {},
+        #                 "contract_unit_currency": "BTC",
+        #                 "symbol": "C-BTC-30900-190723",
+        #                 "insurance_fund_margin_contribution": "1",
+        #                 "price_band": "2",
+        #                 "annualized_funding": "10.95",
+        #                 "impact_size": 200,
+        #                 "contract_type": "call_options",
+        #                 "position_size_limit": 255633,
+        #                 "max_leverage_notional": "200000",
+        #                 "initial_margin_scaling_factor": "0.000002",
+        #                 "strike_price": "30900",
+        #                 "is_quanto": False,
+        #                 "settlement_time": "2023-07-19T12:00:00Z",
+        #                 "liquidation_penalty_factor": "0.5",
+        #                 "funding_method": "mark_price",
+        #                 "taker_commission_rate": "0.0003",
+        #                 "default_leverage": "100.000000000000000000",
+        #                 "state": "expired",
+        #                 "auction_start_time": null,
+        #                 "short_description": "BTC  Call",
+        #                 "quoting_asset": {},
+        #                 "maintenance_margin_scaling_factor":"0.000002"
+        #             }
+        #         ],
+        #         "success": True
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        settlements = self.parse_settlements(result, market)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+
+    def parse_settlement(self, settlement, market):
+        #
+        #     {
+        #         "contract_value": "0.001",
+        #         "basis_factor_max_limit": "10.95",
+        #         "maker_commission_rate": "0.0003",
+        #         "launch_time": "2023-07-19T04:30:03Z",
+        #         "trading_status": "operational",
+        #         "product_specs": {
+        #             "backup_vol_expiry_time": 31536000,
+        #             "max_deviation_from_external_vol": 0.75,
+        #             "max_lower_deviation_from_external_vol": 0.75,
+        #             "max_upper_deviation_from_external_vol": 0.5,
+        #             "max_volatility": 3,
+        #             "min_volatility": 0.1,
+        #             "premium_commission_rate": 0.1,
+        #             "settlement_index_price": "29993.536675710806",
+        #             "vol_calculation_method": "orderbook",
+        #             "vol_expiry_time": 31536000
+        #         },
+        #         "description": "BTC call option expiring on 19-7-2023",
+        #         "settlement_price": "0",
+        #         "disruption_reason": null,
+        #         "settling_asset": {},
+        #         "initial_margin": "1",
+        #         "tick_size": "0.1",
+        #         "maintenance_margin": "0.5",
+        #         "id": 117542,
+        #         "notional_type": "vanilla",
+        #         "ui_config": {},
+        #         "contract_unit_currency": "BTC",
+        #         "symbol": "C-BTC-30900-190723",
+        #         "insurance_fund_margin_contribution": "1",
+        #         "price_band": "2",
+        #         "annualized_funding": "10.95",
+        #         "impact_size": 200,
+        #         "contract_type": "call_options",
+        #         "position_size_limit": 255633,
+        #         "max_leverage_notional": "200000",
+        #         "initial_margin_scaling_factor": "0.000002",
+        #         "strike_price": "30900",
+        #         "is_quanto": False,
+        #         "settlement_time": "2023-07-19T12:00:00Z",
+        #         "liquidation_penalty_factor": "0.5",
+        #         "funding_method": "mark_price",
+        #         "taker_commission_rate": "0.0003",
+        #         "default_leverage": "100.000000000000000000",
+        #         "state": "expired",
+        #         "auction_start_time": null,
+        #         "short_description": "BTC  Call",
+        #         "quoting_asset": {},
+        #         "maintenance_margin_scaling_factor":"0.000002"
+        #     }
+        #
+        datetime = self.safe_string(settlement, 'settlement_time')
+        marketId = self.safe_string(settlement, 'symbol')
+        return {
+            'info': settlement,
+            'symbol': self.safe_symbol(marketId, market),
+            'price': self.safe_number(settlement, 'settlement_price'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+        }
+
+    def parse_settlements(self, settlements, market):
+        result = []
+        for i in range(0, len(settlements)):
+            result.append(self.parse_settlement(settlements[i], market))
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)

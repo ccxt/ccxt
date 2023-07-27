@@ -16,7 +16,7 @@ export default class testMainClass extends baseMainTestClass {
     importFiles(exchange: any): Promise<void>;
     expandSettings(exchange: any, symbol: any): void;
     addPadding(message: any, size: any): string;
-    testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<any>;
+    testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<void>;
     testSafe(methodName: any, exchange: any, args: any, isPublic: any): Promise<boolean>;
     runPublicTests(exchange: any, symbol: any): Promise<void>;
     loadExchange(exchange: any): Promise<void>;
