@@ -19,6 +19,9 @@ const lowprimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 5
 const lplim = (1 << 26) / lowprimes[lowprimes.length - 1];
 //#endregion
 // (public) Constructor
+/**
+ * @type Class
+ */
 export class BigInteger {
     constructor(a, b, c) {
         if (a != null) {

@@ -1,7 +1,10 @@
 {
-    "binance":       { "httpProxy": "http://51.83.140.52:11230" },
-    "binanceus":     { "httpProxy": "http://51.83.140.52:11230" },
-    "binancecoinm":  { "httpProxy": "http://51.83.140.52:11230" },
-    "binanceusdm":   { "httpProxy": "http://51.83.140.52:11230" },
-    "tokocrypto":    { "httpProxy": "http://51.83.140.52:11230" }
+    "sampleExchange" : {
+        "httpProxy": "012.345.678.910",
+        "apiKey": "xxxxxxxx",
+        "secret": "xxxxxxxx",
+        "options": {
+            "defaultType": "spot"
+        }
+    }
 }

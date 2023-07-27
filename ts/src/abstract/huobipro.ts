@@ -202,6 +202,7 @@ interface huobi {
     spotPrivatePostV1SubuserTransfer (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderOrdersPlace (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderBatchOrders (params?: {}): Promise<implicitReturnType>;
+    spotPrivatePostV1OrderAutoPlace (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderOrdersOrderIdSubmitcancel (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderOrdersSubmitCancelClientOrder (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (params?: {}): Promise<implicitReturnType>;
@@ -323,6 +324,7 @@ interface huobi {
     contractPrivateGetSwapApiV1SwapApiTradingStatus (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV1SwapApiTradingStatus (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractBalanceValuation (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractAccountInfo (params?: {}): Promise<implicitReturnType>;
@@ -345,6 +347,7 @@ interface huobi {
     contractPrivatePostApiV1ContractAvailableLevelRate (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV3ContractFinancialRecord (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV3ContractFinancialRecordExact (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostApiV1ContractCancelAfter (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractOrder (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostV1ContractBatchorder (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractCancel (params?: {}): Promise<implicitReturnType>;
@@ -399,6 +402,7 @@ interface huobi {
     contractPrivatePostSwapApiV1SwapMasterSubTransferRecord (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostSwapApiV3SwapFinancialRecord (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostSwapApiV3SwapFinancialRecordExact (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostSwapApiV1SwapCancelAfter (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostSwapApiV1SwapOrder (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostSwapApiV1SwapBatchorder (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostSwapApiV1SwapCancel (params?: {}): Promise<implicitReturnType>;
@@ -493,6 +497,7 @@ interface huobi {
     contractPrivatePostLinearSwapApiV1SwapCrossMatchresults (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapMatchresultsExact (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostLinearSwapApiV1LinearCancelAfter (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV3SwapMatchresults (params?: {}): Promise<implicitReturnType>;
@@ -503,6 +508,7 @@ interface huobi {
     contractPrivatePostLinearSwapApiV3SwapCrossHisorders (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV3SwapHisordersExact (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV3SwapCrossHisordersExact (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostLinearSwapApiV3FixPositionMarginChange (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV3SwapSwitchAccountType (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapTriggerOrder (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (params?: {}): Promise<implicitReturnType>;

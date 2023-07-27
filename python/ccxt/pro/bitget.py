@@ -98,7 +98,7 @@ class bitget(ccxt.async_support.bitget):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bitget api endpoint
+        :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -237,10 +237,10 @@ class bitget(ccxt.async_support.bitget):
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the bitget api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -333,8 +333,8 @@ class bitget(ccxt.async_support.bitget):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bitget api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -450,10 +450,10 @@ class bitget(ccxt.async_support.bitget):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bitget api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -540,10 +540,10 @@ class bitget(ccxt.async_support.bitget):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the bitget api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         market = None
@@ -555,23 +555,29 @@ class bitget(ccxt.async_support.bitget):
             symbol = market['symbol']
             marketId = market['id']
             messageHash = messageHash + ':' + symbol
+        isStop = self.safe_value(params, 'stop', False)
+        params = self.omit(params, 'stop')
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         if (type == 'spot') and (symbol is None):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument for ' + type + ' markets.')
+        if isStop and type == 'spot':
+            raise NotSupported(self.id + ' watchOrders does not support stop orders for ' + type + ' markets.')
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         instType = None
         if type == 'spot':
             instType = 'spbl'
+            subscriptionHash = subscriptionHash + ':' + symbol
         else:
             if not sandboxMode:
                 instType = 'UMCBL'
             else:
                 instType = 'SUMCBL'
         instId = marketId if (type == 'spot') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        channel = 'ordersAlgo' if isStop else 'orders'
         args = {
             'instType': instType,
-            'channel': 'orders',
+            'channel': channel,
             'instId': instId,
         }
         orders = await self.watch_private(messageHash, subscriptionHash, args, params)
@@ -702,12 +708,38 @@ class bitget(ccxt.async_support.bitget):
         #        tgtCcy: 'USDT',
         #        uTime: 1656510642518
         #    }
+        # algo order
+        #    {
+        #        "actualPx":"50.000000000",
+        #        "actualSz":"0.000000000",
+        #        "cOid":"1041588152132243456",
+        #        "cTime":"1684059887917",
+        #        "eps":"api",
+        #        "hM":"double_hold",
+        #        "id":"1041588152132243457",
+        #        "instId":"LTCUSDT_UMCBL",
+        #        "key":"1041588152132243457",
+        #        "ordPx":"55.000000000",
+        #        "ordType":"limit",
+        #        "planType":"pl",
+        #        "posSide":"long",
+        #        "side":"buy",
+        #        "state":"not_trigger",
+        #        "sz":"0.100000000",
+        #        "tS":"open_long",
+        #        "tgtCcy":"USDT",
+        #        "triggerPx":"55.000000000",
+        #        "triggerPxType":"mark",
+        #        "triggerTime":"1684059887917",
+        #        "userId":"3704614084",
+        #        "version":1041588152090300400
+        #    }
         #
         marketId = self.safe_string(order, 'instId')
         market = self.safe_market(marketId, market)
-        id = self.safe_string(order, 'ordId')
-        clientOrderId = self.safe_string(order, 'clOrdId')
-        price = self.safe_string(order, 'px')
+        id = self.safe_string_2(order, 'ordId', 'id')
+        clientOrderId = self.safe_string_2(order, 'clOrdId', 'cOid')
+        price = self.safe_string_2(order, 'px', 'actualPx')
         filled = self.safe_string(order, 'fillSz')
         amount = self.safe_string(order, 'sz')
         cost = self.safe_string_2(order, 'notional', 'notionalUsd')
@@ -720,7 +752,7 @@ class bitget(ccxt.async_support.bitget):
             side = 'buy'
         elif (side == 'close_long') or (side == 'open_short'):
             side = 'sell'
-        rawStatus = self.safe_string(order, 'status', 'state')
+        rawStatus = self.safe_string_2(order, 'status', 'state')
         timeInForce = self.safe_string(order, 'force')
         status = self.parse_ws_order_status(rawStatus)
         orderFee = self.safe_value(order, 'orderFee', [])
@@ -733,6 +765,7 @@ class bitget(ccxt.async_support.bitget):
                 'cost': Precise.string_abs(feeAmount),
                 'currency': self.safe_currency_code(feeCurrency),
             }
+        stopPrice = self.safe_string(order, 'triggerPx')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -746,8 +779,8 @@ class bitget(ccxt.async_support.bitget):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -765,17 +798,18 @@ class bitget(ccxt.async_support.bitget):
             'full-fill': 'closed',
             'filled': 'closed',
             'cancelled': 'canceled',
+            'not_trigger': 'open',
         }
         return self.safe_string(statuses, status, status)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches trades made by the user
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the bitget api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         # only contracts stream provides the trade info consistently in between order updates
         # the spot stream only provides on limit orders updates so we can't support it for spot
@@ -919,8 +953,8 @@ class bitget(ccxt.async_support.bitget):
     async def watch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the bitget api endpoint
-        :param str|None params['type']: spot or contract if not provided self.options['defaultType'] is used
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         type = None
@@ -980,6 +1014,7 @@ class bitget(ccxt.async_support.bitget):
             account = self.balance[code] if (code in self.balance) else self.account()
             account['free'] = self.safe_string(rawBalance, 'available')
             account['total'] = self.safe_string(rawBalance, 'equity')
+            account['used'] = self.safe_string(rawBalance, 'frozen')
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         arg = self.safe_value(message, 'arg')
@@ -1114,6 +1149,7 @@ class bitget(ccxt.async_support.bitget):
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
             'orders': self.handle_order,
+            'ordersAlgo': self.handle_order,
             'account': self.handle_balance,
         }
         arg = self.safe_value(message, 'arg', {})

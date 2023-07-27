@@ -132,7 +132,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -178,10 +178,10 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         get the list of most recent trades for a particular symbol
         see https://docs.kucoin.com/futures/#execution-data
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         url = await self.negotiate(False)
@@ -239,8 +239,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
          *   6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
         see https://docs.kucoin.com/futures/#level-2-market-data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         if limit is not None:
@@ -377,11 +377,11 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         """
         watches information on multiple orders made by the user
         see https://docs.kucoin.com/futures/#trade-orders-according-to-the-market
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         url = await self.negotiate(True)
@@ -411,8 +411,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     def parse_ws_order(self, order, market=None):
         #
-        #     {
         #         'symbol': 'XCAD-USDT',
+        #     {
         #         'orderType': 'limit',
         #         'side': 'buy',
         #         'orderId': '6249167327218b000135e749',
@@ -493,7 +493,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://docs.kucoin.com/futures/#account-balance-events
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         url = await self.negotiate(True)

@@ -11,7 +11,7 @@ use \ccxt\Precise;
 include_once __DIR__ . '/test_shared_methods.php';
 include_once __DIR__ . '/test_trade.php';
 
-function test_order($exchange, $method, $entry, $symbol, $now) {
+function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
     $format = array(
         'info' => array(),
         'id' => '123',
@@ -35,31 +35,31 @@ function test_order($exchange, $method, $entry, $symbol, $now) {
         'fee' => array(),
         'trades' => [],
     );
-    $empty_not_allowed_for = ['id'];
-    // todo: skip some exchanges
-    // const emptyNotAllowedFor = [ 'id', 'timestamp', 'symbol', 'type', 'side', 'price' ];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $method, $entry, $now);
+    $empty_allowed_for = ['clientOrderId', 'stopPrice', 'trades']; // todo: we need more detailed property to skip the exchanges, that return only order id when executing order (in createOrder)
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
     //
-    assert_in_array($exchange, $method, $entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK']);
-    assert_in_array($exchange, $method, $entry, 'status', ['open', 'closed', 'canceled']);
-    assert_in_array($exchange, $method, $entry, 'side', ['buy', 'sell']);
-    assert_in_array($exchange, $method, $entry, 'postOnly', [true, false]);
-    assert_symbol($exchange, $method, $entry, 'symbol', $symbol);
-    assert_greater($exchange, $method, $entry, 'price', '0');
-    assert_greater($exchange, $method, $entry, 'stopPrice', '0');
-    assert_greater($exchange, $method, $entry, 'cost', '0');
-    assert_greater($exchange, $method, $entry, 'average', '0');
-    assert_greater($exchange, $method, $entry, 'average', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'filled', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'remaining', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'amount', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'amount', $exchange->safe_string($entry, 'remaining'));
-    assert_greater_or_equal($exchange, $method, $entry, 'amount', $exchange->safe_string($entry, 'filled'));
-    if ($entry['trades'] !== null) {
-        for ($i = 0; $i < count($entry['trades']); $i++) {
-            test_trade($exchange, $method, $entry['trades'][$i], $symbol, $now);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'status', ['open', 'closed', 'canceled']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'side', ['buy', 'sell']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'postOnly', [true, false]);
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'price', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'stopPrice', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'cost', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'filled', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'remaining', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', $exchange->safe_string($entry, 'remaining'));
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', $exchange->safe_string($entry, 'filled'));
+    if (!(is_array($skipped_properties) && array_key_exists('trades', $skipped_properties))) {
+        if ($entry['trades'] !== null) {
+            for ($i = 0; $i < count($entry['trades']); $i++) {
+                test_trade($exchange, $skipped_properties, $method, $entry['trades'][$i], $symbol, $now);
+            }
         }
     }
-    assert_fee($exchange, $method, $entry['fee']);
+    assert_fee_structure($exchange, $skipped_properties, $method, $entry, 'fee');
 }
