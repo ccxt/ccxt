@@ -996,7 +996,7 @@ export default class mexc extends mexcRest {
          * @method
          * @name mexc3#watchBalance
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */

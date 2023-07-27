@@ -1181,7 +1181,7 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchBalanceWs
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description fetch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -1264,7 +1264,7 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */

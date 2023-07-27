@@ -404,7 +404,7 @@ export default class cryptocom extends cryptocomRest {
         /**
          * @method
          * @name cryptocom#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
