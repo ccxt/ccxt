@@ -2450,7 +2450,8 @@ export default class bitget extends Exchange {
         let response = undefined;
         if (market['spot']) {
             const spotOptions = this.safeValue (options, 'spot', {});
-            const method = this.safeString (spotOptions, 'method', 'publicSpotGetMarketCandles');
+            const defaultSpotMethod = this.safeString (params, 'method', 'publicSpotGetMarketCandles');
+            const method = this.safeString (spotOptions, 'method', defaultSpotMethod);
             if (method === 'publicSpotGetMarketCandles') {
                 response = await this.publicSpotGetMarketCandles (extended);
             } else if (method === 'publicSpotGetMarketHistoryCandles') {
@@ -2458,7 +2459,8 @@ export default class bitget extends Exchange {
             }
         } else {
             const swapOptions = this.safeValue (options, 'swap', {});
-            const swapMethod = this.safeString (swapOptions, 'method', 'publicMixGetMarketCandles');
+            const defaultSwapMethod = this.safeString (params, 'method', 'publicMixGetMarketCandles');
+            const swapMethod = this.safeString (swapOptions, 'method', defaultSwapMethod);
             if (swapMethod === 'publicMixGetMarketCandles') {
                 response = await this.publicMixGetMarketCandles (extended);
             } else if (swapMethod === 'publicMixGetMarketHistoryCandles') {
