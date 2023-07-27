@@ -6,7 +6,6 @@ import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
-import { stringToBinary, binaryToString } from './base/functions/encode.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 
@@ -1391,7 +1390,7 @@ export default class wavesexchange extends Exchange {
                     },
                 },
             };
-            body['attachment'] = this.binaryToBase58 (stringToBinary (JSON.stringify (attachment)));
+            body['attachment'] = this.binaryToBase58 (this.encode (JSON.stringify (attachment)));
         }
         if (matcherFeeAssetId !== 'WAVES') {
             body['matcherFeeAssetId'] = matcherFeeAssetId;
@@ -1758,7 +1757,7 @@ export default class wavesexchange extends Exchange {
         let stopPrice = undefined;
         const attachment = this.safeString (order, 'attachment');
         if (attachment !== undefined) {
-            const decodedAttachment = this.parseJson (binaryToString (this.base58ToBinary (attachment)));
+            const decodedAttachment = this.parseJson (this.decode (this.base58ToBinary (attachment)));
             if (decodedAttachment !== undefined) {
                 const c = this.safeValue (decodedAttachment, 'c');
                 if (c !== undefined) {
