@@ -304,7 +304,7 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // if maxretries was gone with same `tempFailure` error, then let's eventually return false
-        dump ('[TEST_WARNING]', 'Method could not be tested, because of temporary access issues', exchange.id, methodName, argsStringified);
+        dump ('[TEST_WARNING]', 'Method not tested due to a Network/Availability issue', exchange.id, methodName, argsStringified);
         return false;
     }
 
