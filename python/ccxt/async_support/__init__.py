@@ -50,6 +50,8 @@ from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F4
 from ccxt.base.errors import OnMaintenance                            # noqa: F401
 from ccxt.base.errors import InvalidNonce                             # noqa: F401
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
+from ccxt.base.errors import NoChange                                 # noqa: F401
+from ccxt.base.errors import ContractSettled                          # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
