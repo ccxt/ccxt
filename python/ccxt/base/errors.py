@@ -26,6 +26,7 @@ error_hierarchy = {
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
+                'ContractSettled': {},
             },
             'NotSupported': {},
         },
@@ -104,6 +105,10 @@ class AddressPending(InvalidAddress):
 
 
 class InvalidOrder(ExchangeError):
+    pass
+
+
+class ContractSettled(InvalidOrder):
     pass
 
 
@@ -194,5 +199,6 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'RequestTimeout',
+    'ContractSettled',
 ]
