@@ -1397,7 +1397,7 @@ export default class wavesexchange extends Exchange {
         }
         let serializedOrder = await this.matcherPostMatcherOrdersSerialize (body);
         if ((serializedOrder[0] === '"') && (serializedOrder[(serializedOrder.length - 1)] === '"')) {
-            serializedOrder = serializedOrder.substr (1, serializedOrder.length - 2);
+            serializedOrder = serializedOrder.slice (1, serializedOrder.length - 1);
         }
         const signature = eddsa (this.binaryToBase16 (this.base58ToBinary (serializedOrder)), this.binaryToBase16 (this.base58ToBinary (this.secret)), ed25519);
         body['signature'] = signature;
