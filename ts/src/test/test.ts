@@ -286,10 +286,6 @@ export default class testMainClass extends baseMainTestClass {
                 await this.testMethod (methodName, exchange, args, isPublic);
                 return true;
             } catch (e) {
-                if (e instanceof OnMaintenance) {
-                    dump ('[SKIPPED] Exchange is on maintenance', exchangeId);
-                    exitScript ();
-                }
                 const isRateLimitExceeded = (e instanceof RateLimitExceeded);
                 const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
                 const isNetworkError = (e instanceof NetworkError);
@@ -368,7 +364,15 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        await exchange.loadMarkets ();
+        try {
+            await exchange.loadMarkets ();
+        } catch (e) {
+            if (e instanceof OnMaintenance) {
+                dump ('[SKIPPED] Exchange is on maintenance', exchangeId);
+                exitScript ();
+            }
+            throw e;
+        }
         assert (typeof exchange.markets === 'object', '.markets is not an object');
         assert (Array.isArray (exchange.symbols), '.symbols is not an array');
         const symbolsLength = exchange.symbols.length;
