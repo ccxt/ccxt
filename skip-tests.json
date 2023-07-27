@@ -493,7 +493,7 @@
         }
     },
     "bybit": {
-        "httpsProxy": "http://51.83.140.52:11230",
+        "skip": "forbidden location",
         "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": {
