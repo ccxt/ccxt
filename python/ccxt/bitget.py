@@ -1009,6 +1009,14 @@ class bitget(Exchange, ImplicitAPI):
                 'withdraw': {
                     'fillResponseFromRequest': True,
                 },
+                'fetchOHLCV': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketCandles',  # or publicSpotGetMarketHistoryCandles
+                    },
+                    'swap:': {
+                        'method': 'publicMixGetMarketCandles',  # or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                    },
+                },
                 'accountsByType': {
                     'main': 'EXCHANGE',
                     'spot': 'EXCHANGE',
@@ -2352,13 +2360,30 @@ class bitget(Exchange, ImplicitAPI):
                     request['endTime'] = until
                 else:
                     request['endTime'] = self.sum(since, limit * duration * 1000)
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
         ommitted = self.omit(params, ['until', 'till'])
         extended = self.extend(request, ommitted)
         response = None
         if market['spot']:
-            response = self.publicSpotGetMarketCandles(extended)
+            spotOptions = self.safe_value(options, 'spot', {})
+            defaultSpotMethod = self.safe_string(params, 'method', 'publicSpotGetMarketCandles')
+            method = self.safe_string(spotOptions, 'method', defaultSpotMethod)
+            if method == 'publicSpotGetMarketCandles':
+                response = self.publicSpotGetMarketCandles(extended)
+            elif method == 'publicSpotGetMarketHistoryCandles':
+                response = self.publicSpotGetMarketHistoryCandles(extended)
         else:
-            response = self.publicMixGetMarketCandles(extended)
+            swapOptions = self.safe_value(options, 'swap', {})
+            defaultSwapMethod = self.safe_string(params, 'method', 'publicMixGetMarketCandles')
+            swapMethod = self.safe_string(swapOptions, 'method', defaultSwapMethod)
+            if swapMethod == 'publicMixGetMarketCandles':
+                response = self.publicMixGetMarketCandles(extended)
+            elif swapMethod == 'publicMixGetMarketHistoryCandles':
+                response = self.publicMixGetMarketHistoryCandles(extended)
+            elif swapMethod == 'publicMixGetMarketHistoryIndexCandles':
+                response = self.publicMixGetMarketHistoryIndexCandles(extended)
+            elif swapMethod == 'publicMixGetMarketHistoryMarkCandles':
+                response = self.publicMixGetMarketHistoryMarkCandles(extended)
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
