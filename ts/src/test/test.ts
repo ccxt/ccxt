@@ -279,7 +279,7 @@ export default class testMainClass extends baseMainTestClass {
         // then regex-parsed by run-tests.js, so the exceptions are still printed out to
         // console from there. So, even if some public tests fail, the script will continue
         // doing other things (testing other spot/swap or private tests ...)
-        const maxRetries = 5;
+        const maxRetries = 3;
         const argsStringified = '(' + args.join (',') + ')';
         for (let i = 0; i < maxRetries; i++) {
             try {
