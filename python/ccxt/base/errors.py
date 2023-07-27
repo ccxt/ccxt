@@ -10,7 +10,9 @@ error_hierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -80,7 +82,11 @@ class BadSymbol(BadRequest):
     pass
 
 
-class MarginModeAlreadySet(BadRequest):
+class NoChange(BadRequest):
+    pass
+
+
+class MarginModeAlreadySet(NoChange):
     pass
 
 
@@ -201,4 +207,5 @@ __all__ = [
     'InvalidNonce',
     'RequestTimeout',
     'ContractSettled',
+    'NoChange',
 ]
