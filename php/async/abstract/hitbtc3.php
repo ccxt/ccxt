@@ -6,7 +6,7 @@ namespace ccxt\async\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class hitbtc3 extends \ccxt\async\Exchange {
+abstract class hitbtc3 extends \ccxt\async\hitbtc {
     public function public_get_public_currency($params = array()) {
         return $this->request('public/currency', 'public', 'GET', $params, null, null, array("cost" => 10));
     }

@@ -57,6 +57,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchMarginMode': False,
@@ -78,7 +79,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
@@ -234,12 +235,6 @@ class poloniex(Exchange, ImplicitAPI):
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
                 },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
-                    'TRX': 'TRC20',
-                },
                 'limits': {
                     'cost': {
                         'min': {
@@ -312,6 +307,7 @@ class poloniex(Exchange, ImplicitAPI):
                     '21352': BadSymbol,  # Trading for self currency is frozen
                     '21353': PermissionDenied,  # Trading for US customers is not supported
                     '21354': PermissionDenied,  # Account needs to be verified via email before trading is enabled. Contact support
+                    '21360': InvalidOrder,  # {"code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again."}
                     '24106': BadRequest,  # Invalid market depth
                     '24201': ExchangeNotAvailable,  # Service busy. Try again later
                     # Orders
@@ -416,10 +412,10 @@ class poloniex(Exchange, ImplicitAPI):
         see https://docs.poloniex.com/#public-endpoints-market-data-candles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -466,8 +462,8 @@ class poloniex(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for poloniex
         see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         markets = self.publicGetMarkets(params)
         #
@@ -555,7 +551,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         see https://docs.poloniex.com/#public-endpoints-reference-data-system-timestamp
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.publicGetTimestamp(params)
@@ -613,8 +609,8 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://docs.poloniex.com/#public-endpoints-market-data-ticker
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -645,7 +641,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
         see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: an associative dictionary of currencies
         """
         response = self.publicGetCurrencies(self.extend(params, {'includeMultiChainCurrencies': True}))
@@ -773,7 +769,7 @@ class poloniex(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://docs.poloniex.com/#public-endpoints-market-data-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -896,10 +892,10 @@ class poloniex(Exchange, ImplicitAPI):
         get the list of most recent trades for a particular symbol
         see https://docs.poloniex.com/#public-endpoints-market-data-trades
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -928,11 +924,11 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
         see https://docs.poloniex.com/#authenticated-endpoints-trades-trade-history
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -1119,11 +1115,11 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
         see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1167,8 +1163,8 @@ class poloniex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # if type == 'market':
@@ -1231,8 +1227,8 @@ class poloniex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1261,8 +1257,8 @@ class poloniex(Exchange, ImplicitAPI):
         cancels an open order
         see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-id
         :param str id: order id
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1278,9 +1274,9 @@ class poloniex(Exchange, ImplicitAPI):
         """
         cancel all open orders
         see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
-        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1317,8 +1313,8 @@ class poloniex(Exchange, ImplicitAPI):
         fetch an order by it's id
         see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
         :param str id: order id
-        :param str|None symbol: unified market symbol, default is None
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param str symbol: unified market symbol, default is None
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1362,11 +1358,11 @@ class poloniex(Exchange, ImplicitAPI):
         fetch all the trades made from a single order
         see https://docs.poloniex.com/#authenticated-endpoints-trades-trades-by-order-id
         :param str id: order id
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades to retrieve
-        :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {
@@ -1419,7 +1415,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
@@ -1449,7 +1445,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
         see https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -1480,8 +1476,8 @@ class poloniex(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://docs.poloniex.com/#public-endpoints-market-data-order-book
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -1530,7 +1526,7 @@ class poloniex(Exchange, ImplicitAPI):
         create a currency deposit address
         see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
         :param str code: unified currency code of the currency for the deposit address
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -1574,7 +1570,7 @@ class poloniex(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -1621,7 +1617,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
@@ -1669,8 +1665,8 @@ class poloniex(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param str tag:
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -1783,14 +1779,14 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
-        :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|None limit: max number of transactions to return, default is None
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -1809,11 +1805,11 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
         see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         response = self.fetch_transactions_helper(code, since, limit, params)
         currency = None
@@ -1823,13 +1819,13 @@ class poloniex(Exchange, ImplicitAPI):
         transactions = self.parse_transactions(withdrawals, currency, since, limit)
         return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
-        :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         response = self.publicGetCurrencies(self.extend(params, {'includeMultiChainCurrencies': True}))
@@ -1944,11 +1940,11 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
         see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         response = self.fetch_transactions_helper(code, since, limit, params)
         currency = None

@@ -1,5 +1,9 @@
 import Exchange from './abstract/bybit.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bybit
+ * @extends Exchange
+ */
 export default class bybit extends Exchange {
     describe(): any;
     nonce(): number;
@@ -11,7 +15,8 @@ export default class bybit extends Exchange {
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any>;
     fetchSpotMarkets(params: any): Promise<any[]>;
-    fetchDerivativesMarkets(params: any): Promise<any[]>;
+    fetchFutureMarkets(params: any): Promise<any[]>;
+    fetchOptionMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
@@ -268,6 +273,28 @@ export default class bybit extends Exchange {
         taker: number;
     }>;
     fetchTradingFees(params?: {}): Promise<{}>;
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseSettlement(settlement: any, market: any): {
+        info: any;
+        symbol: any;
+        price: number;
+        timestamp: number;
+        datetime: string;
+    };
+    parseSettlements(settlements: any, market: any): any[];
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

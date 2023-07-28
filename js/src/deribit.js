@@ -12,6 +12,10 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class deribit
+ * @extends Exchange
+ */
 export default class deribit extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -48,9 +52,11 @@ export default class deribit extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFees': true,
                 'fetchHistoricalVolatility': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
@@ -395,7 +401,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetGetTime(params);
@@ -411,6 +417,74 @@ export default class deribit extends Exchange {
         //
         return this.safeInteger(response, 'result');
     }
+    async fetchCurrencies(params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.deribit.com/#public-get_currencies
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetGetCurrencies(params);
+        //
+        //    {
+        //      "jsonrpc": "2.0",
+        //      "result": [
+        //        {
+        //          "withdrawal_priorities": [],
+        //          "withdrawal_fee": 0.01457324,
+        //          "min_withdrawal_fee": 0.000001,
+        //          "min_confirmations": 1,
+        //          "fee_precision": 8,
+        //          "currency_long": "Solana",
+        //          "currency": "SOL",
+        //          "coin_type": "SOL"
+        //        },
+        //        ...
+        //      ],
+        //      "usIn": 1688652701456124,
+        //      "usOut": 1688652701456390,
+        //      "usDiff": 266,
+        //      "testnet": true
+        //    }
+        //
+        const data = this.safeValue(response, 'result', {});
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const currencyId = this.safeString(currency, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const name = this.safeString(currency, 'currency_long');
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': name,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber(currency, 'withdrawal_fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'fee_precision'))),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': undefined,
+            };
+        }
+        return result;
+    }
     codeFromOptions(methodName, params = {}) {
         const defaultCode = this.safeValue(this.options, 'code', 'BTC');
         const options = this.safeValue(this.options, methodName, {});
@@ -422,7 +496,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.publicGetStatus(params);
@@ -454,7 +528,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets();
@@ -523,8 +597,8 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchMarkets
          * @description retrieves data on all markets for deribit
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const currenciesResponse = await this.publicGetGetCurrencies(params);
         //
@@ -551,6 +625,7 @@ export default class deribit extends Exchange {
         //         testnet: false
         //     }
         //
+        const parsedMarkets = {};
         const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
         const result = [];
         for (let i = 0; i < currenciesResult.length; i++) {
@@ -678,6 +753,11 @@ export default class deribit extends Exchange {
                         }
                     }
                 }
+                const parsedMarketValue = this.safeValue(parsedMarkets, symbol);
+                if (parsedMarketValue) {
+                    continue;
+                }
+                parsedMarkets[symbol] = true;
                 const minTradeAmount = this.safeNumber(market, 'min_trade_amount');
                 const tickSize = this.safeNumber(market, 'tick_size');
                 result.push({
@@ -752,7 +832,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -813,7 +893,7 @@ export default class deribit extends Exchange {
          * @name deribit#createDepositAddress
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
@@ -850,7 +930,7 @@ export default class deribit extends Exchange {
          * @name deribit#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
@@ -968,7 +1048,7 @@ export default class deribit extends Exchange {
          * @name deribit#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -1013,8 +1093,8 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -1071,10 +1151,10 @@ export default class deribit extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1220,10 +1300,10 @@ export default class deribit extends Exchange {
          * @see https://docs.deribit.com/#private-get_user_trades_by_currency
          * @description get the list of most recent trades for a particular symbol.
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1273,7 +1353,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -1394,8 +1474,8 @@ export default class deribit extends Exchange {
          * @name deribit#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -1583,8 +1663,8 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1633,8 +1713,8 @@ export default class deribit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1829,8 +1909,8 @@ export default class deribit extends Exchange {
          * @name deribit#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol not used by deribit cancelOrder ()
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {string} symbol not used by deribit cancelOrder ()
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1846,9 +1926,9 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1869,11 +1949,11 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1899,11 +1979,11 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1930,11 +2010,11 @@ export default class deribit extends Exchange {
          * @name deribit#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1982,11 +2062,11 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -2064,10 +2144,10 @@ export default class deribit extends Exchange {
          * @name deribit#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchDeposits() requires a currency code argument');
@@ -2111,10 +2191,10 @@ export default class deribit extends Exchange {
          * @name deribit#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchWithdrawals() requires a currency code argument');
@@ -2298,7 +2378,7 @@ export default class deribit extends Exchange {
          * @name deribit#fetchPosition
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
@@ -2341,9 +2421,9 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchPositions
          * @description fetch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         let code = undefined;
@@ -2443,10 +2523,10 @@ export default class deribit extends Exchange {
          * @name deribit#fetchTransfers
          * @description fetch a history of internal transfers made on an account
          * @param {string} code unified currency code of the currency transferred
-         * @param {int|undefined} since the earliest time in ms to fetch transfers for
-         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
-         * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchTransfers() requires a currency code argument');
@@ -2506,7 +2586,7 @@ export default class deribit extends Exchange {
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
@@ -2591,8 +2671,8 @@ export default class deribit extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the deribit api endpoint
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
@@ -2611,6 +2691,69 @@ export default class deribit extends Exchange {
         }
         const response = await this.privateGetWithdraw(this.extend(request, params));
         return this.parseTransaction(response, currency);
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //    {
+        //      "withdrawal_priorities": [],
+        //      "withdrawal_fee": 0.01457324,
+        //      "min_withdrawal_fee": 0.000001,
+        //      "min_confirmations": 1,
+        //      "fee_precision": 8,
+        //      "currency_long": "Solana",
+        //      "currency": "SOL",
+        //      "coin_type": "SOL"
+        //    }
+        //
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber(fee, 'withdrawal_fee'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.deribit.com/#public-get_currencies
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicGetGetCurrencies(params);
+        //
+        //    {
+        //      "jsonrpc": "2.0",
+        //      "result": [
+        //        {
+        //          "withdrawal_priorities": [],
+        //          "withdrawal_fee": 0.01457324,
+        //          "min_withdrawal_fee": 0.000001,
+        //          "min_confirmations": 1,
+        //          "fee_precision": 8,
+        //          "currency_long": "Solana",
+        //          "currency": "SOL",
+        //          "coin_type": "SOL"
+        //        },
+        //        ...
+        //      ],
+        //      "usIn": 1688652701456124,
+        //      "usOut": 1688652701456390,
+        //      "usDiff": 266,
+        //      "testnet": true
+        //    }
+        //
+        const data = this.safeValue(response, 'result', {});
+        return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
     nonce() {
         return this.milliseconds();

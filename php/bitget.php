@@ -46,6 +46,8 @@ class bitget extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -87,7 +89,7 @@ class bitget extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'transfer' => true,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -130,6 +132,7 @@ class bitget extends Exchange {
                 'public' => array(
                     'spot' => array(
                         'get' => array(
+                            'notice/queryAllNotices' => 1, // 20 times/1s (IP) => 20/20 = 1
                             'public/time' => 1,
                             'public/currencies' => 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
                             'public/products' => 1,
@@ -141,6 +144,7 @@ class bitget extends Exchange {
                             'market/candles' => 1,
                             'market/depth' => 1,
                             'market/spot-vip-level' => 2,
+                            'market/history-candles' => 1,
                         ),
                     ),
                     'mix' => array(
@@ -161,6 +165,10 @@ class bitget extends Exchange {
                             'market/mark-price' => 1,
                             'market/symbol-leverage' => 1,
                             'market/queryPositionLever' => 1,
+                            'market/open-limit' => 1,
+                            'market/history-candles' => 1,
+                            'market/history-index-candles' => 1,
+                            'market/history-mark-candles' => 1,
                         ),
                     ),
                     'margin' => array(
@@ -170,8 +178,6 @@ class bitget extends Exchange {
                             'cross/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'isolated/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'public/currencies' => 1, // 20 times/1s (IP) => 20/20 = 1
-                            'cross/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'isolated/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
                         ),
                     ),
                 ),
@@ -183,7 +189,10 @@ class bitget extends Exchange {
                             'wallet/deposit-list' => 1,
                             'account/getInfo' => 20,
                             'account/assets' => 2,
+                            'account/assets-lite' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'account/transferRecords' => 1, // 20 times/1s (UID) => 20/20 = 1
+                            'convert/currencies' => 2,
+                            'convert/convert-record' => 2,
                         ),
                         'post' => array(
                             'wallet/transfer' => 4,
@@ -231,6 +240,8 @@ class bitget extends Exchange {
                             'trace/profit/profitHisDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/profit/waitProfitDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/user/getTraderInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'convert/quoted-price' => 4,
+                            'convert/trade' => 4,
                         ),
                     ),
                     'mix' => array(
@@ -304,6 +315,10 @@ class bitget extends Exchange {
                             'trace/myFollowerList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/removeFollower' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/public/getFollowerConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/report/order/historyList' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'trace/report/order/currentList' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'trace/queryTraderTpslRatioConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/traderUpdateTpslRatioConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
                         ),
                     ),
                     'user' => array(
@@ -311,6 +326,10 @@ class bitget extends Exchange {
                             'fee/query' => 2,
                             'sub/virtual-list' => 2,
                             'sub/virtual-api-list' => 2,
+                            'tax/spot-record' => 1,
+                            'tax/future-record' => 1,
+                            'tax/margin-record' => 1,
+                            'tax/p2p-record' => 1,
                         ),
                         'post' => array(
                             'sub/virtual-create' => 4,
@@ -369,6 +388,8 @@ class bitget extends Exchange {
                             'cross/interest/list' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'cross/liquidation/list' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'cross/fin/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'isolated/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
                         ),
                         'post' => array(
                             'cross/account/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2
@@ -456,7 +477,7 @@ class bitget extends Exchange {
                     '30032' => '\\ccxt\\BadSymbol', // array( "code" => 30032, "message" => "pair does not exist" )
                     '30033' => '\\ccxt\\BadRequest', // array( "code" => 30033, "message" => "exchange domain does not exist" )
                     '30034' => '\\ccxt\\ExchangeError', // array( "code" => 30034, "message" => "exchange ID does not exist" )
-                    '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not supported in this website" )
+                    '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not property_exists($this, supported) website" )
                     '30036' => '\\ccxt\\ExchangeError', // array( "code" => 30036, "message" => "no relevant data" )
                     '30037' => '\\ccxt\\ExchangeNotAvailable', // array( "code" => 30037, "message" => "endpoint is offline or unavailable" )
                     // '30038' => '\\ccxt\\AuthenticationError', // array( "code" => 30038, "message" => "user does not exist" )
@@ -518,8 +539,8 @@ class bitget extends Exchange {
                     '32064' => '\\ccxt\\ExchangeError', // Time Stringerval of orders should set between 5-120s
                     '32065' => '\\ccxt\\ExchangeError', // Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
                     '32066' => '\\ccxt\\ExchangeError', // You have open orders. Please cancel all open orders before changing your leverage level.
-                    '32067' => '\\ccxt\\ExchangeError', // Account equity < required margin in this setting. Please adjust your leverage level again.
-                    '32068' => '\\ccxt\\ExchangeError', // The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32067' => '\\ccxt\\ExchangeError', // Account equity < required property_exists($this, margin) setting. Please adjust your leverage level again.
+                    '32068' => '\\ccxt\\ExchangeError', // The margin for this position will fall short of the required property_exists($this, margin) setting. Please adjust your leverage level or increase your margin to proceed.
                     '32069' => '\\ccxt\\ExchangeError', // Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
                     '32070' => '\\ccxt\\ExchangeError', // Please check open position or unfilled order
                     '32071' => '\\ccxt\\ExchangeError', // Your current liquidation mode does not support this action.
@@ -835,7 +856,7 @@ class bitget extends Exchange {
                     '40706' => '\\ccxt\\InvalidOrder', // Wrong order price
                     '40707' => '\\ccxt\\BadRequest', // Start time is greater than end time
                     '40708' => '\\ccxt\\BadRequest', // Parameter verification is abnormal
-                    '40709' => '\\ccxt\\ExchangeError', // There is no position in this position, and no automatic margin call can be set
+                    '40709' => '\\ccxt\\ExchangeError', // There is no property_exists($this, position) position, and no automatic margin call can be set
                     '40710' => '\\ccxt\\ExchangeError', // Abnormal account status
                     '40711' => '\\ccxt\\InsufficientFunds', // Insufficient contract account balance
                     '40712' => '\\ccxt\\InsufficientFunds', // Insufficient margin
@@ -844,6 +865,7 @@ class bitget extends Exchange {
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
                     '43025' => '\\ccxt\\InvalidOrder', // Plan order does not exist
+                    '43115' => '\\ccxt\\OnMaintenance', // array("code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null)
                     '45110' => '\\ccxt\\InvalidOrder', // array("code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null)
                     // spot
                     'invalid sign' => '\\ccxt\\AuthenticationError',
@@ -961,6 +983,14 @@ class bitget extends Exchange {
                 'withdraw' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'fetchOHLCV' => array(
+                    'spot' => array(
+                        'method' => 'publicSpotGetMarketCandles', // or publicSpotGetMarketHistoryCandles
+                    ),
+                    'swap:' => array(
+                        'method' => 'publicMixGetMarketCandles', // or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                    ),
+                ),
                 'accountsByType' => array(
                     'main' => 'EXCHANGE',
                     'spot' => 'EXCHANGE',
@@ -996,7 +1026,7 @@ class bitget extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->publicSpotGetPublicTime ($params);
@@ -1014,8 +1044,8 @@ class bitget extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for bitget
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market data
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing market data
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
@@ -1285,7 +1315,7 @@ class bitget extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} an associative dictionary of currencies
          */
         $response = $this->publicSpotGetPublicCurrencies ($params);
@@ -1325,30 +1355,51 @@ class bitget extends Exchange {
             $code = $this->safe_currency_code($this->safe_string($entry, 'coinName'));
             $chains = $this->safe_value($entry, 'chains', array());
             $networks = array();
+            $deposit = false;
+            $withdraw = false;
+            $minWithdrawString = null;
+            $minDepositString = null;
+            $minWithdrawFeeString = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
                 $network = $this->safe_currency_code($networkId);
                 $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
+                $canWithdraw = $withdrawEnabled === 'true';
+                $withdraw = ($canWithdraw) ? $canWithdraw : $withdraw;
                 $depositEnabled = $this->safe_string($chain, 'rechargeable');
+                $canDeposit = $depositEnabled === 'true';
+                $deposit = ($canDeposit) ? $canDeposit : $deposit;
+                $networkWithdrawFeeString = $this->safe_string($chain, 'withdrawFee');
+                if ($networkWithdrawFeeString !== null) {
+                    $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
+                }
+                $networkMinWithdrawString = $this->safe_string($chain, 'minWithdrawAmount');
+                if ($networkMinWithdrawString !== null) {
+                    $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
+                }
+                $networkMinDepositString = $this->safe_string($chain, 'minDepositAmount');
+                if ($networkMinDepositString !== null) {
+                    $minDepositString = ($minDepositString === null) ? $networkMinDepositString : Precise::string_min($networkMinDepositString, $minDepositString);
+                }
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
                     'network' => $network,
                     'limits' => array(
                         'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'minWithdrawAmount'),
+                            'min' => $this->parse_number($networkMinWithdrawString),
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $this->safe_number($chain, 'minDepositAmount'),
+                            'min' => $this->parse_number($networkMinDepositString),
                             'max' => null,
                         ),
                     ),
-                    'active' => null,
-                    'withdraw' => $withdrawEnabled === 'true',
-                    'deposit' => $depositEnabled === 'true',
-                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'active' => $canWithdraw && $canDeposit,
+                    'withdraw' => $canWithdraw,
+                    'deposit' => $canDeposit,
+                    'fee' => $this->parse_number($networkWithdrawFeeString),
                     'precision' => null,
                 );
             }
@@ -1359,14 +1410,24 @@ class bitget extends Exchange {
                 'networks' => $networks,
                 'type' => null,
                 'name' => null,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
+                'active' => $deposit && $withdraw,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
+                'fee' => $this->parse_number($minWithdrawFeeString),
                 'precision' => null,
                 'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array( 'min' => null, 'max' => null ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->parse_number($minWithdrawString),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->parse_number($minDepositString),
+                        'max' => null,
+                    ),
                 ),
             );
         }
@@ -1378,7 +1439,7 @@ class bitget extends Exchange {
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
          * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
          */
         $this->load_markets();
@@ -1445,13 +1506,13 @@ class bitget extends Exchange {
         /**
          * fetch all deposits made to an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
-         * @param {string|null} $code unified $currency $code
-         * @param {int} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @param {string|null} $params->pageNo pageNo default 1
-         * @param {string|null} $params->pageSize pageSize default 20. Max 100
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {string} [$params->pageNo] pageNo default 1
+         * @param {string} [$params->pageSize] pageSize default 20. Max 100
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         if ($code === null) {
@@ -1502,9 +1563,9 @@ class bitget extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @param {string} $params->chain the $chain to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {string} [$params->chain] the $chain to withdraw to
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $this->check_address($address);
@@ -1573,13 +1634,13 @@ class bitget extends Exchange {
         /**
          * fetch all withdrawals made from an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
-         * @param {string|null} $code unified $currency $code
-         * @param {int} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @param {string|null} $params->pageNo pageNo default 1
-         * @param {string|null} $params->pageSize pageSize default 20. Max 100
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {string} [$params->pageNo] pageNo default 1
+         * @param {string} [$params->pageSize] pageSize default 20. Max 100
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         if ($code === null) {
@@ -1633,37 +1694,48 @@ class bitget extends Exchange {
         //         "amount" => "19.44800000",
         //         "status" => "success",
         //         "toAddress" => "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
-        //         "fee" => null,
+        //         "fee" => "-3.06388160",
         //         "chain" => "TRC20",
         //         "confirm" => null,
+        //         "tag" => null,
         //         "cTime" => "1656407912259",
         //         "uTime" => "1656407940148"
         //     }
         //
+        $currencyId = $this->safe_string($transaction, 'coin');
+        $code = $this->safe_currency_code($currencyId);
+        $amountString = $this->safe_string($transaction, 'amount');
         $timestamp = $this->safe_integer($transaction, 'cTime');
         $networkId = $this->safe_string($transaction, 'chain');
-        $currencyId = $this->safe_string($transaction, 'coin');
         $status = $this->safe_string($transaction, 'status');
+        $tag = $this->safe_string($transaction, 'tag');
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        $feeCostAbsString = Precise::string_abs($feeCostString);
+        $fee = null;
+        if ($feeCostAbsString !== null) {
+            $fee = array( 'currency' => $code, 'cost' => $this->parse_number($feeCostAbsString) );
+            $amountString = Precise::string_sub($amountString, $feeCostAbsString);
+        }
         return array(
             'id' => $this->safe_string($transaction, 'id'),
             'info' => $transaction,
             'txid' => $this->safe_string($transaction, 'txId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $networkId,
+            'network' => $this->network_id_to_code($networkId),
             'addressFrom' => null,
             'address' => $this->safe_string($transaction, 'toAddress'),
             'addressTo' => $this->safe_string($transaction, 'toAddress'),
-            'amount' => $this->safe_number($transaction, 'amount'),
+            'amount' => $this->parse_number($amountString),
             'type' => $this->safe_string($transaction, 'type'),
-            'currency' => $this->safe_currency_code($currencyId),
+            'currency' => $code,
             'status' => $this->parse_transaction_status($status),
-            'updated' => $this->safe_number($transaction, 'uTime'),
+            'updated' => $this->safe_integer($transaction, 'uTime'),
             'tagFrom' => null,
-            'tag' => null,
-            'tagTo' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
             'comment' => null,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
@@ -1682,7 +1754,7 @@ class bitget extends Exchange {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
@@ -1739,8 +1811,8 @@ class bitget extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -1896,7 +1968,7 @@ class bitget extends Exchange {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
@@ -1939,8 +2011,8 @@ class bitget extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-$symbol-ticker
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
@@ -2116,10 +2188,10 @@ class bitget extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2161,7 +2233,7 @@ class bitget extends Exchange {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
@@ -2197,7 +2269,7 @@ class bitget extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
          */
         $this->load_markets();
@@ -2290,11 +2362,11 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-$timeframe
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2337,13 +2409,32 @@ class bitget extends Exchange {
                 }
             }
         }
+        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $ommitted = $this->omit($params, array( 'until', 'till' ));
         $extended = array_merge($request, $ommitted);
         $response = null;
         if ($market['spot']) {
-            $response = $this->publicSpotGetMarketCandles ($extended);
+            $spotOptions = $this->safe_value($options, 'spot', array());
+            $defaultSpotMethod = $this->safe_string($params, 'method', 'publicSpotGetMarketCandles');
+            $method = $this->safe_string($spotOptions, 'method', $defaultSpotMethod);
+            if ($method === 'publicSpotGetMarketCandles') {
+                $response = $this->publicSpotGetMarketCandles ($extended);
+            } elseif ($method === 'publicSpotGetMarketHistoryCandles') {
+                $response = $this->publicSpotGetMarketHistoryCandles ($extended);
+            }
         } else {
-            $response = $this->publicMixGetMarketCandles ($extended);
+            $swapOptions = $this->safe_value($options, 'swap', array());
+            $defaultSwapMethod = $this->safe_string($params, 'method', 'publicMixGetMarketCandles');
+            $swapMethod = $this->safe_string($swapOptions, 'method', $defaultSwapMethod);
+            if ($swapMethod === 'publicMixGetMarketCandles') {
+                $response = $this->publicMixGetMarketCandles ($extended);
+            } elseif ($swapMethod === 'publicMixGetMarketHistoryCandles') {
+                $response = $this->publicMixGetMarketHistoryCandles ($extended);
+            } elseif ($swapMethod === 'publicMixGetMarketHistoryIndexCandles') {
+                $response = $this->publicMixGetMarketHistoryIndexCandles ($extended);
+            } elseif ($swapMethod === 'publicMixGetMarketHistoryMarkCandles') {
+                $response = $this->publicMixGetMarketHistoryMarkCandles ($extended);
+            }
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
         $data = $this->safe_value($response, 'data', $response);
@@ -2353,7 +2444,7 @@ class bitget extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
@@ -2531,6 +2622,7 @@ class bitget extends Exchange {
         $average = $this->safe_string_2($order, 'fillPrice', 'priceAvg');
         $type = $this->safe_string($order, 'orderType');
         $timestamp = $this->safe_integer($order, 'cTime');
+        $lastUpdatetimestamp = $this->safe_integer($order, 'uTime');
         $side = $this->safe_string_2($order, 'side', 'posSide');
         if (($side === 'open_long') || ($side === 'close_short')) {
             $side = 'buy';
@@ -2567,6 +2659,7 @@ class bitget extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdatetimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
@@ -2599,14 +2692,14 @@ class bitget extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @param {float} $params->triggerPrice *swap only* The $price at which a trigger order is triggered at
-         * @param {float|null} $params->stopLossPrice *swap only* The $price at which a stop loss order is triggered at
-         * @param {float|null} $params->takeProfitPrice *swap only* The $price at which a take profit order is triggered at
-         * @param {float|null} $params->stopLoss *swap only* *uses the Place Position TPSL* The $price at which a stop loss order is triggered at
-         * @param {float|null} $params->takeProfit *swap only* *uses the Place Position TPSL* The $price at which a take profit order is triggered at
-         * @param {string|null} $params->timeInForce "GTC", "IOC", "FOK", or "PO"
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] *swap only* The $price at which a take profit order is triggered at
+         * @param {float} [$params->stopLoss] *swap only* *uses the Place Position TPSL* The $price at which a stop loss order is triggered at
+         * @param {float} [$params->takeProfit] *swap only* *uses the Place Position TPSL* The $price at which a take profit order is triggered at
+         * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2762,7 +2855,7 @@ class bitget extends Exchange {
                 $request[$timeInForceKey] = 'ioc';
             }
         }
-        $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly' ));
+        $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly' ));
         $response = $this->$method (array_merge($request, $omitted));
         //
         //     {
@@ -2787,8 +2880,8 @@ class bitget extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -2882,7 +2975,7 @@ class bitget extends Exchange {
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->check_required_symbol('cancelOrder', $symbol);
@@ -2922,9 +3015,9 @@ class bitget extends Exchange {
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
-         * @param {[string]} $ids order $ids
+         * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol, default is null
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->check_required_symbol('cancelOrders', $symbol);
@@ -2989,10 +3082,10 @@ class bitget extends Exchange {
          * cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @param {string} $params->code marginCoin unified $currency $code
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {string} [$params->code] marginCoin unified $currency $code
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $this->load_markets();
@@ -3057,7 +3150,7 @@ class bitget extends Exchange {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->check_required_symbol('fetchOrder', $symbol);
@@ -3142,10 +3235,10 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of open order structures to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of open order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -3308,10 +3401,10 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
          * @param {string} $symbol unified $market $symbol of the closed orders
-         * @param {int|null} $since timestamp in ms of the earliest order
-         * @param {int|null} $limit the max number of closed orders to return
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the max number of closed orders to return
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $this->check_required_symbol('fetchClosedOrders', $symbol);
@@ -3334,9 +3427,9 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
          * @param {string} $symbol unified $market $symbol of the canceled orders
-         * @param {int|null} $since timestamp in ms of the earliest order
-         * @param {int|null} $limit the max number of canceled orders to return
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the max number of canceled orders to return
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3515,10 +3608,10 @@ class bitget extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|null} $code unified $currency $code, default is null
-         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {string} $code unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
@@ -3604,10 +3697,10 @@ class bitget extends Exchange {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
@@ -3654,10 +3747,10 @@ class bitget extends Exchange {
          * fetch all the trades made from a single order
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades to retrieve
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $this->check_required_symbol('fetchOrderTrades', $symbol);
         $this->load_markets();
@@ -3702,10 +3795,10 @@ class bitget extends Exchange {
 
     public function fetch_position(string $symbol, $params = array ()) {
         /**
-         * fetch $data on a single open contract trade position
-         * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * fetch $data on a single open contract trade $position
+         * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3743,15 +3836,17 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data);
+        $first = $this->safe_value($data, 0, array());
+        $position = $this->parse_position($first, $market);
+        return $position;
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
-         * @param {[string]|null} $symbols list of unified $market $symbols
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+         * @param {string[]|null} $symbols list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $this->load_markets();
@@ -3922,11 +4017,11 @@ class bitget extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
-         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
-         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
@@ -3978,7 +4073,7 @@ class bitget extends Exchange {
         /**
          * fetch the current funding rate
          * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
@@ -4040,10 +4135,10 @@ class bitget extends Exchange {
          * fetch the funding history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the starting timestamp in milliseconds
-         * @param {int|null} $limit the number of entries to return
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         * @param {int} [$since] the starting timestamp in milliseconds
+         * @param {int} [$limit] the number of entries to return
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4185,7 +4280,7 @@ class bitget extends Exchange {
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
          */
         if ($amount > 0) {
@@ -4203,7 +4298,7 @@ class bitget extends Exchange {
          * add margin
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
          */
         $holdSide = $this->safe_string($params, 'holdSide');
@@ -4217,7 +4312,7 @@ class bitget extends Exchange {
         /**
          * fetch the set leverage for a $market
          * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
@@ -4261,7 +4356,7 @@ class bitget extends Exchange {
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} response from the exchange
          */
         $this->check_required_symbol('setLeverage', $symbol);
@@ -4281,7 +4376,7 @@ class bitget extends Exchange {
          * set margin mode to 'cross' or 'isolated'
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} response from the exchange
          */
         $this->check_required_symbol('setMarginMode', $symbol);
@@ -4303,8 +4398,8 @@ class bitget extends Exchange {
         /**
          * set $hedged to true or false for a $market
          * @param {bool} $hedged set to true to use dualSidePosition
-         * @param {string|null} $symbol not used by bitget setPositionMode ()
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {string} $symbol not used by bitget setPositionMode ()
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} $response from the exchange
          *
          */
@@ -4342,7 +4437,7 @@ class bitget extends Exchange {
          * Retrieves the open interest of a currency
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
          * @param {string} $symbol Unified CCXT $market $symbol
-         * @param {array} $params exchange specific parameters
+         * @param {array} [$params] exchange specific parameters
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
          */
         $this->load_markets();
@@ -4374,11 +4469,11 @@ class bitget extends Exchange {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
-         * @param {string|null} $code unified $currency $code of the $currency transferred
-         * @param {int|null} $since the earliest time in ms to fetch transfers for
-         * @param {int|null} $limit the maximum number of  transfers structures to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of  transfers structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
         $type = null;
@@ -4431,10 +4526,10 @@ class bitget extends Exchange {
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
-         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
          *
          * EXCHANGE SPECIFIC PARAMS
-         * @param {string} $params->clientOid custom id
+         * @param {string} [$params->clientOid] custom id
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
@@ -4515,6 +4610,87 @@ class bitget extends Exchange {
             'toAccount' => $toAccount,
             'status' => $this->parse_transfer_status($msg),
         );
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        // {
+        //     "chains" => array(
+        //       array(
+        //         "browserUrl" => "https://bscscan.com/tx/",
+        //         "chain" => "BEP20",
+        //         "depositConfirm" => "15",
+        //         "extraWithDrawFee" => "0",
+        //         "minDepositAmount" => "0.000001",
+        //         "minWithdrawAmount" => "0.0000078",
+        //         "needTag" => "false",
+        //         "rechargeable" => "true",
+        //         "withdrawConfirm" => "15",
+        //         "withdrawFee" => "0.0000051",
+        //         "withdrawable" => "true"
+        //       ),
+        //       {
+        //         "browserUrl" => "https://blockchair.com/bitcoin/transaction/",
+        //         "chain" => "BTC",
+        //         "depositConfirm" => "1",
+        //         "extraWithDrawFee" => "0",
+        //         "minDepositAmount" => "0.0001",
+        //         "minWithdrawAmount" => "0.002",
+        //         "needTag" => "false",
+        //         "rechargeable" => "true",
+        //         "withdrawConfirm" => "1",
+        //         "withdrawFee" => "0.0005",
+        //         "withdrawable" => "true"
+        //       }
+        //     ),
+        //     "coinId" => "1",
+        //     "coinName" => "BTC",
+        //     "transfer" => "true"
+        // }
+        //
+        $chains = $this->safe_value($fee, 'chains', array());
+        $chainsLength = count($chains);
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        for ($i = 0; $i < $chainsLength; $i++) {
+            $chain = $chains[$i];
+            $networkId = $this->safe_string($chain, 'chain');
+            $currencyCode = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+            $result['networks'][$networkCode] = array(
+                'deposit' => array( 'fee' => null, 'percentage' => null ),
+                'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+            );
+            if ($chainsLength === 1) {
+                $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
+                $result['withdraw']['percentage'] = false;
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
+         * @param {string[]|null} $codes list of unified currency $codes
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->publicSpotGetPublicCurrencies ($params);
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_deposit_withdraw_fees($data, $codes, 'coinName');
     }
 
     public function parse_transfer_status($status) {
