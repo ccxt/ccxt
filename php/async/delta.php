@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\delta as Exchange;
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\Precise;
@@ -27,14 +26,15 @@ class delta extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
-                'option' => null,
+                'margin' => false,
+                'swap' => true,
+                'future' => false,
+                'option' => true,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -42,15 +42,18 @@ class delta extends Exchange {
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => null,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -59,6 +62,7 @@ class delta extends Exchange {
                 'fetchPosition' => true,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -71,6 +75,9 @@ class delta extends Exchange {
                 'fetchWithdrawals' => null,
                 'reduceMargin' => true,
                 'setLeverage' => true,
+                'setMargin' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
             ),
@@ -426,6 +433,7 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
+             * @see https://docs.delta.exchange/#get-list-of-all-assets
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array} an associative dictionary of $currencies
              */
@@ -516,6 +524,7 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for delta
+             * @see https://docs.delta.exchange/#get-list-of-products
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -1263,6 +1272,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.delta.exchange/#get-l2-orderbook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the delta api endpoint
@@ -1404,6 +1414,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://docs.delta.exchange/#get-public-trades
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1460,7 +1471,8 @@ class delta extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+             * @see https://docs.delta.exchange/#get-ohlc-candles
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1471,7 +1483,6 @@ class delta extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe);
@@ -1485,6 +1496,15 @@ class delta extends Exchange {
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $limit * $duration);
             }
+            $price = $this->safe_string($params, 'price');
+            if ($price === 'mark') {
+                $request['symbol'] = 'MARK:' . $market['id'];
+            } elseif ($price === 'index') {
+                $request['symbol'] = $market['info']['spot_index']['symbol'];
+            } else {
+                $request['symbol'] = $market['id'];
+            }
+            $params = $this->omit($params, 'price');
             $response = Async\await($this->publicGetHistoryCandles (array_merge($request, $params)));
             //
             //     {
@@ -1522,6 +1542,7 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://docs.delta.exchange/#get-wallet-balances
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
@@ -1556,6 +1577,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade position
+             * @see https://docs.delta.exchange/#get-position
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -1585,6 +1607,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             * @see https://docs.delta.exchange/#get-margined-positions
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -1786,12 +1809,14 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://docs.delta.exchange/#place-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1815,6 +1840,11 @@ class delta extends Exchange {
             $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
+            }
+            $reduceOnly = $this->safe_value($params, 'reduceOnly');
+            if ($reduceOnly) {
+                $request['reduce_only'] = $reduceOnly;
+                $params = $this->omit($params, 'reduceOnly');
             }
             $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
             //
@@ -1860,6 +1890,18 @@ class delta extends Exchange {
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @see https://docs.delta.exchange/#edit-order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1901,14 +1943,13 @@ class delta extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://docs.delta.exchange/#cancel-order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1961,13 +2002,12 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             * @see https://docs.delta.exchange/#cancel-all-open-orders
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelAllOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1990,9 +2030,10 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://docs.delta.exchange/#get-active-orders
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -2004,9 +2045,10 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             * @see https://docs.delta.exchange/#get-order-history-cancelled-and-closed
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -2071,6 +2113,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             * @see https://docs.delta.exchange/#get-user-fills-by-filters
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -2153,6 +2196,7 @@ class delta extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * @see https://docs.delta.exchange/#get-wallet-transactions
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
