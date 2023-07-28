@@ -1140,11 +1140,8 @@ export default class kucoinfutures extends kucoin {
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const triggerPriceTypes = {
-            'MP': 'MP', // Mark Price
             'mark': 'MP',
-            'TP': 'TP', // Trade Price
             'last': 'TP',
-            'IP': 'IP', // Index Price
             'index': 'IP',
         };
         const triggerPriceTypeString = this.safeString (params, 'triggerPriceType', 'mark');
