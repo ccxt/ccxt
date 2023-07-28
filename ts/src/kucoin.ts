@@ -1852,7 +1852,6 @@ export default class kucoin extends Exchange {
             if (triggerPrice) {
                 request['stop'] = (side === 'buy') ? 'up' : 'down';
                 request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
-                request['stopPriceType'] = 'MP';
             } else if (stopLossPrice || takeProfitPrice) {
                 if (stopLossPrice) {
                     request['stop'] = (side === 'buy') ? 'entry' : 'loss';
@@ -1861,8 +1860,6 @@ export default class kucoin extends Exchange {
                     request['stop'] = (side === 'buy') ? 'loss' : 'entry';
                     request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
                 }
-                request['reduceOnly'] = true;
-                request['stopPriceType'] = 'MP';
             }
             method = 'privatePostStopOrder';
             if (marginMode === 'isolated') {
