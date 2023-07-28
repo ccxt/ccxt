@@ -2244,7 +2244,8 @@ class binance extends binance$1 {
         if (executionType === 'TRADE') {
             const trade = this.parseTrade(message);
             const orderId = this.safeString(trade, 'order');
-            const tradeFee = this.safeValue(trade, 'fee');
+            let tradeFee = this.safeValue(trade, 'fee');
+            tradeFee = this.extend({}, tradeFee);
             const symbol = this.safeString(trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
@@ -2255,7 +2256,7 @@ class binance extends binance$1 {
                         // accumulate order fees
                         const fees = this.safeValue(order, 'fees');
                         const fee = this.safeValue(order, 'fee');
-                        if (fees !== undefined) {
+                        if (!this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
                                 const orderFee = fees[i];

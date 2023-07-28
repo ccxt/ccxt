@@ -2274,6 +2274,7 @@ class binance extends \ccxt\async\binance {
             $trade = $this->parse_trade($message);
             $orderId = $this->safe_string($trade, 'order');
             $tradeFee = $this->safe_value($trade, 'fee');
+            $tradeFee = array_merge(array(), $tradeFee);
             $symbol = $this->safe_string($trade, 'symbol');
             if ($orderId !== null && $tradeFee !== null && $symbol !== null) {
                 $cachedOrders = $this->orders;
@@ -2284,7 +2285,7 @@ class binance extends \ccxt\async\binance {
                         // accumulate $order $fees
                         $fees = $this->safe_value($order, 'fees');
                         $fee = $this->safe_value($order, 'fee');
-                        if ($fees !== null) {
+                        if (!$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
                             for ($i = 0; $i < count($fees); $i++) {
                                 $orderFee = $fees[$i];
