@@ -44,12 +44,14 @@ export default class delta extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -426,6 +428,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.delta.exchange/#get-list-of-all-assets
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -514,6 +517,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchMarkets
          * @description retrieves data on all markets for delta
+         * @see https://docs.delta.exchange/#get-list-of-products
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -1261,6 +1265,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.delta.exchange/#get-l2-orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the delta api endpoint
@@ -1402,6 +1407,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.delta.exchange/#get-public-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1459,6 +1465,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.delta.exchange/#get-ohlc-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1469,7 +1476,6 @@ export default class delta extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
@@ -1483,6 +1489,15 @@ export default class delta extends Exchange {
             request['start'] = start;
             request['end'] = this.sum (start, limit * duration);
         }
+        const price = this.safeString (params, 'price');
+        if (price === 'mark') {
+            request['symbol'] = 'MARK:' + market['id'];
+        } else if (price === 'index') {
+            request['symbol'] = market['info']['spot_index']['symbol'];
+        } else {
+            request['symbol'] = market['id'];
+        }
+        params = this.omit (params, 'price');
         const response = await this.publicGetHistoryCandles (this.extend (request, params));
         //
         //     {
@@ -1520,6 +1535,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.delta.exchange/#get-wallet-balances
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -1554,6 +1570,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://docs.delta.exchange/#get-position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -1583,6 +1600,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.delta.exchange/#get-margined-positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -1784,6 +1802,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#createOrder
          * @description create a trade order
+         * @see https://docs.delta.exchange/#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1856,6 +1875,20 @@ export default class delta extends Exchange {
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#editOrder
+         * @description edit a trade order
+         * @see https://docs.delta.exchange/#edit-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1897,14 +1930,13 @@ export default class delta extends Exchange {
          * @method
          * @name delta#cancelOrder
          * @description cancels an open order
+         * @see https://docs.delta.exchange/#cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1957,13 +1989,12 @@ export default class delta extends Exchange {
          * @method
          * @name delta#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://docs.delta.exchange/#cancel-all-open-orders
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelAllOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1986,9 +2017,10 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.delta.exchange/#get-active-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2000,9 +2032,10 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.delta.exchange/#get-order-history-cancelled-and-closed
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2065,6 +2098,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.delta.exchange/#get-user-fills-by-filters
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2147,6 +2181,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.delta.exchange/#get-wallet-transactions
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
