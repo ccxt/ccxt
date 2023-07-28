@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/lbank.js';
-import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
+import { ExchangeError, DDoSProtection, ArgumentsRequired, AuthenticationError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
@@ -623,6 +623,9 @@ export default class lbank extends Exchange {
         };
         if (type === 'market') {
             order['type'] += '_market';
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument even for market orders');
+            }
         } else {
             order['price'] = price;
         }
@@ -830,6 +833,7 @@ export default class lbank extends Exchange {
             const queryInner = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
+            query['api_key'] = this.apiKey;
             const queryString = this.rawencode (queryInner);
             const message = this.hash (this.encode (queryString), md5).toUpperCase ();
             const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
