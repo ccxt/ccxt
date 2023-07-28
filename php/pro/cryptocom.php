@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\NetworkError;
 use ccxt\AuthenticationError;
 use React\Async;
 
@@ -53,7 +54,12 @@ class cryptocom extends \ccxt\async\cryptocom {
             //     "method" => "public/heartbeat",
             //     "code" => 0
             // }
-            Async\await($client->send (array( 'id' => $this->safe_integer($message, 'id'), 'method' => 'public/respond-heartbeat' )));
+            try {
+                Async\await($client->send (array( 'id' => $this->safe_integer($message, 'id'), 'method' => 'public/respond-heartbeat' )));
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' pong failed with $error ' . $this->json($e));
+                $client->reset ($error);
+            }
         }) ();
     }
 
