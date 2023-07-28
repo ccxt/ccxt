@@ -1,12 +1,14 @@
 import okxRest from '../okx.js';
-import { Int } from '../base/types.js';
+import { Int, OrderSide, OrderType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class okx extends okxRest {
     describe(): any;
-    subscribe(access: any, channel: any, symbol: any, params?: {}): Promise<any>;
+    subscribeMultiple(access: any, channel: any, symbols?: string[], params?: {}): Promise<any>;
+    subscribe(access: any, messageHash: any, channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
+    watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
@@ -18,8 +20,18 @@ export default class okx extends okxRest {
     authenticate(params?: {}): any;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
+    orderToTrade(order: any, market?: any): import("../base/types.js").Trade;
+    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription?: any): void;
+    handleMyTrades(client: Client, message: any): void;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
+    handlePlaceOrders(client: Client, message: any): void;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
+    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelOrdersWs(ids: string[], symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
+    handleCancelAllOrders(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
     ping(client: any): string;

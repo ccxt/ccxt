@@ -17,10 +17,10 @@ export default class coinbasepro extends coinbaseproRest {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): any;
     handleMyTrade(client: Client, message: any): any;
-    parseWsTrade(trade: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     parseWsOrderStatus(status: any): string;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any): {
+    parseWsOrder(order: any, market?: any): {
         info: any;
         symbol: any;
         id: string;
@@ -71,5 +71,6 @@ export default class coinbasepro extends coinbaseproRest {
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): any;
 }

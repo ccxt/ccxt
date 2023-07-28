@@ -20,8 +20,11 @@ const lplim = (1 << 26) / lowprimes[lowprimes.length - 1];
 //#endregion
 
 // (public) Constructor
+/**
+ * @type Class
+ */
 export class BigInteger {
-    constructor(a:number|number[]|string, b?:number|SecureRandom, c?:number|SecureRandom) {
+    public constructor(a:number|number[]|string, b?:number|SecureRandom, c?:number|SecureRandom) {
         if (a != null) {
             if ("number" == typeof a) {
                 this.fromNumber(a, b, c);

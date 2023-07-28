@@ -42,10 +42,10 @@ class luno(ccxt.async_support.luno):
         get the list of most recent trades for a particular symbol
         see https://www.luno.com/en/developers/api#tag/Streaming-API
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of    trades to fetch
-        :param dict params: extra parameters specific to the luno api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of    trades to fetch
+        :param dict [params]: extra parameters specific to the luno api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.check_required_credentials()
         await self.load_markets()
@@ -133,9 +133,9 @@ class luno(ccxt.async_support.luno):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dictConstructor params: extra parameters specific to the luno api endpoint
-        :param str|None params['type']: accepts l2 or l3 for level 2 or level 3 order book
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dictConstructor [params]: extra parameters specific to the luno api endpoint
+        :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.check_required_credentials()

@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -28,7 +30,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitmart(Exchange):
+class bitmart(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitmart, self).describe(), {
@@ -146,6 +148,7 @@ class bitmart(Exchange):
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
                         'contract/public/kline': 5,
+                        'account/v1/currencies': 30,
                     },
                 },
                 'private': {
@@ -288,7 +291,7 @@ class bitmart(Exchange):
                     '60009': ExchangeError,  # 400, Beyond the limit
                     '60010': ExchangeError,  # 400, Withdraw id or deposit id not found
                     '60011': InvalidAddress,  # 400, Address is not valid
-                    '60012': ExchangeError,  # 400, This action is not supported in self currency(If IOTA, HLX recharge and withdraw calls are prohibited)
+                    '60012': ExchangeError,  # 400, This action is not hasattr(self, supported) currency(If IOTA, HLX recharge and withdraw calls are prohibited)
                     '60020': PermissionDenied,  # 403, Your account is not allowed to recharge
                     '60021': PermissionDenied,  # 403, Your account is not allowed to withdraw
                     '60022': PermissionDenied,  # 403, No withdrawals for 24 hours
@@ -388,12 +391,160 @@ class bitmart(Exchange):
                 'TRU': 'Truebit',  # conflict with TrueFi
             },
             'options': {
-                'networks': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
-                },
+                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'USDT': 'ERC20',
+                },
+                'networks': {
+                    'ERC20': 'ERC20',
+                    'BTC': 'BTC',
+                    'TRC20': 'TRC20',
+                    # todo: should be TRX after unification
+                    # 'TRC20': ['TRC20', 'trc20', 'TRON'],  # todo: after unification i.e. TRON is returned from fetchDepositAddress
+                    # 'ERC20': ['ERC20', 'ERC-20', 'ERC20 '],  # todo: after unification
+                    'OMNI': 'OMNI',
+                    'XLM': 'XLM',
+                    'EOS': 'EOS',
+                    'NEO': 'NEO',
+                    'BTM': 'BTM',
+                    'BCH': 'BCH',
+                    'LTC': 'LTC',
+                    'BSV': 'BSV',
+                    'XRP': 'XRP',
+                    # 'VECHAIN': ['VET', 'Vechain'],  # todo: after unification
+                    'PLEX': 'PLEX',
+                    'XCH': 'XCH',
+                    # 'AVALANCHE_C': ['AVAX', 'AVAX-C'],  # todo: after unification
+                    'NEAR': 'NEAR',
+                    'FIO': 'FIO',
+                    'SCRT': 'SCRT',
+                    'IOTX': 'IOTX',
+                    'SOL': 'SOL',
+                    'ALGO': 'ALGO',
+                    'ATOM': 'ATOM',
+                    'DOT': 'DOT',
+                    'ADA': 'ADA',
+                    'DOGE': 'DOGE',
+                    'XYM': 'XYM',
+                    'GLMR': 'GLMR',
+                    'MOVR': 'MOVR',
+                    'ZIL': 'ZIL',
+                    'INJ': 'INJ',
+                    'KSM': 'KSM',
+                    'ZEC': 'ZEC',
+                    'NAS': 'NAS',
+                    # 'POLYGON': ['MATIC', 'Polygon', 'POLYGON'],  # todo: after unification
+                    'HRC20': 'HECO',
+                    'XDC': 'XDC',
+                    'ONE': 'ONE',
+                    'LAT': 'LAT',
+                    'CSPR': 'Casper',
+                    'ICP': 'Computer',
+                    'XTZ': 'XTZ',
+                    'MINA': 'MINA',
+                    # 'BEP20': ['BEP20', 'BSC_BNB', 'bep20'],  # todo: after unification
+                    'THETA': 'THETA',
+                    'AKT': 'AKT',
+                    'AR': 'AR',
+                    'CELO': 'CELO',
+                    'FIL': 'FIL',
+                    'NULS': 'NULS',
+                    'ETC': 'ETC',
+                    'DASH': 'DASH',
+                    'DGB': 'DGB',
+                    'BEP2': 'BEP2',
+                    'GRIN': 'GRIN',
+                    'WAVES': 'WAVES',
+                    'ABBC': 'ABBC',
+                    'ACA': 'ACA',
+                    'QTUM': 'QTUM',
+                    'PAC': 'PAC',
+                    # 'TERRACLASSIC': 'LUNC',  # TBD
+                    # 'TERRA': 'Terra',  # TBD
+                    # 'HEDERA': ['HBAR', 'Hedera', 'Hedera Mainnet'],  # todo: after unification
+                    'TLOS': 'TLOS',
+                    'KARDIA': 'KardiaChain',
+                    'FUSE': 'FUSE',
+                    'TRC10': 'TRC10',
+                    'FIRO': 'FIRO',
+                    'FTM': 'Fantom',
+                    # 'KLAYTN': ['klaytn', 'KLAY', 'Klaytn'],  # todo: after unification
+                    # 'ELROND': ['EGLD', 'Elrond eGold', 'MultiversX'],  # todo: after unification
+                    'EVER': 'EVER',
+                    'KAVA': 'KAVA',
+                    'HYDRA': 'HYDRA',
+                    'PLCU': 'PLCU',
+                    'BRISE': 'BRISE',
+                    # 'CRC20': ['CRO', 'CRO_Chain'],  # todo: after unification
+                    # 'CONFLUX': ['CFX eSpace', 'CFX'],  # todo: after unification
+                    'OPTIMISM': 'OPTIMISM',
+                    'REEF': 'REEF',
+                    'SYS': 'SYS',  # NEVM is different
+                    'VITE': 'VITE',
+                    'STX': 'STX',
+                    'SXP': 'SXP',
+                    'BITCI': 'BITCI',
+                    # 'ARBITRUM': ['ARBI', 'Arbitrum'],  # todo: after unification
+                    'XRD': 'XRD',
+                    'ASTR': 'ASTAR',
+                    'ZEN': 'HORIZEN',
+                    'LTO': 'LTO',
+                    'ETHW': 'ETHW',
+                    'ETHF': 'ETHF',
+                    'IOST': 'IOST',
+                    # 'CHILIZ': ['CHZ', 'CHILIZ'],  # todo: after unification
+                    'APT': 'APT',
+                    # 'FLOW': ['FLOW', 'Flow'],  # todo: after unification
+                    'ONT': 'ONT',
+                    'EVMOS': 'EVMOS',
+                    'XMR': 'XMR',
+                    'OASYS': 'OAS',
+                    'OSMO': 'OSMO',
+                    'OMAX': 'OMAX Chain',
+                    'DESO': 'DESO',
+                    'BFIC': 'BFIC',
+                    'OHO': 'OHO',
+                    'CS': 'CS',
+                    'CHEQ': 'CHEQ',
+                    'NODL': 'NODL',
+                    'NEM': 'XEM',
+                    'FRA': 'FRA',
+                    'ERGO': 'ERG',
+                    # todo: below will be uncommented after unification
+                    # 'BITCOINHD': 'BHD',
+                    # 'CRUST': 'CRU',
+                    # 'MINTME': 'MINTME',
+                    # 'ZENITH': 'ZENITH',
+                    # 'ZENIQ': 'ZENIQ',  # "ZEN-20" is different
+                    # 'BITCOINVAULT': 'BTCV',
+                    # 'MOBILECOIN': 'MBX',
+                    # 'PINETWORK': 'PI',
+                    # 'PI': 'PI',
+                    # 'REBUS': 'REBUS',
+                    # 'XODEX': 'XODEX',
+                    # 'ULTRONGLOW': 'UTG'
+                    # 'QIBLOCKCHAIN': 'QIE',
+                    # 'XIDEN': 'XDEN',
+                    # 'PHAETON': 'PHAE',
+                    # 'REDLIGHT': 'REDLC',
+                    # 'VERITISE': 'VTS',
+                    # 'VERIBLOCK': 'VBK',
+                    # 'RAMESTTA': 'RAMA',
+                    # 'BITICA': 'BDCC',
+                    # 'CROWNSOVEREIGN': 'CSOV',
+                    # 'DRAC': 'DRC20',
+                    # 'QCHAIN': 'QDT',
+                    # 'KINGARU': 'KRU',
+                    # 'PROOFOFMEMES': 'POM',
+                    # 'CUBE': 'CUBE',
+                    # 'CADUCEUS': 'CMP',
+                    # 'VEIL': 'VEIL',
+                    # 'ENERGYWEB': 'EWT',
+                    # 'CYPHERIUM': 'CPH',
+                    # 'LBRY': 'LBC',
+                    # 'ETHERCOIN': 'ETE',
+                    # undetermined chains:
+                    # LEX(for LexThum), TAYCAN(for TRICE), SFL(probably TAYCAN), OMNIA(for APEX), NAC(for NAC), KAG(Kinesis), CEM(crypto emergency), XVM(for Venidium), NEVM(for NEVM), IGT20(for IGNITE), FILM(FILMCredits), CC(CloudCoin), MERGE(MERGE), LTNM(Bitcoin latinum), PLUGCN( PlugChain), DINGO(dingo), LED(LEDGIS), AVAT(AVAT), VSOL(Vsolidus), EPIC(EPIC cash), NFC(netflowcoin), mrx(Metrix Coin), Idena(idena network), PKT(PKT Cash), BondDex(BondDex), XBN(XBN), KALAM(Kalamint), REV(RChain), KRC20(MyDeFiPet), ARC20(Hurricane Token), GMD(Coop network), BERS(Berith), ZEBI(Zebi), BRC(Baer Chain), DAPS(DAPS Coin), APL(Gold Secured Currency), NDAU(NDAU), WICC(WICC), UPG(Unipay God), TSL(TreasureSL), MXW(Maxonrow), CLC(Cifculation), SMH(SMH Coin), XIN(CPCoin), RDD(ReddCoin), OK(Okcash), KAR(KAR), CCX(ConcealNetwork),
                 },
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'fetchBalance': {
@@ -409,7 +560,7 @@ class bitmart(Exchange):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.publicGetSystemTime(params)
@@ -429,7 +580,7 @@ class bitmart(Exchange):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         options = self.safe_value(self.options, 'fetchStatus', {})
@@ -625,10 +776,15 @@ class bitmart(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            settle = 'USDT'
+            settleId = 'USDT'  # self is bitmart's ID for usdt
+            settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
-            productType = self.safe_number(market, 'product_type')
+            productType = self.safe_integer(market, 'product_type')
+            isSwap = (productType == 1)
+            isFutures = (productType == 2)
             expiry = self.safe_integer(market, 'expire_timestamp')
+            if not isFutures and (expiry == 0):
+                expiry = None
             result.append({
                 'id': id,
                 'numericId': None,
@@ -638,12 +794,12 @@ class bitmart(Exchange):
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,
-                'type': 'swap',
+                'settleId': settleId,
+                'type': 'swap' if isSwap else 'future',
                 'spot': False,
                 'margin': False,
-                'swap': (productType == 1),
-                'future': (productType == 2),
+                'swap': isSwap,
+                'future': isFutures,
                 'option': False,
                 'active': True,
                 'contract': True,
@@ -683,8 +839,8 @@ class bitmart(Exchange):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bitmart
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         spot = self.fetch_spot_markets(params)
         contract = self.fetch_contract_markets(params)
@@ -693,7 +849,7 @@ class bitmart(Exchange):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: an associative dictionary of currencies
         """
         response = self.publicGetSpotV1Currencies(params)
@@ -741,9 +897,10 @@ class bitmart(Exchange):
 
     def fetch_transaction_fee(self, code: str, params={}):
         """
-        *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @deprecated
+        please use fetchDepositWithdrawFee instead
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
@@ -800,7 +957,7 @@ class bitmart(Exchange):
         """
         fetch the fee for deposits and withdrawals
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
@@ -908,7 +1065,7 @@ class bitmart(Exchange):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -990,8 +1147,8 @@ class bitmart(Exchange):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -1020,8 +1177,8 @@ class bitmart(Exchange):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -1135,10 +1292,10 @@ class bitmart(Exchange):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1234,10 +1391,10 @@ class bitmart(Exchange):
         see https://developer-pro.bitmart.com/en/futures/#get-k-line
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1315,10 +1472,10 @@ class bitmart(Exchange):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -1371,10 +1528,10 @@ class bitmart(Exchange):
         fetch all the trades made from a single order
         :param str id: order id
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades to retrieve
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
@@ -1423,7 +1580,7 @@ class bitmart(Exchange):
         trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_balance(self, response, marketType):
+    def custom_parse_balance(self, response, marketType):
         data = self.safe_value(response, 'data', {})
         wallet = None
         if marketType == 'swap':
@@ -1476,7 +1633,7 @@ class bitmart(Exchange):
         see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
         see https://developer-pro.bitmart.com/en/spot/#get-account-balance
         see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
@@ -1589,7 +1746,7 @@ class bitmart(Exchange):
         #         }
         #     }
         #
-        return self.parse_balance(response, marketType)
+        return self.custom_parse_balance(response, marketType)
 
     def parse_trading_fee(self, fee, market=None):
         #
@@ -1612,7 +1769,7 @@ class bitmart(Exchange):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
@@ -1739,7 +1896,7 @@ class bitmart(Exchange):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://developer-pro.bitmart.com/en/spot/#place-spot-order
@@ -1748,9 +1905,9 @@ class bitmart(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :param str|None params['marginMode']: 'cross' or 'isolated'
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1830,7 +1987,7 @@ class bitmart(Exchange):
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1885,8 +2042,8 @@ class bitmart(Exchange):
         cancel all open orders in a market
         see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
         :param str symbol: unified market symbol of the market to cancel orders in
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1970,10 +2127,10 @@ class bitmart(Exchange):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
@@ -1981,10 +2138,10 @@ class bitmart(Exchange):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
@@ -1992,9 +2149,9 @@ class bitmart(Exchange):
         """
         fetches information on multiple canceled orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: timestamp in ms of the earliest order, default is None
-        :param int|None limit: max number of orders to return, default is None
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param int [since]: timestamp in ms of the earliest order, default is None
+        :param int [limit]: max number of orders to return, default is None
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('canceled', symbol, since, limit, params)
@@ -2003,7 +2160,7 @@ class bitmart(Exchange):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -2047,7 +2204,7 @@ class bitmart(Exchange):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -2059,10 +2216,10 @@ class bitmart(Exchange):
             defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
             defaultNetwork = self.safe_string_upper(defaultNetworks, code)
             networks = self.safe_value(self.options, 'networks', {})
-            network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
-            network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-            if network is not None:
-                request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+            networkInner = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
+            networkInner = self.safe_string(networks, networkInner, networkInner)  # handle ERC20>ETH alias
+            if networkInner is not None:
+                request['currency'] = request['currency'] + '-' + networkInner  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 params = self.omit(params, 'network')
         response = self.privateGetAccountV1DepositAddress(self.extend(request, params))
         #
@@ -2106,8 +2263,8 @@ class bitmart(Exchange):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str tag:
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -2129,7 +2286,7 @@ class bitmart(Exchange):
             network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
             if network is not None:
-                request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = request['currency'] + '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 params = self.omit(params, 'network')
         response = self.privatePostAccountV1WithdrawApply(self.extend(request, params))
         #
@@ -2206,8 +2363,8 @@ class bitmart(Exchange):
         """
         fetch information on a deposit
         :param str id: deposit id
-        :param str|None code: not used by bitmart fetchDeposit()
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str code: not used by bitmart fetchDeposit()
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -2244,11 +2401,11 @@ class bitmart(Exchange):
     def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         return self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
@@ -2256,8 +2413,8 @@ class bitmart(Exchange):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
-        :param str|None code: not used by bitmart.fetchWithdrawal
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str code: not used by bitmart.fetchWithdrawal
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -2294,11 +2451,11 @@ class bitmart(Exchange):
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         return self.fetch_transactions_by_type('withdraw', code, since, limit, params)
 
@@ -2390,8 +2547,8 @@ class bitmart(Exchange):
         :param str code: unified currency code of the currency to repay
         :param str amount: the amount to repay
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :param str|None params['marginMode']: 'isolated' is the default and 'cross' is unavailable
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param str [params.marginMode]: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
@@ -2430,8 +2587,8 @@ class bitmart(Exchange):
         :param str code: unified currency code of the currency to borrow
         :param str amount: the amount to borrow
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :param str|None params['marginMode']: 'isolated' is the default and 'cross' is unavailable
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param str [params.marginMode]: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
@@ -2493,7 +2650,7 @@ class bitmart(Exchange):
         fetch the rate of interest to borrow a currency for margin trading
         see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
         """
         self.load_markets()
@@ -2586,7 +2743,7 @@ class bitmart(Exchange):
         """
         fetch the borrow interest rates of all currencies, currently only works for isolated margin
         see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
         """
         self.load_markets()
@@ -2674,7 +2831,7 @@ class bitmart(Exchange):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict params: extra parameters specific to the bitmart api endpoint
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
@@ -2745,12 +2902,12 @@ class bitmart(Exchange):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
-        :param str|None code: unified currency code
+        :param str code: unified currency code
         :param str symbol: unified market symbol when fetch interest in isolated markets
-        :param int|None since: the earliest time in ms to fetch borrrow interest for
-        :param int|None limit: the maximum number of structures to retrieve
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
+        :param int [since]: the earliest time in ms to fetch borrrow interest for
+        :param int [limit]: the maximum number of structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
@@ -2822,8 +2979,8 @@ class bitmart(Exchange):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns array: the marginMode in lowercase
         """
         marginMode = None
         marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params, defaultValue)
@@ -2863,7 +3020,7 @@ class bitmart(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         # spot
         #
@@ -2885,3 +3042,4 @@ class bitmart(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

@@ -4,13 +4,16 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -24,7 +27,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class zonda(Exchange):
+class zonda(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(zonda, self).describe(), {
@@ -259,6 +262,8 @@ class zonda(Exchange):
                 },
             },
             'options': {
+                'fetchTickerMethod': 'v1_01PublicGetTradingTickerSymbol',  # or v1_01PublicGetTradingStatsSymbol
+                'fetchTickersMethod': 'v1_01PublicGetTradingTicker',       # or v1_01PublicGetTradingStats
                 'fiatCurrencies': ['EUR', 'USD', 'GBP', 'PLN'],
                 'transfer': {
                     'fillResponseFromRequest': True,
@@ -301,9 +306,10 @@ class zonda(Exchange):
 
     async def fetch_markets(self, params={}):
         """
+        see https://docs.zonda.exchange/reference/ticker-1
         retrieves data on all markets for zonda
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.v1_01PublicGetTradingTicker(params)
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
@@ -398,12 +404,13 @@ class zonda(Exchange):
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.zonda.exchange/reference/active-orders
         fetch all unfilled currently open orders
-        :param str|None symbol: not used by zonda fetchOpenOrders
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: not used by zonda fetchOpenOrders
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the zonda api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -463,12 +470,13 @@ class zonda(Exchange):
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.zonda.exchange/reference/transactions-history
         fetch all trades made by the user
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the zonda api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {}
@@ -521,8 +529,9 @@ class zonda(Exchange):
 
     async def fetch_balance(self, params={}):
         """
+        see https://docs.zonda.exchange/reference/list-of-wallets
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
@@ -531,10 +540,11 @@ class zonda(Exchange):
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        see https://docs.zonda.exchange/reference/orderbook-2
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -574,49 +584,77 @@ class zonda(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
-        #     {
-        #         m: 'ETH-PLN',
-        #         h: '13485.13',
-        #         l: '13100.01',
-        #         v: '126.10710939',
-        #         r24h: '13332.72'
-        #       }
+        # version 1
         #
-        open = self.safe_string(ticker, 'r24h')
-        high = self.safe_string(ticker, 'h')
-        low = self.safe_string(ticker, 'l')
-        volume = self.safe_string(ticker, 'v')
-        marketId = self.safe_string(ticker, 'm')
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        #    {
+        #        m: 'ETH-PLN',
+        #        h: '13485.13',
+        #        l: '13100.01',
+        #        v: '126.10710939',
+        #        r24h: '13332.72'
+        #    }
+        #
+        # version 2
+        #
+        #    {
+        #        market: {
+        #            code: 'ADA-USDT',
+        #            first: {
+        #                currency: 'ADA',
+        #                minOffer: '0.2',
+        #                scale: '6'
+        #            },
+        #            second: {
+        #                currency: 'USDT',
+        #                minOffer: '0.099',
+        #                scale: '6'
+        #            },
+        #            amountPrecision: '6',
+        #            pricePrecision: '6',
+        #            ratePrecision: '6'
+        #        },
+        #        time: '1655812661202',
+        #        highestBid: '0.492',
+        #        lowestAsk: '0.499389',
+        #        rate: '0.50588',
+        #        previousRate: '0.504981'
+        #    }
+        #
+        tickerMarket = self.safe_value(ticker, 'market')
+        marketId = self.safe_string_2(tickerMarket, 'code', 'm')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'time')
+        rate = self.safe_value(ticker, 'rate')
         return self.safe_ticker({
-            'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
-            'high': high,
-            'low': low,
-            'bid': None,
+            'symbol': self.safe_symbol(marketId, market),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'h'),
+            'low': self.safe_string(ticker, 'l'),
+            'bid': self.safe_number(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': None,
+            'ask': self.safe_number(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
-            'close': None,
-            'last': None,
-            'previousClose': None,
+            'open': self.safe_string(ticker, 'r24h'),
+            'close': rate,
+            'last': rate,
+            'previousClose': self.safe_value(ticker, 'previousRate'),
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': volume,
+            'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': None,
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol, params={}):
         """
-        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
+        see https://docs.zonda.exchange/reference/market-statistics
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param dict [params]: extra parameters specific to the zonda api endpoint
+        :param str [params.method]: v1_01PublicGetTradingTickerSymbol(default) or v1_01PublicGetTradingStatsSymbol
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -624,55 +662,137 @@ class zonda(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.v1_01PublicGetTradingStatsSymbol(self.extend(request, params))
-        #
-        #     {
-        #       status: 'Ok',
-        #       stats: {
-        #         m: 'ETH-PLN',
-        #         h: '13485.13',
-        #         l: '13100.01',
-        #         v: '126.10710939',
-        #         r24h: '13332.72'
-        #       }
-        #     }
-        #
-        stats = self.safe_value(response, 'stats')
+        method = 'v1_01PublicGetTradingTickerSymbol'
+        defaultMethod = self.safe_string(self.options, 'fetchTickerMethod', method)
+        fetchTickerMethod = self.safe_string_2(params, 'method', 'fetchTickerMethod', defaultMethod)
+        response = None
+        if fetchTickerMethod == method:
+            response = await self.v1_01PublicGetTradingTickerSymbol(self.extend(request, params))
+            #
+            #    {
+            #        "status": "Ok",
+            #        "ticker": {
+            #            "market": {
+            #                "code": "ADA-USDT",
+            #                "first": {
+            #                    "currency": "ADA",
+            #                    "minOffer": "0.21",
+            #                    "scale": 6
+            #                },
+            #                "second": {
+            #                    "currency": "USDT",
+            #                    "minOffer": "0.099",
+            #                    "scale": 6
+            #                },
+            #                "amountPrecision": 6,
+            #                "pricePrecision": 6,
+            #                "ratePrecision": 6
+            #            },
+            #            "time": "1655810976780",
+            #            "highestBid": "0.498543",
+            #            "lowestAsk": "0.50684",
+            #            "rate": "0.50588",
+            #            "previousRate": "0.504981"
+            #        }
+            #    }
+            #
+        elif fetchTickerMethod == 'v1_01PublicGetTradingStatsSymbol':
+            response = await self.v1_01PublicGetTradingStatsSymbol(self.extend(request, params))
+            #
+            #    {
+            #        "status": "Ok",
+            #        "stats": {
+            #            "m": "BTC-USDT",
+            #            "h": "28800",
+            #            "l": "26703.950101",
+            #            "v": "6.72932396",
+            #            "r24h": "27122.2"
+            #        }
+            #    }
+            #
+        else:
+            raise BadRequest(self.id + ' fetchTicker params["method"] must be "v1_01PublicGetTradingTickerSymbol" or "v1_01PublicGetTradingStatsSymbol"')
+        stats = self.safe_value_2(response, 'ticker', 'stats')
         return self.parse_ticker(stats, market)
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the zonda api endpoint
+         * @ignore
+        v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
+        see https://docs.zonda.exchange/reference/market-statistics
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the zonda api endpoint
+        :param str [params.method]: v1_01PublicGetTradingTicker(default) or v1_01PublicGetTradingStats
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        response = await self.v1_01PublicGetTradingStats(params)
-        #
-        #     {
-        #         status: 'Ok',
-        #         items: {
-        #             'DAI-PLN': {
-        #                 m: 'DAI-PLN',
-        #                 h: '4.41',
-        #                 l: '4.37',
-        #                 v: '8.71068087',
-        #                 r24h: '4.36'
-        #             }
-        #         }
-        #     }
-        #
+        method = 'v1_01PublicGetTradingTicker'
+        defaultMethod = self.safe_string(self.options, 'fetchTickersMethod', method)
+        fetchTickersMethod = self.safe_string_2(params, 'method', 'fetchTickersMethod', defaultMethod)
+        response = None
+        if fetchTickersMethod == method:
+            response = await self.v1_01PublicGetTradingTicker(params)
+            #
+            #    {
+            #        "status": "Ok",
+            #        "items": {
+            #            "DAI-PLN": {
+            #                "market": {
+            #                    "code": "DAI-PLN",
+            #                    "first": {
+            #                        "currency": "DAI",
+            #                        "minOffer": "0.99",
+            #                        "scale": 8
+            #                    },
+            #                    "second": {
+            #                        "currency": "PLN",
+            #                        "minOffer": "5",
+            #                        "scale": 2
+            #                    },
+            #                    "amountPrecision": 8,
+            #                    "pricePrecision": 2,
+            #                    "ratePrecision": 2
+            #                },
+            #                "time": "1655810825137",
+            #                "highestBid": "4.42",
+            #                "lowestAsk": "4.44",
+            #                "rate": "4.44",
+            #                "previousRate": "4.43"
+            #            },
+            #            ...
+            #        }
+            #    }
+            #
+        elif fetchTickersMethod == 'v1_01PublicGetTradingStats':
+            response = await self.v1_01PublicGetTradingStats(params)
+            #
+            #     {
+            #         status: 'Ok',
+            #         items: {
+            #             'DAI-PLN': {
+            #                 m: 'DAI-PLN',
+            #                 h: '4.41',
+            #                 l: '4.37',
+            #                 v: '8.71068087',
+            #                 r24h: '4.36'
+            #             },
+            #             ...
+            #         }
+            #     }
+            #
+        else:
+            raise BadRequest(self.id + ' fetchTickers params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"')
         items = self.safe_value(response, 'items')
         return self.parse_tickers(items, symbols)
 
     async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.zonda.exchange/reference/operations-history
         fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str|None code: unified currency code, default is None
-        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
-        :param int|None limit: max number of ledger entrys to return, default is None
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param str code: unified currency code, default is None
+        :param int [since]: timestamp in ms of the earliest ledger entry, default is None
+        :param int [limit]: max number of ledger entrys to return, default is None
+        :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         balanceCurrencies = []
@@ -1035,13 +1155,14 @@ class zonda(Exchange):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.zonda.exchange/reference/candles-chart
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the zonda api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1152,12 +1273,13 @@ class zonda(Exchange):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.zonda.exchange/reference/last-transactions
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the zonda api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1173,15 +1295,15 @@ class zonda(Exchange):
         items = self.safe_value(response, 'items')
         return self.parse_trades(items, market, since, limit)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1295,10 +1417,11 @@ class zonda(Exchange):
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://docs.zonda.exchange/reference/cancel-order
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         side = self.safe_string(params, 'side')
@@ -1351,10 +1474,11 @@ class zonda(Exchange):
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
+        see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :param str|None params['walletId']: Wallet id to filter deposit adresses.
+        :param dict [params]: extra parameters specific to the zonda api endpoint
+        :param str [params.walletId]: Wallet id to filter deposit adresses.
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
@@ -1382,9 +1506,10 @@ class zonda(Exchange):
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
         """
+        see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
         fetch deposit addresses for multiple currencies and chain types
-        :param [str]|None codes: zonda does not support filtering filtering by multiple codes and will ignore self parameter.
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param str[]|None codes: zonda does not support filtering filtering by multiple codes and will ignore self parameter.
+        :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
@@ -1407,12 +1532,13 @@ class zonda(Exchange):
 
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
+        see https://docs.zonda.exchange/reference/internal-transfer
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
@@ -1515,12 +1641,13 @@ class zonda(Exchange):
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
+        see https://docs.zonda.exchange/reference/crypto-withdrawal-1
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param str tag:
+        :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -1632,7 +1759,7 @@ class zonda(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'code' in response:
             #
             # bitbay returns the integer 'success': 1 key from their private API
@@ -1675,3 +1802,4 @@ class zonda(Exchange):
                     error = errors[i]
                     self.throw_exactly_matched_exception(self.exceptions, error, feedback)
                 raise ExchangeError(feedback)
+        return None
