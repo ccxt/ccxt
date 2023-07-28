@@ -1769,7 +1769,7 @@ export default class kucoin extends Exchange {
         if ((isStopLoss && isTakeProfit) || (triggerPrice && stopLossPrice) || (triggerPrice && isTakeProfit)) {
             throw new ExchangeError (this.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice');
         }
-        return [ params, triggerPrice, stopLossPrice, takeProfitPrice ];
+        return [ triggerPrice, stopLossPrice, takeProfitPrice ];
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
