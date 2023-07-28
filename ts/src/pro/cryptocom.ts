@@ -55,8 +55,8 @@ export default class cryptocom extends cryptocomRest {
         try {
             await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
         } catch (e) {
-            const error = new NetworkError(this.id + ' pong failed with error ' + this.json(e));
-            client.reset(error);
+            const error = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
+            client.reset (error);
         }
     }
 
