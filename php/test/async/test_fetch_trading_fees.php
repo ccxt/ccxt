@@ -12,14 +12,14 @@ use React\Promise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_trading_fee.php';
 
-function test_fetch_trading_fees($exchange) {
-    return Async\async(function () use ($exchange) {
+function test_fetch_trading_fees($exchange, $skipped_properties) {
+    return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'fetchTradingFees';
         $fees = Async\await($exchange->fetch_trading_fees());
         $symbols = is_array($fees) ? array_keys($fees) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            test_trading_fee($exchange, $method, $symbol, $fees[$symbol]);
+            test_trading_fee($exchange, $skipped_properties, $method, $symbol, $fees[$symbol]);
         }
     }) ();
 }

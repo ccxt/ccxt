@@ -16,10 +16,10 @@ sys.path.append(root)
 from ccxt.test.base import test_borrow_rate  # noqa E402
 
 
-def test_fetch_borrow_rates(exchange):
+def test_fetch_borrow_rates(exchange, skipped_properties):
     method = 'fetchBorrowRates'
     borrow_rates = exchange.fetch_borrow_rates()
     assert isinstance(borrow_rates, dict), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(borrow_rates)
     values = list(borrow_rates.values())
     for i in range(0, len(values)):
-        test_borrow_rate(exchange, method, values[i], None)
+        test_borrow_rate(exchange, skipped_properties, method, values[i], None)

@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_leverage_tier  # noqa E402
 
 
-def test_fetch_leverage_tiers(exchange, symbol):
+def test_fetch_leverage_tiers(exchange, skipped_properties, symbol):
     method = 'fetchLeverageTiers'
     tiers = exchange.fetch_leverage_tiers(symbol)
     # const format = {
@@ -33,4 +33,4 @@ def test_fetch_leverage_tiers(exchange, symbol):
         array_length_symbol = len(tiers_for_symbol)
         assert array_length_symbol >= 1, exchange.id + ' ' + method + ' ' + symbol + ' must have at least one entry. ' + exchange.json(tiers)
         for j in range(0, len(tiers_for_symbol)):
-            test_leverage_tier(exchange, method, tiers_for_symbol[j])
+            test_leverage_tier(exchange, skipped_properties, method, tiers_for_symbol[j])

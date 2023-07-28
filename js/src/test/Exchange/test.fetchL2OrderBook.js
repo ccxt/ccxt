@@ -4,12 +4,10 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import assert from 'assert';
 import testOrderBook from './base/test.orderBook.js';
-async function testFetchL2OrderBook(exchange, symbol) {
+async function testFetchL2OrderBook(exchange, skippedProperties, symbol) {
     const method = 'fetchL2OrderBook';
     const orderBook = await exchange.fetchL2OrderBook(symbol);
-    assert(typeof orderBook === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(orderBook));
-    testOrderBook(exchange, method, orderBook, symbol);
+    testOrderBook(exchange, skippedProperties, method, orderBook, symbol);
 }
 export default testFetchL2OrderBook;
