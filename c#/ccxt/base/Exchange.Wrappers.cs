@@ -428,6 +428,13 @@ public partial class Exchange
         var res = await this.fetchMyTradesWs(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
+    public async Task<List<OHLCV>> FetchOHLCVWs(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOHLCVWs(symbol, timeframe, since, limit, parameters);
+        return ((List<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
     public async Task<object> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

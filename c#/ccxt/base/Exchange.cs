@@ -562,6 +562,11 @@ public partial class Exchange
         var secondInt = Convert.ToInt32(second);
         return (parsedArray.ToArray()[firstInt..secondInt]).ToList();
     }
+
+    public Task sleep(object ms)
+    {
+        return Task.Delay(Convert.ToInt32(ms));
+    }
 }
 
 

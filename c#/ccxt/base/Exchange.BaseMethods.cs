@@ -143,7 +143,7 @@ public partial class Exchange
                 }
             }
         }
-        if (isTrue(tail))
+        if (isTrue(isTrue(tail) && isTrue(!isEqual(limit, null))))
         {
             return this.arraySlice(result, prefixUnaryNeg(ref limit));
         }
@@ -176,7 +176,7 @@ public partial class Exchange
                 }
             }
         }
-        if (isTrue(tail))
+        if (isTrue(isTrue(tail) && isTrue(!isEqual(limit, null))))
         {
             return this.arraySlice(result, prefixUnaryNeg(ref limit));
         }
@@ -700,6 +700,7 @@ public partial class Exchange
         object lastTradeTimeTimestamp = this.safeInteger(order, "lastTradeTimestamp");
         object symbol = this.safeString(order, "symbol");
         object side = this.safeString(order, "side");
+        object status = this.safeString(order, "status");
         object parseFilled = (isEqual(filled, null));
         object parseCost = (isEqual(cost, null));
         object parseLastTradeTimeTimestamp = (isEqual(lastTradeTimeTimestamp, null));
@@ -839,7 +840,7 @@ public partial class Exchange
             if (isTrue(isTrue(!isEqual(filled, null)) && isTrue(!isEqual(remaining, null))))
             {
                 amount = Precise.stringAdd(filled, remaining);
-            } else if (isTrue(isEqual(this.safeString(order, "status"), "closed")))
+            } else if (isTrue(isEqual(status, "closed")))
             {
                 amount = filled;
             }
@@ -849,6 +850,9 @@ public partial class Exchange
             if (isTrue(isTrue(!isEqual(amount, null)) && isTrue(!isEqual(remaining, null))))
             {
                 filled = Precise.stringSub(amount, remaining);
+            } else if (isTrue(isTrue(isEqual(status, "closed")) && isTrue(!isEqual(amount, null))))
+            {
+                filled = amount;
             }
         }
         if (isTrue(isEqual(remaining, null)))
@@ -856,6 +860,9 @@ public partial class Exchange
             if (isTrue(isTrue(!isEqual(amount, null)) && isTrue(!isEqual(filled, null))))
             {
                 remaining = Precise.stringSub(amount, filled);
+            } else if (isTrue(isEqual(status, "closed")))
+            {
+                remaining = "0";
             }
         }
         // ensure that the average field is calculated correctly
@@ -982,7 +989,7 @@ public partial class Exchange
             { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
-            { "status", this.safeString(order, "status") },
+            { "status", status },
             { "fee", this.safeValue(order, "fee") },
         });
     }
@@ -2811,6 +2818,13 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchMyTrades() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOHLCVWs() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -3643,9 +3657,9 @@ public partial class Exchange
         /**
         * @ignore
         * @method
-        * @param {string} argument the argument to check
-        * @param {string} argumentName the name of the argument to check
         * @param {string} methodName the name of the method that the argument is being checked for
+        * @param {string} argument the argument's actual value provided
+        * @param {string} argumentName the name of the argument being checked (for logging purposes)
         * @param {string[]} options a list of options that the argument can be
         * @returns {undefined}
         */
