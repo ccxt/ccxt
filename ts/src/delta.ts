@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/delta.js';
-import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } from './base/errors.js';
+import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -26,14 +26,15 @@ export default class delta extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': true,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -41,6 +42,7 @@ export default class delta extends Exchange {
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
@@ -60,6 +62,7 @@ export default class delta extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -72,6 +75,9 @@ export default class delta extends Exchange {
                 'fetchWithdrawals': undefined,
                 'reduceMargin': true,
                 'setLeverage': true,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -1809,6 +1815,7 @@ export default class delta extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1832,6 +1839,11 @@ export default class delta extends Exchange {
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
+        }
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly) {
+            request['reduce_only'] = reduceOnly;
+            params = this.omit (params, 'reduceOnly');
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
