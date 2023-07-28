@@ -2998,6 +2998,8 @@ export default class cryptocom extends Exchange {
             'marginMode': undefined,
             'percentage': undefined,
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
 
