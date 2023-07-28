@@ -1590,6 +1590,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - `fetchOpenInterest ([symbol[, params]])`
+- `fetchVolatilityHistory ([code[, params]])`
 - ...
 
 ```text
@@ -1896,6 +1897,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Funding Rate](#funding-rate)
 - [Funding Rate History](#funding-rate-history)
 - [Open Interest History](#open-interest-history)
+- [Volatility History](#volatility-history)
 
 ## Order Book
 
@@ -2896,6 +2898,40 @@ Returns
         sumOpenInterestValue: '3508262107.38000000',
         timestamp: '1649379000000'
     }
+}
+```
+
+## Historical Volatility
+
+*option only*
+
+Use the `fetchVolatilityHistory` method to get the volatility history for the code of an options underlying asset from the exchange.
+
+```javascript
+fetchVolatilityHistory (code, params = {})
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"BTC"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [volatility history structures](#volatility-structure)
+
+### Volatility Structure
+
+```javascript
+{
+    info: {
+        "period": 7,
+        "value": "0.23854072",
+        "time": "1690574400000"
+    }
+    timestamp: 1649379000000,
+    datetime: '2023-07-28T00:50:00.000Z',
+    volatility: 0.23854072,
 }
 ```
 
