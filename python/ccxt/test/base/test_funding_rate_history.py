@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_funding_rate_history(exchange, method, entry, symbol):
+def test_funding_rate_history(exchange, skipped_properties, method, entry, symbol):
     format = {
         'info': {},
         'symbol': 'BTC/USDT:USDT',
@@ -24,7 +24,8 @@ def test_funding_rate_history(exchange, method, entry, symbol):
         'datetime': '2021-11-30T00:00:00.000Z',
         'fundingRate': exchange.parse_number('0.0006'),
     }
-    empty_not_allowed_for = ['symbol', 'timestamp', 'fundingRate']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_symbol(exchange, method, entry, 'symbol', symbol)
-    test_shared_methods.assert_timestamp(exchange, method, entry)
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format)
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'fundingRate', '-100')
+    test_shared_methods.assert_less(exchange, skipped_properties, method, entry, 'fundingRate', '100')

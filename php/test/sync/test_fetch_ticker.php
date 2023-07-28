@@ -10,8 +10,8 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_ticker.php';
 
-function test_fetch_ticker($exchange, $symbol) {
+function test_fetch_ticker($exchange, $skipped_properties, $symbol) {
     $method = 'fetchTicker';
     $ticker = $exchange->fetch_ticker($symbol);
-    test_ticker($exchange, $method, $ticker, $symbol);
+    test_ticker($exchange, $skipped_properties, $method, $ticker, $symbol);
 }

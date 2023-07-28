@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_order_book  # noqa E402
 
 
-async def test_fetch_order_books(exchange):
+async def test_fetch_order_books(exchange, skipped_properties):
     method = 'fetchOrderBooks'
     symbol = exchange.symbols[0]
     order_books = await exchange.fetch_order_books([symbol])
@@ -25,4 +25,4 @@ async def test_fetch_order_books(exchange):
     assert len(order_book_keys) > 0, exchange.id + ' ' + method + ' returned 0 length data'
     for i in range(0, len(order_book_keys)):
         symbol = order_book_keys[i]
-        test_order_book(exchange, method, order_books[symbol], symbol)
+        test_order_book(exchange, skipped_properties, method, order_books[symbol], symbol)

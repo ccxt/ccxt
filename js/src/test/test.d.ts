@@ -1,10 +1,22 @@
 declare class baseMainTestClass {
+    info: boolean;
+    verbose: boolean;
+    debug: boolean;
+    privateTest: boolean;
+    privateTestOnly: boolean;
+    sandbox: boolean;
+    skippedMethods: {};
+    checkedPublicTests: {};
+    testFiles: {};
+    publicTests: {};
 }
 export default class testMainClass extends baseMainTestClass {
-    init(exchange: any, symbol: any): Promise<void>;
+    parseCliArgs(): void;
+    init(exchangeId: any, symbol: any): Promise<void>;
+    importFiles(exchange: any): Promise<void>;
     expandSettings(exchange: any, symbol: any): void;
-    padEnd(message: any, size: any): string;
-    testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<any>;
+    addPadding(message: any, size: any): string;
+    testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<void>;
     testSafe(methodName: any, exchange: any, args: any, isPublic: any): Promise<boolean>;
     runPublicTests(exchange: any, symbol: any): Promise<void>;
     loadExchange(exchange: any): Promise<void>;

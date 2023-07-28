@@ -73,10 +73,10 @@ class AiohttpClient(Client):
         # if connecting to a non-existent endpoint
         return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers')).__aenter__()
 
-    def send(self, message):
+    async def send(self, message):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'sending', message)
-        return self.connection.send_str(message if isinstance(message, str) else json.dumps(message, separators=(',', ':')))
+        return await self.connection.send_str(message if isinstance(message, str) else json.dumps(message, separators=(',', ':')))
 
     async def close(self, code=1000):
         if self.verbose:

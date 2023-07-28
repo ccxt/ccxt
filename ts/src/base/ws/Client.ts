@@ -1,6 +1,6 @@
 import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
-import Future from './Future.js';
+import { createFuture } from './Future.js';
 
 import {
     isNode,
@@ -68,12 +68,12 @@ export default class Client {
         }
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
-        this.connected = Future ()
+        this.connected = createFuture ()
     }
 
     future (messageHash) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = Future ()
+            this.futures[messageHash] = createFuture ()
         }
         const future = this.futures[messageHash]
         if (messageHash in this.rejections) {
@@ -256,12 +256,26 @@ export default class Client {
         }
     }
 
-    send (message) {
+    async send (message) {
         if (this.verbose) {
             this.log (new Date (), 'sending', message)
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
-        this.connection.send (message)
+        const future = createFuture ()
+        if (isNode) {
+            function onSendComplete (error) {
+                if (error) {
+                    future.reject (error)
+                } else {
+                    future.resolve (null)
+                }
+            }
+            this.connection.send (message, {}, onSendComplete)
+        } else {
+            this.connection.send (message)
+            future.resolve (null)
+        }
+        return future
     }
 
     close () {
