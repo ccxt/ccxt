@@ -911,7 +911,7 @@ Supported precision modes in `exchange['precisionMode']` are:
 
 - `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
 - `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
-- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` and `ftx` use this mode, for example). In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
+- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` uses this mode, for example). In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
 
 #### Padding Mode
 
@@ -3053,9 +3053,9 @@ exchange = exchange_class({
 include 'ccxt.php'
 
 // any time
-$quoinex = new \ccxt\quoinex ();
-$quoinex->apiKey = 'YOUR_QUOINE_API_KEY';
-$quoinex->secret = 'YOUR_QUOINE_SECRET_KEY';
+$hitbtc = new \ccxt\hitbtc ();
+$hitbtc->apiKey = 'YOUR_HITBTC_API_KEY';
+$hitbtc->secret = 'YOUR_HITBTC_SECRET_KEY';
 
 // upon instantiation
 $zaif = new \ccxt\zaif (array (
@@ -5381,7 +5381,7 @@ setLeverage (leverage, symbol = undefined, params = {})
 Parameters
 
 - **leverage** (Integer) *required* The desired leverage
-- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when leverage is not specific to a market (e.g. Not required on **FTX** because leverage is set for the account and not per market)
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when leverage is not specific to a market (e.g. If leverage is set for the account and not per market)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
 
 Returns
