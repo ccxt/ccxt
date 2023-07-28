@@ -1134,24 +1134,14 @@ export default class kucoinfutures extends kucoin {
             'size': preciseAmount,
             'leverage': 1,
         };
-        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isStopLoss = stopLossPrice !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
-        const triggerPriceTypes = {
-            'mark': 'MP',
-            'last': 'TP',
-            'index': 'IP',
-        };
-        const triggerPriceTypeString = this.safeString (params, 'triggerPriceType', 'mark');
-        const triggerPriceType = this.safeString (triggerPriceTypes, triggerPriceTypeString, triggerPriceTypeString);
+        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
         if (triggerPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            request['stopPriceType'] = triggerPriceType;
-        } else if (isStopLoss || isTakeProfit) {
-            if (isStopLoss) {
+            request['stopPriceType'] = 'MP';
+        } else if (stopLossPrice || takeProfitPrice) {
+            if (stopLossPrice) {
                 request['stop'] = (side === 'buy') ? 'up' : 'down';
                 request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
             } else {
@@ -1159,7 +1149,7 @@ export default class kucoinfutures extends kucoin {
                 request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             }
             request['reduceOnly'] = true;
-            request['stopPriceType'] = triggerPriceType;
+            request['stopPriceType'] = 'MP';
         }
         const uppercaseType = type.toUpperCase ();
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
