@@ -20,7 +20,7 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![OKX + CCXT Exclusive Event: Trade And Earn](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/255981933-75add442-caf7-4a67-9f48-ec83740a5402.png)](https://www.okx.com/liquid-marketplace?channelid=CCXT2023)
+[![OKX + CCXT Exclusive Event: Trade And Earn](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/255981933-75add442-caf7-4a67-9f48-ec83740a5402.png)](https://www.okx.com/account/register?channelid=CCXT2023)
 
 [![OKX + CCXT: Nitro Spreads](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/255981940-fabfcf1d-0c82-4a94-b376-ad7dcb406345.jpg)](https://www.okx.com/liquid-marketplace?channelid=CCXT2023)
 
