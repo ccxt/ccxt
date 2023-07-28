@@ -80,6 +80,7 @@ export default class exmo extends Exchange {
                 'setMargin': false,
                 'transfer': false,
                 'withdraw': true,
+                'ws': undefined,  // has but unimplemented
             },
             'timeframes': {
                 '1m': '1',

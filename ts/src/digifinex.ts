@@ -88,6 +88,7 @@ export default class digifinex extends Exchange {
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
+                'ws': undefined,  // has but unimplemented
             },
             'timeframes': {
                 '1m': '1',

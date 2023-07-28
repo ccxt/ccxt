@@ -22,7 +22,6 @@ export default class bitbns extends Exchange {
             'countries': [ 'IN' ], // India
             'rateLimit': 1000,
             'certified': false,
-            'pro': false,
             'version': 'v2',
             // new metainfo interface
             'has': {
@@ -64,6 +63,7 @@ export default class bitbns extends Exchange {
                 'fetchWithdrawals': true,
                 'transfer': false,
                 'withdraw': false,
+                'ws': undefined,  // has but unimplemented
             },
             'hostname': 'bitbns.com',
             'urls': {

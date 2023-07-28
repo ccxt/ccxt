@@ -71,6 +71,7 @@ export default class coinmate extends Exchange {
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
+                'ws': undefined,  // has but unimplemented
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',

@@ -70,6 +70,7 @@ export default class bitbank extends Exchange {
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
+                'ws': undefined,  // has but not implemented
             },
             'timeframes': {
                 '1m': '1min',

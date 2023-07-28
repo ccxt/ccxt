@@ -73,6 +73,7 @@ export default class mercado extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'withdraw': true,
+                'ws': undefined,  // has but unimplemented
             },
             'timeframes': {
                 '15m': '15m',

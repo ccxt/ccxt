@@ -85,6 +85,7 @@ export default class hitbtc extends Exchange {
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
+                'ws': false,
             },
             'precisionMode': TICK_SIZE,
             'urls': {

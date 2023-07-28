@@ -88,6 +88,7 @@ export default class indodax extends Exchange {
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
+                'ws': undefined,  // has but unimplemented
             },
             'version': '2.0', // as of 9 April 2018
             'urls': {

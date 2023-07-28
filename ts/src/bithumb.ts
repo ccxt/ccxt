@@ -67,6 +67,7 @@ export default class bithumb extends Exchange {
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
+                'ws': undefined,  // has but not implemented
             },
             'hostname': 'bithumb.com',
             'urls': {

@@ -87,6 +87,7 @@ export default class zonda extends Exchange {
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
+                'ws': undefined,  // has but unimplemented
             },
             'timeframes': {
                 '1m': '60',

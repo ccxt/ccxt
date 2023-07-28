@@ -66,6 +66,7 @@ export default class tidex extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'withdraw': true,
+                'ws': undefined,  // has but unimplemented
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
