@@ -419,6 +419,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/set-riskOffset-type': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
+                        'account/set-account-level': 4,
                         'account/mmp-reset': 4,
                         'account/mmp-config': 100,
                         # subaccount
@@ -816,25 +817,119 @@ class okx(Exchange, ImplicitAPI):
             'options': {
                 'sandboxMode': False,
                 'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'ETH': 'ERC20',
+                    'BTC': 'BTC',
+                    'USDT': 'TRC20',
+                },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'OMNI': 'Omni',
-                    'SOL': 'Solana',
+                    'BTCLN': 'Lightning',
+                    'BEP20': 'BSC',
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'CRC20': 'Crypto',
+                    # sorted
+                    'ACA': 'Acala',
+                    'ALGO': 'Algorand',
+                    'BHP': 'BHP',
+                    'APT': 'Aptos',
+                    'ARBONE': 'Arbitrum one',
+                    'AVAXC': 'Avalanche C-Chain',
+                    'AVAXX': 'Avalanche X-Chain',
+                    'ARK': 'ARK',
+                    'AR': 'Arweave',
+                    'ASTR': 'Astar',
+                    'BCH': 'BitcoinCash',
+                    'BSV': 'Bitcoin SV',
+                    'BTM': 'Bytom',
+                    'ADA': 'Cardano',
+                    'CSPR': 'Casper',
+                    'CELO': 'CELO',
+                    'XCH': 'Chia',
+                    'CHZ': 'Chiliz',
+                    'ATOM': 'Cosmos',
+                    'TRUE': 'TrueChain',
+                    'DCR': 'Decred',
+                    'DGB': 'Digibyte',
+                    'DOGE': 'Dogecoin',
+                    'XEC': 'XEC',
+                    'EGLD': 'Elrond',
+                    'EOS': 'EOS',
+                    'ETC': 'Ethereum Classic',
+                    'ETHW': 'EthereumPow',
+                    'FTM': 'Fantom',
+                    'FIL': 'Filecoin',
+                    'FLOW': 'FLOW',
+                    'FSN': 'Fusion',
+                    'ONE': 'Harmony',
+                    'HBAR': 'Hedera',
+                    'HNT': 'Helium',
+                    'ZEN': 'Horizen',
+                    'ICX': 'ICON',
+                    'ICP': 'Dfinity',
+                    'IOST': 'IOST',
+                    'IOTA': 'MIOTA',
+                    'KDA': 'Kadena',
+                    'KAR': 'KAR',
+                    'KLAY': 'Klaytn',
+                    'KSM': 'Kusama',
+                    'LSK': 'Lisk',
                     'LTC': 'Litecoin',
+                    'METIS': 'Metis',
+                    'MINA': 'Mina',
+                    'XMR': 'Monero',
+                    'GLRM': 'Moonbeam',
+                    'MOVR': 'Moonriver',
+                    'NANO': 'Nano',
+                    'NEAR': 'NEAR',
+                    'NAS': 'Nebulas',
+                    'NEM': 'New Economy Movement',
+                    'NULS': 'NULS',
+                    'OASYS': 'OASYS',
+                    'OKC': 'OKC',
+                    'ONT': 'Ontology',
+                    'OPTIMISM': 'Optimism',
+                    'LAT': 'PlatON',
+                    'DOT': 'Polkadot',
                     'MATIC': 'Polygon',
-                    'OP': 'Optimism',
-                    'ARB': 'Arbitrum one',
-                    'AVAX': 'Avalanche C-Chain',
-                },
-                'networksById': {
-                    'Bitcoin': 'BTC',
-                    'Omni': 'OMNI',
-                    'Solana': 'SOL',
-                    'Litecoin': 'LTC',
-                    'Polygon': 'MATIC',
-                    'Optimism': 'OP',
-                    'Arbitrum one': 'ARB',
-                    'Avalanche C-Chain': 'AVAX',
+                    'RVN': 'Ravencoin',
+                    'XRP': 'Ripple',
+                    'SC': 'Siacoin',
+                    'SOL': 'Solana',
+                    'STX': 'l-Stacks',
+                    'XLM': 'Stellar Lumens',
+                    'XTZ': 'Tezos',
+                    'TON': 'TON',
+                    'THETA': 'Theta',
+                    'VSYS': 'VSYSTEMS',
+                    'WAVES': 'WAVES',
+                    'WAX': 'Wax',
+                    'ZEC': 'Zcash',
+                    'ZIL': 'Zilliqa',
+                    'ZKSYNC': 'ZKSYNC',
+                    # 'NEON3': 'N3',  # tbd
+                    # undetermined : "CELO-TOKEN", "Digital Cash", Khala
+                    # todo: uncomment below after consensus
+                    # 'AELF': 'AELF',
+                    # 'BITCOINDIAMOND': 'Bitcoin Diamond',
+                    # 'BITCOINGOLD': 'BitcoinGold',
+                    # 'YOYOW': 'YOYOW',
+                    # 'QTUM': 'Quantum',
+                    # 'INTCHAIN': 'INTCHAIN',
+                    # 'YOUCHAIN': 'YOUCHAIN',
+                    # 'RONIN': 'Ronin',
+                    # 'OEC': 'OEC',
+                    # 'WAYIKICHAIN': 'WGRT',
+                    # 'MDNA': 'DNA',
+                    # 'STEP': 'Step Network',
+                    # 'EMINER': 'Eminer',
+                    # 'CYBERMILES': 'CyberMiles',
+                    # 'HYPERCASH': 'HyperCash',
+                    # 'CONFLUX': 'Conflux',
+                    # 'CORTEX': 'Cortex',
+                    # 'TERRA': 'Terra',
+                    # 'TERRACLASSIC': 'Terra Classic',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -2491,19 +2586,52 @@ class okx(Exchange, ImplicitAPI):
         })
 
     def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        market = self.market(symbol)
         request = {
-            'instId': self.market_id(symbol),
+            'instId': market['id'],
         }
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdId'] = clientOrderId
         else:
             request['ordId'] = id
-        params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        stopLossTriggerPrice = self.safe_value_2(params, 'stopLossPrice', 'newSlTriggerPx')
+        stopLossPrice = self.safe_value(params, 'newSlOrdPx')
+        stopLossTriggerPriceType = self.safe_string(params, 'newSlTriggerPxType', 'last')
+        takeProfitTriggerPrice = self.safe_value_2(params, 'takeProfitPrice', 'newTpTriggerPx')
+        takeProfitPrice = self.safe_value(params, 'newTpOrdPx')
+        takeProfitTriggerPriceType = self.safe_string(params, 'newTpTriggerPxType', 'last')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
+        stopLossDefined = (stopLoss is not None)
+        takeProfitDefined = (takeProfit is not None)
+        if stopLossTriggerPrice is not None:
+            request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+            request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+            request['newSlTriggerPxType'] = stopLossTriggerPriceType
+        if takeProfitTriggerPrice is not None:
+            request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+            request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+            request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+        if stopLossDefined:
+            stopLossTriggerPrice = self.safe_value(stopLoss, 'triggerPrice')
+            stopLossPrice = self.safe_value(stopLoss, 'price')
+            stopLossType = self.safe_string(stopLoss, 'type')
+            request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+            request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
+            request['newSlTriggerPxType'] = stopLossTriggerPriceType
+        if takeProfitDefined:
+            takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
+            takeProfitPrice = self.safe_value(takeProfit, 'price')
+            takeProfitType = self.safe_string(takeProfit, 'type')
+            request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+            request['newTpOrdPx'] = '-1' if (takeProfitType == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+            request['newTpTriggerPxType'] = takeProfitTriggerPriceType
         if amount is not None:
             request['newSz'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['newPx'] = self.price_to_precision(symbol, price)
+        params = self.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
@@ -2517,14 +2645,27 @@ class okx(Exchange, ImplicitAPI):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.clientOrderId]: client order id, uses id if not passed
+        :param float [params.stopLossPrice]: stop loss trigger price
+        :param float [params.newSlOrdPx]: the stop loss order price, set to stopLossPrice if the type is market
+        :param str [params.newSlTriggerPxType]: 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
+        :param float [params.takeProfitPrice]: take profit trigger price
+        :param float [params.newTpOrdPx]: the take profit order price, set to takeProfitPrice if the type is market
+        :param str [params.newTpTriggerPxType]: 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
+        :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param float [params.takeProfit.price]: used for take profit limit orders, not used for take profit market price orders
+        :param str [params.takeProfit.type]: 'market' or 'limit' used to specify the take profit price type
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
-        response = self.privatePostTradeAmendOrder(request)
+        response = self.privatePostTradeAmendOrder(self.extend(request, params))
         #
         #     {
         #        "code": "0",
@@ -3758,6 +3899,7 @@ class okx(Exchange, ImplicitAPI):
         #
         #     {
         #        "chain": "ETH-OKExChain",
+        #        "addrEx": {"comment": "6040348"},  # some currencies like TON may have self field,
         #        "ctAddr": "72315c",
         #        "ccy": "ETH",
         #        "to": "6",
@@ -3766,8 +3908,10 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         address = self.safe_string(depositAddress, 'addr')
-        tag = self.safe_string_2(depositAddress, 'tag', 'pmtId')
-        tag = self.safe_string(depositAddress, 'memo', tag)
+        tag = self.safe_string_n(depositAddress, ['tag', 'pmtId', 'memo'])
+        if tag is None:
+            addrEx = self.safe_value(depositAddress, 'addrEx', {})
+            tag = self.safe_string(addrEx, 'comment')
         currencyId = self.safe_string(depositAddress, 'ccy')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
@@ -5894,7 +6038,7 @@ class okx(Exchange, ImplicitAPI):
         id = self.safe_string(interest, 'instId')
         market = self.safe_market(id, market)
         time = self.safe_integer(interest, 'ts')
-        timestamp = self.safe_number(interest, 0, time)
+        timestamp = self.safe_integer(interest, 0, time)
         baseVolume = None
         quoteVolume = None
         openInterestAmount = None
@@ -6090,7 +6234,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_settlement(self, settlement, market):
         #

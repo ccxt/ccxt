@@ -294,13 +294,10 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
 
     async def watch_balance(self, params={}):
         """
-        watches information on multiple orders made by the user
+        watch balance and get the amount of funds available for trading or funds locked in orders
         see https://futures-docs.poloniex.com/#account-balance-events
-        :param str symbol: not used by poloniexfutures watchBalance
-        :param int [since]: not used by poloniexfutures watchBalance
-        :param int [limit]: not used by poloniexfutures watchBalance
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
         name = '/contractAccount/wallet'

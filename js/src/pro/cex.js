@@ -47,7 +47,7 @@ export default class cex extends cexRest {
         /**
          * @method
          * @name cex#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://cex.io/websocket-api#get-balance
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}

@@ -204,6 +204,11 @@ class kucoin extends Exchange {
                         'hf/orders/{orderId}' => 1, // didn't find rate limit
                         'hf/orders/client-order/{clientOid}' => 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
                         'hf/fills' => 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
+                        'margin/repay' => 1,
+                        'project/list' => 1,
+                        'project/marketInterestRate' => 1,
+                        'redeem/orders' => 1,
+                        'purchase/orders' => 1,
                     ),
                     'post' => array(
                         'accounts' => 1,
@@ -232,6 +237,10 @@ class kucoin extends Exchange {
                         'hf/orders/multi' => 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
                         'hf/orders/multi/sync' => 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
                         'hf/orders/alter' => 1, // 60 times/3s = 20/s => cost = 20/20 = 1
+                        'margin/repay' => 1,
+                        'purchase' => 1,
+                        'redeem' => 1,
+                        'lend/purchase/update' => 1,
                     ),
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
@@ -355,6 +364,18 @@ class kucoin extends Exchange {
                     '503' => '\\ccxt\\ExchangeNotAvailable',
                     '101030' => '\\ccxt\\PermissionDenied', // array("code":"101030","msg":"You haven't yet enabled the margin trading")
                     '103000' => '\\ccxt\\InvalidOrder', // array("code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is => 0USDT")
+                    '130101' => '\\ccxt\\BadRequest', // Parameter error
+                    '130102' => '\\ccxt\\ExchangeError', // Maximum subscription amount has been exceeded.
+                    '130103' => '\\ccxt\\OrderNotFound', // Subscription order does not exist.
+                    '130104' => '\\ccxt\\ExchangeError', // Maximum number of subscription orders has been exceeded.
+                    '130105' => '\\ccxt\\InsufficientFunds', // Insufficient balance.
+                    '130106' => '\\ccxt\\NotSupported', // The currency does not support redemption.
+                    '130107' => '\\ccxt\\ExchangeError', // Redemption amount exceeds subscription amount.
+                    '130108' => '\\ccxt\\OrderNotFound', // Redemption order does not exist.
+                    '130201' => '\\ccxt\\PermissionDenied', // Your account has restricted access to certain features. Please contact customer service for further assistance
+                    '130202' => '\\ccxt\\ExchangeError', // The system is renewing the loan automatically. Please try again later
+                    '130203' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
+                    '130204' => '\\ccxt\\BadRequest', // As the total lending amount for platform leverage reaches the platform's maximum position limit, the system suspends the borrowing function of leverage
                     '200004' => '\\ccxt\\InsufficientFunds',
                     '210014' => '\\ccxt\\InvalidOrder', // array("code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow => 0USDT")
                     '210021' => '\\ccxt\\InsufficientFunds', // array("code":"210021","msg":"Balance not enough")
@@ -375,12 +396,14 @@ class kucoin extends Exchange {
                     '400200' => '\\ccxt\\InvalidOrder', // array("code":"400200","msg":"Forbidden to place an order")
                     '400350' => '\\ccxt\\InvalidOrder', // array("code":"400350","msg":"Upper limit for holding => 10,000USDT, you can still buy 10,000USDT worth of coin.")
                     '400370' => '\\ccxt\\InvalidOrder', // array("code":"400370","msg":"Max. price => 0.02500000000000000000")
+                    '400400' => '\\ccxt\\BadRequest', // Parameter error
                     '400500' => '\\ccxt\\InvalidOrder', // array("code":"400500","msg":"Your located country/region is currently not supported for the trading of this token")
                     '400600' => '\\ccxt\\BadSymbol', // array("code":"400600","msg":"validation.createOrder.symbolNotAvailable")
                     '400760' => '\\ccxt\\InvalidOrder', // array("code":"400760","msg":"order price should be more than XX")
                     '401000' => '\\ccxt\\BadRequest', // array("code":"401000","msg":"The interface has been deprecated")
                     '411100' => '\\ccxt\\AccountSuspended',
                     '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
+                    '400303' => '\\ccxt\\PermissionDenied', // array("msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303")
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // array("code":"500000","msg":"Internal Server Error")
                     '260220' => '\\ccxt\\InvalidAddress', // array( "code" => "260220", "msg" => "deposit.address.not.exists" )
                     '900014' => '\\ccxt\\BadRequest', // array("code":"900014","msg":"Invalid chainId")
@@ -483,6 +506,12 @@ class kucoin extends Exchange {
                             'hf/orders/{orderId}' => 'v1',
                             'hf/orders/client-order/{clientOid}' => 'v1',
                             'hf/fills' => 'v1',
+                            'margin/borrow' => 'v3',
+                            'margin/repay' => 'v3',
+                            'project/list' => 'v3',
+                            'project/marketInterestRate' => 'v3',
+                            'redeem/orders' => 'v3',
+                            'purchase/orders' => 'v3',
                         ),
                         'POST' => array(
                             'accounts/inner-transfer' => 'v2',
@@ -493,6 +522,11 @@ class kucoin extends Exchange {
                             'hf/orders/multi' => 'v1',
                             'hf/orders/multi/sync' => 'v1',
                             'hf/orders/alter' => 'v1',
+                            'margin/borrow' => 'v3',
+                            'margin/repay' => 'v3',
+                            'purchase' => 'v3',
+                            'redeem' => 'v3',
+                            'lend/purchase/update' => 'v3',
                         ),
                         'DELETE' => array(
                             'hf/orders/{orderId}' => 'v1',
@@ -547,21 +581,19 @@ class kucoin extends Exchange {
                 'networks' => array(
                     'BTC' => 'btc',
                     'BTCNATIVESEGWIT' => 'bech32',
-                    'ETH' => 'eth',
                     'ERC20' => 'eth',
-                    'TRX' => 'trx',
                     'TRC20' => 'trx',
-                    'HECO' => 'heco',
                     'HRC20' => 'heco',
                     'MATIC' => 'matic',
-                    'POLYGON' => 'matic',
                     'KCC' => 'kcc', // kucoin community chain
                     'SOL' => 'sol',
                     'ALGO' => 'algo',
                     'EOS' => 'eos',
                     'BEP20' => 'bsc',
                     'BEP2' => 'bnb',
-                    'ARB_ONE' => 'arbitrum',
+                    'ARBONE' => 'arbitrum',
+                    'AVAXX' => 'avax',
+                    'AVAXC' => 'avaxc',
                     'TLOS' => 'tlos', // tlosevm is different
                     'CFX' => 'cfx',
                     'ACA' => 'aca',
@@ -604,8 +636,6 @@ class kucoin extends Exchange {
                     'QTUM' => 'qtum',
                     'DOGE' => 'doge',
                     'FIL' => 'fil',
-                    'AVAX_X' => 'avax',
-                    'AVAX_C' => 'avaxc',
                     'XYM' => 'xym',
                     'FLUX' => 'flux',
                     'ATOM' => 'atom',
@@ -656,33 +686,24 @@ class kucoin extends Exchange {
                     'NEBL' => 'nebl',
                     'ZEN' => 'zen',
                     'SDN' => 'sdn',
-                    'AURORA' => 'aurora',
                     'LTO' => 'lto',
                     'WEMIX' => 'wemix',
                     // 'BOBA' => 'boba', // tbd
                     'EVER' => 'ever',
-                    'PHA' => 'pha', // a.k.a. khala
                     'BNC' => 'bnc',
                     'BNCDOT' => 'bncdot',
-                    'CMP' => 'cmp',
+                    // 'CMP' => 'cmp', // todo => after consensus
                     'AION' => 'aion',
-                    'PAL' => 'pal',
                     'GRIN' => 'grin',
                     'LOKI' => 'loki',
                     'QKC' => 'qkc',
-                    'RSK' => 'rbtc',
-                    'NIX' => 'nix',
                     'TT' => 'TT',
-                    'NIM' => 'nim',
-                    'NRG' => 'nrg',
-                    'RFOX' => 'rfox',
                     'PIVX' => 'pivx',
                     'SERO' => 'sero',
                     'METER' => 'meter',
                     'STATEMINE' => 'statemine', // a.k.a. RMRK
                     'DVPN' => 'dvpn',
                     'XPRT' => 'xprt',
-                    'NDAU' => 'ndau',
                     'MOVR' => 'movr',
                     'ERGO' => 'ergo',
                     'ABBC' => 'abbc',
@@ -692,16 +713,17 @@ class kucoin extends Exchange {
                     // 'NEO' => 'neo', // tbd neo legacy
                     'NEON3' => 'neon3',
                     'DOCK' => 'dock',
-                    'AXE' => 'axe',
                     'TRUE' => 'true',
                     'CS' => 'cs',
-                    'HTR' => 'htr',
                     'ORAI' => 'orai',
-                    'DEROHE' => 'derohe',
-                    'HPB' => 'hpb',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON' => 'bcd',
                     // 'BITCOINGOLD' => 'btg',
+                    // 'HTR' => 'htr',
+                    // 'DEROHE' => 'derohe',
+                    // 'NDAU' => 'ndau',
+                    // 'HPB' => 'hpb',
+                    // 'AXE' => 'axe',
                     // 'BITCOINPRIVATE' => 'btcp',
                     // 'EDGEWARE' => 'edg',
                     // 'JUPITER' => 'jup',
@@ -712,6 +734,14 @@ class kucoin extends Exchange {
                     // 'PASTEL' => 'psl',
                     // // sysevm
                     // 'CONCORDIUM' => 'ccd',
+                    // 'AURORA' => 'aurora',
+                    // 'PHA' => 'pha', // a.k.a. khala
+                    // 'PAL' => 'pal',
+                    // 'RSK' => 'rbtc',
+                    // 'NIX' => 'nix',
+                    // 'NIM' => 'nim',
+                    // 'NRG' => 'nrg',
+                    // 'RFOX' => 'rfox',
                     // 'PIONEER' => 'neer',
                     // 'PIXIE' => 'pix',
                     // 'ALEPHZERO' => 'azero',
@@ -3840,8 +3870,7 @@ class kucoin extends Exchange {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * create a loan to borrow margin
-             * @see https://docs.kucoin.com/#post-borrow-order
-             * @see https://docs.kucoin.com/#isolated-margin-borrowing
+             * @see https://docs.kucoin.com/#1-margin-borrowing
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
              * @param {string} $symbol unified $market $symbol, required for isolated margin
@@ -3851,6 +3880,7 @@ class kucoin extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
+            $isIsolated = $marginMode === 'isolated';
             $params = $this->omit($params, 'marginMode');
             $this->check_required_margin_argument('borrowMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
@@ -3859,40 +3889,27 @@ class kucoin extends Exchange {
                 'currency' => $currency['id'],
                 'size' => $this->currency_to_precision($code, $amount),
             );
-            $method = null;
             $timeInForce = $this->safe_string_n($params, array( 'timeInForce', 'type', 'borrowStrategy' ), 'IOC');
-            $timeInForceRequest = null;
-            if ($symbol === null) {
-                $method = 'privatePostMarginBorrow';
-                $timeInForceRequest = 'type';
-            } else {
+            if ($isIsolated) {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol parameter for isolated margin');
+                }
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
-                $timeInForceRequest = 'borrowStrategy';
-                $method = 'privatePostIsolatedBorrow';
+                $request['isIsolated'] = true;
             }
-            $request[$timeInForceRequest] = $timeInForce;
             $params = $this->omit($params, array( 'timeInForce', 'type', 'borrowStrategy' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
-            //
-            // Cross
-            //
-            //     {
-            //         "code" => "200000",
-            //         "data" => {
-            //             "orderId" => "62df422ccde938000115290a",
-            //             "currency" => "USDT"
-            //         }
-            //     }
-            //
-            // Isolated
+            $request['timeInForce'] = $timeInForce;
+            $response = Async\await($this->privatePostMarginBorrow (array_merge($request, $params)));
             //
             //     {
-            //         "code" => "200000",
+            //         "success" => true,
+            //         "code" => "200",
+            //         "msg" => "success",
+            //         "retry" => false,
             //         "data" => {
-            //             "orderId" => "62df44a1c65f300001bc32a8",
-            //             "currency" => "USDT",
-            //             "actualSize" => "100"
+            //             "orderNo" => "5da6dba0f943c0c81f5d5db5",
+            //             "actualSize" => 10
             //         }
             //     }
             //
@@ -3905,18 +3922,16 @@ class kucoin extends Exchange {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest
-             * @see https://docs.kucoin.com/#one-click-repayment
-             * @see https://docs.kucoin.com/#quick-repayment
+             * @see https://docs.kucoin.com/#2-repayment
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the kucoin api endpoints
-             * @param {string} [$params->sequence] cross margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
-             * @param {string} [$params->seqStrategy] isolated margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
              * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
+            $isIsolated = $marginMode === 'isolated';
             $params = $this->omit($params, 'marginMode');
             $this->check_required_margin_argument('repayMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
@@ -3924,62 +3939,44 @@ class kucoin extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
                 'size' => $this->currency_to_precision($code, $amount),
-                // 'sequence' => 'RECENTLY_EXPIRE_FIRST',  // Cross => 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-                // 'seqStrategy' => 'RECENTLY_EXPIRE_FIRST',  // Isolated => 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
             );
-            $method = null;
-            $sequence = $this->safe_string_2($params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
-            $sequenceRequest = null;
-            if ($symbol === null) {
-                $method = 'privatePostMarginRepayAll';
-                $sequenceRequest = 'sequence';
-            } else {
+            if ($isIsolated) {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol parameter for isolated margin');
+                }
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
-                $sequenceRequest = 'seqStrategy';
-                $method = 'privatePostIsolatedRepayAll';
+                $request['isIsolated'] = true;
             }
-            $request[$sequenceRequest] = $sequence;
-            $params = $this->omit($params, array( 'sequence', 'seqStrategy' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->privatePostMarginRepay (array_merge($request, $params)));
             //
             //     {
-            //         "code" => "200000",
-            //         "data" => null
+            //         "success" => true,
+            //         "code" => "200",
+            //         "msg" => "success",
+            //         "retry" => false,
+            //         "data" => {
+            //             "orderNo" => "5da6dba0f943c0c81f5d5db5",
+            //             "actualSize" => 10
+            //         }
             //     }
             //
-            return $this->parse_margin_loan($response, $currency);
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_margin_loan($data, $currency);
         }) ();
     }
 
     public function parse_margin_loan($info, $currency = null) {
         //
-        // borrowMargin cross
-        //
         //     {
-        //         "orderId" => "62df422ccde938000115290a",
-        //         "currency" => "USDT"
-        //     }
-        //
-        // borrowMargin isolated
-        //
-        //     {
-        //         "orderId" => "62df44a1c65f300001bc32a8",
-        //         "currency" => "USDT",
-        //         "actualSize" => "100"
-        //     }
-        //
-        // repayMargin
-        //
-        //     {
-        //         "code" => "200000",
-        //         "data" => null
+        //         "orderNo" => "5da6dba0f943c0c81f5d5db5",
+        //         "actualSize" => 10
         //     }
         //
         $timestamp = $this->milliseconds();
         $currencyId = $this->safe_string($info, 'currency');
         return array(
-            'id' => $this->safe_string($info, 'orderId'),
+            'id' => $this->safe_string($info, 'orderNo'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($info, 'actualSize'),
             'symbol' => null,
@@ -4108,6 +4105,9 @@ class kucoin extends Exchange {
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+        if ($errorCode !== '200000') {
+            throw new ExchangeError($feedback);
+        }
         return null;
     }
 }

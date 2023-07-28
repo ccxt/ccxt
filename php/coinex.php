@@ -3198,34 +3198,32 @@ class coinex extends Exchange {
 
     public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated' (default is 'cross')
          * @return {array} response from the exchange
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-        }
+        $this->check_required_symbol('setLeverage', $symbol);
         $this->load_markets();
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode');
-        $defaultPositionType = null;
-        if ($defaultMarginMode === 'isolated') {
-            $defaultPositionType = 1;
-        } elseif ($defaultMarginMode === 'cross') {
-            $defaultPositionType = 2;
-        }
-        $positionType = $this->safe_integer($params, 'position_type', $defaultPositionType);
-        if ($positionType === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a position_type parameter that will transfer margin to the specified trading pair');
-        }
         $market = $this->market($symbol);
-        $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
-        if ($market['type'] !== 'swap') {
+        if (!$market['swap']) {
             throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
-        if (($leverage < 3) || ($leverage > $maxLeverage)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 3 and ' . (string) $maxLeverage . ' for ' . $symbol);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
+        $positionType = null;
+        if ($marginMode === 'isolated') {
+            $positionType = 1;
+        } elseif ($marginMode === 'cross') {
+            $positionType = 2;
+        }
+        $minLeverage = $this->safe_integer($market['limits']['leverage'], 'min', 1);
+        $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
+        if (($leverage < $minLeverage) || ($leverage > $maxLeverage)) {
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between ' . (string) $minLeverage . ' and ' . (string) $maxLeverage . ' for ' . $symbol);
         }
         $request = array(
             'market' => $market['id'],

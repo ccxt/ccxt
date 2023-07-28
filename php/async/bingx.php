@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\bingx as Exchange;
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
@@ -68,7 +69,7 @@ class bingx extends Exchange {
             ),
             'hostname' => 'bingx.com',
             'urls' => array(
-                'logo' => '',
+                'logo' => 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api' => array(
                     'spot' => 'https://open-api.{hostname}/openApi',
                     'swap' => 'https://open-api.{hostname}/openApi',
@@ -77,8 +78,7 @@ class bingx extends Exchange {
                 ),
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
-                'referral' => array(
-                ),
+                'referral' => 'https://bingx.com/invite/OHETOM',
                 'fees' => array(
                     'trading' => array(
                         'tierBased' => true,
@@ -2436,9 +2436,12 @@ class bingx extends Exchange {
              * @param {array} [$params] parameters specific to the bingx api endpoint
              * @return {array} A ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
              */
-            $type = $this->safe_integer($params, 'type'); //  1 increase margin 2 decrease margin
+            $type = $this->safe_integer($params, 'type'); // 1 increase margin 2 decrease margin
+            if ($type === null) {
+                throw new ArgumentsRequired($this->id . ' setMargin() requires a $type parameter either 1 (increase margin) or 2 (decrease margin)');
+            }
             if (!$this->in_array($type, array( 1, 2 ))) {
-                throw new BadRequest($this->id . ' setMargin() requires either 1 (increase margin) or 2 (decrease margin) for type');
+                throw new ArgumentsRequired($this->id . ' setMargin() requires a $type parameter either 1 (increase margin) or 2 (decrease margin)');
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);

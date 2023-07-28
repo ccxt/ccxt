@@ -387,8 +387,8 @@ export default class binance extends Exchange {
                         'portfolio/collateralRate': 5,
                         'portfolio/pmLoan': 3.3335,
                         'portfolio/interest-history': 0.6667,
-                        'portfolio/interest-rate': 0.6667,
                         'portfolio/asset-index-price': 0.1,
+                        'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -509,6 +509,7 @@ export default class binance extends Exchange {
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
                         'portfolio/repay': 20.001,
+                        'loan/vip/renew': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/vip/borrow': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/borrow': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
@@ -517,8 +518,11 @@ export default class binance extends Exchange {
                         'loan/vip/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
-                        'portfolio/auto-collection': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
-                        'portfolio/bnb-transfer': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/auto-collection': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/asset-collection': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'portfolio/bnb-transfer': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-switch': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-negative-balance': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'lending/auto-invest/plan/add': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -791,6 +795,8 @@ export default class binance extends Exchange {
                         'userTrades': 5,
                         'exerciseRecord': 5,
                         'bill': 1,
+                        'income/asyn': 5,
+                        'income/asyn/id': 5,
                         'marginAccount': 3,
                         'mmp': 1,
                         'countdownCancelAll': 1,
@@ -897,6 +903,9 @@ export default class binance extends Exchange {
                         'cm/income ': 30,
                         'um/account': 5,
                         'cm/account': 5,
+                        'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
+                        'um/adlQuantile': 5,
+                        'cm/adlQuantile': 5,
                         'margin/marginLoan': 0.0667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
                         'margin/repayLoan': 0.0667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
                         'margin/marginInterestHistory': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -915,6 +924,8 @@ export default class binance extends Exchange {
                         'cm/positionSide/dual': 1, // 1
                         'auto-collection': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'bnb-transfer': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/repay-futures-switch': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-negative-balance': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1, // 1
                     },
                     'put': {
@@ -3654,10 +3665,11 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @param {string} id cancel order id
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3666,30 +3678,8 @@ export default class binance extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' editSpotOrder() does not support ' + market['type'] + ' orders');
         }
-        const request = {
-            'symbol': market['id'],
-            'side': side.toUpperCase (),
-        };
-        const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
-        let response = undefined;
-        if (market['spot']) {
-            response = await this.privatePostOrderCancelReplace (this.extend (request, params));
-        } else {
-            request['orderId'] = id;
-            request['quantity'] = this.amountToPrecision (symbol, amount);
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-            if (clientOrderId !== undefined) {
-                request['origClientOrderId'] = clientOrderId;
-            }
-            params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
-            if (market['linear']) {
-                response = await this.fapiPrivatePutOrder (this.extend (request, params));
-            } else if (market['inverse']) {
-                response = await this.dapiPrivatePutOrder (this.extend (request, params));
-            }
-        }
+        const payload = this.editSpotOrderRequest (id, symbol, type, side, amount, price, params);
+        const response = await this.privatePostOrderCancelReplace (payload);
         //
         // spot
         //
@@ -3744,9 +3734,9 @@ export default class binance extends Exchange {
          * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
@@ -3762,7 +3752,7 @@ export default class binance extends Exchange {
             uppercaseType = 'LIMIT_MAKER';
         }
         request['type'] = uppercaseType;
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';

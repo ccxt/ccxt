@@ -546,7 +546,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.kucoin.com/futures/#account-balance-events
              * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~

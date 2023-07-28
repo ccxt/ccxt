@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.24'
+__version__ = '4.0.42'
 
 # -----------------------------------------------------------------------------
 
@@ -22,6 +22,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadResponse
 
 # -----------------------------------------------------------------------------
 
@@ -432,6 +433,8 @@ class Exchange(object):
 
         if self.markets:
             self.set_markets(self.markets)
+
+        self.after_construct()
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -1769,7 +1772,7 @@ class Exchange(object):
                 value = self.safe_value(entry, key)
                 if value and (value >= since):
                     result.append(entry)
-        if tail:
+        if tail and limit is not None:
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
@@ -1790,7 +1793,7 @@ class Exchange(object):
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
-        if tail:
+        if tail and limit is not None:
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
@@ -1918,6 +1921,14 @@ class Exchange(object):
         stringifiedNumber = str(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
+
+    def after_construct(self):
+        self.create_networks_by_id_object()
+
+    def create_networks_by_id_object(self):
+        # automatically generate network-id-to-code mappings
+        networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))  # invert defined networks dictionary
+        self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))  # support manually overriden "networksById" dictionary too
 
     def get_default_options(self):
         return {
@@ -2114,6 +2125,7 @@ class Exchange(object):
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
         symbol = self.safe_string(order, 'symbol')
         side = self.safe_string(order, 'side')
+        status = self.safe_string(order, 'status')
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
@@ -2197,14 +2209,18 @@ class Exchange(object):
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
                 amount = Precise.string_add(filled, remaining)
-            elif self.safe_string(order, 'status') == 'closed':
+            elif status == 'closed':
                 amount = filled
         if filled is None:
             if amount is not None and remaining is not None:
                 filled = Precise.string_sub(amount, remaining)
+            elif status == 'closed' and amount is not None:
+                filled = amount
         if remaining is None:
             if amount is not None and filled is not None:
                 remaining = Precise.string_sub(amount, filled)
+            elif status == 'closed':
+                remaining = '0'
         # ensure that the average field is calculated correctly
         inverse = self.safe_value(market, 'inverse', False)
         contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
@@ -2299,7 +2315,7 @@ class Exchange(object):
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'status': self.safe_string(order, 'status'),
+            'status': status,
             'fee': self.safe_value(order, 'fee'),
         })
 
@@ -2423,6 +2439,16 @@ class Exchange(object):
         trade['price'] = self.parse_number(price)
         trade['cost'] = self.parse_number(cost)
         return trade
+
+    def invert_flat_string_dictionary(self, dict):
+        reversed = {}
+        keys = list(dict.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = dict[key]
+            if isinstance(value, str):
+                reversed[value] = key
+        return reversed
 
     def reduce_fees_by_currency(self, fees):
         #
@@ -2698,43 +2724,6 @@ class Exchange(object):
             ]
         return ohlcv
 
-    def get_network(self, network: str, code: str):
-        network = network.upper()
-        aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
-        }
-        if network == code:
-            return network
-        elif network in aliases:
-            return aliases[network]
-        else:
-            raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
-
     def network_code_to_id(self, networkCode, currencyCode=None):
         """
          * @ignore
@@ -2772,9 +2761,9 @@ class Exchange(object):
     def network_id_to_code(self, networkId, currencyCode=None):
         """
          * @ignore
-        tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have 'options->networksById' defined.
-        :param str networkId: unified network code
-        :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have "options['networksById']" defined.
+        :param str networkId: exchange specific network id/title, like: TRON, Trc-20, usdt-erc20, etc
+        :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns str|None: unified network code
         """
         networkCodesByIds = self.safe_value(self.options, 'networksById', {})
@@ -2808,10 +2797,10 @@ class Exchange(object):
         return defaultNetworkCode
 
     def select_network_code_from_unified_networks(self, currencyCode, networkCode, indexedNetworkEntries):
-        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, True)
+        return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, True)
 
     def select_network_id_from_raw_networks(self, currencyCode, networkCode, indexedNetworkEntries):
-        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, False)
+        return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, False)
 
     def select_network_key_from_networks(self, currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode=False):
         # self method is used against raw & unparse network entries, which are just indexed by network id
@@ -2823,7 +2812,7 @@ class Exchange(object):
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
                 # if networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
-                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(networkCode, currencyCode)
+                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
                 if networkId in indexedNetworkEntries:
                     chosenNetworkId = networkId
                 else:
@@ -2833,8 +2822,8 @@ class Exchange(object):
                 raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
             else:
                 # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                defaultNetworkCode = self.defaultNetworkCode(currencyCode)
-                defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(defaultNetworkCode, currencyCode)
+                defaultNetworkCode = self.default_network_code(currencyCode)
+                defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(defaultNetworkCode, currencyCode)
                 chosenNetworkId = defaultNetworkId if (defaultNetworkId in indexedNetworkEntries) else availableNetworkIds[0]
         return chosenNetworkId
 
@@ -3470,8 +3459,19 @@ class Exchange(object):
     def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
-    def fetch_transactions(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
+    def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet')
+
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
     def fetch_deposits(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
@@ -3988,9 +3988,9 @@ class Exchange(object):
     def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """
          * @ignore
-        :param str argument: the argument to check
-        :param str argumentName: the name of the argument to check
         :param str methodName: the name of the method that the argument is being checked for
+        :param str argument: the argument's actual value provided
+        :param str argumentName: the name of the argument being checked(for logging purposes)
         :param str[] options: a list of options that the argument can be
         :returns None:
         """
@@ -4113,16 +4113,17 @@ class Exchange(object):
         market = self.market(firstMarket)
         return market
 
-    def fetch_deposits_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+         * @deprecated
+        *DEPRECATED* use fetchDepositsWithdrawals instead
         :param str code: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
-        if self.has['fetchTransactions']:
-            return self.fetchTransactions(code, since, limit, params)
+        if self.has['fetchDepositsWithdrawals']:
+            return self.fetchDepositsWithdrawals(code, since, limit, params)
         else:
-            raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
+            raise NotSupported(self.id + ' fetchTransactions() is not supported yet')

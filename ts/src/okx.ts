@@ -398,6 +398,7 @@ export default class okx extends Exchange {
                         'account/set-riskOffset-type': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
+                        'account/set-account-level': 4,
                         'account/mmp-reset': 4,
                         'account/mmp-config': 100,
                         // subaccount
@@ -795,25 +796,119 @@ export default class okx extends Exchange {
             'options': {
                 'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'ETH': 'ERC20',
+                    'BTC': 'BTC',
+                    'USDT': 'TRC20',
+                },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'OMNI': 'Omni',
-                    'SOL': 'Solana',
+                    'BTCLN': 'Lightning',
+                    'BEP20': 'BSC',
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'CRC20': 'Crypto',
+                    // sorted
+                    'ACA': 'Acala',
+                    'ALGO': 'Algorand',
+                    'BHP': 'BHP',
+                    'APT': 'Aptos',
+                    'ARBONE': 'Arbitrum one',
+                    'AVAXC': 'Avalanche C-Chain',
+                    'AVAXX': 'Avalanche X-Chain',
+                    'ARK': 'ARK',
+                    'AR': 'Arweave',
+                    'ASTR': 'Astar',
+                    'BCH': 'BitcoinCash',
+                    'BSV': 'Bitcoin SV',
+                    'BTM': 'Bytom',
+                    'ADA': 'Cardano',
+                    'CSPR': 'Casper',
+                    'CELO': 'CELO',
+                    'XCH': 'Chia',
+                    'CHZ': 'Chiliz',
+                    'ATOM': 'Cosmos',
+                    'TRUE': 'TrueChain',
+                    'DCR': 'Decred',
+                    'DGB': 'Digibyte',
+                    'DOGE': 'Dogecoin',
+                    'XEC': 'XEC',
+                    'EGLD': 'Elrond',
+                    'EOS': 'EOS',
+                    'ETC': 'Ethereum Classic',
+                    'ETHW': 'EthereumPow',
+                    'FTM': 'Fantom',
+                    'FIL': 'Filecoin',
+                    'FLOW': 'FLOW',
+                    'FSN': 'Fusion',
+                    'ONE': 'Harmony',
+                    'HBAR': 'Hedera',
+                    'HNT': 'Helium',
+                    'ZEN': 'Horizen',
+                    'ICX': 'ICON',
+                    'ICP': 'Dfinity',
+                    'IOST': 'IOST',
+                    'IOTA': 'MIOTA',
+                    'KDA': 'Kadena',
+                    'KAR': 'KAR',
+                    'KLAY': 'Klaytn',
+                    'KSM': 'Kusama',
+                    'LSK': 'Lisk',
                     'LTC': 'Litecoin',
+                    'METIS': 'Metis',
+                    'MINA': 'Mina',
+                    'XMR': 'Monero',
+                    'GLRM': 'Moonbeam',
+                    'MOVR': 'Moonriver',
+                    'NANO': 'Nano',
+                    'NEAR': 'NEAR',
+                    'NAS': 'Nebulas',
+                    'NEM': 'New Economy Movement',
+                    'NULS': 'NULS',
+                    'OASYS': 'OASYS',
+                    'OKC': 'OKC',
+                    'ONT': 'Ontology',
+                    'OPTIMISM': 'Optimism',
+                    'LAT': 'PlatON',
+                    'DOT': 'Polkadot',
                     'MATIC': 'Polygon',
-                    'OP': 'Optimism',
-                    'ARB': 'Arbitrum one',
-                    'AVAX': 'Avalanche C-Chain',
-                },
-                'networksById': {
-                    'Bitcoin': 'BTC',
-                    'Omni': 'OMNI',
-                    'Solana': 'SOL',
-                    'Litecoin': 'LTC',
-                    'Polygon': 'MATIC',
-                    'Optimism': 'OP',
-                    'Arbitrum one': 'ARB',
-                    'Avalanche C-Chain': 'AVAX',
+                    'RVN': 'Ravencoin',
+                    'XRP': 'Ripple',
+                    'SC': 'Siacoin',
+                    'SOL': 'Solana',
+                    'STX': 'l-Stacks',
+                    'XLM': 'Stellar Lumens',
+                    'XTZ': 'Tezos',
+                    'TON': 'TON',
+                    'THETA': 'Theta',
+                    'VSYS': 'VSYSTEMS',
+                    'WAVES': 'WAVES',
+                    'WAX': 'Wax',
+                    'ZEC': 'Zcash',
+                    'ZIL': 'Zilliqa',
+                    'ZKSYNC': 'ZKSYNC',
+                    // 'NEON3': 'N3', // tbd
+                    // undetermined : "CELO-TOKEN", "Digital Cash", Khala
+                    // todo: uncomment below after consensus
+                    // 'AELF': 'AELF',
+                    // 'BITCOINDIAMOND': 'Bitcoin Diamond',
+                    // 'BITCOINGOLD': 'BitcoinGold',
+                    // 'YOYOW': 'YOYOW',
+                    // 'QTUM': 'Quantum',
+                    // 'INTCHAIN': 'INTCHAIN',
+                    // 'YOUCHAIN': 'YOUCHAIN',
+                    // 'RONIN': 'Ronin',
+                    // 'OEC': 'OEC',
+                    // 'WAYIKICHAIN': 'WGRT',
+                    // 'MDNA': 'DNA',
+                    // 'STEP': 'Step Network',
+                    // 'EMINER': 'Eminer',
+                    // 'CYBERMILES': 'CyberMiles',
+                    // 'HYPERCASH': 'HyperCash',
+                    // 'CONFLUX': 'Conflux',
+                    // 'CORTEX': 'Cortex',
+                    // 'TERRA': 'Terra',
+                    // 'TERRACLASSIC': 'Terra Classic',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -2616,8 +2711,9 @@ export default class okx extends Exchange {
     }
 
     editOrderRequest (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        const market = this.market (symbol);
         const request = {
-            'instId': this.marketId (symbol),
+            'instId': market['id'],
         };
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -2625,13 +2721,49 @@ export default class okx extends Exchange {
         } else {
             request['ordId'] = id;
         }
-        params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+        let stopLossTriggerPrice = this.safeValue2 (params, 'stopLossPrice', 'newSlTriggerPx');
+        let stopLossPrice = this.safeValue (params, 'newSlOrdPx');
+        const stopLossTriggerPriceType = this.safeString (params, 'newSlTriggerPxType', 'last');
+        let takeProfitTriggerPrice = this.safeValue2 (params, 'takeProfitPrice', 'newTpTriggerPx');
+        let takeProfitPrice = this.safeValue (params, 'newTpOrdPx');
+        const takeProfitTriggerPriceType = this.safeString (params, 'newTpTriggerPxType', 'last');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const stopLossDefined = (stopLoss !== undefined);
+        const takeProfitDefined = (takeProfit !== undefined);
+        if (stopLossTriggerPrice !== undefined) {
+            request['newSlTriggerPx'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+            request['newSlOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, stopLossPrice);
+            request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+        }
+        if (takeProfitTriggerPrice !== undefined) {
+            request['newTpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+            request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, takeProfitPrice);
+            request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+        }
+        if (stopLossDefined) {
+            stopLossTriggerPrice = this.safeValue (stopLoss, 'triggerPrice');
+            stopLossPrice = this.safeValue (stopLoss, 'price');
+            const stopLossType = this.safeString (stopLoss, 'type');
+            request['newSlTriggerPx'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+            request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision (symbol, stopLossPrice);
+            request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+        }
+        if (takeProfitDefined) {
+            takeProfitTriggerPrice = this.safeValue (takeProfit, 'triggerPrice');
+            takeProfitPrice = this.safeValue (takeProfit, 'price');
+            const takeProfitType = this.safeString (takeProfit, 'type');
+            request['newTpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+            request['newTpOrdPx'] = (takeProfitType === 'market') ? '-1' : this.priceToPrecision (symbol, takeProfitPrice);
+            request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+        }
         if (amount !== undefined) {
             request['newSz'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['newPx'] = this.priceToPrecision (symbol, price);
         }
+        params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ]);
         return this.extend (request, params);
     }
 
@@ -2648,15 +2780,27 @@ export default class okx extends Exchange {
          * @param {float} amount how much of the currency you want to trade in units of the base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] client order id, uses id if not passed
+         * @param {float} [params.stopLossPrice] stop loss trigger price
+         * @param {float} [params.newSlOrdPx] the stop loss order price, set to stopLossPrice if the type is market
+         * @param {string} [params.newSlTriggerPxType] 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
+         * @param {float} [params.takeProfitPrice] take profit trigger price
+         * @param {float} [params.newTpOrdPx] the take profit order price, set to takeProfitPrice if the type is market
+         * @param {string} [params.newTpTriggerPxType] 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        const response = await this.privatePostTradeAmendOrder (request);
+        const response = await this.privatePostTradeAmendOrder (this.extend (request, params));
         //
         //     {
         //        "code": "0",
@@ -3975,6 +4119,7 @@ export default class okx extends Exchange {
         //
         //     {
         //        "chain": "ETH-OKExChain",
+        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field,
         //        "ctAddr": "72315c",
         //        "ccy": "ETH",
         //        "to": "6",
@@ -3983,8 +4128,11 @@ export default class okx extends Exchange {
         //     }
         //
         const address = this.safeString (depositAddress, 'addr');
-        let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
-        tag = this.safeString (depositAddress, 'memo', tag);
+        let tag = this.safeStringN (depositAddress, [ 'tag', 'pmtId', 'memo' ]);
+        if (tag === undefined) {
+            const addrEx = this.safeValue (depositAddress, 'addrEx', {});
+            tag = this.safeString (addrEx, 'comment');
+        }
         const currencyId = this.safeString (depositAddress, 'ccy');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
@@ -6318,7 +6466,7 @@ export default class okx extends Exchange {
         const id = this.safeString (interest, 'instId');
         market = this.safeMarket (id, market);
         const time = this.safeInteger (interest, 'ts');
-        const timestamp = this.safeNumber (interest, 0, time);
+        const timestamp = this.safeInteger (interest, 0, time);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         let openInterestAmount = undefined;
@@ -6532,7 +6680,7 @@ export default class okx extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     parseSettlement (settlement, market) {

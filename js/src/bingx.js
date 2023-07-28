@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, NotSupported, DDoSProtection, BadSymbol, InvalidOrder } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, NotSupported, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -62,7 +62,7 @@ export default class bingx extends Exchange {
             },
             'hostname': 'bingx.com',
             'urls': {
-                'logo': '',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
@@ -71,7 +71,7 @@ export default class bingx extends Exchange {
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
-                'referral': {},
+                'referral': 'https://bingx.com/invite/OHETOM',
                 'fees': {
                     'trading': {
                         'tierBased': true,
@@ -2395,9 +2395,12 @@ export default class bingx extends Exchange {
          * @param {object} [params] parameters specific to the bingx api endpoint
          * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
-        const type = this.safeInteger(params, 'type'); //  1 increase margin 2 decrease margin
+        const type = this.safeInteger(params, 'type'); // 1 increase margin 2 decrease margin
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
+        }
         if (!this.inArray(type, [1, 2])) {
-            throw new BadRequest(this.id + ' setMargin() requires either 1 (increase margin) or 2 (decrease margin) for type');
+            throw new ArgumentsRequired(this.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
         }
         await this.loadMarkets();
         const market = this.market(symbol);

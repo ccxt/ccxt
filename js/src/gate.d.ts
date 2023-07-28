@@ -108,14 +108,6 @@ export default class gate extends Exchange {
         previousFundingDatetime: any;
     };
     fetchNetworkDepositAddress(code: string, params?: {}): Promise<{}>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-        code: string;
-        currency: string;
-        address: any;
-        tag: any;
-        network: any;
-    }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
         code: string;
@@ -369,5 +361,6 @@ export default class gate extends Exchange {
         info: any;
     };
     parseLedgerEntryType(type: any): string;
+    setPositionMode(hedged: any, symbol?: any, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

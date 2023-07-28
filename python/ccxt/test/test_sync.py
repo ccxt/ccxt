@@ -175,6 +175,12 @@ def close(exchange):
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
+from ccxt.base.errors import NetworkError
+from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import AuthenticationError
 
 
@@ -250,16 +256,9 @@ class testMainClass(baseMainTestClass):
         skippedSettings = io_file_read(skippedFile)
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
-        skipReason = exchange.safe_value(skippedSettingsForExchange, 'skip')
         timeout = exchange.safe_value(skippedSettingsForExchange, 'timeout')
         if timeout is not None:
             exchange.timeout = timeout
-        if skipReason is not None:
-            dump('[SKIPPED] exchange', exchangeId, skipReason)
-            exit_script()
-        if exchange.alias:
-            dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
-            exit_script()
         exchange.httpsProxy = exchange.safe_string(skippedSettingsForExchange, 'httpsProxy')
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
@@ -293,25 +292,55 @@ class testMainClass(baseMainTestClass):
         argsStringified = '(' + ','.join(args) + ')'
         if self.info:
             dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
-        result = None
         try:
             skippedProperties = exchange.safe_value(self.skippedMethods, methodName, {})
-            result = call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
+            call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
             if isPublic:
                 self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
             isAuthError = (isinstance(e, AuthenticationError))
-            if not (isPublic and isAuthError):
-                dump('[TEST_FAILURE]', exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
+            # If public test faces authentication error, we don't break(see comments under `testSafe` method)
+            if isPublic and isAuthError:
+                if self.info:
+                    dump('[TEST_WARNING]', 'Authentication problem for public method', exception_message(e), exchange.id, methodNameInTest, argsStringified)
+            else:
                 raise e
-        return result
 
     def test_safe(self, methodName, exchange, args, isPublic):
-        try:
-            self.test_method(methodName, exchange, args, isPublic)
-            return True
-        except Exception as e:
-            return False
+        # `testSafe` method does not raise an exception, instead mutes it.
+        # The reason we mute the thrown exceptions here is because if self test is part
+        # of "runPublicTests", then we don't want to stop the whole test if any single
+        # test-method fails. For example, if "fetchOrderBook" public test fails, we still
+        # want to run "fetchTickers" and other methods. However, independently self fact,
+        # from those test-methods we still echo-out(console.log/print...) the exception
+        # messages with specific formatted message "[TEST_FAILURE] ..." and that output is
+        # then regex-parsed by run-tests.js, so the exceptions are still printed out to
+        # console from there. So, even if some public tests fail, the script will continue
+        # doing other things(testing other spot/swap or private tests ...)
+        maxRetries = 3
+        argsStringified = '(' + ','.join(args) + ')'
+        for i in range(0, maxRetries):
+            try:
+                self.test_method(methodName, exchange, args, isPublic)
+                return True
+            except Exception as e:
+                isRateLimitExceeded = (isinstance(e, RateLimitExceeded))
+                isExchangeNotAvailable = (isinstance(e, ExchangeNotAvailable))
+                isNetworkError = (isinstance(e, NetworkError))
+                isDDoSProtection = (isinstance(e, DDoSProtection))
+                isRequestTimeout = (isinstance(e, RequestTimeout))
+                tempFailure = (isRateLimitExceeded or isExchangeNotAvailable or isNetworkError or isDDoSProtection or isRequestTimeout)
+                if tempFailure:
+                    # wait and retry again
+                    exchange.sleep(i * 1000)  # increase wait seconds on every retry
+                    continue
+                else:
+                    # if not temp failure, then dump exception without retrying
+                    dump('[TEST_WARNING]', 'Method could not be tested', exception_message(e), exchange.id, methodName, argsStringified)
+                    return False
+        # if maxretries was gone with same `tempFailure` error, then let's eventually return False
+        dump('[TEST_WARNING]', 'Method not tested due to a Network/Availability issue', exchange.id, methodName, argsStringified)
+        return False
 
     def run_public_tests(self, exchange, symbol):
         tests = {
@@ -348,12 +377,27 @@ class testMainClass(baseMainTestClass):
             promises.append(self.test_safe(testName, exchange, testArgs, True))
         # todo - not yet ready in other langs too
         # promises.append(testThrottle())
-        (promises)
+        results = (promises)
+        # now count which test-methods retuned `false` from "testSafe" and dump that info below
+        errors = []
+        for i in range(0, len(testNames)):
+            if not results[i]:
+                errors.append(testNames[i])
         if self.info:
-            dump(self.add_padding('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)
+            # we don't raise exception for public-tests, see comments under 'testSafe' method
+            failedMsg = ''
+            if len(errors):
+                failedMsg = ' | Failed methods: ' + ', '.join(errors)
+            dump(self.add_padding('[INFO:PUBLIC_TESTS_DONE]' + market['type'] + failedMsg, 25), exchange.id)
 
     def load_exchange(self, exchange):
-        exchange.load_markets()
+        try:
+            exchange.load_markets()
+        except Exception as e:
+            if isinstance(e, OnMaintenance):
+                dump('[SKIPPED] Exchange is on maintenance', exchangeId)
+                exit_script()
+            raise e
         assert isinstance(exchange.markets, dict), '.markets is not an object'
         assert isinstance(exchange.symbols, list), '.symbols is not an array'
         symbolsLength = len(exchange.symbols)

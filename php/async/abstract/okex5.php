@@ -646,6 +646,9 @@ abstract class okex5 extends \ccxt\async\okex {
     public function private_post_account_set_auto_loan($params = array()) {
         return $this->request('account/set-auto-loan', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function private_post_account_set_account_level($params = array()) {
+        return $this->request('account/set-account-level', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
     public function private_post_account_mmp_reset($params = array()) {
         return $this->request('account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -1404,6 +1407,9 @@ abstract class okex5 extends \ccxt\async\okex {
     }
     public function privatePostAccountSetAutoLoan($params = array()) {
         return $this->request('account/set-auto-loan', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostAccountSetAccountLevel($params = array()) {
+        return $this->request('account/set-account-level', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     public function privatePostAccountMmpReset($params = array()) {
         return $this->request('account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));

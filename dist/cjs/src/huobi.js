@@ -597,6 +597,7 @@ class huobi extends huobi$1 {
                             // Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
                             'linear-swap-api/v3/unified_account_info': 1,
+                            'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
                         },
                         'post': {
@@ -790,6 +791,7 @@ class huobi extends huobi$1 {
                             'linear-swap-api/v3/swap_cross_hisorders': 1,
                             'linear-swap-api/v3/swap_hisorders_exact': 1,
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
+                            'linear-swap-api/v3/fix_position_margin_change': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
@@ -841,6 +843,7 @@ class huobi extends huobi$1 {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': errors.OnMaintenance,
                     'maintain': errors.OnMaintenance,
+                    'API key has no permission': errors.PermissionDenied, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: API key has no permission [API Key没有权限]","data":null}
                 },
                 'exact': {
                     // err-code
@@ -7441,10 +7444,7 @@ class huobi extends huobi$1 {
             '1d': '1day',
         };
         const market = this.market(symbol);
-        const amountType = this.safeNumber2(params, 'amount_type', 'amountType');
-        if (amountType === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrency)');
-        }
+        const amountType = this.safeInteger2(params, 'amount_type', 'amountType', 2);
         const request = {
             'period': timeframes[timeframe],
             'amount_type': amountType,
