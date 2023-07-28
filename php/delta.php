@@ -40,6 +40,7 @@ class delta extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
@@ -52,6 +53,7 @@ class delta extends Exchange {
                 'fetchPosition' => true,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchSettlementHistory' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -62,6 +64,7 @@ class delta extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => null,
                 'reduceMargin' => true,
+                'setLeverage' => true,
                 'transfer' => false,
                 'withdraw' => false,
             ),
@@ -220,6 +223,108 @@ class delta extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function convert_expire_date($date) {
+        // parse YYMMDD to timestamp
+        $year = mb_substr($date, 0, 2 - 0);
+        $month = mb_substr($date, 2, 4 - 2);
+        $day = mb_substr($date, 4, 6 - 4);
+        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+        return $reconstructedDate;
+    }
+
+    public function create_expired_option_market($symbol) {
+        // support expired option contracts
+        $quote = 'USDT';
+        $optionParts = explode('-', $symbol);
+        $symbolBase = explode('/', $symbol);
+        $base = null;
+        $expiry = null;
+        $optionType = null;
+        if (mb_strpos($symbol, '/') > -1) {
+            $base = $this->safe_string($symbolBase, 0);
+            $expiry = $this->safe_string($optionParts, 1);
+            $optionType = $this->safe_string($optionParts, 3);
+        } else {
+            $base = $this->safe_string($optionParts, 1);
+            $expiry = $this->safe_string($optionParts, 3);
+            $optionType = $this->safe_string($optionParts, 0);
+        }
+        $settle = $quote;
+        $strike = $this->safe_string($optionParts, 2);
+        $datetime = $this->convert_expire_date($expiry);
+        $timestamp = $this->parse8601($datetime);
+        return array(
+            'id' => $optionType . '-' . $base . '-' . $strike . '-' . $expiry,
+            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $base,
+            'quoteId' => $quote,
+            'settleId' => $settle,
+            'active' => false,
+            'type' => 'option',
+            'linear' => null,
+            'inverse' => null,
+            'spot' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => true,
+            'margin' => false,
+            'contract' => true,
+            'contractSize' => $this->parse_number('1'),
+            'expiry' => $timestamp,
+            'expiryDatetime' => $datetime,
+            'optionType' => ($optionType === 'C') ? 'call' : 'put',
+            'strike' => $this->parse_number($strike),
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+            ),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => null,
+        );
+    }
+
+    public function market($symbol) {
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' $markets not loaded');
+        }
+        if (gettype($symbol) === 'string') {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                return $this->markets[$symbol];
+            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
+                $markets = $this->markets_by_id[$symbol];
+                return $markets[0];
+            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1) || (mb_strpos($symbol, 'C')) || (mb_strpos($symbol, 'P'))) {
+                return $this->create_expired_option_market($symbol);
+            }
+        }
+        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+    }
+
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1) || (mb_strpos($marketId, 'C')) || (mb_strpos($marketId, 'P')));
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            // handle expired option contracts
+            return $this->create_expired_option_market($marketId);
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
     public function fetch_time($params = array ()) {
@@ -2618,6 +2723,224 @@ class delta extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         );
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()) {
+        /**
+         * fetch the set leverage for a $market
+         * @see https://docs.delta.exchange/#get-order-leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the delta api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_id' => $market['numericId'],
+        );
+        //
+        //     {
+        //         "result" => array(
+        //             "index_symbol" => null,
+        //             "leverage" => "10",
+        //             "margin_mode" => "isolated",
+        //             "order_margin" => "0",
+        //             "product_id" => 84,
+        //             "user_id" => 30084879
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        return $this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params));
+    }
+
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @see https://docs.delta.exchange/#change-order-$leverage
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the delta api endpoint
+         * @return {array} response from the exchange
+         */
+        $this->check_required_symbol('setLeverage', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_id' => $market['numericId'],
+            'leverage' => $leverage,
+        );
+        //
+        //     {
+        //         "result" => array(
+        //             "leverage" => "20",
+        //             "margin_mode" => "isolated",
+        //             "order_margin" => "0",
+        //             "product_id" => 84
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        return $this->privatePostProductsProductIdOrdersLeverage (array_merge($request, $params));
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical settlement records
+         * @see https://docs.delta.exchange/#get-product-settlement-prices
+         * @param {string} $symbol unified $market $symbol of the settlement history
+         * @param {int} [$since] timestamp in ms
+         * @param {int} [$limit] number of records
+         * @param {array} [$params] exchange specific $params
+         * @return {array[]} a list of [settlement history objects]
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'states' => 'expired',
+        );
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = $this->publicGetProducts (array_merge($request, $params));
+        //
+        //     {
+        //         "result" => array(
+        //             {
+        //                 "contract_value" => "0.001",
+        //                 "basis_factor_max_limit" => "10.95",
+        //                 "maker_commission_rate" => "0.0003",
+        //                 "launch_time" => "2023-07-19T04:30:03Z",
+        //                 "trading_status" => "operational",
+        //                 "product_specs" => array(
+        //                     "backup_vol_expiry_time" => 31536000,
+        //                     "max_deviation_from_external_vol" => 0.75,
+        //                     "max_lower_deviation_from_external_vol" => 0.75,
+        //                     "max_upper_deviation_from_external_vol" => 0.5,
+        //                     "max_volatility" => 3,
+        //                     "min_volatility" => 0.1,
+        //                     "premium_commission_rate" => 0.1,
+        //                     "settlement_index_price" => "29993.536675710806",
+        //                     "vol_calculation_method" => "orderbook",
+        //                     "vol_expiry_time" => 31536000
+        //                 ),
+        //                 "description" => "BTC call option expiring on 19-7-2023",
+        //                 "settlement_price" => "0",
+        //                 "disruption_reason" => null,
+        //                 "settling_asset" => array(),
+        //                 "initial_margin" => "1",
+        //                 "tick_size" => "0.1",
+        //                 "maintenance_margin" => "0.5",
+        //                 "id" => 117542,
+        //                 "notional_type" => "vanilla",
+        //                 "ui_config" => array(),
+        //                 "contract_unit_currency" => "BTC",
+        //                 "symbol" => "C-BTC-30900-190723",
+        //                 "insurance_fund_margin_contribution" => "1",
+        //                 "price_band" => "2",
+        //                 "annualized_funding" => "10.95",
+        //                 "impact_size" => 200,
+        //                 "contract_type" => "call_options",
+        //                 "position_size_limit" => 255633,
+        //                 "max_leverage_notional" => "200000",
+        //                 "initial_margin_scaling_factor" => "0.000002",
+        //                 "strike_price" => "30900",
+        //                 "is_quanto" => false,
+        //                 "settlement_time" => "2023-07-19T12:00:00Z",
+        //                 "liquidation_penalty_factor" => "0.5",
+        //                 "funding_method" => "mark_price",
+        //                 "taker_commission_rate" => "0.0003",
+        //                 "default_leverage" => "100.000000000000000000",
+        //                 "state" => "expired",
+        //                 "auction_start_time" => null,
+        //                 "short_description" => "BTC  Call",
+        //                 "quoting_asset" => array(),
+        //                 "maintenance_margin_scaling_factor":"0.000002"
+        //             }
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $settlements = $this->parse_settlements($result, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        //     {
+        //         "contract_value" => "0.001",
+        //         "basis_factor_max_limit" => "10.95",
+        //         "maker_commission_rate" => "0.0003",
+        //         "launch_time" => "2023-07-19T04:30:03Z",
+        //         "trading_status" => "operational",
+        //         "product_specs" => array(
+        //             "backup_vol_expiry_time" => 31536000,
+        //             "max_deviation_from_external_vol" => 0.75,
+        //             "max_lower_deviation_from_external_vol" => 0.75,
+        //             "max_upper_deviation_from_external_vol" => 0.5,
+        //             "max_volatility" => 3,
+        //             "min_volatility" => 0.1,
+        //             "premium_commission_rate" => 0.1,
+        //             "settlement_index_price" => "29993.536675710806",
+        //             "vol_calculation_method" => "orderbook",
+        //             "vol_expiry_time" => 31536000
+        //         ),
+        //         "description" => "BTC call option expiring on 19-7-2023",
+        //         "settlement_price" => "0",
+        //         "disruption_reason" => null,
+        //         "settling_asset" => array(),
+        //         "initial_margin" => "1",
+        //         "tick_size" => "0.1",
+        //         "maintenance_margin" => "0.5",
+        //         "id" => 117542,
+        //         "notional_type" => "vanilla",
+        //         "ui_config" => array(),
+        //         "contract_unit_currency" => "BTC",
+        //         "symbol" => "C-BTC-30900-190723",
+        //         "insurance_fund_margin_contribution" => "1",
+        //         "price_band" => "2",
+        //         "annualized_funding" => "10.95",
+        //         "impact_size" => 200,
+        //         "contract_type" => "call_options",
+        //         "position_size_limit" => 255633,
+        //         "max_leverage_notional" => "200000",
+        //         "initial_margin_scaling_factor" => "0.000002",
+        //         "strike_price" => "30900",
+        //         "is_quanto" => false,
+        //         "settlement_time" => "2023-07-19T12:00:00Z",
+        //         "liquidation_penalty_factor" => "0.5",
+        //         "funding_method" => "mark_price",
+        //         "taker_commission_rate" => "0.0003",
+        //         "default_leverage" => "100.000000000000000000",
+        //         "state" => "expired",
+        //         "auction_start_time" => null,
+        //         "short_description" => "BTC  Call",
+        //         "quoting_asset" => array(),
+        //         "maintenance_margin_scaling_factor":"0.000002"
+        //     }
+        //
+        $datetime = $this->safe_string($settlement, 'settlement_time');
+        $marketId = $this->safe_string($settlement, 'symbol');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'settlement_price'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+        );
+    }
+
+    public function parse_settlements($settlements, $market) {
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

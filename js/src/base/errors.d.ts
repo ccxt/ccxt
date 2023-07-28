@@ -25,7 +25,10 @@ declare class BadRequest extends ExchangeError {
 declare class BadSymbol extends BadRequest {
     constructor(message: any);
 }
-declare class MarginModeAlreadySet extends BadRequest {
+declare class NoChange extends BadRequest {
+    constructor(message: any);
+}
+declare class MarginModeAlreadySet extends NoChange {
     constructor(message: any);
 }
 declare class BadResponse extends ExchangeError {

@@ -3543,10 +3543,11 @@ class binance(Exchange, ImplicitAPI):
         see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -3554,26 +3555,8 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' editSpotOrder() does not support ' + market['type'] + ' orders')
-        request = {
-            'symbol': market['id'],
-            'side': side.upper(),
-        }
-        clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
-        response = None
-        if market['spot']:
-            response = self.privatePostOrderCancelReplace(self.extend(request, params))
-        else:
-            request['orderId'] = id
-            request['quantity'] = self.amount_to_precision(symbol, amount)
-            if price is not None:
-                request['price'] = self.price_to_precision(symbol, price)
-            if clientOrderId is not None:
-                request['origClientOrderId'] = clientOrderId
-            params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
-            if market['linear']:
-                response = self.fapiPrivatePutOrder(self.extend(request, params))
-            elif market['inverse']:
-                response = self.dapiPrivatePutOrder(self.extend(request, params))
+        payload = self.edit_spot_order_request(id, symbol, type, side, amount, price, params)
+        response = self.privatePostOrderCancelReplace(payload)
         #
         # spot
         #
@@ -3625,9 +3608,9 @@ class binance(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the binance api endpoint
-        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
+        :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)

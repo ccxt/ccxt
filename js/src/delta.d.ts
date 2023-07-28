@@ -6,6 +6,53 @@ import { Int, OrderSide, OrderType } from './base/types.js';
  */
 export default class delta extends Exchange {
     describe(): any;
+    convertExpireDate(date: any): string;
+    createExpiredOptionMarket(symbol: any): {
+        id: string;
+        symbol: string;
+        base: any;
+        quote: string;
+        settle: string;
+        baseId: any;
+        quoteId: string;
+        settleId: string;
+        active: boolean;
+        type: string;
+        linear: any;
+        inverse: any;
+        spot: boolean;
+        swap: boolean;
+        future: boolean;
+        option: boolean;
+        margin: boolean;
+        contract: boolean;
+        contractSize: number;
+        expiry: number;
+        expiryDatetime: string;
+        optionType: string;
+        strike: number;
+        precision: {
+            amount: any;
+            price: any;
+        };
+        limits: {
+            amount: {
+                min: any;
+                max: any;
+            };
+            price: {
+                min: any;
+                max: any;
+            };
+            cost: {
+                min: any;
+                max: any;
+            };
+        };
+        info: any;
+    };
+    market(symbol: any): any;
+    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     fetchTime(params?: {}): Promise<number>;
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -216,6 +263,17 @@ export default class delta extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchLeverage(symbol: string, params?: {}): Promise<any>;
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseSettlement(settlement: any, market: any): {
+        info: any;
+        symbol: any;
+        price: number;
+        timestamp: number;
+        datetime: string;
+    };
+    parseSettlements(settlements: any, market: any): any[];
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

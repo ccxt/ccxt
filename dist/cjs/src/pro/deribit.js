@@ -59,7 +59,7 @@ class deribit extends deribit$1 {
          * @method
          * @name deribit#watchBalance
          * @see https://docs.deribit.com/#user-portfolio-currency
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
