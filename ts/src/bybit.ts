@@ -3327,7 +3327,7 @@ export default class bybit extends Exchange {
         //         "symbol": "XRPUSDT",
         //         "side": "Buy",
         //         "orderType": "Market",
-        //         "price": "0.3431",
+        //         "price": "0.3432",
         //         "qty": "65",
         //         "reduceOnly": true,
         //         "timeInForce": "ImmediateOrCancel",
