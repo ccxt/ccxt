@@ -4,7 +4,7 @@ import latokenRest from '../latoken.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
-import { Precise } from '../base/Precise.js';
+// import { Precise } from '../base/Precise.js';
 // import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 
@@ -149,7 +149,7 @@ export default class latoken extends latokenRest {
         const subscribe = {};
         const request = this.extend (subscribe, params);
         const url = this.urls['api']['ws'];
-        return await this.watch (url + '/' + channel, messageHash, request, name);
+        return await this.watch (url + channel, messageHash, request, name);
     }
 
     async watchTicker (symbol: string, params = {}) {
@@ -447,7 +447,8 @@ export default class latoken extends latokenRest {
         //        "user": "dc274e1d-393e-9333-faef66738073"
         //    }
         //
-        this.balance = this.parseBalance (message);
+        const type = this.safeString (message, 'type');
+        this.balance = this.parseBalance (message, type);  // TODO: parse type
         client.resolve (this.balance, 'account::');
         client.resolve (this.balance, 'account/total::');
     }
