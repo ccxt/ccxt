@@ -227,7 +227,8 @@ const decimalToPrecision = (
                 const ceil = (roundingMode === ROUND)
                              && (c >= FIVE)
                             && !((c === FIVE) && memo); // prevents rounding of 1.45 to 2
-                c = ceil ? (NINE + 1) : ZERO;
+                const roundUp = (roundingMode === ROUND_UP) && (c >= ONE);
+                c = ceil || roundUp ? (NINE + 1) : ZERO;
             }
             if (c > NINE) {
                 c = ZERO; memo = 1;
