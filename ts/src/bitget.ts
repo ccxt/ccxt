@@ -1058,7 +1058,6 @@ export default class bitget extends Exchange {
         });
     }
 
-    // Override
     isUsingForcedProxy (params = {}, api = 'public') {
         if (api[0] === 'private') {
             return true;

@@ -1615,7 +1615,6 @@ export default class binance extends Exchange {
         });
     }
 
-    // Override
     isUsingForcedProxy (params, api = undefined) {
         if (params && params.forceProxy) {
             delete params['forceProxy'];
@@ -2534,7 +2533,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           // option
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', 'option', or 'spot'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
@@ -2580,6 +2579,8 @@ export default class binance extends Exchange {
             method = 'sapiGetLendingUnionAccount';
         } else if (type === 'funding') {
             method = 'sapiPostAssetGetFundingAsset';
+        } else if (type === 'option') {
+            method = 'eapiPrivateGetAccount';
         }
         const requestParams = this.omit (query, [ 'type', 'symbols' ]);
         const response = await this[method] (this.extend (request, requestParams));
