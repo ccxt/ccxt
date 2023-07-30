@@ -986,6 +986,14 @@ class bitget extends bitget$1 {
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchOHLCV': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketCandles', // or publicSpotGetMarketHistoryCandles
+                    },
+                    'swap:': {
+                        'method': 'publicMixGetMarketCandles', // or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                    },
+                },
                 'accountsByType': {
                     'main': 'EXCHANGE',
                     'spot': 'EXCHANGE',
@@ -2418,14 +2426,37 @@ class bitget extends bitget$1 {
                 }
             }
         }
+        const options = this.safeValue(this.options, 'fetchOHLCV', {});
         const ommitted = this.omit(params, ['until', 'till']);
         const extended = this.extend(request, ommitted);
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicSpotGetMarketCandles(extended);
+            const spotOptions = this.safeValue(options, 'spot', {});
+            const defaultSpotMethod = this.safeString(params, 'method', 'publicSpotGetMarketCandles');
+            const method = this.safeString(spotOptions, 'method', defaultSpotMethod);
+            if (method === 'publicSpotGetMarketCandles') {
+                response = await this.publicSpotGetMarketCandles(extended);
+            }
+            else if (method === 'publicSpotGetMarketHistoryCandles') {
+                response = await this.publicSpotGetMarketHistoryCandles(extended);
+            }
         }
         else {
-            response = await this.publicMixGetMarketCandles(extended);
+            const swapOptions = this.safeValue(options, 'swap', {});
+            const defaultSwapMethod = this.safeString(params, 'method', 'publicMixGetMarketCandles');
+            const swapMethod = this.safeString(swapOptions, 'method', defaultSwapMethod);
+            if (swapMethod === 'publicMixGetMarketCandles') {
+                response = await this.publicMixGetMarketCandles(extended);
+            }
+            else if (swapMethod === 'publicMixGetMarketHistoryCandles') {
+                response = await this.publicMixGetMarketHistoryCandles(extended);
+            }
+            else if (swapMethod === 'publicMixGetMarketHistoryIndexCandles') {
+                response = await this.publicMixGetMarketHistoryIndexCandles(extended);
+            }
+            else if (swapMethod === 'publicMixGetMarketHistoryMarkCandles') {
+                response = await this.publicMixGetMarketHistoryMarkCandles(extended);
+            }
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
         const data = this.safeValue(response, 'data', response);
@@ -2862,7 +2893,7 @@ class bitget extends bitget$1 {
                 request[timeInForceKey] = 'ioc';
             }
         }
-        const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly']);
+        const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly']);
         const response = await this[method](this.extend(request, omitted));
         //
         //     {

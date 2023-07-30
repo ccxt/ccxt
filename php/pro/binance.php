@@ -1190,7 +1190,7 @@ class binance extends \ccxt\async\binance {
     public function fetch_balance_ws($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * fetch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {string|null} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -1273,7 +1273,7 @@ class binance extends \ccxt\async\binance {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
@@ -2236,7 +2236,7 @@ class binance extends \ccxt\async\binance {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             $defaultType = $this->safe_string_2($this->options, 'watchMyTrades', 'defaultType', 'spot');
@@ -2274,6 +2274,7 @@ class binance extends \ccxt\async\binance {
             $trade = $this->parse_trade($message);
             $orderId = $this->safe_string($trade, 'order');
             $tradeFee = $this->safe_value($trade, 'fee');
+            $tradeFee = array_merge(array(), $tradeFee);
             $symbol = $this->safe_string($trade, 'symbol');
             if ($orderId !== null && $tradeFee !== null && $symbol !== null) {
                 $cachedOrders = $this->orders;
@@ -2284,7 +2285,7 @@ class binance extends \ccxt\async\binance {
                         // accumulate $order $fees
                         $fees = $this->safe_value($order, 'fees');
                         $fee = $this->safe_value($order, 'fee');
-                        if ($fees !== null) {
+                        if (!$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
                             for ($i = 0; $i < count($fees); $i++) {
                                 $orderFee = $fees[$i];

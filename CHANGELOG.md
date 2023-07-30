@@ -1,3 +1,86 @@
+## 4.0.43 (2023-07-29)
+
+*  fix(binance): orders trade fee for one order with multiple trades [0a13eb0433](https://github.com/ccxt/ccxt/commits/0a13eb0433ec435c762c647eaef06a5dee2d3c31)
+*  Update cryptocom.ts [55d72e160a](https://github.com/ccxt/ccxt/commits/55d72e160a074ccee0081e11449e04d10e087ff4)
+*  fix(bybit): ws spot orders parsing [c66714b53a](https://github.com/ccxt/ccxt/commits/c66714b53a3e5cbb2139d4399621a6724750fd70)
+*  fix linting [152c6f3fd9](https://github.com/ccxt/ccxt/commits/152c6f3fd9c541b34facb22058e60867a345dada)
+*  fix(bybit): update order status [77ba8bba25](https://github.com/ccxt/ccxt/commits/77ba8bba2590a2c3cc672f7c2935a48a7d59237d)
+*  4.0.43 [8f5662603d](https://github.com/ccxt/ccxt/commits/8f5662603dd315a37080220b31f388c44ebc053a)
+
+
+## 4.0.42 (2023-07-28)
+
+*  removed delisted exchanges from manual [67280033c0](https://github.com/ccxt/ccxt/commits/67280033c0c7dfcff1b59a9be87d1a2c5d571ff2)
+*  README.md promo links [52fbd961a9](https://github.com/ccxt/ccxt/commits/52fbd961a974dfaf5de1e3580c16ecec1b13339e)
+*  README.md promo links [0712a47667](https://github.com/ccxt/ccxt/commits/0712a47667fc57e4230fd9c51309a0deb2d00380)
+*  delta add docstring links [c2dcf16251](https://github.com/ccxt/ccxt/commits/c2dcf162515eba51754a354d49a84b5ba380ed28)
+*  feat(delta): add createReduceOnlyOrder and finish option support [1916cefe6e](https://github.com/ccxt/ccxt/commits/1916cefe6ee2e7e4211badad099ccc5481e71094)
+*  4.0.42 [58e8f149ae](https://github.com/ccxt/ccxt/commits/58e8f149aee50599276710cf2b1312158076bea2)
+
+
+## 4.0.41 (2023-07-27)
+
+*  fix(phemex): add contract size [6951f53bad](https://github.com/ccxt/ccxt/commits/6951f53badd3bb7d5e659acb994dc67d76c2b945)
+*  watchMyTrades docstrings order > trade fixes [24f7933fb9](https://github.com/ccxt/ccxt/commits/24f7933fb90665594482c3835e889f7afdc0e161)
+*  watchMyTrades docstrings order > trade fixes [6de3c1ac68](https://github.com/ccxt/ccxt/commits/6de3c1ac68751679b22e40ec2a9bb0da33410ddc)
+*  watchBalance docstring fixes [17ead3d9a0](https://github.com/ccxt/ccxt/commits/17ead3d9a0e6269e2108cd60737cfd56057caa9e)
+*  watchBalance docstring fixes [6ed13359a1](https://github.com/ccxt/ccxt/commits/6ed13359a117c0fda32a34db3c1821f6bc45f198)
+*  feat(delta): fetchSettlementHistory, createExpiredOptionMarket [842c3348e6](https://github.com/ccxt/ccxt/commits/842c3348e6118c26abc888d53ab003c6623a5048)
+*  editSpotOrder fixes [13b2b4293a](https://github.com/ccxt/ccxt/commits/13b2b4293a4009f8d751603ddc8d073cef2d0d0d)
+*  feat(bitget): add history OHLCV candles [53789b754b](https://github.com/ccxt/ccxt/commits/53789b754b778b852681a1951af182bb060fc67a)
+*  read from params [8d3c0ce53b](https://github.com/ccxt/ccxt/commits/8d3c0ce53b7d40f870a8127b7ba3a0910b9f615e)
+*  retry tests [690b8e7abb](https://github.com/ccxt/ccxt/commits/690b8e7abb873e9bfcc775282b2dfd1a2d0b6a92)
+*  typo [af2b28dd82](https://github.com/ccxt/ccxt/commits/af2b28dd82fc723765fc47bf72b7c7a549b81f4a)
+*  fix [2ddb838124](https://github.com/ccxt/ccxt/commits/2ddb838124ccec8679bdd06832caa56fe5348c77)
+*  Update ts/src/test/test.ts [56bdf86158](https://github.com/ccxt/ccxt/commits/56bdf8615868fcbe0013989cc984eb5c2d4114ad)
+*  Update ts/src/test/test.ts [9f974b61ca](https://github.com/ccxt/ccxt/commits/9f974b61ca0fc4c8f77d546f27e325611ab5a98a)
+*  Update ts/src/test/test.ts [e1ad71c692](https://github.com/ccxt/ccxt/commits/e1ad71c69258ff3ab899b68ccaecd0caf464cbe5)
+*  Update ts/src/test/test.ts [dc3e061942](https://github.com/ccxt/ccxt/commits/dc3e061942f86d046f17fecde4d24e251154d6e5)
+*  fix [557665eaee](https://github.com/ccxt/ccxt/commits/557665eaee2c2d106118e574df43db5d517eff12)
+*  fix rt [ca3ded2265](https://github.com/ccxt/ccxt/commits/ca3ded2265dfd7d461386fd09e131f12b15a71c6)
+*  recommit [cc829f387c](https://github.com/ccxt/ccxt/commits/cc829f387cd40aa3f40ed8eb6d38381b252ff8f4)
+*  update message [4a5d06962e](https://github.com/ccxt/ccxt/commits/4a5d06962e9efeec4cfcdd65f93d20d27d5ab3a7)
+*  change retries to 3 [d74dbcfcc7](https://github.com/ccxt/ccxt/commits/d74dbcfcc7873fe6912b7356728501c68dce3661)
+*  build: remove bybit proxy [2588032311](https://github.com/ccxt/ccxt/commits/25880323116615fd58b096a55a23bc530542e263)
+*  trigger bybit build [d18e239f4d](https://github.com/ccxt/ccxt/commits/d18e239f4d61a2a6bf5fcafff92127fc6c2f1016)
+*  4.0.41 [f25c21a31c](https://github.com/ccxt/ccxt/commits/f25c21a31cb598022df8275975776a30b61aacb7)
+
+
+## 4.0.40 (2023-07-27)
+
+*  feat(bitget): add privateMixGetPositionHistoryPosition support to fetchPositions [edfe282489](https://github.com/ccxt/ccxt/commits/edfe28248913062b2cc46c62757db5bfacd6da8c)
+*  off by 1 fix [575223581d](https://github.com/ccxt/ccxt/commits/575223581dbe80f59936489996a01217083f8a4a)
+*  add sample [f6b599cbd5](https://github.com/ccxt/ccxt/commits/f6b599cbd51cd46ba15eb978d7b7862f5fec78ee)
+*  fix parsePosition [fe1e644771](https://github.com/ccxt/ccxt/commits/fe1e644771b468a39c7802d1e61601eb5f843c8b)
+*  fix(bitstamp): 3d timeframe [7d823f3956](https://github.com/ccxt/ccxt/commits/7d823f3956db82370d5968f9851ef5c58a4faf80)
+*  Update BUG_REPORT.yml [25345480c4](https://github.com/ccxt/ccxt/commits/25345480c41e27d169ead8d973a3374d693e2206)
+*  README OKX promo [0950b23b0b](https://github.com/ccxt/ccxt/commits/0950b23b0bef7def0a2ea98e1425ad00eb9559e0)
+*  README.md cdn links [7964f5427f](https://github.com/ccxt/ccxt/commits/7964f5427f9f5e205b708dc399b9a0a3a06c249f)
+*  README.md cdn links [b2633661a3](https://github.com/ccxt/ccxt/commits/b2633661a3b5a2ffe1b54139936b221bb7cd2fe5)
+*  feat(delta): setLeverage [83a86d177e](https://github.com/ccxt/ccxt/commits/83a86d177ec835272a056930d278414bf0a0ac79)
+*  bitget trigger order omit reduceOnly [586f91fcb5](https://github.com/ccxt/ccxt/commits/586f91fcb5a08871f7459808058cafdf8eac3782)
+*  feat(base): add remaining and filled for closed orders [66b4b568b0](https://github.com/ccxt/ccxt/commits/66b4b568b0fc0e4272857beb34bf923608116fc9)
+*  ISSUE_TEMPLATE/BUG_REPORT.yml languages [6bdb5e4d3e](https://github.com/ccxt/ccxt/commits/6bdb5e4d3ebbe9b60d9bc9a450431f088ae2d3ca)
+*  fix!(hitbtc): hitbtc3 renamed to hitbtc [9c048be3e6](https://github.com/ccxt/ccxt/commits/9c048be3e6e439eb4f48f23a9e245063e95ad841)
+*  gate setPositionMode implementation [2ef6355f0d](https://github.com/ccxt/ccxt/commits/2ef6355f0d31ea57fca1790487b36a0bfd84e3bd)
+*  feat(errors): added error type NoChange [1a96ee9799](https://github.com/ccxt/ccxt/commits/1a96ee9799d87ecf22060d993dacb5f3db6562d0)
+*  feat(delta): fetchLeverage [6726db8257](https://github.com/ccxt/ccxt/commits/6726db8257f14dfc123bfe5b8bd4eeb550b900bf)
+*  add error [547f4c306e](https://github.com/ccxt/ccxt/commits/547f4c306ed5dea855cbade4135a177498116f11)
+*  feat(fmfwio): upgrade to v3 api [2b57de38bb](https://github.com/ccxt/ccxt/commits/2b57de38bb64b12e1fbf62cef16e4d1b6b289fc5)
+*  feat(bequant): upgrade to v3 [698659c1f4](https://github.com/ccxt/ccxt/commits/698659c1f454892b3e62d897196036a477a6d08f)
+*  update pro code [b9fa4dc7ef](https://github.com/ccxt/ccxt/commits/b9fa4dc7efb60829495c6f83bbc746a25b50f003)
+*  4.0.38 [808892beff](https://github.com/ccxt/ccxt/commits/808892beff8677ab96577ba18c5e8cc08aec4884)
+*  4.0.39 [b49af7222d](https://github.com/ccxt/ccxt/commits/b49af7222dba47354551e514de9032f9fbe669d4)
+*  4.0.40 [13b81397f0](https://github.com/ccxt/ccxt/commits/13b81397f014f3d351a7967d7c664476e26866a6)
+
+
+## 4.0.39 (2023-07-25)
+
+*  feat(delta): fetchMarkOHLCV [f3751fd747](https://github.com/ccxt/ccxt/commits/f3751fd7470423a99295a3d1e87c636bb96e2e39)
+*  feat(delta): fetchIndexOHLCV [c667a6f031](https://github.com/ccxt/ccxt/commits/c667a6f031573805ce58b496c0c77aab880917e6)
+*  4.0.39 [213704b779](https://github.com/ccxt/ccxt/commits/213704b779a95ed25573f2660a5185fed737d73b)
+
+
 ## 4.0.38 (2023-07-24)
 
 *  fix(base): protect filterBy agains undefined limit [9a8e60f677](https://github.com/ccxt/ccxt/commits/9a8e60f677e982a423250d7cbc00bc600e5179bf)

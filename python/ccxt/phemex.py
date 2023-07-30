@@ -543,7 +543,9 @@ class phemex(Exchange, ImplicitAPI):
         status = self.safe_string(market, 'status')
         contractSizeString = self.safe_string(market, 'contractSize', ' ')
         contractSize = None
-        if contractSizeString.find(' '):
+        if settle == 'USDT':
+            contractSize = 1
+        elif contractSizeString.find(' '):
             # "1 USD"
             # "0.005 ETH"
             parts = contractSizeString.split(' ')

@@ -525,7 +525,9 @@ class phemex extends Exchange {
         $status = $this->safe_string($market, 'status');
         $contractSizeString = $this->safe_string($market, 'contractSize', ' ');
         $contractSize = null;
-        if (mb_strpos($contractSizeString, ' ')) {
+        if ($settle === 'USDT') {
+            $contractSize = 1;
+        } elseif (mb_strpos($contractSizeString, ' ')) {
             // "1 USD"
             // "0.005 ETH"
             $parts = explode(' ', $contractSizeString);
