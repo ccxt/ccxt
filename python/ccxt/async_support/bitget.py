@@ -218,6 +218,8 @@ class bitget(Exchange, ImplicitAPI):
                             'account/assets': 2,
                             'account/assets-lite': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'account/transferRecords': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'convert/currencies': 2,
+                            'convert/convert-record': 2,
                         },
                         'post': {
                             'wallet/transfer': 4,
@@ -265,6 +267,8 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/profit/profitHisDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/profit/waitProfitDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/user/getTraderInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'convert/quoted-price': 4,
+                            'convert/trade': 4,
                         },
                     },
                     'mix': {
@@ -1005,6 +1009,14 @@ class bitget(Exchange, ImplicitAPI):
                 'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': True,
+                },
+                'fetchOHLCV': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketCandles',  # or publicSpotGetMarketHistoryCandles
+                    },
+                    'swap:': {
+                        'method': 'publicMixGetMarketCandles',  # or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                    },
                 },
                 'accountsByType': {
                     'main': 'EXCHANGE',
@@ -2349,13 +2361,30 @@ class bitget(Exchange, ImplicitAPI):
                     request['endTime'] = until
                 else:
                     request['endTime'] = self.sum(since, limit * duration * 1000)
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
         ommitted = self.omit(params, ['until', 'till'])
         extended = self.extend(request, ommitted)
         response = None
         if market['spot']:
-            response = await self.publicSpotGetMarketCandles(extended)
+            spotOptions = self.safe_value(options, 'spot', {})
+            defaultSpotMethod = self.safe_string(params, 'method', 'publicSpotGetMarketCandles')
+            method = self.safe_string(spotOptions, 'method', defaultSpotMethod)
+            if method == 'publicSpotGetMarketCandles':
+                response = await self.publicSpotGetMarketCandles(extended)
+            elif method == 'publicSpotGetMarketHistoryCandles':
+                response = await self.publicSpotGetMarketHistoryCandles(extended)
         else:
-            response = await self.publicMixGetMarketCandles(extended)
+            swapOptions = self.safe_value(options, 'swap', {})
+            defaultSwapMethod = self.safe_string(params, 'method', 'publicMixGetMarketCandles')
+            swapMethod = self.safe_string(swapOptions, 'method', defaultSwapMethod)
+            if swapMethod == 'publicMixGetMarketCandles':
+                response = await self.publicMixGetMarketCandles(extended)
+            elif swapMethod == 'publicMixGetMarketHistoryCandles':
+                response = await self.publicMixGetMarketHistoryCandles(extended)
+            elif swapMethod == 'publicMixGetMarketHistoryIndexCandles':
+                response = await self.publicMixGetMarketHistoryIndexCandles(extended)
+            elif swapMethod == 'publicMixGetMarketHistoryMarkCandles':
+                response = await self.publicMixGetMarketHistoryMarkCandles(extended)
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
@@ -2740,7 +2769,7 @@ class bitget(Exchange, ImplicitAPI):
                 request[timeInForceKey] = 'fok'
             elif timeInForce == 'ioc':
                 request[timeInForceKey] = 'ioc'
-        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly'])
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly'])
         response = await getattr(self, method)(self.extend(request, omitted))
         #
         #     {

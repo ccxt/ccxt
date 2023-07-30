@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.30'
+__version__ = '4.0.43'
 
 # -----------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BaseError, BadSymbol, BadRequest, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress
+from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
 from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
 
@@ -116,6 +116,7 @@ class Exchange(BaseExchange):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
+        await self.ws_close()
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
@@ -437,7 +438,6 @@ class Exchange(BaseExchange):
             await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
             for url in self.clients.copy():
                 del self.clients[url]
-        await super(Exchange, self).close()
 
     async def load_order_book(self, client, messageHash, symbol, limit=None, params={}):
         if symbol not in self.orderbooks:
@@ -599,7 +599,7 @@ class Exchange(BaseExchange):
                 value = self.safe_value(entry, key)
                 if value and (value >= since):
                     result.append(entry)
-        if tail:
+        if tail and limit is not None:
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
@@ -620,7 +620,7 @@ class Exchange(BaseExchange):
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
-        if tail:
+        if tail and limit is not None:
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
@@ -952,6 +952,7 @@ class Exchange(BaseExchange):
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
         symbol = self.safe_string(order, 'symbol')
         side = self.safe_string(order, 'side')
+        status = self.safe_string(order, 'status')
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
@@ -1035,14 +1036,18 @@ class Exchange(BaseExchange):
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
                 amount = Precise.string_add(filled, remaining)
-            elif self.safe_string(order, 'status') == 'closed':
+            elif status == 'closed':
                 amount = filled
         if filled is None:
             if amount is not None and remaining is not None:
                 filled = Precise.string_sub(amount, remaining)
+            elif status == 'closed' and amount is not None:
+                filled = amount
         if remaining is None:
             if amount is not None and filled is not None:
                 remaining = Precise.string_sub(amount, filled)
+            elif status == 'closed':
+                remaining = '0'
         # ensure that the average field is calculated correctly
         inverse = self.safe_value(market, 'inverse', False)
         contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
@@ -1137,7 +1142,7 @@ class Exchange(BaseExchange):
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'status': self.safe_string(order, 'status'),
+            'status': status,
             'fee': self.safe_value(order, 'fee'),
         })
 
@@ -2281,6 +2286,9 @@ class Exchange(BaseExchange):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet')
+
     async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
@@ -2459,7 +2467,7 @@ class Exchange(BaseExchange):
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         if self.has['fetchLeverageTiers']:
-            market = await self.market(symbol)
+            market = self.market(symbol)
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
@@ -2807,9 +2815,9 @@ class Exchange(BaseExchange):
     def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """
          * @ignore
-        :param str argument: the argument to check
-        :param str argumentName: the name of the argument to check
         :param str methodName: the name of the method that the argument is being checked for
+        :param str argument: the argument's actual value provided
+        :param str argumentName: the name of the argument being checked(for logging purposes)
         :param str[] options: a list of options that the argument can be
         :returns None:
         """

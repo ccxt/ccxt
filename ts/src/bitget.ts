@@ -196,6 +196,8 @@ export default class bitget extends Exchange {
                             'account/assets': 2,
                             'account/assets-lite': 2, // 10 times/1s (UID) => 20/10 = 2
                             'account/transferRecords': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'convert/currencies': 2,
+                            'convert/convert-record': 2,
                         },
                         'post': {
                             'wallet/transfer': 4,
@@ -243,6 +245,8 @@ export default class bitget extends Exchange {
                             'trace/profit/profitHisDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/profit/waitProfitDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/user/getTraderInfo': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'convert/quoted-price': 4,
+                            'convert/trade': 4,
                         },
                     },
                     'mix': {
@@ -983,6 +987,14 @@ export default class bitget extends Exchange {
                 'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': true,
+                },
+                'fetchOHLCV': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketCandles', // or publicSpotGetMarketHistoryCandles
+                    },
+                    'swap:': {
+                        'method': 'publicMixGetMarketCandles', // or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                    },
                 },
                 'accountsByType': {
                     'main': 'EXCHANGE',
@@ -2432,13 +2444,32 @@ export default class bitget extends Exchange {
                 }
             }
         }
+        const options = this.safeValue (this.options, 'fetchOHLCV', {});
         const ommitted = this.omit (params, [ 'until', 'till' ]);
         const extended = this.extend (request, ommitted);
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicSpotGetMarketCandles (extended);
+            const spotOptions = this.safeValue (options, 'spot', {});
+            const defaultSpotMethod = this.safeString (params, 'method', 'publicSpotGetMarketCandles');
+            const method = this.safeString (spotOptions, 'method', defaultSpotMethod);
+            if (method === 'publicSpotGetMarketCandles') {
+                response = await this.publicSpotGetMarketCandles (extended);
+            } else if (method === 'publicSpotGetMarketHistoryCandles') {
+                response = await this.publicSpotGetMarketHistoryCandles (extended);
+            }
         } else {
-            response = await this.publicMixGetMarketCandles (extended);
+            const swapOptions = this.safeValue (options, 'swap', {});
+            const defaultSwapMethod = this.safeString (params, 'method', 'publicMixGetMarketCandles');
+            const swapMethod = this.safeString (swapOptions, 'method', defaultSwapMethod);
+            if (swapMethod === 'publicMixGetMarketCandles') {
+                response = await this.publicMixGetMarketCandles (extended);
+            } else if (swapMethod === 'publicMixGetMarketHistoryCandles') {
+                response = await this.publicMixGetMarketHistoryCandles (extended);
+            } else if (swapMethod === 'publicMixGetMarketHistoryIndexCandles') {
+                response = await this.publicMixGetMarketHistoryIndexCandles (extended);
+            } else if (swapMethod === 'publicMixGetMarketHistoryMarkCandles') {
+                response = await this.publicMixGetMarketHistoryMarkCandles (extended);
+            }
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
         const data = this.safeValue (response, 'data', response);
@@ -2863,7 +2894,7 @@ export default class bitget extends Exchange {
                 request[timeInForceKey] = 'ioc';
             }
         }
-        const omitted = this.omit (query, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly' ]);
+        const omitted = this.omit (query, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly' ]);
         const response = await this[method] (this.extend (request, omitted));
         //
         //     {

@@ -148,7 +148,7 @@ function assert_currency_code($exchange, $skipped_properties, $method, $entry, $
     $log_text = log_template($exchange, $method, $entry);
     if ($actual_code !== null) {
         assert(is_string($actual_code), 'currency code should be either undefined or a string' . $log_text);
-        assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code should be present in exchange.currencies' . $log_text);
+        assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code (\"' . $actual_code . '\") should be present in exchange.currencies' . $log_text);
         if ($expected_code !== null) {
             assert($actual_code === $expected_code, 'currency code in response (\"' . string_value($actual_code) . '\") should be equal to expected code (\"' . string_value($expected_code) . '\")' . $log_text);
         }

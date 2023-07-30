@@ -525,7 +525,9 @@ class phemex extends Exchange {
         $status = $this->safe_string($market, 'status');
         $contractSizeString = $this->safe_string($market, 'contractSize', ' ');
         $contractSize = null;
-        if (mb_strpos($contractSizeString, ' ')) {
+        if ($settle === 'USDT') {
+            $contractSize = 1;
+        } elseif (mb_strpos($contractSizeString, ' ')) {
             // "1 USD"
             // "0.005 ETH"
             $parts = explode(' ', $contractSizeString);
@@ -3813,11 +3815,18 @@ class phemex extends Exchange {
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the phemex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by $market $symbols
          */
         $this->load_markets();
+        if ($symbols !== null) {
+            $first = $this->safe_value($symbols, 0);
+            $market = $this->market($first);
+            if ($market['settle'] !== 'USD') {
+                throw new BadSymbol($this->id . ' fetchLeverageTiers() supports USD settled markets only');
+            }
+        }
         $response = $this->publicGetCfgV2Products ($params);
         //
         //     {

@@ -2348,8 +2348,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' returned empty response')
         if statusCode == 500:
             # See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            errorCode = self.number_to_string(response[1])
-            errorText = response[2]
+            errorCode = self.safe_string(response, 1, '')
+            errorText = self.safe_string(response, 2, '')
             feedback = self.id + ' ' + errorText
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

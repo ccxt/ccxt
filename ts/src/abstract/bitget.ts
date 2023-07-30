@@ -54,6 +54,8 @@ interface Exchange {
     privateSpotGetAccountAssets (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountAssetsLite (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountTransferRecords (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetConvertCurrencies (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetConvertConvertRecord (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransfer (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransferV2 (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletSubTransfer (params?: {}): Promise<implicitReturnType>;
@@ -99,6 +101,8 @@ interface Exchange {
     privateSpotPostTraceProfitProfitHisDetailList (params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceProfitWaitProfitDetailList (params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceUserGetTraderInfo (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostConvertQuotedPrice (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostConvertTrade (params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccount (params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccounts (params?: {}): Promise<implicitReturnType>;
     privateMixGetPositionSinglePosition (params?: {}): Promise<implicitReturnType>;

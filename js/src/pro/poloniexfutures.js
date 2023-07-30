@@ -315,13 +315,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
         /**
          * @method
          * @name poloniexfutures#watchBalance
-         * @description watches information on multiple orders made by the user
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://futures-docs.poloniex.com/#account-balance-events
-         * @param {string} symbol not used by poloniexfutures watchBalance
-         * @param {int} [since] not used by poloniexfutures watchBalance
-         * @param {int} [limit] not used by poloniexfutures watchBalance
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
         const name = '/contractAccount/wallet';

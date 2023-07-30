@@ -543,7 +543,9 @@ class phemex(Exchange, ImplicitAPI):
         status = self.safe_string(market, 'status')
         contractSizeString = self.safe_string(market, 'contractSize', ' ')
         contractSize = None
-        if contractSizeString.find(' '):
+        if settle == 'USDT':
+            contractSize = 1
+        elif contractSizeString.find(' '):
             # "1 USD"
             # "0.005 ETH"
             parts = contractSizeString.split(' ')
@@ -3623,6 +3625,11 @@ class phemex(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
+        if symbols is not None:
+            first = self.safe_value(symbols, 0)
+            market = self.market(first)
+            if market['settle'] != 'USD':
+                raise BadSymbol(self.id + ' fetchLeverageTiers() supports USD settled markets only')
         response = await self.publicGetCfgV2Products(params)
         #
         #     {

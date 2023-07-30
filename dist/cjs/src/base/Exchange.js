@@ -1219,7 +1219,7 @@ class Exchange {
                 }
             }
         }
-        if (tail) {
+        if (tail && limit !== undefined) {
             return this.arraySlice(result, -limit);
         }
         return this.filterByLimit(result, limit, key);
@@ -1244,7 +1244,7 @@ class Exchange {
                 }
             }
         }
-        if (tail) {
+        if (tail && limit !== undefined) {
             return this.arraySlice(result, -limit);
         }
         return this.filterByLimit(result, limit, key);
@@ -1611,6 +1611,7 @@ class Exchange {
         let lastTradeTimeTimestamp = this.safeInteger(order, 'lastTradeTimestamp');
         let symbol = this.safeString(order, 'symbol');
         let side = this.safeString(order, 'side');
+        const status = this.safeString(order, 'status');
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
         const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
@@ -1723,7 +1724,7 @@ class Exchange {
             if (filled !== undefined && remaining !== undefined) {
                 amount = Precise["default"].stringAdd(filled, remaining);
             }
-            else if (this.safeString(order, 'status') === 'closed') {
+            else if (status === 'closed') {
                 amount = filled;
             }
         }
@@ -1731,10 +1732,16 @@ class Exchange {
             if (amount !== undefined && remaining !== undefined) {
                 filled = Precise["default"].stringSub(amount, remaining);
             }
+            else if (status === 'closed' && amount !== undefined) {
+                filled = amount;
+            }
         }
         if (remaining === undefined) {
             if (amount !== undefined && filled !== undefined) {
                 remaining = Precise["default"].stringSub(amount, filled);
+            }
+            else if (status === 'closed') {
+                remaining = '0';
             }
         }
         // ensure that the average field is calculated correctly
@@ -1848,7 +1855,7 @@ class Exchange {
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'status': this.safeString(order, 'status'),
+            'status': status,
             'fee': this.safeValue(order, 'fee'),
         });
     }
@@ -3173,6 +3180,9 @@ class Exchange {
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchMyTrades() is not supported yet');
     }
+    async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOHLCVWs() is not supported yet');
+    }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -3380,7 +3390,7 @@ class Exchange {
     }
     async fetchMarketLeverageTiers(symbol, params = {}) {
         if (this.has['fetchLeverageTiers']) {
-            const market = await this.market(symbol);
+            const market = this.market(symbol);
             if (!market['contract']) {
                 throw new errors.BadSymbol(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
@@ -3791,9 +3801,9 @@ class Exchange {
         /**
          * @ignore
          * @method
-         * @param {string} argument the argument to check
-         * @param {string} argumentName the name of the argument to check
          * @param {string} methodName the name of the method that the argument is being checked for
+         * @param {string} argument the argument's actual value provided
+         * @param {string} argumentName the name of the argument being checked (for logging purposes)
          * @param {string[]} options a list of options that the argument can be
          * @returns {undefined}
          */

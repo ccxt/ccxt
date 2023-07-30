@@ -333,13 +333,10 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * watches information on multiple orders made by the user
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://futures-docs.poloniex.com/#account-balance-events
-             * @param {string} symbol not used by poloniexfutures watchBalance
-             * @param {int} [since] not used by poloniexfutures watchBalance
-             * @param {int} [limit] not used by poloniexfutures watchBalance
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $name = '/contractAccount/wallet';

@@ -399,6 +399,7 @@ export default class okx extends Exchange {
                         'account/set-riskOffset-type': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
+                        'account/set-account-level': 4,
                         'account/mmp-reset': 4,
                         'account/mmp-config': 100,
                         // subaccount
@@ -4118,6 +4119,7 @@ export default class okx extends Exchange {
         //
         //     {
         //        "chain": "ETH-OKExChain",
+        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field,
         //        "ctAddr": "72315c",
         //        "ccy": "ETH",
         //        "to": "6",
@@ -4126,8 +4128,11 @@ export default class okx extends Exchange {
         //     }
         //
         const address = this.safeString(depositAddress, 'addr');
-        let tag = this.safeString2(depositAddress, 'tag', 'pmtId');
-        tag = this.safeString(depositAddress, 'memo', tag);
+        let tag = this.safeStringN(depositAddress, ['tag', 'pmtId', 'memo']);
+        if (tag === undefined) {
+            const addrEx = this.safeValue(depositAddress, 'addrEx', {});
+            tag = this.safeString(addrEx, 'comment');
+        }
         const currencyId = this.safeString(depositAddress, 'ccy');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];
@@ -6432,7 +6437,7 @@ export default class okx extends Exchange {
         const id = this.safeString(interest, 'instId');
         market = this.safeMarket(id, market);
         const time = this.safeInteger(interest, 'ts');
-        const timestamp = this.safeNumber(interest, 0, time);
+        const timestamp = this.safeInteger(interest, 0, time);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         let openInterestAmount = undefined;

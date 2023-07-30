@@ -1174,7 +1174,7 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#fetchBalanceWs
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description fetch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -1255,7 +1255,7 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -2208,7 +2208,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         const defaultType = this.safeString2(this.options, 'watchMyTrades', 'defaultType', 'spot');
@@ -2244,7 +2244,8 @@ class binance extends binance$1 {
         if (executionType === 'TRADE') {
             const trade = this.parseTrade(message);
             const orderId = this.safeString(trade, 'order');
-            const tradeFee = this.safeValue(trade, 'fee');
+            let tradeFee = this.safeValue(trade, 'fee');
+            tradeFee = this.extend({}, tradeFee);
             const symbol = this.safeString(trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
@@ -2255,7 +2256,7 @@ class binance extends binance$1 {
                         // accumulate order fees
                         const fees = this.safeValue(order, 'fees');
                         const fee = this.safeValue(order, 'fee');
-                        if (fees !== undefined) {
+                        if (!this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
                                 const orderFee = fees[i];

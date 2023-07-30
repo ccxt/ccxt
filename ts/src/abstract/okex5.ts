@@ -222,6 +222,7 @@ interface okex {
     privatePostAccountSetRiskOffsetType (params?: {}): Promise<implicitReturnType>;
     privatePostAccountActivateOption (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetAutoLoan (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetAccountLevel (params?: {}): Promise<implicitReturnType>;
     privatePostAccountMmpReset (params?: {}): Promise<implicitReturnType>;
     privatePostAccountMmpConfig (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;

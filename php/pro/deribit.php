@@ -66,7 +66,7 @@ class deribit extends \ccxt\async\deribit {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.deribit.com/#user-portfolio-currency
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */

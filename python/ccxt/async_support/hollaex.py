@@ -206,6 +206,8 @@ class hollaex(Exchange, ImplicitAPI):
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
+                    'BNB': 'bnb',
+                    'MATIC': 'matic',
                 },
             },
         })
@@ -324,6 +326,7 @@ class hollaex(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        see https://apidocs.hollaex.com/#constants
         :param dict [params]: extra parameters specific to the hollaex api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1596,13 +1599,11 @@ class hollaex(Exchange, ImplicitAPI):
         if network is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter')
         params = self.omit(params, 'network')
-        networks = self.safe_value(self.options, 'networks', {})
-        networkId = self.safe_string_lower_2(networks, network, code, network)
         request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-            'network': networkId,
+            'network': self.network_code_to_id(network, code),
         }
         response = await self.privatePostUserWithdrawal(self.extend(request, params))
         #
@@ -1616,6 +1617,117 @@ class hollaex(Exchange, ImplicitAPI):
         #     }
         #
         return self.parse_transaction(response, currency)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    "bch":{
+        #        "id":4,
+        #        "fullname":"Bitcoin Cash",
+        #        "symbol":"bch",
+        #        "active":true,
+        #        "verified":true,
+        #        "allow_deposit":true,
+        #        "allow_withdrawal":true,
+        #        "withdrawal_fee":0.0001,
+        #        "min":0.001,
+        #        "max":100000,
+        #        "increment_unit":0.001,
+        #        "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        #        "code":"bch",
+        #        "is_public":true,
+        #        "meta":{},
+        #        "estimated_price":null,
+        #        "description":null,
+        #        "type":"blockchain",
+        #        "network":null,
+        #        "standard":null,
+        #        "issuer":"HollaEx",
+        #        "withdrawal_fees":null,
+        #        "created_at":"2019-08-09T10:45:43.367Z",
+        #        "updated_at":"2021-12-13T03:08:32.372Z",
+        #        "created_by":1,
+        #        "owner_id":1
+        #    }
+        #
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        allowWithdrawal = self.safe_value(fee, 'allow_withdrawal')
+        if allowWithdrawal:
+            result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
+        withdrawalFees = self.safe_value(fee, 'withdrawal_fees')
+        if withdrawalFees is not None:
+            keys = list(withdrawalFees.keys())
+            keysLength = len(keys)
+            for i in range(0, keysLength):
+                key = keys[i]
+                value = withdrawalFees[key]
+                currencyId = self.safe_string(value, 'symbol')
+                currencyCode = self.safe_currency_code(currencyId)
+                networkCode = self.network_id_to_code(key, currencyCode)
+                networkCodeUpper = networkCode.upper()  # default to the upper case network code
+                withdrawalFee = self.safe_number(value, 'value')
+                result['networks'][networkCodeUpper] = {
+                    'deposit': None,
+                    'withdraw': withdrawalFee,
+                }
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://apidocs.hollaex.com/#constants
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the hollaex api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        response = await self.publicGetConstants(params)
+        #
+        #     {
+        #         "coins":{
+        #             "bch":{
+        #                 "id":4,
+        #                 "fullname":"Bitcoin Cash",
+        #                 "symbol":"bch",
+        #                 "active":true,
+        #                 "verified":true,
+        #                 "allow_deposit":true,
+        #                 "allow_withdrawal":true,
+        #                 "withdrawal_fee":0.0001,
+        #                 "min":0.001,
+        #                 "max":100000,
+        #                 "increment_unit":0.001,
+        #                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        #                 "code":"bch",
+        #                 "is_public":true,
+        #                 "meta":{},
+        #                 "estimated_price":null,
+        #                 "description":null,
+        #                 "type":"blockchain",
+        #                 "network":null,
+        #                 "standard":null,
+        #                 "issuer":"HollaEx",
+        #                 "withdrawal_fees":null,
+        #                 "created_at":"2019-08-09T10:45:43.367Z",
+        #                 "updated_at":"2021-12-13T03:08:32.372Z",
+        #                 "created_by":1,
+        #                 "owner_id":1
+        #             },
+        #         },
+        #         "network":"https://api.hollaex.network"
+        #     }
+        #
+        coins = self.safe_value(response, 'coins')
+        return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
     def normalize_number_if_needed(self, number):
         if number % 1 == 0:

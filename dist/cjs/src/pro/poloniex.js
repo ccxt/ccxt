@@ -303,14 +303,11 @@ class poloniex extends poloniex$1 {
     async watchBalance(params = {}) {
         /**
          * @method
-         * @name poloniex#watchOrders
-         * @description watches information on multiple orders made by the user
+         * @name poloniex#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
-         * @param {string} symbol not used by poloniex watchBalance
-         * @param {int} [since] not used by poloniex watchBalance
-         * @param {int} [limit] not used by poloniex watchBalance
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
         const name = 'balances';

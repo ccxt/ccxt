@@ -47,7 +47,7 @@ export default class wazirx extends wazirxRest {
         /**
          * @method
          * @name wazirx#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.wazirx.com/#account-update
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}

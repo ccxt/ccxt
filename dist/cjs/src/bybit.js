@@ -3287,13 +3287,13 @@ class bybit extends bybit$1 {
             'PENDING_CANCEL': 'open',
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
-            'PARTIALLY_FILLED_CANCELLED': 'canceled',
+            'PARTIALLY_FILLED_CANCELLED': 'closed',
             // v3 contract / unified margin / unified account
             'Created': 'open',
             'New': 'open',
             'Rejected': 'rejected',
             'PartiallyFilled': 'open',
-            'PartiallyFilledCanceled': 'canceled',
+            'PartiallyFilledCanceled': 'closed',
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -3669,7 +3669,7 @@ class bybit extends bybit$1 {
             //  closeOnTrigger to avoid failing due to insufficient available margin
             // 'closeOnTrigger': false, required for linear orders
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
-            // 'triggerPrice': 123.45, // trigger price, required for conditional orders
+            // 'triggerPrice': 123.46, // trigger price, required for conditional orders
             // 'triggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
             // 'tpTriggerby': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
             // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice

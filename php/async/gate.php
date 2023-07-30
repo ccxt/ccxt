@@ -142,6 +142,7 @@ class gate extends Exchange {
                 'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
+                'setPositionMode' => true,
                 'signIn' => false,
                 'transfer' => true,
                 'withdraw' => true,
@@ -360,6 +361,8 @@ class gate extends Exchange {
                     ),
                     'flash_swap' => array(
                         'get' => array(
+                            'currencies' => 1.5,
+                            'currency_pairs' => 1.5,
                             'orders' => 1.5,
                             'orders/{order_id}' => 1.5,
                         ),
@@ -770,6 +773,7 @@ class gate extends Exchange {
                     'REPAY_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TOO_MANY_CURRENCY_PAIRS' => '\\ccxt\\InvalidOrder',
                     'TOO_MANY_ORDERS' => '\\ccxt\\InvalidOrder',
+                    'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded',
                     'MIXED_ACCOUNT_TYPE' => '\\ccxt\\InvalidOrder',
                     'AUTO_BORROW_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TRADE_RESTRICTED' => '\\ccxt\\InsufficientFunds',
@@ -806,6 +810,7 @@ class gate extends Exchange {
                     'RISK_LIMIT_TOO_LOW' => '\\ccxt\\BadRequest', // array("label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000")
                     'AUTO_TRIGGER_PRICE_LESS_LAST' => '\\ccxt\\InvalidOrder',  // array("label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument => Trigger.Price must < last_price")
                     'AUTO_TRIGGER_PRICE_GREATE_LAST' => '\\ccxt\\InvalidOrder', // array("label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument => Trigger.Price must > last_price")
+                    'POSITION_HOLDING' => '\\ccxt\\BadRequest',
                 ),
                 'broad' => array(),
             ),
@@ -6024,6 +6029,24 @@ class gate extends Exchange {
             'dnw' => 'deposit/withdraw',
         );
         return $this->safe_string($ledgerType, $type, $type);
+    }
+
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($hedged, $symbol, $params) {
+            /**
+             * set dual/hedged mode to true or false for a swap $market, make sure all positions are closed and no orders are open before setting dual mode
+             * @see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+             * @param {bool} $hedged set to true to enable dual mode
+             * @param {string|null} $symbol if passed, dual mode is set for all markets with the same settle currency
+             * @param {array} $params extra parameters specific to the gate api endpoint
+             * @param {string} $params->settle settle currency
+             * @return {array} response from the exchange
+             */
+            $market = ($symbol !== null) ? $this->market($symbol) : null;
+            list($request, $query) = $this->prepare_request($market, 'swap', $params);
+            $request['dual_mode'] = $hedged;
+            return Async\await($this->privateFuturesPostSettleDualMode (array_merge($request, $query)));
+        }) ();
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

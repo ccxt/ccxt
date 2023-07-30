@@ -399,6 +399,7 @@ class kucoin extends kucoin$1 {
                     '401000': errors.BadRequest,
                     '411100': errors.AccountSuspended,
                     '415000': errors.BadRequest,
+                    '400303': errors.PermissionDenied,
                     '500000': errors.ExchangeNotAvailable,
                     '260220': errors.InvalidAddress,
                     '900014': errors.BadRequest, // {"code":"900014","msg":"Invalid chainId"}
@@ -4085,6 +4086,9 @@ class kucoin extends kucoin$1 {
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
+        if (errorCode !== '200000') {
+            throw new errors.ExchangeError(feedback);
+        }
         return undefined;
     }
 }
