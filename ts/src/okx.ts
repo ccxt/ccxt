@@ -4816,7 +4816,7 @@ export default class okx extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const position = this.safeValue (data, 0);
         if (position === undefined) {
-            return position;
+            return undefined;
         }
         return this.parsePosition (position);
     }
