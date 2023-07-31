@@ -1,5 +1,9 @@
 import Exchange from './abstract/coinmate.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coinmate
+ * @extends Exchange
+ */
 export default class coinmate extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -28,51 +32,57 @@ export default class coinmate extends Exchange {
         quoteVolume: any;
         info: any;
     }>;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
+        info: any;
         id: string;
+        txid: string;
+        type: string;
+        currency: any;
+        network: string;
+        amount: number;
+        status: string;
         timestamp: number;
         datetime: string;
-        currency: any;
-        amount: number;
-        type: string;
-        txid: string;
-        network: string;
         address: string;
-        addressTo: any;
         addressFrom: any;
+        addressTo: any;
         tag: string;
-        tagTo: any;
         tagFrom: any;
-        status: string;
+        tagTo: any;
+        updated: any;
+        comment: any;
         fee: {
             cost: number;
             currency: any;
+            rate: any;
         };
-        info: any;
     };
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
+        info: any;
         id: string;
+        txid: string;
+        type: string;
+        currency: any;
+        network: string;
+        amount: number;
+        status: string;
         timestamp: number;
         datetime: string;
-        currency: any;
-        amount: number;
-        type: string;
-        txid: string;
-        network: string;
         address: string;
-        addressTo: any;
         addressFrom: any;
+        addressTo: any;
         tag: string;
-        tagTo: any;
         tagFrom: any;
-        status: string;
+        tagTo: any;
+        updated: any;
+        comment: any;
         fee: {
             cost: number;
             currency: any;
+            rate: any;
         };
-        info: any;
     }>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -89,9 +99,9 @@ export default class coinmate extends Exchange {
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseOrderStatus(status: any): string;
     parseOrderType(type: any): string;
-    parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<{
         info: any;
     }>;
@@ -102,5 +112,5 @@ export default class coinmate extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

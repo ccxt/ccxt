@@ -1,6 +1,11 @@
 // @ts-nocheck
 
-export default function Future () {
+export interface Future extends Promise<unknown> {
+    resolve(value: unknown): void;
+    reject(reason?: any): void;
+}
+
+export function createFuture (): Future {
 
     let resolve = undefined
         , reject = undefined

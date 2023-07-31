@@ -9,7 +9,7 @@ export default class idex extends idexRest {
     handleTicker(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any): {
+    parseWsTrade(trade: any, market?: any): {
         info: any;
         timestamp: number;
         datetime: string;

@@ -1,5 +1,5 @@
 
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog'
 
 const log  = ololog.configure ({ locate: false })

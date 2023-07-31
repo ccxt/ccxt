@@ -8,6 +8,10 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class whitebit
+ * @extends Exchange
+ */
 class whitebit extends whitebit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -16,6 +20,7 @@ class whitebit extends whitebit$1 {
             'version': 'v4',
             'countries': ['EE'],
             'rateLimit': 500,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -262,8 +267,8 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchMarkets
          * @description retrieves data on all markets for whitebit
          * @see https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#market-info
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const markets = await this.v4PublicGetMarkets();
         //
@@ -306,11 +311,19 @@ class whitebit extends whitebit$1 {
             let symbol = base + '/' + quote;
             const swap = typeId === 'futures';
             const margin = isCollateral && !swap;
+            let contract = false;
+            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
+            const contractSize = amountPrecision;
+            let linear = undefined;
+            let inverse = undefined;
             if (swap) {
                 settleId = quoteId;
                 settle = this.safeCurrencyCode(settleId);
                 symbol = symbol + ':' + settle;
                 type = 'swap';
+                contract = true;
+                linear = true;
+                inverse = false;
             }
             else {
                 type = 'spot';
@@ -331,18 +344,18 @@ class whitebit extends whitebit$1 {
                 'future': false,
                 'option': false,
                 'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': this.safeNumber(market, 'makerFee'),
                 'maker': this.safeNumber(market, 'takerFee'),
-                'contractSize': undefined,
+                'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'moneyPrec'))),
                 },
                 'limits': {
@@ -374,7 +387,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.v4PublicGetAssets(params);
@@ -431,9 +444,10 @@ class whitebit extends whitebit$1 {
         /**
          * @method
          * @name whitebit#fetchTransactionFees
-         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
-         * @param {[string]|undefined} codes not used by fetchTransactionFees ()
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @deprecated
+         * @description please use fetchDepositWithdrawFees instead
+         * @param {string[]|undefined} codes not used by fetchTransactionFees ()
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -486,8 +500,8 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @param {[string]|undefined} codes not used by fetchDepositWithdrawFees ()
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -635,7 +649,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         const response = await this.v4PublicGetAssets(params);
@@ -682,7 +696,7 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -769,8 +783,8 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -804,8 +818,8 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -845,10 +859,10 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -876,10 +890,10 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -934,14 +948,13 @@ class whitebit extends whitebit$1 {
             const keys = Object.keys(response);
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
-                const market = this.safeMarket(marketId, undefined, '_');
+                const marketNew = this.safeMarket(marketId, undefined, '_');
                 const rawTrades = this.safeValue(response, marketId, []);
-                const parsed = this.parseTrades(rawTrades, market, since, limit);
+                const parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                 results = this.arrayConcat(results, parsed);
             }
             results = this.sortBy2(results, 'timestamp', 'id');
-            const tail = (since === undefined);
-            return this.filterBySinceLimit(results, since, limit, 'timestamp', tail);
+            return this.filterBySinceLimit(results, since, limit, 'timestamp');
         }
     }
     parseTrade(trade, market = undefined) {
@@ -1031,10 +1044,10 @@ class whitebit extends whitebit$1 {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1098,7 +1111,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.v4PublicGetPing(params);
@@ -1121,7 +1134,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.v4PublicGetTime(params);
@@ -1141,8 +1154,8 @@ class whitebit extends whitebit$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1221,7 +1234,7 @@ class whitebit extends whitebit$1 {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1262,7 +1275,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -1314,10 +1327,10 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -1358,11 +1371,11 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1397,10 +1410,10 @@ class whitebit extends whitebit$1 {
         let results = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket(marketId, undefined, '_');
+            const marketNew = this.safeMarket(marketId, undefined, '_');
             const orders = response[marketId];
             for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder(orders[j], market);
+                const order = this.parseOrder(orders[j], marketNew);
                 results.push(this.extend(order, { 'status': 'closed' }));
             }
         }
@@ -1519,11 +1532,11 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1566,7 +1579,7 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
@@ -1639,7 +1652,7 @@ class whitebit extends whitebit$1 {
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} response from the exchange
          */
         await this.loadMarkets();
@@ -1667,7 +1680,7 @@ class whitebit extends whitebit$1 {
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from - main, spot, collateral
          * @param {string} toAccount account to transfer to - main, spot, collateral
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
@@ -1712,8 +1725,8 @@ class whitebit extends whitebit$1 {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
@@ -1835,8 +1848,8 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchDeposit
          * @description fetch information on a deposit
          * @param {string} id deposit id
-         * @param {string|undefined} code not used by whitebit fetchDeposit ()
-         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {string} code not used by whitebit fetchDeposit ()
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
@@ -1898,11 +1911,11 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -1965,12 +1978,12 @@ class whitebit extends whitebit$1 {
          * @name whitebit#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
          * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
-         * @param {string|undefined} code unified currency code
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
-         * @param {int|undefined} limit the maximum number of structures to retrieve
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+         * @param {string} code unified currency code
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch borrrow interest for
+         * @param {int} [limit] the maximum number of structures to retrieve
+         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2043,6 +2056,9 @@ class whitebit extends whitebit$1 {
         const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
         return this.inArray(currency, fiatCurrencies);
     }
+    nonce() {
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
         const version = this.safeValue(api, 0);
@@ -2061,7 +2077,7 @@ class whitebit extends whitebit$1 {
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json(this.extend({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64(body);
-            const signature = this.hmac(payload, secret, sha512.sha512);
+            const signature = this.hmac(this.encode(payload), secret, sha512.sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
@@ -2086,9 +2102,9 @@ class whitebit extends whitebit$1 {
             const message = this.safeString(response, 'message');
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            const code = this.safeInteger(response, 'code');
+            const codeNew = this.safeInteger(response, 'code');
             const hasErrorStatus = status !== undefined && status !== '200';
-            if (hasErrorStatus || code !== undefined) {
+            if (hasErrorStatus || codeNew !== undefined) {
                 const feedback = this.id + ' ' + body;
                 let errorInfo = message;
                 if (hasErrorStatus) {
@@ -2108,6 +2124,7 @@ class whitebit extends whitebit$1 {
                 throw new errors.ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }
 
