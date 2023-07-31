@@ -1110,7 +1110,7 @@ class ripio extends ripio$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //      {"detail":"Authentication credentials were not provided."}
@@ -1138,6 +1138,7 @@ class ripio extends ripio$1 {
             }
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

@@ -1,0 +1,27 @@
+from ccxt.base.types import Entry
+
+
+class ImplicitAPI:
+    public_get_ticker_currency = publicGetTickerCurrency = Entry('ticker/{currency}', 'public', 'GET', {})
+    public_get_ticker_all = publicGetTickerAll = Entry('ticker/all', 'public', 'GET', {})
+    public_get_ticker_all_btc = publicGetTickerALLBTC = Entry('ticker/ALL_BTC', 'public', 'GET', {})
+    public_get_ticker_all_krw = publicGetTickerALLKRW = Entry('ticker/ALL_KRW', 'public', 'GET', {})
+    public_get_orderbook_currency = publicGetOrderbookCurrency = Entry('orderbook/{currency}', 'public', 'GET', {})
+    public_get_orderbook_all = publicGetOrderbookAll = Entry('orderbook/all', 'public', 'GET', {})
+    public_get_transaction_history_currency = publicGetTransactionHistoryCurrency = Entry('transaction_history/{currency}', 'public', 'GET', {})
+    public_get_transaction_history_all = publicGetTransactionHistoryAll = Entry('transaction_history/all', 'public', 'GET', {})
+    public_get_candlestick_currency_interval = publicGetCandlestickCurrencyInterval = Entry('candlestick/{currency}/{interval}', 'public', 'GET', {})
+    private_post_info_account = privatePostInfoAccount = Entry('info/account', 'private', 'POST', {})
+    private_post_info_balance = privatePostInfoBalance = Entry('info/balance', 'private', 'POST', {})
+    private_post_info_wallet_address = privatePostInfoWalletAddress = Entry('info/wallet_address', 'private', 'POST', {})
+    private_post_info_ticker = privatePostInfoTicker = Entry('info/ticker', 'private', 'POST', {})
+    private_post_info_orders = privatePostInfoOrders = Entry('info/orders', 'private', 'POST', {})
+    private_post_info_user_transactions = privatePostInfoUserTransactions = Entry('info/user_transactions', 'private', 'POST', {})
+    private_post_info_order_detail = privatePostInfoOrderDetail = Entry('info/order_detail', 'private', 'POST', {})
+    private_post_trade_place = privatePostTradePlace = Entry('trade/place', 'private', 'POST', {})
+    private_post_trade_cancel = privatePostTradeCancel = Entry('trade/cancel', 'private', 'POST', {})
+    private_post_trade_btc_withdrawal = privatePostTradeBtcWithdrawal = Entry('trade/btc_withdrawal', 'private', 'POST', {})
+    private_post_trade_krw_deposit = privatePostTradeKrwDeposit = Entry('trade/krw_deposit', 'private', 'POST', {})
+    private_post_trade_krw_withdrawal = privatePostTradeKrwWithdrawal = Entry('trade/krw_withdrawal', 'private', 'POST', {})
+    private_post_trade_market_buy = privatePostTradeMarketBuy = Entry('trade/market_buy', 'private', 'POST', {})
+    private_post_trade_market_sell = privatePostTradeMarketSell = Entry('trade/market_sell', 'private', 'POST', {})

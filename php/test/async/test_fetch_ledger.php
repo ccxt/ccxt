@@ -11,25 +11,17 @@ use React\Promise;
 
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_shared_methods.php';
-include_once __DIR__ . '/../base/test_ledger_item.php';
+include_once __DIR__ . '/../base/test_ledger_entry.php';
 
-function test_fetch_ledger($exchange, $code) {
-    return Async\async(function () use ($exchange, $code) {
+function test_fetch_ledger($exchange, $skipped_properties, $code) {
+    return Async\async(function () use ($exchange, $skipped_properties, $code) {
         $method = 'fetchLedger';
         $items = Async\await($exchange->fetch_ledger($code));
         assert(gettype($items) === 'array' && array_keys($items) === array_keys(array_keys($items)), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($items));
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($items); $i++) {
-            test_ledger_item($exchange, $method, $items[$i], $code, $now);
+            test_ledger_entry($exchange, $skipped_properties, $method, $items[$i], $code, $now);
         }
         assert_timestamp_order($exchange, $method, $code, $items);
-        //
-        $item_method = 'fetchLedgerItem'; // todo: create separate testfile
-        if ($exchange->has[$item_method]) {
-            if (count($items) >= 1) {
-                $item = Async\await($exchange->fetch_ledger_item($items[0]->id));
-                test_ledger_item($exchange, $item_method, $item, $code, $now);
-            }
-        }
     }) ();
 }

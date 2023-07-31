@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.mexc import mexc
+from ccxt.abstract.mexc3 import ImplicitAPI
 
 
-class mexc3(mexc):
+class mexc3(mexc, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(mexc3, self).describe(), {
