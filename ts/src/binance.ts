@@ -92,6 +92,7 @@ export default class binance extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsBySymbol': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
