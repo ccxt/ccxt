@@ -35,6 +35,7 @@ export default class ndax extends Exchange {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -1326,6 +1327,7 @@ export default class ndax extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the ndax api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1334,7 +1336,16 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2 (params, 'ClientOrderId', 'clientOrderId');
-        params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ]);
+        let orderType = this.safeInteger (this.options['orderTypes'], this.capitalize (type));
+        const triggerPrice = this.safeString (params, 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            if (type === 'limit') {
+                orderType = 3;
+            } else if (type === 'market') {
+                orderType = 4;
+            }
+        }
+        params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
         const request = {
@@ -1351,9 +1362,10 @@ export default class ndax extends Exchange {
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
             'Quantity': parseFloat (this.amountToPrecision (symbol, amount)),
-            'OrderType': this.safeInteger (this.options['orderTypes'], this.capitalize (type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
+            'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
+            // TODO: how do you set the stop loss type?
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
