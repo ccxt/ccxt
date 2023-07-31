@@ -16,7 +16,7 @@ async function example () {
             if (!keys_1.includes (key)) {
                 console.log (prefix, key, 'does not exist in ', exchange_1.id, 'as opposed to', exchange_2.id);
             } else if (exchange_2.has[key] !== exchange_1.has[key]) {
-                console.log (prefix, key, 'in', exchange_1.id, 'is', ':', exchange_1.has[key], ', while in', exchange_2.id, 'is:', exchange_2.has[key]);
+                console.log (prefix, key, '> ', exchange_1.id, ':', exchange_1.has[key], ',', exchange_2.id, ':', exchange_2.has[key]);
             }
         }
     }
@@ -28,7 +28,7 @@ async function example () {
             if (!keys_2.includes (key)) {
                 console.log (prefix, key, 'does not exist in ', exchange_2.id, 'as opposed to', exchange_1.id);
             } else if (exchange_1.has[key] !== exchange_2.has[key]) {
-                console.log (prefix, key, 'in ', exchange_2.id, 'is', ':', exchange_2.has[key], ', while in', exchange_1.id, 'is:', exchange_1.has[key]);
+                console.log (prefix, key, '> ', exchange_2.id, ':', exchange_2.has[key], ',', exchange_1.id, ':', exchange_1.has[key]);
             }
         }
     }
