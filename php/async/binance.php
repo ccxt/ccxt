@@ -7214,7 +7214,7 @@ class binance extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $result[] = $this->parse_position($response[$i], $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -7328,7 +7328,7 @@ class binance extends Exchange {
             $account = Async\await($this->$method ($query));
             $result = $this->parse_account_positions($account);
             $symbols = $this->market_symbols($symbols);
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -7424,7 +7424,7 @@ class binance extends Exchange {
                 $result[] = $parsed;
             }
             $symbols = $this->market_symbols($symbols);
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 

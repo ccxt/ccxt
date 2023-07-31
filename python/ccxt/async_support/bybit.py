@@ -6732,7 +6732,7 @@ class bybit(Exchange, ImplicitAPI):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition))
-        return self.filter_by_array(results, 'symbol', symbols, False)
+        return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
     async def fetch_usdc_positions(self, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
@@ -6802,7 +6802,7 @@ class bybit(Exchange, ImplicitAPI):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
-        return self.filter_by_array(results, 'symbol', symbols, False)
+        return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
     async def fetch_derivatives_positions(self, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()

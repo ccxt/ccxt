@@ -3804,7 +3804,7 @@ class bitget(Exchange, ImplicitAPI):
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -3914,6 +3914,7 @@ class bitget(Exchange, ImplicitAPI):
             'liquidationPrice': liquidationPrice,
             'entryPrice': self.parse_number(entryPrice),
             'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'realizedPnl': self.safe_number(position, 'pnl'),
             'percentage': self.parse_number(percentage),
             'contracts': contracts,
             'contractSize': contractSizeNumber,

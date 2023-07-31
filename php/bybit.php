@@ -7117,7 +7117,7 @@ class bybit extends Exchange {
             }
             $results[] = $this->parse_position($rawPosition);
         }
-        return $this->filter_by_array($results, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
     public function fetch_usdc_positions(?array $symbols = null, $params = array ()) {
@@ -7192,7 +7192,7 @@ class bybit extends Exchange {
             }
             $results[] = $this->parse_position($rawPosition, $market);
         }
-        return $this->filter_by_array($results, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
     public function fetch_derivatives_positions(?array $symbols = null, $params = array ()) {

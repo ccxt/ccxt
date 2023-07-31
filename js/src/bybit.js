@@ -7244,7 +7244,7 @@ export default class bybit extends Exchange {
             }
             results.push(this.parsePosition(rawPosition));
         }
-        return this.filterByArray(results, 'symbol', symbols, false);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
     async fetchUSDCPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -7319,7 +7319,7 @@ export default class bybit extends Exchange {
             }
             results.push(this.parsePosition(rawPosition, market));
         }
-        return this.filterByArray(results, 'symbol', symbols, false);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
     async fetchDerivativesPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();

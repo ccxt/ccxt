@@ -47,7 +47,7 @@ export default class krakenfutures extends Exchange {
         previousFundingDatetime: any;
     };
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePositions(response: any, symbols?: string[], params?: {}): any[];
     parsePosition(position: any, market?: any): {
         info: any;

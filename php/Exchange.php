@@ -3584,7 +3584,7 @@ class Exchange {
             $position = array_merge($this->parse_position($positions[$i], null), $params);
             $result[] = $position;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filterByArrayPositions ($result, 'symbol', $symbols, false);
     }
 
     public function parse_accounts($accounts, $params = array ()) {
@@ -5110,5 +5110,13 @@ class Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchTransactions () is not supported yet');
         }
+    }
+
+    public function filter_by_array_positions($objects, int|string $key, $values = null, $indexed = true) {
+        /**
+         * @ignore
+         * Typed wrapper for filterByArray that returns a list of positions
+         */
+        return $this->filter_by_array($objects, $key, $values, $indexed);
     }
 }

@@ -6690,7 +6690,7 @@ class huobi extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             ));
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function fetch_position(string $symbol, $params = array ()) {

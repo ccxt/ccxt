@@ -2542,7 +2542,7 @@ class Exchange {
             const position = this.extend(this.parsePosition(positions[i], undefined), params);
             result.push(position);
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parseAccounts(accounts, params = {}) {
         accounts = this.toArray(accounts);
@@ -3973,6 +3973,14 @@ class Exchange {
         else {
             throw new errors.NotSupported(this.id + ' fetchTransactions () is not supported yet');
         }
+    }
+    filterByArrayPositions(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of positions
+         */
+        return this.filterByArray(objects, key, values, indexed);
     }
 }
 

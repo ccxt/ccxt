@@ -4030,7 +4030,7 @@ class bitget extends Exchange {
                 $result[] = $this->parse_position($position[$i]);
             }
             $symbols = $this->market_symbols($symbols);
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -4149,6 +4149,7 @@ class bitget extends Exchange {
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPrice),
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'realizedPnl' => $this->safe_number($position, 'pnl'),
             'percentage' => $this->parse_number($percentage),
             'contracts' => $contracts,
             'contractSize' => $contractSizeNumber,

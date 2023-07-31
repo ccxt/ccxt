@@ -1722,7 +1722,7 @@ class Exchange(BaseExchange):
         for i in range(0, len(positions)):
             position = self.extend(self.parse_position(positions[i], None), params)
             result.append(position)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filterByArrayPositions(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts, params={}):
         accounts = self.to_array(accounts)
@@ -2963,3 +2963,10 @@ class Exchange(BaseExchange):
             return await self.fetchDepositsWithdrawals(code, since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
+
+    def filter_by_array_positions(self, objects, key: IndexType, values=None, indexed=True):
+        """
+         * @ignore
+        Typed wrapper for filterByArray that returns a list of positions
+        """
+        return self.filter_by_array(objects, key, values, indexed)

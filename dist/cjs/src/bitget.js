@@ -4021,7 +4021,7 @@ class bitget extends bitget$1 {
             result.push(this.parsePosition(position[i]));
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -4141,6 +4141,7 @@ class bitget extends bitget$1 {
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber(entryPrice),
             'unrealizedPnl': this.parseNumber(unrealizedPnl),
+            'realizedPnl': this.safeNumber(position, 'pnl'),
             'percentage': this.parseNumber(percentage),
             'contracts': contracts,
             'contractSize': contractSizeNumber,

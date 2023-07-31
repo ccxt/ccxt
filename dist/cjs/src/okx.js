@@ -4806,7 +4806,7 @@ class okx extends okx$1 {
         const data = this.safeValue(response, 'data', []);
         const position = this.safeValue(data, 0);
         if (position === undefined) {
-            return position;
+            return undefined;
         }
         return this.parsePosition(position);
     }
@@ -4893,7 +4893,7 @@ class okx extends okx$1 {
         for (let i = 0; i < positions.length; i++) {
             result.push(this.parsePosition(positions[i]));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //

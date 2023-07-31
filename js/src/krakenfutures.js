@@ -1750,7 +1750,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const result = this.parsePositions(response);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePositions(response, symbols = undefined, params = {}) {
         const result = [];
