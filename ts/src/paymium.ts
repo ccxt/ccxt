@@ -537,7 +537,7 @@ export default class paymium extends Exchange {
         }
         return result;
     }
-    
+
     parseTransfer (transfer, currency = undefined) {
         //
         //     {
