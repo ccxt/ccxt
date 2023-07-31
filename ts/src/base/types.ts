@@ -206,7 +206,7 @@ export interface Position {
     markPrice?: number;
     liquidationPrice?: number;
     hedged?: boolean;
-    maintenenceMargin?: number;
+    maintenanceMargin?: number;
     maintenanceMarginPercentage?: number;
     initialMargin?: number;
     initialMarginPercentage?: number;
