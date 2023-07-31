@@ -14,7 +14,7 @@ async function example () {
         const key = keys_2[i];
         if (exchange_2.has[key]) {
             if (!keys_1.includes (key)) {
-                console.log (prefix, key, 'does not exist in ', exchange_1.id, 'as opposed to', exchange_2.id);
+                console.log (prefix, key, 'does not exist in', exchange_1.id, 'as opposed to', exchange_2.id);
             } else if (exchange_2.has[key] !== exchange_1.has[key]) {
                 console.log (prefix, key, '> ', exchange_1.id, ':', exchange_1.has[key], ',', exchange_2.id, ':', exchange_2.has[key]);
             }
@@ -26,7 +26,7 @@ async function example () {
         const key = keys_1[i];
         if (exchange_1.has[key]) {
             if (!keys_2.includes (key)) {
-                console.log (prefix, key, 'does not exist in ', exchange_2.id, 'as opposed to', exchange_1.id);
+                console.log (prefix, key, 'does not exist in', exchange_2.id, 'as opposed to', exchange_1.id);
             } else if (exchange_1.has[key] !== exchange_2.has[key]) {
                 console.log (prefix, key, '> ', exchange_2.id, ':', exchange_2.has[key], ',', exchange_1.id, ':', exchange_1.has[key]);
             }
