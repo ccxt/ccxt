@@ -928,20 +928,20 @@ class bybit extends \ccxt\async\bybit {
         //         )
         //     }
         //
-        $type = $this->safe_string($message, 'type', '');
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         $orders = $this->orders;
-        $rawOrders = array();
+        $rawOrders = $this->safe_value($message, 'data', array());
+        $first = $this->safe_value($rawOrders, 0, array());
+        $category = $this->safe_string($first, 'category');
+        $isSpot = $category === 'spot';
         $parser = null;
-        if ($type === 'snapshot') {
-            $rawOrders = $this->safe_value($message, 'data', array());
+        if ($isSpot) {
             $parser = 'parseWsSpotOrder';
         } else {
             $parser = 'parseContractOrder';
-            $rawOrders = $this->safe_value($message, 'data', array());
             $rawOrders = $this->safe_value($rawOrders, 'result', $rawOrders);
         }
         $symbols = array();
@@ -970,7 +970,7 @@ class bybit extends \ccxt\async\bybit {
         //        S => 'SELL', // $side
         //        o => 'MARKET_OF_BASE', // $order $type
         //        f => 'GTC', // time in force
-        //        $q => '0.16233', // quantity
+        //        q => '0.16233', // quantity
         //        p => '0', // $price
         //        X => 'NEW', // $status
         //        i => '1162336018974750208', // $order $id
@@ -990,34 +990,75 @@ class bybit extends \ccxt\async\bybit {
         //        v => '0', // leverage
         //        d => 'NO_LIQ'
         //    }
+        // v5
+        //    {
+        //        "category":"spot",
+        //        "symbol":"LTCUSDT",
+        //        "orderId":"1474764674982492160",
+        //        "orderLinkId":"1690541649154749",
+        //        "blockTradeId":"",
+        //        "side":"Buy",
+        //        "positionIdx":0,
+        //        "orderStatus":"Cancelled",
+        //        "cancelType":"UNKNOWN",
+        //        "rejectReason":"EC_NoError",
+        //        "timeInForce":"GTC",
+        //        "isLeverage":"0",
+        //        "price":"0",
+        //        "qty":"5.00000",
+        //        "avgPrice":"0",
+        //        "leavesQty":"0.00000",
+        //        "leavesValue":"5.0000000",
+        //        "cumExecQty":"0.00000",
+        //        "cumExecValue":"0.0000000",
+        //        "cumExecFee":"",
+        //        "orderType":"Market",
+        //        "stopOrderType":"",
+        //        "orderIv":"",
+        //        "triggerPrice":"0.000",
+        //        "takeProfit":"",
+        //        "stopLoss":"",
+        //        "triggerBy":"",
+        //        "tpTriggerBy":"",
+        //        "slTriggerBy":"",
+        //        "triggerDirection":0,
+        //        "placeType":"",
+        //        "lastPriceOnCreated":"0.000",
+        //        "closeOnTrigger":false,
+        //        "reduceOnly":false,
+        //        "smpGroup":0,
+        //        "smpType":"None",
+        //        "smpOrderId":"",
+        //        "createdTime":"1690541649160",
+        //        "updatedTime":"1690541649168"
+        //     }
         //
-        $id = $this->safe_string($order, 'i');
-        $marketId = $this->safe_string($order, 's');
+        $id = $this->safe_string_2($order, 'i', 'orderId');
+        $marketId = $this->safe_string_2($order, 's', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
-        $timestamp = $this->safe_integer($order, 'O');
-        $price = $this->safe_string($order, 'p');
+        $timestamp = $this->safe_integer_2($order, 'O', 'createdTime');
+        $price = $this->safe_string_2($order, 'p', 'price');
         if ($price === '0') {
             $price = null; // $market orders
         }
-        $filled = $this->safe_string($order, 'z');
-        $status = $this->parse_order_status($this->safe_string($order, 'X'));
-        $side = $this->safe_string_lower($order, 'S');
-        $lastTradeTimestamp = $this->safe_string($order, 'E');
-        $timeInForce = $this->safe_string($order, 'f');
+        $filled = $this->safe_string_2($order, 'z', 'cumExecQty');
+        $status = $this->parse_order_status($this->safe_string_2($order, 'X', 'orderStatus'));
+        $side = $this->safe_string_lower_2($order, 'S', 'side');
+        $lastTradeTimestamp = $this->safe_string_2($order, 'E', 'updatedTime');
+        $timeInForce = $this->safe_string_2($order, 'f', 'timeInForce');
         $amount = null;
-        $cost = $this->safe_string($order, 'Z');
-        $q = $this->safe_string($order, 'q');
-        $type = $this->safe_string_lower($order, 'o');
-        if (mb_strpos($type, 'quote') !== false) {
-            $amount = $filled;
-        } else {
-            $amount = $q;
-        }
-        if (mb_strpos($type, 'market') !== false) {
+        $cost = $this->safe_string_2($order, 'Z', 'cumExecValue');
+        $type = $this->safe_string_lower_2($order, 'o', 'orderType');
+        if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
             $type = 'market';
         }
+        if ($type === 'market' && $side === 'buy') {
+            $amount = $filled;
+        } else {
+            $amount = $this->safe_string_2($order, 'orderQty', 'qty');
+        }
         $fee = null;
-        $feeCost = $this->safe_string($order, 'n');
+        $feeCost = $this->safe_string_2($order, 'n', 'cumExecFee');
         if ($feeCost !== null && $feeCost !== '0') {
             $feeCurrencyId = $this->safe_string($order, 'N');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -1026,10 +1067,11 @@ class bybit extends \ccxt\async\bybit {
                 'currency' => $feeCurrencyCode,
             );
         }
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => $this->safe_string($order, 'c'),
+            'clientOrderId' => $this->safe_string_2($order, 'c', 'orderLinkId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1039,11 +1081,14 @@ class bybit extends \ccxt\async\bybit {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
+            'takeProfitPrice' => $this->safe_string($order, 'takeProfit'),
+            'stopLossPrice' => $this->safe_string($order, 'stopLoss'),
+            'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
             'amount' => $amount,
             'cost' => $cost,
-            'average' => null,
+            'average' => $this->safe_string($order, 'avgPrice'),
             'filled' => $filled,
             'remaining' => null,
             'status' => $status,

@@ -868,19 +868,19 @@ class bybit(ccxt.async_support.bybit):
         #         ]
         #     }
         #
-        type = self.safe_string(message, 'type', '')
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        rawOrders = []
+        rawOrders = self.safe_value(message, 'data', [])
+        first = self.safe_value(rawOrders, 0, {})
+        category = self.safe_string(first, 'category')
+        isSpot = category == 'spot'
         parser = None
-        if type == 'snapshot':
-            rawOrders = self.safe_value(message, 'data', [])
+        if isSpot:
             parser = 'parseWsSpotOrder'
         else:
             parser = 'parseContractOrder'
-            rawOrders = self.safe_value(message, 'data', [])
             rawOrders = self.safe_value(rawOrders, 'result', rawOrders)
         symbols = {}
         for i in range(0, len(rawOrders)):
@@ -925,31 +925,72 @@ class bybit(ccxt.async_support.bybit):
         #        v: '0',  # leverage
         #        d: 'NO_LIQ'
         #    }
+        # v5
+        #    {
+        #        "category":"spot",
+        #        "symbol":"LTCUSDT",
+        #        "orderId":"1474764674982492160",
+        #        "orderLinkId":"1690541649154749",
+        #        "blockTradeId":"",
+        #        "side":"Buy",
+        #        "positionIdx":0,
+        #        "orderStatus":"Cancelled",
+        #        "cancelType":"UNKNOWN",
+        #        "rejectReason":"EC_NoError",
+        #        "timeInForce":"GTC",
+        #        "isLeverage":"0",
+        #        "price":"0",
+        #        "qty":"5.00000",
+        #        "avgPrice":"0",
+        #        "leavesQty":"0.00000",
+        #        "leavesValue":"5.0000000",
+        #        "cumExecQty":"0.00000",
+        #        "cumExecValue":"0.0000000",
+        #        "cumExecFee":"",
+        #        "orderType":"Market",
+        #        "stopOrderType":"",
+        #        "orderIv":"",
+        #        "triggerPrice":"0.000",
+        #        "takeProfit":"",
+        #        "stopLoss":"",
+        #        "triggerBy":"",
+        #        "tpTriggerBy":"",
+        #        "slTriggerBy":"",
+        #        "triggerDirection":0,
+        #        "placeType":"",
+        #        "lastPriceOnCreated":"0.000",
+        #        "closeOnTrigger":false,
+        #        "reduceOnly":false,
+        #        "smpGroup":0,
+        #        "smpType":"None",
+        #        "smpOrderId":"",
+        #        "createdTime":"1690541649160",
+        #        "updatedTime":"1690541649168"
+        #     }
         #
-        id = self.safe_string(order, 'i')
-        marketId = self.safe_string(order, 's')
+        id = self.safe_string_2(order, 'i', 'orderId')
+        marketId = self.safe_string_2(order, 's', 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'spot')
-        timestamp = self.safe_integer(order, 'O')
-        price = self.safe_string(order, 'p')
+        timestamp = self.safe_integer_2(order, 'O', 'createdTime')
+        price = self.safe_string_2(order, 'p', 'price')
         if price == '0':
             price = None  # market orders
-        filled = self.safe_string(order, 'z')
-        status = self.parse_order_status(self.safe_string(order, 'X'))
-        side = self.safe_string_lower(order, 'S')
-        lastTradeTimestamp = self.safe_string(order, 'E')
-        timeInForce = self.safe_string(order, 'f')
+        filled = self.safe_string_2(order, 'z', 'cumExecQty')
+        status = self.parse_order_status(self.safe_string_2(order, 'X', 'orderStatus'))
+        side = self.safe_string_lower_2(order, 'S', 'side')
+        lastTradeTimestamp = self.safe_string_2(order, 'E', 'updatedTime')
+        timeInForce = self.safe_string_2(order, 'f', 'timeInForce')
         amount = None
-        cost = self.safe_string(order, 'Z')
-        q = self.safe_string(order, 'q')
-        type = self.safe_string_lower(order, 'o')
-        if type.find('quote') >= 0:
+        cost = self.safe_string_2(order, 'Z', 'cumExecValue')
+        type = self.safe_string_lower_2(order, 'o', 'orderType')
+        if (type is not None) and (type.find('market') >= 0):
+            type = 'market'
+        if type == 'market' and side == 'buy':
             amount = filled
         else:
-            amount = q
-        if type.find('market') >= 0:
-            type = 'market'
+            amount = self.safe_string_2(order, 'orderQty', 'qty')
         fee = None
-        feeCost = self.safe_string(order, 'n')
+        feeCost = self.safe_string_2(order, 'n', 'cumExecFee')
         if feeCost is not None and feeCost != '0':
             feeCurrencyId = self.safe_string(order, 'N')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -957,10 +998,11 @@ class bybit(ccxt.async_support.bybit):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        triggerPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': self.safe_string(order, 'c'),
+            'clientOrderId': self.safe_string_2(order, 'c', 'orderLinkId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -970,11 +1012,14 @@ class bybit(ccxt.async_support.bybit):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': self.safe_string(order, 'takeProfit'),
+            'stopLossPrice': self.safe_string(order, 'stopLoss'),
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
             'amount': amount,
             'cost': cost,
-            'average': None,
+            'average': self.safe_string(order, 'avgPrice'),
             'filled': filled,
             'remaining': None,
             'status': status,

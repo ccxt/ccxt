@@ -914,21 +914,21 @@ class bybit extends bybit$1 {
         //         ]
         //     }
         //
-        const type = this.safeString(message, 'type', '');
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const orders = this.orders;
-        let rawOrders = [];
+        let rawOrders = this.safeValue(message, 'data', []);
+        const first = this.safeValue(rawOrders, 0, {});
+        const category = this.safeString(first, 'category');
+        const isSpot = category === 'spot';
         let parser = undefined;
-        if (type === 'snapshot') {
-            rawOrders = this.safeValue(message, 'data', []);
+        if (isSpot) {
             parser = 'parseWsSpotOrder';
         }
         else {
             parser = 'parseContractOrder';
-            rawOrders = this.safeValue(message, 'data', []);
             rawOrders = this.safeValue(rawOrders, 'result', rawOrders);
         }
         const symbols = {};
@@ -976,35 +976,76 @@ class bybit extends bybit$1 {
         //        v: '0', // leverage
         //        d: 'NO_LIQ'
         //    }
+        // v5
+        //    {
+        //        "category":"spot",
+        //        "symbol":"LTCUSDT",
+        //        "orderId":"1474764674982492160",
+        //        "orderLinkId":"1690541649154749",
+        //        "blockTradeId":"",
+        //        "side":"Buy",
+        //        "positionIdx":0,
+        //        "orderStatus":"Cancelled",
+        //        "cancelType":"UNKNOWN",
+        //        "rejectReason":"EC_NoError",
+        //        "timeInForce":"GTC",
+        //        "isLeverage":"0",
+        //        "price":"0",
+        //        "qty":"5.00000",
+        //        "avgPrice":"0",
+        //        "leavesQty":"0.00000",
+        //        "leavesValue":"5.0000000",
+        //        "cumExecQty":"0.00000",
+        //        "cumExecValue":"0.0000000",
+        //        "cumExecFee":"",
+        //        "orderType":"Market",
+        //        "stopOrderType":"",
+        //        "orderIv":"",
+        //        "triggerPrice":"0.000",
+        //        "takeProfit":"",
+        //        "stopLoss":"",
+        //        "triggerBy":"",
+        //        "tpTriggerBy":"",
+        //        "slTriggerBy":"",
+        //        "triggerDirection":0,
+        //        "placeType":"",
+        //        "lastPriceOnCreated":"0.000",
+        //        "closeOnTrigger":false,
+        //        "reduceOnly":false,
+        //        "smpGroup":0,
+        //        "smpType":"None",
+        //        "smpOrderId":"",
+        //        "createdTime":"1690541649160",
+        //        "updatedTime":"1690541649168"
+        //     }
         //
-        const id = this.safeString(order, 'i');
-        const marketId = this.safeString(order, 's');
+        const id = this.safeString2(order, 'i', 'orderId');
+        const marketId = this.safeString2(order, 's', 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'spot');
-        const timestamp = this.safeInteger(order, 'O');
-        let price = this.safeString(order, 'p');
+        const timestamp = this.safeInteger2(order, 'O', 'createdTime');
+        let price = this.safeString2(order, 'p', 'price');
         if (price === '0') {
             price = undefined; // market orders
         }
-        const filled = this.safeString(order, 'z');
-        const status = this.parseOrderStatus(this.safeString(order, 'X'));
-        const side = this.safeStringLower(order, 'S');
-        const lastTradeTimestamp = this.safeString(order, 'E');
-        const timeInForce = this.safeString(order, 'f');
+        const filled = this.safeString2(order, 'z', 'cumExecQty');
+        const status = this.parseOrderStatus(this.safeString2(order, 'X', 'orderStatus'));
+        const side = this.safeStringLower2(order, 'S', 'side');
+        const lastTradeTimestamp = this.safeString2(order, 'E', 'updatedTime');
+        const timeInForce = this.safeString2(order, 'f', 'timeInForce');
         let amount = undefined;
-        const cost = this.safeString(order, 'Z');
-        const q = this.safeString(order, 'q');
-        let type = this.safeStringLower(order, 'o');
-        if (type.indexOf('quote') >= 0) {
+        const cost = this.safeString2(order, 'Z', 'cumExecValue');
+        let type = this.safeStringLower2(order, 'o', 'orderType');
+        if ((type !== undefined) && (type.indexOf('market') >= 0)) {
+            type = 'market';
+        }
+        if (type === 'market' && side === 'buy') {
             amount = filled;
         }
         else {
-            amount = q;
-        }
-        if (type.indexOf('market') >= 0) {
-            type = 'market';
+            amount = this.safeString2(order, 'orderQty', 'qty');
         }
         let fee = undefined;
-        const feeCost = this.safeString(order, 'n');
+        const feeCost = this.safeString2(order, 'n', 'cumExecFee');
         if (feeCost !== undefined && feeCost !== '0') {
             const feeCurrencyId = this.safeString(order, 'N');
             const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
@@ -1013,10 +1054,11 @@ class bybit extends bybit$1 {
                 'currency': feeCurrencyCode,
             };
         }
+        const triggerPrice = this.omitZero(this.safeString(order, 'triggerPrice'));
         return this.safeOrder({
             'info': order,
             'id': id,
-            'clientOrderId': this.safeString(order, 'c'),
+            'clientOrderId': this.safeString2(order, 'c', 'orderLinkId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1026,11 +1068,14 @@ class bybit extends bybit$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': this.safeString(order, 'takeProfit'),
+            'stopLossPrice': this.safeString(order, 'stopLoss'),
+            'reduceOnly': this.safeValue(order, 'reduceOnly'),
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': this.safeString(order, 'avgPrice'),
             'filled': filled,
             'remaining': undefined,
             'status': status,

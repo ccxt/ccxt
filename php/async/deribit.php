@@ -56,7 +56,6 @@ class deribit extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFees' => true,
-                'fetchHistoricalVolatility' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -83,6 +82,7 @@ class deribit extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'transfer' => true,
@@ -2500,8 +2500,15 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function fetch_historical_volatility(string $code, $params = array ()) {
+    public function fetch_volatility_history(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the historical volatility of an option market based on an underlying asset
+             * @see https://docs.deribit.com/#public-get_historical_volatility
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=volatility-structure volatility history objects~
+             */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
@@ -2522,20 +2529,38 @@ class deribit extends Exchange {
             //         "testnet" => false
             //     }
             //
-            $volatilityResult = $this->safe_value($response, 'result', array());
-            $result = array();
-            for ($i = 0; $i < count($volatilityResult); $i++) {
-                $timestamp = $this->safe_integer($volatilityResult[$i], 0);
-                $volatility = $this->safe_number($volatilityResult[$i], 1);
-                $result[] = array(
-                    'info' => $response,
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                    'volatility' => $volatility,
-                );
-            }
-            return $result;
+            return $this->parse_volatility_history($response);
         }) ();
+    }
+
+    public function parse_volatility_history($volatility) {
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "result" => [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn" => 1641515379467734,
+        //         "usOut" => 1641515379468095,
+        //         "usDiff" => 361,
+        //         "testnet" => false
+        //     }
+        //
+        $volatilityResult = $this->safe_value($volatility, 'result', array());
+        $result = array();
+        for ($i = 0; $i < count($volatilityResult); $i++) {
+            $timestamp = $this->safe_integer($volatilityResult[$i], 0);
+            $volatility = $this->safe_number($volatilityResult[$i], 1);
+            $result[] = array(
+                'info' => $volatility,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'volatility' => $volatility,
+            );
+        }
+        return $result;
     }
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {

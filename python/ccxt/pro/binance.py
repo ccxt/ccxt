@@ -1682,7 +1682,6 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchOpenOrdersWs', symbol)
         await self.load_markets()
         self.check_is_spot('fetchOpenOrdersWs', symbol)
         url = self.urls['api']['ws']['ws']
@@ -1691,9 +1690,10 @@ class binance(ccxt.async_support.binance):
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'fetchOrderWs', 'returnRateLimits', False)
         payload = {
-            'symbol': self.market_id(symbol),
             'returnRateLimits': returnRateLimits,
         }
+        if symbol is not None:
+            payload['symbol'] = self.market_id(symbol)
         message = {
             'id': messageHash,
             'method': 'openOrders.status',
@@ -2085,6 +2085,7 @@ class binance(ccxt.async_support.binance):
             trade = self.parse_trade(message)
             orderId = self.safe_string(trade, 'order')
             tradeFee = self.safe_value(trade, 'fee')
+            tradeFee = self.extend({}, tradeFee)
             symbol = self.safe_string(trade, 'symbol')
             if orderId is not None and tradeFee is not None and symbol is not None:
                 cachedOrders = self.orders
@@ -2095,7 +2096,7 @@ class binance(ccxt.async_support.binance):
                         # accumulate order fees
                         fees = self.safe_value(order, 'fees')
                         fee = self.safe_value(order, 'fee')
-                        if fees is not None:
+                        if not self.is_empty(fees):
                             insertNewFeeCurrency = True
                             for i in range(0, len(fees)):
                                 orderFee = fees[i]

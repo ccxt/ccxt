@@ -10,6 +10,7 @@ from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
 
 
@@ -55,7 +56,11 @@ class cryptocom(ccxt.async_support.cryptocom):
         #     "method": "public/heartbeat",
         #     "code": 0
         # }
-        await client.send({'id': self.safe_integer(message, 'id'), 'method': 'public/respond-heartbeat'})
+        try:
+            await client.send({'id': self.safe_integer(message, 'id'), 'method': 'public/respond-heartbeat'})
+        except Exception as e:
+            error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
+            client.reset(error)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """

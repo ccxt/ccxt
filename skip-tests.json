@@ -493,7 +493,8 @@
         }
     },
     "bybit": {
-        "skip": "forbidden location",
+	"skip": "403 forbidden, RateLimitExceeded",
+        "httpsProxy": "http://51.83.140.52:21800",
         "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": {
