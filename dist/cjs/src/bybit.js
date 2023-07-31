@@ -86,6 +86,7 @@ class bybit extends bybit$1 {
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -3287,13 +3288,13 @@ class bybit extends bybit$1 {
             'PENDING_CANCEL': 'open',
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
-            'PARTIALLY_FILLED_CANCELLED': 'canceled',
+            'PARTIALLY_FILLED_CANCELLED': 'closed',
             // v3 contract / unified margin / unified account
             'Created': 'open',
             'New': 'open',
             'Rejected': 'rejected',
             'PartiallyFilled': 'open',
-            'PartiallyFilledCanceled': 'canceled',
+            'PartiallyFilledCanceled': 'closed',
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -3329,7 +3330,7 @@ class bybit extends bybit$1 {
         //         "symbol": "XRPUSDT",
         //         "side": "Buy",
         //         "orderType": "Market",
-        //         "price": "0.3431",
+        //         "price": "0.3432",
         //         "qty": "65",
         //         "reduceOnly": true,
         //         "timeInForce": "ImmediateOrCancel",
@@ -3669,7 +3670,7 @@ class bybit extends bybit$1 {
             //  closeOnTrigger to avoid failing due to insufficient available margin
             // 'closeOnTrigger': false, required for linear orders
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
-            // 'triggerPrice': 123.45, // trigger price, required for conditional orders
+            // 'triggerPrice': 123.46, // trigger price, required for conditional orders
             // 'triggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
             // 'tpTriggerby': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
             // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
@@ -8781,6 +8782,62 @@ class bybit extends bybit$1 {
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push(this.parseSettlement(settlements[i], market));
+        }
+        return result;
+    }
+    async fetchVolatilityHistory(code, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchVolatilityHistory
+         * @description fetch the historical volatility of an option market based on an underlying asset
+         * @see https://bybit-exchange.github.io/docs/v5/market/iv
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
+         * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'category': 'option',
+            'baseCoin': currency['id'],
+        };
+        const response = await this.publicGetV5MarketHistoricalVolatility(this.extend(request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "SUCCESS",
+        //         "category": "option",
+        //         "result": [
+        //             {
+        //                 "period": 7,
+        //                 "value": "0.23854072",
+        //                 "time": "1690574400000"
+        //             }
+        //         ]
+        //     }
+        //
+        const volatility = this.safeValue(response, 'result', []);
+        return this.parseVolatilityHistory(volatility);
+    }
+    parseVolatilityHistory(volatility) {
+        //
+        //     {
+        //         "period": 7,
+        //         "value": "0.23854072",
+        //         "time": "1690574400000"
+        //     }
+        //
+        const result = [];
+        for (let i = 0; i < volatility.length; i++) {
+            const entry = volatility[i];
+            const timestamp = this.safeInteger(entry, 'time');
+            result.push({
+                'info': volatility,
+                'timestamp': timestamp,
+                'datetime': this.iso8601(timestamp),
+                'volatility': this.safeNumber(entry, 'value'),
+            });
         }
         return result;
     }

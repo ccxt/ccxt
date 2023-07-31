@@ -85,7 +85,8 @@ export default class deribit extends Exchange {
     parsePosition(position: any, market?: any): any;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    fetchHistoricalVolatility(code: string, params?: {}): Promise<any[]>;
+    fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
+    parseVolatilityHistory(volatility: any): any[];
     fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;

@@ -108,6 +108,7 @@ export default class binance extends Exchange {
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -3693,10 +3694,11 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @param {string} id cancel order id
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3705,32 +3707,8 @@ export default class binance extends Exchange {
         if (!market['spot']) {
             throw new NotSupported(this.id + ' editSpotOrder() does not support ' + market['type'] + ' orders');
         }
-        const request = {
-            'symbol': market['id'],
-            'side': side.toUpperCase(),
-        };
-        const clientOrderId = this.safeStringN(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId']);
-        let response = undefined;
-        if (market['spot']) {
-            response = await this.privatePostOrderCancelReplace(this.extend(request, params));
-        }
-        else {
-            request['orderId'] = id;
-            request['quantity'] = this.amountToPrecision(symbol, amount);
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision(symbol, price);
-            }
-            if (clientOrderId !== undefined) {
-                request['origClientOrderId'] = clientOrderId;
-            }
-            params = this.omit(params, ['clientOrderId', 'newClientOrderId']);
-            if (market['linear']) {
-                response = await this.fapiPrivatePutOrder(this.extend(request, params));
-            }
-            else if (market['inverse']) {
-                response = await this.dapiPrivatePutOrder(this.extend(request, params));
-            }
-        }
+        const payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, params);
+        const response = await this.privatePostOrderCancelReplace(payload);
         //
         // spot
         //
@@ -3784,9 +3762,9 @@ export default class binance extends Exchange {
          * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market(symbol);

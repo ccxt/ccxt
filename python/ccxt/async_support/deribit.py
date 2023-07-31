@@ -69,7 +69,6 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFees': True,
-                'fetchHistoricalVolatility': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -96,6 +95,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'transfer': True,
@@ -2361,7 +2361,14 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result')
         return self.parse_positions(result, symbols)
 
-    async def fetch_historical_volatility(self, code: str, params={}):
+    async def fetch_volatility_history(self, code: str, params={}):
+        """
+        fetch the historical volatility of an option market based on an underlying asset
+        see https://docs.deribit.com/#public-get_historical_volatility
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :returns dict[]: a list of `volatility history objects <https://docs.ccxt.com/#/?id=volatility-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2382,13 +2389,30 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": False
         #     }
         #
-        volatilityResult = self.safe_value(response, 'result', {})
+        return self.parse_volatility_history(response)
+
+    def parse_volatility_history(self, volatility):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": [
+        #             [1640142000000,63.828320460740585],
+        #             [1640142000000,63.828320460740585],
+        #             [1640145600000,64.03821964123213]
+        #         ],
+        #         "usIn": 1641515379467734,
+        #         "usOut": 1641515379468095,
+        #         "usDiff": 361,
+        #         "testnet": False
+        #     }
+        #
+        volatilityResult = self.safe_value(volatility, 'result', [])
         result = []
         for i in range(0, len(volatilityResult)):
             timestamp = self.safe_integer(volatilityResult[i], 0)
             volatility = self.safe_number(volatilityResult[i], 1)
             result.append({
-                'info': response,
+                'info': volatility,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'volatility': volatility,

@@ -91,6 +91,7 @@ class bybit extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -3297,13 +3298,13 @@ class bybit extends Exchange {
             'PENDING_CANCEL' => 'open',
             'PENDING_NEW' => 'open',
             'REJECTED' => 'rejected',
-            'PARTIALLY_FILLED_CANCELLED' => 'canceled',
+            'PARTIALLY_FILLED_CANCELLED' => 'closed', // context => https://github.com/ccxt/ccxt/issues/18685
             // v3 contract / unified margin / unified account
             'Created' => 'open',
             'New' => 'open',
             'Rejected' => 'rejected', // order is triggered but failed upon being placed
             'PartiallyFilled' => 'open',
-            'PartiallyFilledCanceled' => 'canceled',
+            'PartiallyFilledCanceled' => 'closed', // context => https://github.com/ccxt/ccxt/issues/18685
             'Filled' => 'closed',
             'PendingCancel' => 'open',
             'Cancelled' => 'canceled',
@@ -3342,7 +3343,7 @@ class bybit extends Exchange {
         //         "symbol" => "XRPUSDT",
         //         "side" => "Buy",
         //         "orderType" => "Market",
-        //         "price" => "0.3431",
+        //         "price" => "0.3432",
         //         "qty" => "65",
         //         "reduceOnly" => true,
         //         "timeInForce" => "ImmediateOrCancel",
@@ -3680,7 +3681,7 @@ class bybit extends Exchange {
                 //  closeOnTrigger to avoid failing due to insufficient available margin
                 // 'closeOnTrigger' => false, required for linear orders
                 // 'orderLinkId' => 'string', // unique client $order id, max 36 characters
-                // 'triggerPrice' => 123.45, // trigger $price, required for conditional orders
+                // 'triggerPrice' => 123.46, // trigger $price, required for conditional orders
                 // 'triggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
                 // 'tpTriggerby' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
                 // 'slTriggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
@@ -8833,6 +8834,64 @@ class bybit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
+    }
+
+    public function fetch_volatility_history(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the historical $volatility of an option market based on an underlying asset
+             * @see https://bybit-exchange.github.io/docs/v5/market/iv
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {int} [$params->period] the period in days to fetch the $volatility for => 7,14,21,30,60,90,180,270
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$volatility-structure $volatility history objects~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'category' => 'option',
+                'baseCoin' => $currency['id'],
+            );
+            $response = Async\await($this->publicGetV5MarketHistoricalVolatility (array_merge($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "SUCCESS",
+            //         "category" => "option",
+            //         "result" => array(
+            //             {
+            //                 "period" => 7,
+            //                 "value" => "0.23854072",
+            //                 "time" => "1690574400000"
+            //             }
+            //         )
+            //     }
+            //
+            $volatility = $this->safe_value($response, 'result', array());
+            return $this->parse_volatility_history($volatility);
+        }) ();
+    }
+
+    public function parse_volatility_history($volatility) {
+        //
+        //     {
+        //         "period" => 7,
+        //         "value" => "0.23854072",
+        //         "time" => "1690574400000"
+        //     }
+        //
+        $result = array();
+        for ($i = 0; $i < count($volatility); $i++) {
+            $entry = $volatility[$i];
+            $timestamp = $this->safe_integer($entry, 'time');
+            $result[] = array(
+                'info' => $volatility,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'volatility' => $this->safe_number($entry, 'value'),
+            );
         }
         return $result;
     }
