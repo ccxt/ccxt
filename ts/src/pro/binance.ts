@@ -94,11 +94,12 @@ export default class binance extends binanceRest {
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
                 'ws': {
-                    'rateLimits': {  // The WS-API now only allows 300 connections requests every 5 minutes.
-                        'rateLimit': 1000, // 1 req per second  = 1000ms
-                        'default': {
-                            'connections': 1,
-                            'messages': 1,
+                    'rateLimits': {
+                        'connections': {
+                            'rateLimit': 1000, // The WS-API now only allows 300 connections requests every 5 minutes. // 1 req per second  = 1000ms
+                        },
+                        'messages': {
+                            'rateLimit': 1000, // 1 message per second  = 1000ms, check this
                         },
                         'wss://testnet.binance.vision': {
                             'connections': 1,

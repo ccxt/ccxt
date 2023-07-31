@@ -1176,7 +1176,7 @@ export default class Exchange {
         return this.clients[url];
     }
 
-    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined, messageCost = 1) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1236,7 +1236,7 @@ export default class Exchange {
             connected.then (() => {
                     if (message) {
                         if (this.enableRateLimit && client.messagesThrottler) {
-                            client.messagesThrottler.throttle ().then (() => {
+                            client.messagesThrottler.throttle (messageCost).then (() => {
                                 client.send (message);
                             }).catch ((e) => { throw e });
                         } else {
@@ -1393,7 +1393,8 @@ export default class Exchange {
 
     calculateWsTokenBucket (wsOptions, url, tokenKey = 'connections') {
         const rateLimits = this.safeValue (wsOptions, 'rateLimits');
-        const rateLimit = this.safeNumber (rateLimits, 'rateLimit');
+        const specificRateLimit = this.safeValue (rateLimits, tokenKey);
+        const rateLimit = this.safeNumber (specificRateLimit, 'rateLimit');
         if (rateLimits === undefined || rateLimit === undefined) {
             return this.tokenBucket; // default to the rest bucket
         }
@@ -1403,18 +1404,11 @@ export default class Exchange {
             const rateLimitKey = rateLimitsKeys[i];
             if (url.startsWith (rateLimitKey)) {
                 const value = this.safeValue (rateLimits, rateLimitKey);
-                cost = this.safeInteger (value, tokenKey);
-            }
-        }
-        if (cost === undefined) {
-            // try default
-            const defaultConfig = this.safeValue (rateLimits, 'default');
-            if (defaultConfig !== undefined) {
-                cost = this.safeInteger (defaultConfig, tokenKey);
-            }
-            if (cost === undefined) {
-                // default not found
-                return this.tokenBucket;
+                const urlCost = this.safeInteger (value, tokenKey);
+                if (urlCost !== undefined) {
+                    cost = urlCost;
+                    break;
+                }
             }
         }
         const refillRate = (rateLimit !== undefined) ? (1 / rateLimit) : Number.MAX_SAFE_INTEGER;

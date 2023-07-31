@@ -7,6 +7,7 @@ import {
     isJsonEncodedObject,
     deepExtend,
     milliseconds,
+    Throttler,
 } from '../../base/functions.js';
 import { utf8 } from '../../static_dependencies/scure-base/index.js';
 
@@ -35,8 +36,8 @@ export default class Client {
     ping: any
     subscriptions: {}
     throttle: any
-    connectionsThrottler: any
-    messagesThrottler: any
+    connectionsThrottler: Throttler
+    messagesThrottler: Throttler
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,
