@@ -1095,17 +1095,14 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'size': preciseAmount,
             'leverage': 1,
         }
-        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isStopLoss = stopLossPrice is not None
-        isTakeProfit = takeProfitPrice is not None
-        if stopPrice:
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handleTriggerPrices(params)
+        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
+        if triggerPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['stopPriceType'] = 'MP'
-        elif isStopLoss or isTakeProfit:
-            if isStopLoss:
+        elif stopLossPrice or takeProfitPrice:
+            if stopLossPrice:
                 request['stop'] = 'up' if (side == 'buy') else 'down'
                 request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
             else:

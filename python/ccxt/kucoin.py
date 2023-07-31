@@ -1703,6 +1703,16 @@ class kucoin(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
+    def handle_trigger_prices(self, params):
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        if (isStopLoss and isTakeProfit) or (triggerPrice and stopLossPrice) or (triggerPrice and isTakeProfit):
+            raise ExchangeError(self.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice')
+        return [triggerPrice, stopLossPrice, takeProfitPrice]
+
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
@@ -1768,23 +1778,24 @@ class kucoin(Exchange, ImplicitAPI):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        # default is take profit
-        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'stopPrice')
-        isStopLoss = stopLossPrice is not None
-        isTakeProfit = takeProfitPrice is not None
-        if isStopLoss and isTakeProfit:
-            raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
-        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'stopPrice'])
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
+        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
         tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
         method = 'privatePostOrders'
         isHf = self.safe_value(params, 'hf', False)
         if isHf:
             method = 'privatePostHfOrders'
-        elif isStopLoss or isTakeProfit:
-            request['stop'] = 'entry' if isStopLoss else 'loss'
-            triggerPrice = stopLossPrice if isStopLoss else takeProfitPrice
-            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+        elif triggerPrice or stopLossPrice or takeProfitPrice:
+            if triggerPrice:
+                request['stop'] = 'up' if (side == 'buy') else 'down'
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+            elif stopLossPrice or takeProfitPrice:
+                if stopLossPrice:
+                    request['stop'] = 'entry' if (side == 'buy') else 'loss'
+                    request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                else:
+                    request['stop'] = 'loss' if (side == 'buy') else 'entry'
+                    request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
             method = 'privatePostStopOrder'
             if marginMode == 'isolated':
                 raise BadRequest(self.id + ' createOrder does not support isolated margin for stop orders')

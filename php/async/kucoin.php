@@ -1762,6 +1762,18 @@ class kucoin extends Exchange {
         }) ();
     }
 
+    public function handle_trigger_prices($params) {
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
+        if (($isStopLoss && $isTakeProfit) || ($triggerPrice && $stopLossPrice) || ($triggerPrice && $isTakeProfit)) {
+            throw new ExchangeError($this->id . ' createOrder() - you should use either $triggerPrice or $stopLossPrice or takeProfitPrice');
+        }
+        return array( $triggerPrice, $stopLossPrice, $takeProfitPrice );
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1830,24 +1842,26 @@ class kucoin extends Exchange {
                 $request['size'] = $amountString;
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-            // default is take profit
-            $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'stopPrice');
-            $isStopLoss = $stopLossPrice !== null;
-            $isTakeProfit = $takeProfitPrice !== null;
-            if ($isStopLoss && $isTakeProfit) {
-                throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
-            }
-            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ));
+            list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
+            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
             $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
             $method = 'privatePostOrders';
             $isHf = $this->safe_value($params, 'hf', false);
             if ($isHf) {
                 $method = 'privatePostHfOrders';
-            } elseif ($isStopLoss || $isTakeProfit) {
-                $request['stop'] = $isStopLoss ? 'entry' : 'loss';
-                $triggerPrice = $isStopLoss ? $stopLossPrice : $takeProfitPrice;
-                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            } elseif ($triggerPrice || $stopLossPrice || $takeProfitPrice) {
+                if ($triggerPrice) {
+                    $request['stop'] = ($side === 'buy') ? 'up' : 'down';
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                } elseif ($stopLossPrice || $takeProfitPrice) {
+                    if ($stopLossPrice) {
+                        $request['stop'] = ($side === 'buy') ? 'entry' : 'loss';
+                        $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                    } else {
+                        $request['stop'] = ($side === 'buy') ? 'loss' : 'entry';
+                        $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                    }
+                }
                 $method = 'privatePostStopOrder';
                 if ($marginMode === 'isolated') {
                     throw new BadRequest($this->id . ' createOrder does not support isolated margin for stop orders');
