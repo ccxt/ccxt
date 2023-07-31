@@ -523,15 +523,19 @@ export default class paymium extends Exchange {
         await this.loadMarkets ();
         const trades = await this.fetchTrades (symbol, since, limit, params);
         const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
-        const result = ohlcvc.map ((ohlcv) => ({
-            'timestamp': ohlcv[0],
-            'open': ohlcv[1],
-            'high': ohlcv[2],
-            'low': ohlcv[3],
-            'close': ohlcv[4],
-            'volume': ohlcv[5],
-        }));
-        return this.parseOHLCV (result);
+        const result = [];
+        for (let i = 0; i < ohlcvc.length; i++) {
+            const ohlcv = ohlcvc[i];
+            result.push ([
+                ohlcv[0],
+                ohlcv[1],
+                ohlcv[2],
+                ohlcv[3],
+                ohlcv[4],
+                ohlcv[5],
+            ]);
+        }
+        return result;
     }
 
     parseTransfer (transfer, currency = undefined) {
