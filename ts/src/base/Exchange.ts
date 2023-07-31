@@ -514,6 +514,7 @@ export default class Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
+                'fetchPositionsBySymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
@@ -3075,6 +3076,18 @@ export default class Exchange {
 
     async fetchPosition (symbol: string, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
+    }
+
+    async fetchPositionsBySymbol (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsBySymbol
+         * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not supported yet');
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}): Promise<any> {
