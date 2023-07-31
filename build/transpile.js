@@ -279,6 +279,7 @@ class Transpiler {
             [ /\.filterByLimit\s/g, '.filter_by_limit'],
             [ /\.fetchTime\s/g, '.fetch_time'],
             [ /\.handleOptionAndParams\s/g, '.handle_option_and_params'],
+            [ /\.calculateWsTokenBucket\s/g, '.calculate_ws_token_bucket'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
