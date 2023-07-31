@@ -1314,7 +1314,7 @@ export default class wavesexchange extends Exchange {
         //        "matcherFee":"4077612"
         //     }
         //  }
-        const base = this.safeValue (matcherFees, 'base');
+        const base = this.safeValue2 (matcherFees, 'base', 'discount');
         const baseFeeAssetId = this.safeString (base, 'feeAssetId');
         const baseFeeAsset = this.safeCurrencyCode (baseFeeAssetId);
         const baseMatcherFee = this.safeString (base, 'matcherFee');
