@@ -766,9 +766,9 @@ export default class binance extends Exchange {
                 },
                 'fapiPrivateV2': {
                     'get': {
-                        'account': 1,
+                        'account': 1, // tbd
                         'balance': 1,
-                        'positionRisk': 1,
+                        'positionRisk': 1, // even though 2021 api update says it's 5, actually it seems to be 1, as seen through 'X-Mbx-Used-Weight-1m' header
                     },
                 },
                 'eapiPublic': {
@@ -7215,6 +7215,75 @@ export default class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
+    async fetchPositionsBySymbol (symbol, params = {}) {
+        await this.loadMarkets ();
+        await this.loadLeverageBrackets (false, params);
+        const market = this.market (symbol);
+        if (!market['linear'] || !market['swap']) {
+            throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not yet supported for ' + symbol + ' market. Coming soon...');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        //
+        // For One-way position mode:
+        //     [
+        //         {
+        //             "entryPrice": "0.00000",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "0.00000000",
+        //             "leverage": "10",
+        //             "liquidationPrice": "0",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "0.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "0.00000000",
+        //             "positionSide": "BOTH",
+        //             "updateTime": 0
+        //        }
+        //     ]
+        //
+        // For Hedge position mode:
+        //     [
+        //         {
+        //             "entryPrice": "6563.66500",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "15517.54150468",
+        //             "leverage": "10",
+        //             "liquidationPrice": "5930.78",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "20.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "2316.83423560"
+        //             "positionSide": "LONG",
+        //             "updateTime": 1625474304765
+        //         },
+        //         {
+        //             "entryPrice": "0.00000",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "5413.95799991",
+        //             "leverage": "10",
+        //             "liquidationPrice": "7189.95",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "-10.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "-1156.46711780",
+        //             "positionSide": "SHORT",
+        //             "updateTime": 0
+        //         }
+        //     ]
+        //
+        const rawPositions = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
+        // binance returns 2 positions if account is in hedge-two-way mode, or returns 1 position if account is in one-way mode
+        return this.parsePositions (rawPositions, [ market['symbol'] ], params);
+    }
+
     parsePosition (position, market = undefined) {
         //
         //     {
@@ -7237,6 +7306,10 @@ export default class binance extends Exchange {
         //         "time": 1682492427106
         //     }
         //
+        // avoid being parsed as "vanilla options" position
+        if ('isAutoAddMargin' in position) {
+            return this.parsePositionRisk (position, market);
+        }
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
