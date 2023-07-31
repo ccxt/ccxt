@@ -78,6 +78,7 @@ export default class bybit extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsBySymbol': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
                 'fetchTicker': true,
@@ -7365,6 +7366,62 @@ export default class bybit extends Exchange {
         } else {
             return await this.fetchDerivativesPositions (symbols, params);
         }
+    }
+
+    async fetchPositionsBySymbol (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['linear'] || !market['swap']) {
+            throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not yet supported for ' + symbol + ' market. Coming soon...');
+        }
+        const request = {
+            'category': 'linear',
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetV5PositionList (this.extend (request, params));
+        //
+        //    {
+        //        "retCode": "0",
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "nextPageCursor": "TRXUSDT%2C1675882472423",
+        //            "category": "linear",
+        //            "list": [
+        //                {
+        //                    "symbol": "TRXUSDT",
+        //                    "leverage": "10",
+        //                    "updatedTime": "1675882472423",
+        //                    "side": "None",
+        //                    "bustPrice": "",
+        //                    "avgPrice": "0",
+        //                    "liqPrice": "",
+        //                    "riskLimitValue": "100000",
+        //                    "takeProfit": "",
+        //                    "positionValue": "",
+        //                    "tpslMode": "Full",
+        //                    "riskId": "311",
+        //                    "trailingStop": "",
+        //                    "unrealisedPnl": "",
+        //                    "markPrice": "0.06652",
+        //                    "size": "0",
+        //                    "positionStatus": "Normal",
+        //                    "stopLoss": "",
+        //                    "cumRealisedPnl": "-0.05016976",
+        //                    "positionMM": "0",
+        //                    "createdTime": "1675882173271",
+        //                    "positionIdx": "0",
+        //                    "tradeMode": "0",
+        //                    "positionIM": "0"
+        //                }
+        //            ]
+        //        },
+        //        "retExtInfo": {},
+        //        "time": "1675883794087"
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const rawPositions = this.safeValue (result, 'list', []);
+        return this.parsePositions (rawPositions, [ market['symbol'] ], params);
     }
 
     parsePosition (position, market = undefined) {
