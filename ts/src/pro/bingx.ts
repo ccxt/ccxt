@@ -38,6 +38,7 @@ export default class bingx extends bingxRest {
          * @name bingx#watchTrades
          * @description watches information on multiple trades made in a market
          * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
+         * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -46,7 +47,7 @@ export default class bingx extends bingxRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const url = this.safeValue (this.urls['api']['ws'], marketType);
         if (url === undefined) {
             throw new BadRequest (this.id + ' fetchTicker is not supported for ' + marketType + ' markets.');
@@ -156,21 +157,99 @@ export default class bingx extends bingxRest {
         client.resolve (stored, messageHash);
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
+         * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        if (limit === undefined) {
+            limit = 20;
+        } else {
+            if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100)) {
+                throw new BadRequest (this.id + ' watchOrderBook() can only use limit 5, 10, 20, 50, and 100.');
+            }
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
+        const url = this.safeValue (this.urls['api']['ws'], marketType);
+        if (url === undefined) {
+            throw new BadRequest (this.id + ' fetchTicker is not supported for ' + marketType + ' markets.');
+        }
+        const uuid = this.uuid ();
+        const request = {
+            'id': uuid,
+            'level': limit,
+        };
+        const messageHash = symbol + '@depth' + limit.toString ();
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, query), messageHash);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         "topic": "orderbook.50.BTCUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1672304484978,
+        //         "data": {
+        //             "s": "BTCUSDT",
+        //             "b": [
+        //                 ...,
+        //                 [
+        //                     "16493.50",
+        //                     "0.006"
+        //                 ],
+        //                 [
+        //                     "16493.00",
+        //                     "0.100"
+        //                 ]
+        //             ],
+        //             "a": [
+        //                 [
+        //                     "16611.00",
+        //                     "0.029"
+        //                 ],
+        //                 [
+        //                     "16612.00",
+        //                     "0.213"
+        //                 ],
+        //             ],
+        //             "u": 18521288,
+        //             "seq": 7961638724
+        //         }
+        //     }
+        //
+        console.log (client);
+        console.log (message);
+    }
+
     handleMessage (client: Client, message) {
         // TODO: Handle ping-pong -> see bybit as example
         let table = this.safeString (message, 'e');
         const dataType = this.safeString (message, 'dataType');
         if (table === undefined && dataType !== undefined) {
-            table = dataType.split ('@')[1];
+            console.log (table, dataType);
+            table = dataType.split ('@')[1].replace (/[0-9]/g, '');
         }
+        console.log (table);
         const methods = {
             'trade': this.handleTrades,
+            'depth': this.handleOrderBook,
         };
         const method = this.safeValue (methods, table);
         if (method !== undefined) {
             return method.call (this, client, message);
+        } else {
+            console.log (message);
+            process.exit ();
         }
-        // console.log (message);
-        // process.exit ();
     }
 }
