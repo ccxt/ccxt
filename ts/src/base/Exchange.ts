@@ -1398,7 +1398,7 @@ export default class Exchange {
         if (rateLimits === undefined || rateLimit === undefined) {
             return this.tokenBucket; // default to the rest bucket
         }
-        let cost = undefined;
+        let cost = 1;
         const rateLimitsKeys = Object.keys (rateLimits);
         for (let i = 0; i < rateLimitsKeys.length; i++) {
             const rateLimitKey = rateLimitsKeys[i];
