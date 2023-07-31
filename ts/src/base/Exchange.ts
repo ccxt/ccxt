@@ -2848,7 +2848,7 @@ export default class Exchange {
         return position as any;
     }
 
-    parsePositions (positions, symbols: string[] = undefined, params = {}) {
+    parsePositions (positions, symbols: string[] = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
         const result = [];
@@ -2856,7 +2856,7 @@ export default class Exchange {
             const position = this.extend (this.parsePosition (positions[i], undefined), params);
             result.push (position);
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parseAccounts (accounts, params = {}) {
@@ -3094,7 +3094,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 
-    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<Position> {
+    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
@@ -4406,6 +4406,15 @@ export default class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchTransactions () is not supported yet');
         }
+    }
+
+    filterByArrayPositions (objects, key: IndexType, values = undefined, indexed = true): Position[] {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of positions
+         */
+        return this.filterByArray (objects, key, values, indexed) as Position[];
     }
 }
 
