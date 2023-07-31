@@ -102,6 +102,7 @@ class ImplicitAPI:
     private_mix_get_position_singleposition_v2 = privateMixGetPositionSinglePositionV2 = Entry('position/singlePosition-v2', ['private', 'mix'], 'GET', {'cost': 2})
     private_mix_get_position_allposition = privateMixGetPositionAllPosition = Entry('position/allPosition', ['private', 'mix'], 'GET', {'cost': 4})
     private_mix_get_position_allposition_v2 = privateMixGetPositionAllPositionV2 = Entry('position/allPosition-v2', ['private', 'mix'], 'GET', {'cost': 4})
+    private_mix_get_position_history_position = privateMixGetPositionHistoryPosition = Entry('position/history-position', ['private', 'mix'], 'GET', {'cost': 1})
     private_mix_get_account_accountbill = privateMixGetAccountAccountBill = Entry('account/accountBill', ['private', 'mix'], 'GET', {'cost': 2})
     private_mix_get_account_accountbusinessbill = privateMixGetAccountAccountBusinessBill = Entry('account/accountBusinessBill', ['private', 'mix'], 'GET', {'cost': 4})
     private_mix_get_order_current = privateMixGetOrderCurrent = Entry('order/current', ['private', 'mix'], 'GET', {'cost': 1})

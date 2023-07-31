@@ -307,6 +307,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_mix_get_position_allposition_v2($params = array()) {
         return $this->request('position/allPosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
     }
+    public function private_mix_get_position_history_position($params = array()) {
+        return $this->request('position/history-position', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_mix_get_account_accountbill($params = array()) {
         return $this->request('account/accountBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -999,6 +1002,9 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateMixGetPositionAllPositionV2($params = array()) {
         return $this->request('position/allPosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateMixGetPositionHistoryPosition($params = array()) {
+        return $this->request('position/history-position', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateMixGetAccountAccountBill($params = array()) {
         return $this->request('account/accountBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
