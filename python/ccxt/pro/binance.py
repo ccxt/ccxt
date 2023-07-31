@@ -1682,7 +1682,6 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchOpenOrdersWs', symbol)
         await self.load_markets()
         self.check_is_spot('fetchOpenOrdersWs', symbol)
         url = self.urls['api']['ws']['ws']
@@ -1691,9 +1690,10 @@ class binance(ccxt.async_support.binance):
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'fetchOrderWs', 'returnRateLimits', False)
         payload = {
-            'symbol': self.market_id(symbol),
             'returnRateLimits': returnRateLimits,
         }
+        if symbol is not None:
+            payload['symbol'] = self.market_id(symbol)
         message = {
             'id': messageHash,
             'method': 'openOrders.status',

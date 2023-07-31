@@ -1622,7 +1622,7 @@ class bitfinex extends bitfinex$1 {
             body = this.json(query);
             const payload = this.stringToBase64(body);
             const secret = this.encode(this.secret);
-            const signature = this.hmac(payload, secret, sha512.sha384);
+            const signature = this.hmac(this.encode(payload), secret, sha512.sha384);
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': payload,

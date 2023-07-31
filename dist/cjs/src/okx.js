@@ -106,6 +106,7 @@ class okx extends okx$1 {
                 'fetchTransactions': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,

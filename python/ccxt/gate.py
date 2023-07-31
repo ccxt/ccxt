@@ -149,6 +149,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'repayMargin': True,

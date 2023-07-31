@@ -31,6 +31,9 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'api' => array(
                     'ws' => 'wss://ws-feed.pro.coinbase.com',
                 ),
+                'test' => array(
+                    'ws' => 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
+                ),
             ),
             'options' => array(
                 'tradesLimit' => 1000,

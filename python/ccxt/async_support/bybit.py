@@ -101,6 +101,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
@@ -3204,7 +3205,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "symbol": "XRPUSDT",
         #         "side": "Buy",
         #         "orderType": "Market",
-        #         "price": "0.3431",
+        #         "price": "0.3432",
         #         "qty": "65",
         #         "reduceOnly": True,
         #         "timeInForce": "ImmediateOrCancel",
@@ -8157,6 +8158,59 @@ class bybit(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
+        return result
+
+    async def fetch_volatility_history(self, code: str, params={}):
+        """
+        fetch the historical volatility of an option market based on an underlying asset
+        see https://bybit-exchange.github.io/docs/v5/market/iv
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param int [params.period]: the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
+        :returns dict[]: a list of `volatility history objects <https://docs.ccxt.com/#/?id=volatility-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'category': 'option',
+            'baseCoin': currency['id'],
+        }
+        response = await self.publicGetV5MarketHistoricalVolatility(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "SUCCESS",
+        #         "category": "option",
+        #         "result": [
+        #             {
+        #                 "period": 7,
+        #                 "value": "0.23854072",
+        #                 "time": "1690574400000"
+        #             }
+        #         ]
+        #     }
+        #
+        volatility = self.safe_value(response, 'result', [])
+        return self.parse_volatility_history(volatility)
+
+    def parse_volatility_history(self, volatility):
+        #
+        #     {
+        #         "period": 7,
+        #         "value": "0.23854072",
+        #         "time": "1690574400000"
+        #     }
+        #
+        result = []
+        for i in range(0, len(volatility)):
+            entry = volatility[i]
+            timestamp = self.safe_integer(entry, 'time')
+            result.append({
+                'info': volatility,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'volatility': self.safe_number(entry, 'value'),
+            })
         return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

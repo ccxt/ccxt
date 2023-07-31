@@ -29,6 +29,9 @@ export default class coinbasepro extends coinbaseproRest {
                 'api': {
                     'ws': 'wss://ws-feed.pro.coinbase.com',
                 },
+                'test': {
+                    'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
+                },
             },
             'options': {
                 'tradesLimit': 1000,

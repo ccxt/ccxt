@@ -54,7 +54,6 @@ class deribit extends deribit$1 {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
-                'fetchHistoricalVolatility': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -81,6 +80,7 @@ class deribit extends deribit$1 {
                 'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'transfer': true,
@@ -2479,7 +2479,16 @@ class deribit extends deribit$1 {
         const result = this.safeValue(response, 'result');
         return this.parsePositions(result, symbols);
     }
-    async fetchHistoricalVolatility(code, params = {}) {
+    async fetchVolatilityHistory(code, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchVolatilityHistory
+         * @description fetch the historical volatility of an option market based on an underlying asset
+         * @see https://docs.deribit.com/#public-get_historical_volatility
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -2500,13 +2509,30 @@ class deribit extends deribit$1 {
         //         "testnet": false
         //     }
         //
-        const volatilityResult = this.safeValue(response, 'result', {});
+        return this.parseVolatilityHistory(response);
+    }
+    parseVolatilityHistory(volatility) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn": 1641515379467734,
+        //         "usOut": 1641515379468095,
+        //         "usDiff": 361,
+        //         "testnet": false
+        //     }
+        //
+        const volatilityResult = this.safeValue(volatility, 'result', []);
         const result = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger(volatilityResult[i], 0);
             const volatility = this.safeNumber(volatilityResult[i], 1);
             result.push({
-                'info': response,
+                'info': volatility,
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
                 'volatility': volatility,

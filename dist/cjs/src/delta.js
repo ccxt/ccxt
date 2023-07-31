@@ -69,6 +69,7 @@ class delta extends delta$1 {
                 'fetchTrades': true,
                 'fetchTransfer': undefined,
                 'fetchTransfers': undefined,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': true,

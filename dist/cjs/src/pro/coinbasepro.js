@@ -26,6 +26,9 @@ class coinbasepro extends coinbasepro$1 {
                 'api': {
                     'ws': 'wss://ws-feed.pro.coinbase.com',
                 },
+                'test': {
+                    'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
+                },
             },
             'options': {
                 'tradesLimit': 1000,

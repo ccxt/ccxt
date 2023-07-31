@@ -80,6 +80,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransfer': None,
                 'fetchTransfers': None,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': None,
                 'reduceMargin': True,

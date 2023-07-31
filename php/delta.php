@@ -66,6 +66,7 @@ class delta extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransfer' => null,
                 'fetchTransfers' => null,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => null,
                 'reduceMargin' => true,

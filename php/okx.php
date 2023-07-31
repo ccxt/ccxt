@@ -103,6 +103,7 @@ class okx extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => true,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,

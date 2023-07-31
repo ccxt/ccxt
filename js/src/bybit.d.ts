@@ -295,6 +295,8 @@ export default class bybit extends Exchange {
         datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
+    fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
+    parseVolatilityHistory(volatility: any): any[];
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

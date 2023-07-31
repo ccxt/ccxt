@@ -1841,7 +1841,6 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $this->check_required_symbol('fetchOpenOrdersWs', $symbol);
             Async\await($this->load_markets());
             $this->check_is_spot('fetchOpenOrdersWs', $symbol);
             $url = $this->urls['api']['ws']['ws'];
@@ -1850,9 +1849,11 @@ class binance extends \ccxt\async\binance {
             $returnRateLimits = false;
             list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrderWs', 'returnRateLimits', false);
             $payload = array(
-                'symbol' => $this->market_id($symbol),
                 'returnRateLimits' => $returnRateLimits,
             );
+            if ($symbol !== null) {
+                $payload['symbol'] = $this->market_id($symbol);
+            }
             $message = array(
                 'id' => $messageHash,
                 'method' => 'openOrders.status',
