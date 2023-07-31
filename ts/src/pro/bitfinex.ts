@@ -175,10 +175,6 @@ export default class bitfinex extends bitfinexRest {
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
             amount = Precise.stringAbs (amount);
         }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = Precise.stringMul (amount, price);
-        }
         const seq = this.safeString (trade, 2);
         const parts = seq.split ('-');
         let marketId = this.safeString (parts, 1);
@@ -200,7 +196,7 @@ export default class bitfinex extends bitfinexRest {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
         });
     }
