@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.44'
+__version__ = '4.0.45'
 
 # -----------------------------------------------------------------------------
 
@@ -1901,6 +1901,15 @@ class Exchange(BaseExchange):
 
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def fetch_positions_by_symbol(self, symbol: str, params={}):
+        """
+        specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        """
+        raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')

@@ -345,6 +345,7 @@ export default class Exchange {
             fetchPermissions: any;
             fetchPosition: any;
             fetchPositions: any;
+            fetchPositionsBySymbol: any;
             fetchPositionsRisk: any;
             fetchPremiumIndexOHLCV: any;
             fetchStatus: string;
@@ -647,6 +648,7 @@ export default class Exchange {
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
+    fetchPositionsBySymbol(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<void>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
