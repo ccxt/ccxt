@@ -81,7 +81,6 @@ class Position(TypedDict):
     liquidationPrice: Numeric
     hedged: bool
     maintenanceMargin: Numeric
-    maintenanceMargin
     initialMargin: Numeric
     initialMarginPercentage: Numeric
     marginMode: str
