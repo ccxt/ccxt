@@ -1,24 +1,16 @@
 
+import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 
 function testCurrency (exchange, skippedProperties, method, entry) {
-    const format = {
+    const commonFormat = {
+        'info': {},
         'id': 'btc', // string literal for referencing within an exchange
-        'code': 'BTC', // uppercase string literal of a pair of currencies
-    };
-    // todo: remove fee from empty
-    const emptyAllowedFor = [ 'name', 'fee' ];
-    // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
-    if (isNative) {
-        format['info'] = {};
-        // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-        format['withdraw'] = true; // withdraw enabled
-        format['deposit'] = true; // deposit enabled
-        format['precision'] = exchange.parseNumber ('0.0001'); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
-        format['fee'] = exchange.parseNumber ('0.001');
-        format['networks'] = {};
-        format['limits'] = {
+        'withdraw': true, // withdraw enabled
+        'deposit': true, // deposit enabled
+        'precision': exchange.parseNumber ('0.0001'), // would be integer in case of SIGNIFICANT_DIGITS
+        'fee': exchange.parseNumber ('0.001'),
+        'limits': {
             'withdraw': {
                 'min': exchange.parseNumber ('0.01'),
                 'max': exchange.parseNumber ('1000'),
@@ -27,11 +19,55 @@ function testCurrency (exchange, skippedProperties, method, entry) {
                 'min': exchange.parseNumber ('0.01'),
                 'max': exchange.parseNumber ('1000'),
             },
-        };
-    }
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        },
+    };
+    const currencyFormat = exchange.deepExtend (commonFormat, {
+        'code': 'BTC', // uppercase string literal of a currency
+        'name': 'Bitcoin', // uppercase string, base currency
+        'active': true, // if deposit/withdraw enabled
+        'networks': {},
+    });
+    const networkFormat = exchange.deepExtend (commonFormat, {
+        'network': 'BEP20', // can be either uppercase unified code or lowercase network id
+    });
+    testCommonCurrencyEntry (exchange, skippedProperties, method, entry, currencyFormat);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
+    // check valid ID & CODE
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
+    // check network entries
+    if (!('networks' in skippedProperties)) {
+        const networks = entry['networks'];
+        // check each network entry (they have somewhat similar structure as root currency structure)
+        const networksKeys = Object.keys (networks);
+        for (let i = 0; i < networksKeys.length; i++) {
+            const networkCode = networksKeys[i];
+            const networkEntry = networks[networkCode];
+            testCommonCurrencyEntry (exchange, skippedProperties, method, networkEntry, networkFormat);
+        }
+    }
+}
+
+function testCommonCurrencyEntry (exchange, skippedProperties, method, entry, format) {
+    const emptyAllowedFor = [ 'name', 'fee', 'active' ]; // 'active' key is dynammically checked in the bottom
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     //
+    if (!('active' in skippedProperties)) {
+        if (entry['deposit'] === undefined && entry['withdraw'] === undefined) {
+            assert (entry['active'] === undefined, 'active must be undefined if deposit and withdraw are both undefined');
+        }
+        else if (entry['deposit'] === undefined || entry['withdraw'] === undefined) {
+            assert (entry['active'] === undefined, 'active must be undefined if either deposit or withdraw is undefined');
+        }
+        else if (entry['deposit'] === false && entry['withdraw'] === false) {
+            assert (entry['active'] === false, 'active must be false if deposit and withdraw are both false');
+        }
+        else if (entry['deposit'] === false || entry['withdraw'] === false) {
+            assert (entry['active'] === false, 'active must be false if either deposit or withdraw is false');
+        }
+        else if (entry['deposit'] === true && entry['withdraw'] === true) {
+            assert (entry['active'] === true, 'active must be true if deposit and withdraw are both true');
+        }
+    }
     testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, entry, 'precision');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'fee', '0');
     if (!('limits' in skippedProperties)) {
@@ -52,10 +88,6 @@ function testCurrency (exchange, skippedProperties, method, entry) {
         if (minStringDeposit !== undefined) {
             testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, depositLimits, 'max', minStringDeposit);
         }
-        // check valid ID & CODE
-        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
-        // todo: networks check
     }
 }
-
 export default testCurrency;
