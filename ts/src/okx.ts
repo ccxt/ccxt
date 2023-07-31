@@ -94,6 +94,7 @@ export default class okx extends Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsBySymbol': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
