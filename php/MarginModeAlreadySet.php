@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT . 'NoChange.php';
+require_once PATH_TO_CCXT . 'BadRequest.php';
 
-class MarginModeAlreadySet extends NoChange {};
+class MarginModeAlreadySet extends BadRequest {};

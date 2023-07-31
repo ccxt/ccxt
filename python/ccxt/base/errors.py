@@ -10,9 +10,7 @@ error_hierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'NoChange': {
-                    'MarginModeAlreadySet': {},
-                },
+                'MarginModeAlreadySet': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -28,7 +26,6 @@ error_hierarchy = {
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
-                'ContractSettled': {},
             },
             'NotSupported': {},
         },
@@ -82,11 +79,7 @@ class BadSymbol(BadRequest):
     pass
 
 
-class NoChange(BadRequest):
-    pass
-
-
-class MarginModeAlreadySet(NoChange):
+class MarginModeAlreadySet(BadRequest):
     pass
 
 
@@ -111,10 +104,6 @@ class AddressPending(InvalidAddress):
 
 
 class InvalidOrder(ExchangeError):
-    pass
-
-
-class ContractSettled(InvalidOrder):
     pass
 
 
@@ -205,7 +194,5 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout',
-    'NoChange',
-    'ContractSettled',
+    'RequestTimeout'
 ]
