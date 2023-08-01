@@ -366,6 +366,7 @@ export default class wavesexchange extends Exchange {
 
     setSandboxMode (enabled) {
         this.options['messagePrefix'] = enabled ? 'T' : 'W';
+        this.options['sandboxMode'] = enabled;
         super.setSandboxMode (enabled);
     }
 
@@ -1367,6 +1368,8 @@ export default class wavesexchange extends Exchange {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         };
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const chainId = (sandboxMode) ? 84 : 87;
         const body = {
             'senderPublicKey': this.apiKey,
             'matcherPublicKey': matcherPublicKey,
@@ -1377,8 +1380,9 @@ export default class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'expiration': expiration,
             'matcherFee': parseInt (matcherFee),
-            'priceMode': 'fixedDecimals',
+            'priceMode': 'assetDecimals',
             'version': 4,
+            'chainId': chainId,
         };
         if (isStopOrder) {
             const attachment = {
@@ -1403,28 +1407,33 @@ export default class wavesexchange extends Exchange {
         body['signature'] = signature;
         //
         //     {
-        //         "success":true,
-        //         "message":{
-        //             "version":3,
-        //             "id":"GK5ox4RfLJFtqjQsCbDmvCya8ZhFVEUQDtF4yYuAJ6C7",
-        //             "sender":"3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
-        //             "senderPublicKey":"AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
-        //             "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
-        //             "assetPair":{
-        //                 "amountAsset":"C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS",
-        //                 "priceAsset":"WAVES"
-        //             },
-        //             "orderType":"buy",
-        //             "amount":110874978,
-        //             "price":514397851,
-        //             "timestamp":1650473255988,
-        //             "expiration":1652892455988,
-        //             "matcherFee":7074571,
-        //             "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on",
-        //             "signature":"5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8",
-        //             "proofs":["5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8"]
+        //         "success": true,
+        //         "message": {
+        //           "version": 4,
+        //           "id": "8VR49dLZFaYcVwzx9TqVMTAZCSUoyB74kLUHrEPCSJgN",
+        //           "sender": "3MpEdBXtsRHRj2TvZURSb8uLDxzneVbYczW",
+        //           "senderPublicKey": "8aUTNqHGCBiubySBRhcS1N6NC5jLczhVcndRfMAuwtkY",
+        //           "matcherPublicKey": "8QUAqtTckM5B8gvcuP7mMswat9SjKUuafJMusEoSn1Gy",
+        //           "assetPair": {
+        //             "amountAsset": "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        //             "priceAsset": "25FEqEjRkqK6yCkiT7Lz6SAYz7gUFCtxfCChnrVFD5AT"
+        //           },
+        //           "orderType": "sell",
+        //           "amount": 100000,
+        //           "price": 480000,
+        //           "timestamp": 1690852043772,
+        //           "expiration": 1693271243772,
+        //           "matcherFee": 83327570,
+        //           "signature": "3QYDWQVSP4kdqpTLodCuboh8bpWd6GW5s1pQyKdce1JBDwX6t4kH5Xtuq35pqo94gxjo3cfG6k6Xuic2JaYLubkK",
+        //           "proofs": [
+        //             "3QYDWQVSP4kdqpTLodCuboh8bpWd6GW5s1pQyKdce1JBDwX6t4kH5Xtuq35pqo94gxjo3cfG6k6Xuic2JaYLubkK"
+        //           ],
+        //           "matcherFeeAssetId": "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        //           "eip712Signature": null,
+        //           "priceMode": "assetDecimals",
+        //           "attachment": "2PQ4akZHnMSZrQissuu5uudoXbgsipeDnFcRtXtjVgkdm1gUWEgGzp"
         //         },
-        //         "status":"OrderAccepted"
+        //         "status": "OrderAccepted"
         //     }
         //
         if (isMarketOrder) {
