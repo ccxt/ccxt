@@ -110,6 +110,7 @@ export default class krakenfutures extends Exchange {
                         'fills',
                         'transfers',
                         'leveragepreferences',
+                        'pnlpreferences',
                     ],
                     'post': [
                         'sendorder',
@@ -123,6 +124,7 @@ export default class krakenfutures extends Exchange {
                     ],
                     'put': [
                         'leveragepreferences',
+                        'pnlpreferences',
                     ],
                 },
                 'charts': {
