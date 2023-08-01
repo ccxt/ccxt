@@ -63,7 +63,7 @@ export default class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
             },
@@ -118,6 +118,9 @@ export default class krakenfutures extends Exchange {
                         'cancelallorders',
                         'cancelallordersafter',
                         'withdrawal',                              // for futures wallet -> kraken spot wallet
+                    ],
+                    'put': [
+                        'leveragepreferences',
                     ],
                 },
                 'charts': {
@@ -2046,6 +2049,27 @@ export default class krakenfutures extends Exchange {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });
+    }
+
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        const request = {
+            'maxLeverage': leverage,
+        };
+        if (symbol !== undefined) {
+            request['symbol'] = this.marketId (symbol);
+        }
+        return await this.privatePutLeveragepreferences (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
