@@ -514,13 +514,16 @@ export default class kucoin extends kucoinRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @param {boolean} [params.stop] trigger orders are watched if true
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, [ 'stop' ]);
         const url = await this.negotiate (true);
-        const topic = '/spotMarket/tradeOrders';
+        const topic = stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
         const request = {
             'privateChannel': true,
         };
@@ -550,21 +553,41 @@ export default class kucoin extends kucoinRest {
 
     parseWsOrder (order, market = undefined) {
         //
-        //     {
-        //         'symbol': 'XCAD-USDT',
-        //         'orderType': 'limit',
-        //         'side': 'buy',
-        //         'orderId': '6249167327218b000135e749',
-        //         'type': 'canceled',
-        //         'orderTime': 1648957043065280224,
-        //         'size': '100.452',
-        //         'filledSize': '0',
-        //         'price': '2.9635',
-        //         'clientOid': 'buy-XCAD-USDT-1648957043010159',
-        //         'remainSize': '0',
-        //         'status': 'done',
-        //         'ts': 1648957054031001037
-        //     }
+        // /spotMarket/tradeOrders
+        //
+        //    {
+        //        'symbol': 'XCAD-USDT',
+        //        'orderType': 'limit',
+        //        'side': 'buy',
+        //        'orderId': '6249167327218b000135e749',
+        //        'type': 'canceled',
+        //        'orderTime': 1648957043065280224,
+        //        'size': '100.452',
+        //        'filledSize': '0',
+        //        'price': '2.9635',
+        //        'clientOid': 'buy-XCAD-USDT-1648957043010159',
+        //        'remainSize': '0',
+        //        'status': 'done',
+        //        'ts': 1648957054031001037
+        //    }
+        //
+        // /spotMarket/advancedOrders
+        //
+        //    {
+        //        "createdAt": 1589789942337,
+        //        "orderId": "5ec244f6a8a75e0009958237",
+        //        "orderPrice": "0.00062",
+        //        "orderType": "stop",
+        //        "side": "sell",
+        //        "size": "1",
+        //        "stop": "entry",
+        //        "stopPrice": "0.00062",
+        //        "symbol": "KCS-BTC",
+        //        "tradeType": "TRADE",
+        //        "triggerSuccess": true,
+        //        "ts": 1589790121382281286,
+        //        "type": "triggered"
+        //    }
         //
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOid');
@@ -579,6 +602,7 @@ export default class kucoin extends kucoinRest {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const side = this.safeStringLower (order, 'side');
+        const triggerPrice = this.safeString (order, 'stopPrice');
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -592,8 +616,8 @@ export default class kucoin extends kucoinRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
@@ -830,6 +854,7 @@ export default class kucoin extends kucoinRest {
             'account.balance': this.handleBalance,
             '/spot/tradeFills': this.handleMyTrade,
             'orderChange': this.handleOrder,
+            'stopOrder': this.handleOrder,
         };
         const method = this.safeValue (methods, subject);
         if (method === undefined) {
