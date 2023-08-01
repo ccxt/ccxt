@@ -9,6 +9,7 @@ import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitflyer
@@ -932,9 +933,9 @@ export default class bitflyer extends Exchange {
         if ('fee' in transaction) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus(rawStatus);
-            const feeCost = this.safeNumber(transaction, 'fee');
-            const additionalFee = this.safeNumber(transaction, 'additional_fee');
-            fee = { 'currency': code, 'cost': feeCost + additionalFee };
+            const feeCost = this.safeString(transaction, 'fee');
+            const additionalFee = this.safeString(transaction, 'additional_fee');
+            fee = { 'currency': code, 'cost': this.parseNumber(Precise.stringAdd(feeCost, additionalFee)) };
         }
         else {
             type = 'deposit';
