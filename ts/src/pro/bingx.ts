@@ -3,7 +3,7 @@
 
 import bingxRest from '../bingx.js';
 import { BadRequest } from '../base/errors.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -16,6 +16,7 @@ export default class bingx extends bingxRest {
                 'ws': true,
                 'watchTrades': true,
                 'watchOrderBook': true,
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -51,7 +52,7 @@ export default class bingx extends bingxRest {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const url = this.safeValue (this.urls['api']['ws'], marketType);
         if (url === undefined) {
-            throw new BadRequest (this.id + ' fetchTicker is not supported for ' + marketType + ' markets.');
+            throw new BadRequest (this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
         }
         const messageHash = market['id'] + '@trade';
         const uuid = this.uuid ();
@@ -184,7 +185,7 @@ export default class bingx extends bingxRest {
         const messageHash = market['id'] + '@depth' + limit.toString ();
         const url = this.safeValue (this.urls['api']['ws'], marketType);
         if (url === undefined) {
-            throw new BadRequest (this.id + ' fetchTicker is not supported for ' + marketType + ' markets.');
+            throw new BadRequest (this.id + ' watchOrderBook is not supported for ' + marketType + ' markets.');
         }
         const uuid = this.uuid ();
         const request = {
@@ -291,16 +292,146 @@ export default class bingx extends bingxRest {
         client.resolve (orderbook, messageHash);
     }
 
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //    {
+        //        c: '28909.0',
+        //        o: '28915.4',
+        //        h: '28915.4',
+        //        l: '28896.1',
+        //        v: '27.6919',
+        //        T: 1690907580000
+        //    }
+        //
+        return [
+            this.safeInteger (ohlcv, 'T'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
+    }
+
+    handleOHLCV (client: Client, message) {
+        // spot
+        //
+        // first snapshot
+        //
+        //    {
+        //        code: 100400,
+        //        id: '12cc019d-6fb0-42b4-8d9b-88d1153ae453',
+        //        msg: '',
+        //        timestamp: 1690907596102
+        //    }
+        //
+        // subsequent updates
+        //
+        //
+        //
+        // swap
+        //
+        // first snapshot
+        //
+        //    {
+        //        id: '09662f0e-0f84-4e94-a842-285c758421e2',
+        //        code: 0,
+        //        msg: '',
+        //        dataType: '',
+        //        data: null
+        //    }
+        //
+        // subsequent updates
+        //
+        //    {
+        //        code: 0,
+        //        dataType: 'BTC-USDT@kline_1m',
+        //        s: 'BTC-USDT',
+        //        data: [
+        //            {
+        //            c: '28909.0',
+        //            o: '28915.4',
+        //            h: '28915.4',
+        //            l: '28896.1',
+        //            v: '27.6919',
+        //            T: 1690907580000
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (message, 'data', []);
+        const messageHash = this.safeString (message, 'dataType');
+        const timeframeId = messageHash.split ('_')[1];
+        const marketId = messageHash.split ('@')[0];
+        const marketType = client.url.indexOf ('swap') >= 0 ? 'swap' : 'spot';
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const symbol = market['symbol'];
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframeId);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframeId] = stored;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const candle = data[i];
+            const parsed = this.parseOHLCV (candle, market);
+            stored.append (parsed);
+        }
+        client.resolve (stored, messageHash);
+    }
+
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#K%E7%BA%BF%20Streams
+         * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const market = this.market (symbol);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
+        const url = this.safeValue (this.urls['api']['ws'], marketType);
+        if (url === undefined) {
+            throw new BadRequest (this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
+        }
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        if (interval === undefined) {
+            throw new BadRequest (this.id + ' this timeframe is not supported, supported timeframes: ' + this.timeframes);
+        }
+        const messageHash = market['id'] + '@kline_' + interval;
+        const uuid = this.uuid ();
+        const request = {
+            'id': uuid,
+            'dataType': messageHash,
+        };
+        if (marketType === 'swap') {
+            request['reqType'] = 'sub';
+        }
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, query), messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
     handleMessage (client: Client, message) {
         // TODO: Handle ping-pong -> see bybit as example
         let table = this.safeString (message, 'e');
         const dataType = this.safeString (message, 'dataType');
         if (table === undefined && dataType !== undefined) {
-            table = dataType.split ('@')[1].replace (/[0-9]/g, '');
+            table = dataType.split ('@')[1].split ('_')[0].replace (/[0-9]/g, '');
         }
         const methods = {
             'trade': this.handleTrades,
             'depth': this.handleOrderBook,
+            'kline': this.handleOHLCV,
         };
         const method = this.safeValue (methods, table);
         if (method !== undefined) {
