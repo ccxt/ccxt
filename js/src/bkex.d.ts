@@ -76,7 +76,7 @@ export default class bkex extends Exchange {
     fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
     parseTransactionFees(response: any, codes?: any): {};
     parseTransactionFee(transaction: any, currency?: any): number;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;

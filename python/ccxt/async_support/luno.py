@@ -727,7 +727,7 @@ class luno(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
+            'pair': market['id'],
         }
         response = await self.privateGetFeeInfo(self.extend(request, params))
         #

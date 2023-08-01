@@ -488,6 +488,7 @@ class gate(Exchange, ImplicitAPI):
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
                 'VAI': 'VAIOT',
+                'TRAC': 'TRACO',  # conflict with OriginTrail(TRAC)
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -1870,7 +1871,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status

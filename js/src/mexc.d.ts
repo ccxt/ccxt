@@ -204,7 +204,7 @@ export default class mexc extends Exchange {
         info: any;
     };
     parseTransactionFee(transaction: any, currency?: any): {};
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     parseMarginLoan(info: any, currency?: any): {
         id: string;

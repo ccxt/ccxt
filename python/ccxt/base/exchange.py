@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.50'
+__version__ = '3.1.56'
 
 # -----------------------------------------------------------------------------
 
@@ -1728,8 +1728,6 @@ class Exchange(object):
             val = val + 1
         if val > 1:
             raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent')
-        if (val == 1) and (self.proxy is not None):
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy')
         return [proxyUrl, httpProxy, httpsProxy, socksProxy]
 
     def find_message_hashes(self, client, element: str):
@@ -2498,8 +2496,8 @@ class Exchange(object):
         percentage = self.safe_value(ticker, 'percentage')
         average = self.safe_value(ticker, 'average')
         vwap = self.safe_value(ticker, 'vwap')
-        baseVolume = self.safe_value(ticker, 'baseVolume')
-        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        baseVolume = self.safe_string(ticker, 'baseVolume')
+        quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
             vwap = Precise.string_div(quoteVolume, baseVolume)
         if (last is not None) and (close is None):
@@ -2583,6 +2581,41 @@ class Exchange(object):
             result[close].append(ohlcvs[i][4])
             result[volume].append(ohlcvs[i][5])
         return result
+
+    def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
+        errorMessage = ''
+        try:
+            options = self.safe_value(self.options, method, {})
+            # if it was not explicitly disabled, then don't fetch
+            if self.safe_value(options, 'webApiEnable', True) is not True:
+                return None
+            maxRetries = self.safe_value(options, 'webApiRetries', 10)
+            response = None
+            retry = 0
+            while(retry < maxRetries):
+                try:
+                    response = getattr(self, endpointMethod)({})
+                    break
+                except Exception as e:
+                    retry = retry + 1
+                    if retry == maxRetries:
+                        raise e
+            content = response
+            if startRegex is not None:
+                splitted_by_start = content.split(startRegex)
+                content = splitted_by_start[1]  # we need second part after start
+            if endRegex is not None:
+                splitted_by_end = content.split(endRegex)
+                content = splitted_by_end[0]  # we need first part after start
+            if returnAsJson and (isinstance(content, str)):
+                jsoned = self.parse_json(content.strip())  # content should be trimmed before json parsing
+                if jsoned:
+                    return jsoned  # if parsing was not successfull, exception should be thrown
+            else:
+                return content
+        except Exception as e:
+            errorMessage = str(e)
+        raise NotSupported(self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage)
 
     def market_ids(self, symbols):
         if symbols is None:

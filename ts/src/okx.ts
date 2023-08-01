@@ -162,6 +162,7 @@ export default class okx extends Exchange {
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
+                        'market/history-trades': 2,
                         'market/platform-24-volume': 10,
                         'market/open-oracle': 40,
                         'market/index-components': 1,
@@ -1897,11 +1898,13 @@ export default class okx extends Exchange {
         if (since !== undefined) {
             const now = this.milliseconds ();
             const difference = now - since;
+            const durationInMilliseconds = duration * 1000;
             // if the since timestamp is more than limit candles back in the past
-            if (difference > 1440 * duration * 1000) {
+            // additional one bar for max offset to round the current day to UTC
+            const calc = (1440 - limit - 1) * durationInMilliseconds;
+            if (difference > calc) {
                 defaultType = 'HistoryCandles';
             }
-            const durationInMilliseconds = duration * 1000;
             const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;
             request['after'] = this.sum (startTime, durationInMilliseconds * limit);
@@ -5059,6 +5062,27 @@ export default class okx extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
+            // inject id in implicit api call
+            if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
+                const brokerId = this.safeString (this.options, 'brokerId', 'e847386590ce4dBC');
+                if (Array.isArray (params)) {
+                    for (let i = 0; i < params.length; i++) {
+                        const entry = params[i];
+                        const clientOrderId = this.safeString (entry, 'clOrdId');
+                        if (clientOrderId === undefined) {
+                            entry['clOrdId'] = brokerId + this.uuid16 ();
+                            entry['tag'] = brokerId;
+                            params[i] = entry;
+                        }
+                    }
+                } else {
+                    const clientOrderId = this.safeString (params, 'clOrdId');
+                    if (clientOrderId === undefined) {
+                        request['clOrdId'] = brokerId + this.uuid16 ();
+                        request['tag'] = brokerId;
+                    }
+                }
+            }
             const timestamp = this.iso8601 (this.milliseconds ());
             headers = {
                 'OK-ACCESS-KEY': this.apiKey,

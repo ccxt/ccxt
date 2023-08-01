@@ -1921,7 +1921,7 @@ class lbank2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying self.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
         :param [str]|None codes: array of unified currency codes

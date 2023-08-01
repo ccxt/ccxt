@@ -353,6 +353,7 @@ export default class bybit extends Exchange {
                         'user/v3/private/frozen-sub-member': 10,
                         'user/v3/private/query-sub-members': 5,
                         'user/v3/private/query-api': 5,
+                        'user/v3/private/get-member-type': 1,
                         'asset/v3/private/transfer/transfer-coin/list/query': 0.84,
                         'asset/v3/private/transfer/account-coin/balance/query': 0.84,
                         'asset/v3/private/transfer/account-coins/balance/query': 50,
@@ -8573,7 +8574,7 @@ export default class bybit extends Exchange {
          * @description fetch deposit and withdraw fees
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
          * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         this.checkRequiredCredentials();

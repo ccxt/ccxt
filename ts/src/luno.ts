@@ -786,7 +786,7 @@ export default class luno extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'pair': market['id'],
         };
         const response = await this.privateGetFeeInfo (this.extend (request, params));
         //
@@ -969,7 +969,7 @@ export default class luno extends Exchange {
         // const details = this.safeValue (entry, 'details', {});
         const id = this.safeString (entry, 'row_index');
         const account_id = this.safeString (entry, 'account_id');
-        const timestamp = this.safeValue (entry, 'timestamp');
+        const timestamp = this.safeInteger (entry, 'timestamp');
         const currencyId = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const available_delta = this.safeString (entry, 'available_delta');
@@ -1010,8 +1010,8 @@ export default class luno extends Exchange {
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'before': before,
-            'after': after,
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
             'status': status,
             'fee': undefined,
             'info': entry,

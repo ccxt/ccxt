@@ -1690,7 +1690,7 @@ class bkex extends Exchange {
         return $this->safe_number($transaction, 'withdrawFee');
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2

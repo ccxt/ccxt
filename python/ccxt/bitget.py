@@ -4408,7 +4408,7 @@ class bitget(Exchange, ImplicitAPI):
         fetch deposit and withdraw fees
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
         :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()

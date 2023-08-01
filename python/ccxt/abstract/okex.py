@@ -14,6 +14,7 @@ class ImplicitAPI:
     public_get_market_index_candles = publicGetMarketIndexCandles = Entry('market/index-candles', 'public', 'GET', {'cost': 1})
     public_get_market_mark_price_candles = publicGetMarketMarkPriceCandles = Entry('market/mark-price-candles', 'public', 'GET', {'cost': 1})
     public_get_market_trades = publicGetMarketTrades = Entry('market/trades', 'public', 'GET', {'cost': 1})
+    public_get_market_history_trades = publicGetMarketHistoryTrades = Entry('market/history-trades', 'public', 'GET', {'cost': 2})
     public_get_market_platform_24_volume = publicGetMarketPlatform24Volume = Entry('market/platform-24-volume', 'public', 'GET', {'cost': 10})
     public_get_market_open_oracle = publicGetMarketOpenOracle = Entry('market/open-oracle', 'public', 'GET', {'cost': 40})
     public_get_market_index_components = publicGetMarketIndexComponents = Entry('market/index-components', 'public', 'GET', {'cost': 1})

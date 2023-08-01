@@ -58,20 +58,20 @@ price = None if order_type == 'market' else ((ask_price * 1.001) if side == 'sel
 # the following line is not necessary, it's here just for print readability below
 price = float(exchange.price_to_precision(symbol, price))
 
-# set stop loss trigger price to last_price - 1% for a long position
-# set stop loss trigger price to last_price + 1% for a short position
+# set stop-loss trigger price to last_price - 1% for a long position
+# set stop-loss trigger price to last_price + 1% for a short position
 stop_loss_trigger_price = (last_price if order_type == 'market' else price) * (0.999 if side == 'buy' else 1.001)
 
-# stop loss limit price must be lower than sl trigger price for a long position
-# stop loss limit price must be higher than sl trigger price for a short position
+# stop-loss limit price at i.e. -1% from trigger price for a long position
+# stop-loss limit price at i.e. +1% from trigger price for a short position
 stop_loss_limit_price = stop_loss_trigger_price * (1.001 if side == 'buy' else 0.999)
 
-# set take profit trigger price to last_price + 1% for a long position
-# set take profit trigger price to last_price - 1% for a short position
+# set take-profit trigger price to last_price + 1% for a long position
+# set take-profit trigger price to last_price - 1% for a short position
 take_profit_trigger_price = (last_price if order_type == 'market' else price) * (1.001 if side == 'buy' else 0.999)
 
-# take profit limit price must be higher than tp trigger price for a long position
-# take profit limit price must be lower than tp trigger price for a short position
+# take-profit limit price at i.e. -1% from trigger price for a long position
+# take-profit limit price at i.e. +1% from trigger price for a short position
 take_profit_limit_price = take_profit_trigger_price * (1.001 if side == 'buy' else 0.999)
 
 # the following four lines are not necessary, they're here just for pprint() readability

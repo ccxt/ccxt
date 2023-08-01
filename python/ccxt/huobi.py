@@ -7256,7 +7256,7 @@ class huobi(Exchange, ImplicitAPI):
         settlements = self.parse_settlements(settlementRecord, market)
         return self.sort_by(settlements, 'timestamp')
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
