@@ -413,6 +413,52 @@ export default class binance extends binanceRest {
         return message;
     }
 
+    async watchMultipleTrades (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMultipleTrades
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const options = this.safeValue (this.options, 'watchMultipleTrades', {});
+        const name = this.safeString (options, 'name', 'trade');
+        const firstMarket = this.market (symbols[0]);
+        let type = firstMarket['type'];
+        if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
+        }
+        const subParams = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const messageHash = market['lowercaseId'] + '@' + name;
+            subParams.push (messageHash);
+        }
+        const messageHash = 'multipleTrades::' + symbols.join (',');
+        const query = this.omit (params, 'type');
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': subParams,
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const trades = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
+        if (this.newUpdates) {
+            limit = trades.getLimit (undefined, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -619,8 +665,8 @@ export default class binance extends binanceRest {
     handleTrade (client: Client, message) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        const index = client.url.indexOf ('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
+        const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -636,6 +682,17 @@ export default class binance extends binanceRest {
         tradesArray.append (trade);
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, messageHash);
+        // watchMultipleTrades part
+        const messageHashes = this.findMessageHashes (client, 'multipleTrades::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            if (this.inArray (symbol, symbols)) {
+                client.resolve (tradesArray, messageHash);
+            }
+        }
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -738,8 +795,8 @@ export default class binance extends binanceRest {
             this.safeFloat (kline, 'c'),
             this.safeFloat (kline, 'v'),
         ];
-        const index = client.url.indexOf ('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
+        const marketType = (isSpot) ? 'spot' : 'contract';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
@@ -976,8 +1033,8 @@ export default class binance extends binanceRest {
         }
         const wsMarketId = this.safeStringLower (message, 's');
         const messageHash = wsMarketId + '@' + event;
-        const index = client.url.indexOf ('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
+        const marketType = (isSpot) ? 'spot' : 'contract';
         const result = this.parseWsTicker (message, marketType);
         const symbol = result['symbol'];
         this.tickers[symbol] = result;
@@ -989,8 +1046,8 @@ export default class binance extends binanceRest {
     }
 
     handleTickers (client: Client, message) {
-        const index = client.url.indexOf ('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
+        const marketType = (isSpot) ? 'spot' : 'contract';
         let rawTickers = [];
         const newTickers = [];
         if (Array.isArray (message)) {
