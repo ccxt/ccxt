@@ -3429,71 +3429,19 @@ export default class bybit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        this.checkRequiredSymbol ('fetchOrder', symbol);
+        const request = {
+            'orderId': id,
+        };
+        const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        const length = result.length;
+        if (length === 0) {
+            throw new OrderNotFound ('Order ' + id + ' does not exist.');
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const accounts = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = this.safeValue (accounts, 1, false);
-        if (isUnifiedAccount) {
-            throw new NotSupported (this.id + ' fetchOrder() does not support unified account. Please consider using fetchOpenOrders() or fetchClosedOrders()');
+        if (length > 1) {
+            throw new InvalidOrder (this.id + ' returned more than one order');
         }
-        if (type === 'spot') {
-            // only spot markets have a dedicated endpoint for fetching a order
-            const request = {
-                'orderId': id,
-            };
-            const response = await this.privateGetSpotV3PrivateOrder (this.extend (params, request));
-            //
-            //    {
-            //        "retCode": "0",
-            //        "retMsg": "OK",
-            //        "result": {
-            //            "accountId": "13380434",
-            //            "symbol": "AAVEUSDT",
-            //            "orderLinkId": "1666733357434617",
-            //            "orderId": "1275046248585414144",
-            //            "orderPrice": "80",
-            //            "orderQty": "0.11",
-            //            "execQty": "0",
-            //            "cummulativeQuoteQty": "0",
-            //            "avgPrice": "0",
-            //            "status": "NEW",
-            //            "timeInForce": "GTC",
-            //            "orderType": "LIMIT",
-            //            "side": "BUY",
-            //            "stopPrice": "0.0",
-            //            "icebergQty": "0.0",
-            //            "createTime": "1666733357438",
-            //            "updateTime": "1666733357444",
-            //            "isWorking": "1",
-            //            "locked": "8.8",
-            //            "orderCategory": "0"
-            //        },
-            //        "retExtMap": {},
-            //        "retExtInfo": null,
-            //        "time": "1666733357744"
-            //    }
-            //
-            const result = this.safeValue (response, 'result', {});
-            return this.parseOrder (result, market);
-        } else {
-            this.checkRequiredSymbol ('fetchOrder', symbol);
-            const request = {
-                'orderId': id,
-            };
-            const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
-            const length = result.length;
-            if (length === 0) {
-                throw new OrderNotFound ('Order ' + id + ' does not exist.');
-            }
-            if (length > 1) {
-                throw new InvalidOrder (this.id + ' returned more than one order');
-            }
-            return this.safeValue (result, 0);
-        }
+        return this.safeValue (result, 0);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
