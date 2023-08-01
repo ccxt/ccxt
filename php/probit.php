@@ -1204,7 +1204,9 @@ class probit extends Exchange {
                 if ($createMarketBuyOrderRequiresPrice) {
                     if ($price !== null) {
                         if ($cost === null) {
-                            $cost = $amount * $price;
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
                         }
                     } elseif ($cost === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");

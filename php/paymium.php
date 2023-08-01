@@ -63,6 +63,7 @@ class paymium extends Exchange {
                 'public' => array(
                     'get' => array(
                         'countries',
+                        'currencies',
                         'data/{currency}/ticker',
                         'data/{currency}/trades',
                         'data/{currency}/depth',
