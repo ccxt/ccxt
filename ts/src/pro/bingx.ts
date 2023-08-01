@@ -15,6 +15,7 @@ export default class bingx extends bingxRest {
             'has': {
                 'ws': true,
                 'watchTrades': true,
+                'watchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -131,12 +132,7 @@ export default class bingx extends bingxRest {
         const data = this.safeValue (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
-        let marketType = undefined;
-        if (Array.isArray (data)) {
-            marketType = 'swap';
-        } else {
-            marketType = 'spot';
-        }
+        const marketType = client.url.indexOf ('swap') >= 0 ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let trades = undefined;
@@ -169,16 +165,23 @@ export default class bingx extends bingxRest {
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        if (limit === undefined) {
-            limit = 20;
-        } else {
-            if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100)) {
-                throw new BadRequest (this.id + ' watchOrderBook() can only use limit 5, 10, 20, 50, and 100.');
-            }
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
+        if (limit === undefined) {
+            limit = 20;
+        } else {
+            if (marketType === 'swap') {
+                if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100)) {
+                    throw new BadRequest (this.id + ' watchOrderBook() (swap) only supports limit 5, 10, 20, 50, and 100');
+                }
+            } else if (marketType === 'spot') {
+                if ((limit !== 20) && (limit !== 100)) {
+                    throw new BadRequest (this.id + ' watchOrderBook() (spot) only supports limit 20, and 100');
+                }
+            }
+        }
+        const messageHash = market['id'] + '@depth' + limit.toString ();
         const url = this.safeValue (this.urls['api']['ws'], marketType);
         if (url === undefined) {
             throw new BadRequest (this.id + ' fetchTicker is not supported for ' + marketType + ' markets.');
@@ -186,49 +189,106 @@ export default class bingx extends bingxRest {
         const uuid = this.uuid ();
         const request = {
             'id': uuid,
-            'level': limit,
+            'dataType': messageHash,
         };
-        const messageHash = symbol + '@depth' + limit.toString ();
+        if (marketType === 'swap') {
+            request['reqType'] = 'sub';
+        }
         const orderbook = await this.watch (url, messageHash, this.deepExtend (request, query), messageHash);
         return orderbook.limit ();
     }
 
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
     handleOrderBook (client: Client, message) {
         //
-        //     {
-        //         "topic": "orderbook.50.BTCUSDT",
-        //         "type": "snapshot",
-        //         "ts": 1672304484978,
-        //         "data": {
-        //             "s": "BTCUSDT",
-        //             "b": [
-        //                 ...,
-        //                 [
-        //                     "16493.50",
-        //                     "0.006"
-        //                 ],
-        //                 [
-        //                     "16493.00",
-        //                     "0.100"
-        //                 ]
-        //             ],
-        //             "a": [
-        //                 [
-        //                     "16611.00",
-        //                     "0.029"
-        //                 ],
-        //                 [
-        //                     "16612.00",
-        //                     "0.213"
-        //                 ],
-        //             ],
-        //             "u": 18521288,
-        //             "seq": 7961638724
-        //         }
-        //     }
+        // spot
         //
-        console.log (client);
-        console.log (message);
+        // first snapshot
+        //
+        //    {
+        //        code: 0,
+        //        id: 'b41f1fc9-2e38-48d8-b6b2-e64fb2050538',
+        //        msg: 'SUCCESS',
+        //        timestamp: 1690900012131
+        //    }
+        //
+        // subsequent updates
+        //
+        //    {
+        //        code: 0,
+        //        dataType: 'BTC-USDT@depth20',
+        //        data: {
+        //          bids: [
+        //            [ '28852.9', '34.2621' ],
+        //            ...
+        //          ],
+        //          asks: [
+        //            [ '28864.9', '23.4079' ],
+        //            ...
+        //          ]
+        //        },
+        //        dataType: 'BTC-USDT@depth20',
+        //        success: true
+        //    }
+        //
+        // swap
+        //
+        // first snapshot
+        //
+        //    {
+        //        id: 'd0ddbd94-81d5-41de-a098-96e6de9714ca',
+        //        code: 0,
+        //        msg: '',
+        //        dataType: '',
+        //        data: null
+        //    }
+        //
+        // subsequent updates
+        //
+        //    {
+        //        code: 0,
+        //        dataType: 'BTC-USDT@depth20',
+        //        data: {
+        //          bids: [
+        //            [ '28852.9', '34.2621' ],
+        //            ...
+        //          ],
+        //          asks: [
+        //            [ '28864.9', '23.4079' ],
+        //            ...
+        //          ]
+        //        }
+        //    }
+        //
+        const data = this.safeValue (message, 'data', []);
+        const messageHash = this.safeString (message, 'dataType');
+        const marketId = messageHash.split ('@')[0];
+        const marketType = client.url.indexOf ('swap') >= 0 ? 'swap' : 'spot';
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const symbol = market['symbol'];
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ();
+        } else {
+            const asks = this.safeValue (data, 'asks', []);
+            const bids = this.safeValue (data, 'bids', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['symbol'] = symbol;
+        }
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
     }
 
     handleMessage (client: Client, message) {
@@ -236,10 +296,8 @@ export default class bingx extends bingxRest {
         let table = this.safeString (message, 'e');
         const dataType = this.safeString (message, 'dataType');
         if (table === undefined && dataType !== undefined) {
-            console.log (table, dataType);
             table = dataType.split ('@')[1].replace (/[0-9]/g, '');
         }
-        console.log (table);
         const methods = {
             'trade': this.handleTrades,
             'depth': this.handleOrderBook,
@@ -249,7 +307,8 @@ export default class bingx extends bingxRest {
             return method.call (this, client, message);
         } else {
             console.log (message);
-            process.exit ();
+            console.log (message['data']);
+            // process.exit ();
         }
     }
 }
