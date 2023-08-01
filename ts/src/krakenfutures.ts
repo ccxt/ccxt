@@ -50,6 +50,7 @@ export default class krakenfutures extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverageTiers': true,
+                'fetchLeverage': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -108,6 +109,7 @@ export default class krakenfutures extends Exchange {
                         'recentorders',
                         'fills',
                         'transfers',
+                        'leveragepreferences',
                     ],
                     'post': [
                         'sendorder',
@@ -2072,6 +2074,31 @@ export default class krakenfutures extends Exchange {
         // { result: 'success', serverTime: '2023-08-01T09:40:32.345Z' }
         //
         return await this.privatePutLeveragepreferences (this.extend (request, params));
+    }
+
+    async fetchLeverage (symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        this.checkRequiredSymbol ('fetchLeverage', symbol);
+        await this.loadMarkets ();
+        const request = {
+            'symbol': this.marketId (symbol).toUpperCase (),
+        };
+        //
+        //   {
+        //       result: 'success',
+        //       serverTime: '2023-08-01T09:54:08.900Z',
+        //       leveragePreferences: [ { symbol: 'PF_LTCUSD', maxLeverage: '5.00' } ]
+        //   }
+        //
+        return await this.privateGetLeveragepreferences (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
