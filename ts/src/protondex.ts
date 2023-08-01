@@ -2,7 +2,7 @@
 
 import Exchange from './abstract/protondex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ripemd160 } from './static_dependencies/noble-hashes/ripemd160.js';
@@ -1149,9 +1149,9 @@ export default class protondex extends Exchange {
         const askTokenContract = market.info.ask_token.contract.toString ();
         const quantityText = (orderSide === 2) ? (orderAmount.toFixed (bidTokenPrecision) + ' ' + bidTokenCode) : (orderAmount.toFixed (askTokenPrecision) + ' ' + askTokenCode);
         const tokenContract = orderSide === 2 ? bidTokenContract : askTokenContract;
-        const bidMultiplier = (orderAmount * this.parseToInt (market.info.bid_token.multiplier));
-        const askMultiplier = (orderAmount * this.parseToInt (market.info.ask_token.multiplier));
-        const quantity = (orderSide === 2) ? bidMultiplier.toString () : askMultiplier.toString ();
+        const bidTotal = (orderAmount * Math.pow (10, bidTokenPrecision)).toFixed (0);
+        const askTotal = (orderAmount * Math.pow (10, askTokenPrecision)).toFixed (0);
+        const quantity = (orderSide === 2) ? bidTotal.toString () : askTotal.toString ();
         const orderPrice = Number (price) * Number (Math.pow (10, askTokenPrecision).toFixed (0));
         const auth = { 'actor': accountName, 'permission': 'active' };
         const action1 = {
@@ -1203,7 +1203,7 @@ export default class protondex extends Exchange {
             'transaction': { actions },
         };
         const orderDetails = [];
-        let retries = 5;
+        let retries = 10;
         while (retries > 0) {
             try {
                 const serResponse = await this.publicPostOrdersSerialize (this.extend (request));
@@ -1244,6 +1244,9 @@ export default class protondex extends Exchange {
                     if (message === 'is_canonical( c ): signature is not canonical') {
                         --retries;
                     } else {
+                        if (message === 'assertion failure with message: overdrawn balance') {
+                            throw new InsufficientFunds ('- Add funds to the account');
+                        }
                         retries = 0;
                     }
                 }
@@ -1294,7 +1297,7 @@ export default class protondex extends Exchange {
             'transaction': { actions },
         };
         let data = undefined;
-        let retries = 5;
+        let retries = 10;
         while (retries > 0) {
             try {
                 const serResponse = await this.publicPostOrdersSerialize (this.extend (request));
@@ -1391,7 +1394,7 @@ export default class protondex extends Exchange {
             'transaction': { actions },
         };
         let data = undefined;
-        let retries = 5;
+        let retries = 10;
         while (retries > 0) {
             try {
                 const serResponse = await this.publicPostOrdersSerialize (this.extend (request));
