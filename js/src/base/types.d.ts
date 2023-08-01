@@ -74,6 +74,7 @@ export interface Order {
     datetime: string;
     timestamp: number;
     lastTradeTimestamp: number;
+    lastUpdateTimestamp?: number;
     status: 'open' | 'closed' | 'canceled' | string;
     symbol: string;
     type: string;
@@ -84,6 +85,9 @@ export interface Order {
     amount: number;
     filled: number;
     remaining: number;
+    stopPrice?: number;
+    takeProfitPrice?: number;
+    stopLossPrice?: number;
     cost: number;
     trades: Trade[];
     fee: Fee;
@@ -167,8 +171,40 @@ export interface DepositAddressResponse {
     info: any;
     tag?: string;
 }
+export interface Position {
+    symbol: string;
+    id: string;
+    timestamp?: number;
+    datetime: string;
+    contracts?: number;
+    contractsSize?: number;
+    side: string;
+    notional?: number;
+    leverage?: number;
+    unrealizedPnl?: number;
+    realizedPnl?: number;
+    collateral?: number;
+    entryPrice?: number;
+    markPrice?: number;
+    liquidationPrice?: number;
+    hedged?: boolean;
+    maintenanceMargin?: number;
+    maintenanceMarginPercentage?: number;
+    initialMargin?: number;
+    initialMarginPercentage?: number;
+    marginMode: string;
+    marginRatio?: number;
+    lastUpdateTimestamp?: number;
+    lastPrice?: number;
+    percentage?: number;
+    info: any;
+}
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [number, number, number, number, number, number];
 /** [ timestamp, open, high, low, close, volume, count ] */
 export declare type OHLCVC = [number, number, number, number, number, number, number];
 export declare type implicitReturnType = any;
+export declare type IndexType = number | string;
+export declare type Int = number;
+export declare type OrderSide = 'buy' | 'sell' | string;
+export declare type OrderType = 'limit' | 'market' | string;

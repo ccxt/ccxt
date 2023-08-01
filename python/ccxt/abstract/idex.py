@@ -1,0 +1,26 @@
+from ccxt.base.types import Entry
+
+
+class ImplicitAPI:
+    public_get_ping = publicGetPing = Entry('ping', 'public', 'GET', {'cost': 1})
+    public_get_time = publicGetTime = Entry('time', 'public', 'GET', {'cost': 1})
+    public_get_exchange = publicGetExchange = Entry('exchange', 'public', 'GET', {'cost': 1})
+    public_get_assets = publicGetAssets = Entry('assets', 'public', 'GET', {'cost': 1})
+    public_get_markets = publicGetMarkets = Entry('markets', 'public', 'GET', {'cost': 1})
+    public_get_tickers = publicGetTickers = Entry('tickers', 'public', 'GET', {'cost': 1})
+    public_get_candles = publicGetCandles = Entry('candles', 'public', 'GET', {'cost': 1})
+    public_get_trades = publicGetTrades = Entry('trades', 'public', 'GET', {'cost': 1})
+    public_get_orderbook = publicGetOrderbook = Entry('orderbook', 'public', 'GET', {'cost': 1})
+    private_get_user = privateGetUser = Entry('user', 'private', 'GET', {'cost': 1})
+    private_get_wallets = privateGetWallets = Entry('wallets', 'private', 'GET', {'cost': 1})
+    private_get_balances = privateGetBalances = Entry('balances', 'private', 'GET', {'cost': 1})
+    private_get_orders = privateGetOrders = Entry('orders', 'private', 'GET', {'cost': 0.1})
+    private_get_fills = privateGetFills = Entry('fills', 'private', 'GET', {'cost': 0.1})
+    private_get_deposits = privateGetDeposits = Entry('deposits', 'private', 'GET', {'cost': 1})
+    private_get_withdrawals = privateGetWithdrawals = Entry('withdrawals', 'private', 'GET', {'cost': 1})
+    private_get_wstoken = privateGetWsToken = Entry('wsToken', 'private', 'GET', {'cost': 1})
+    private_post_wallets = privatePostWallets = Entry('wallets', 'private', 'POST', {'cost': 1})
+    private_post_orders = privatePostOrders = Entry('orders', 'private', 'POST', {'cost': 0.1})
+    private_post_orders_test = privatePostOrdersTest = Entry('orders/test', 'private', 'POST', {'cost': 0.1})
+    private_post_withdrawals = privatePostWithdrawals = Entry('withdrawals', 'private', 'POST', {'cost': 1})
+    private_delete_orders = privateDeleteOrders = Entry('orders', 'private', 'DELETE', {'cost': 0.1})

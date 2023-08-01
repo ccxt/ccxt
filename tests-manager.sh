@@ -50,7 +50,7 @@ fi
 now=$(date +%s)
 delta=$((now - last_run))
 six_hours=$((60 * 60 * 6))
-diff=$(git diff master --name-only)
+diff=$(git diff origin/master --name-only)
 
 # begin debug
 echo "$cached_timestamp_file"

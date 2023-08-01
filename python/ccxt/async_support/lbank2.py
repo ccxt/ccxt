@@ -4,7 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.lbank2 import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +26,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class lbank2(Exchange):
+class lbank2(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(lbank2, self).describe(), {
@@ -87,7 +92,7 @@ class lbank2(Exchange):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'withdraw': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'minute1',
@@ -286,8 +291,9 @@ class lbank2(Exchange):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for lbank2
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        see https://www.lbank.com/en-US/docs/index.html#trading-pairs
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         # needs to return a list of unified market structures
         response = await self.publicGetAccuracy()
@@ -310,19 +316,7 @@ class lbank2(Exchange):
             base = baseId.upper()
             quote = quoteId.upper()
             symbol = base + '/' + quote
-            productTypes = {
-                '3l': True,
-                '5l': True,
-                '3s': True,
-                '5s': True,
-            }
-            ending = baseId[-2:]
-            isLeveragedProduct = self.safe_value(productTypes, ending, False)
-            if isLeveragedProduct:
-                symbol += ':' + quote
-            linear = None
-            if isLeveragedProduct is True:
-                linear = True
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy')))
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -335,12 +329,12 @@ class lbank2(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'swap': isLeveragedProduct,
+                'swap': False,
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': isLeveragedProduct,
-                'linear': linear,  # all leveraged ETF products are in USDT
+                'contract': None,
+                'linear': None,
                 'inverse': None,
                 'contractSize': None,
                 'expiry': None,
@@ -348,7 +342,7 @@ class lbank2(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy'))),
+                    'amount': amountPrecision,
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
                 },
                 'limits': {
@@ -415,11 +409,11 @@ class lbank2(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -452,11 +446,11 @@ class lbank2(Exchange):
         first = self.safe_value(data, 0, {})
         return self.parse_ticker(first, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the lbank api endpoint
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the lbank api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -467,12 +461,12 @@ class lbank2(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -562,7 +556,7 @@ class lbank2(Exchange):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': None,
+                'currency': market['base'] if (side == 'buy') else market['quote'],
                 'rate': self.safe_string(trade, 'tradeFeeRate'),
             }
         return self.safe_trade({
@@ -581,14 +575,14 @@ class lbank2(Exchange):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -645,15 +639,15 @@ class lbank2(Exchange):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         # endpoint doesnt work
         await self.load_markets()
@@ -799,11 +793,11 @@ class lbank2(Exchange):
             for i in range(0, len(balances)):
                 item = balances[i]
                 currencyId = self.safe_string(item, 'asset')
-                code = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string(item, 'free')
                 account['used'] = self.safe_string(item, 'locked')
-                result[code] = account
+                result[codeInner] = account
             return self.safe_balance(result)
         # from privatePostSupplementUserInfo
         isArray = isinstance(data, list)
@@ -811,17 +805,18 @@ class lbank2(Exchange):
             for i in range(0, len(data)):
                 item = data[i]
                 currencyId = self.safe_string(item, 'coin')
-                code = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string(item, 'usableAmt')
                 account['used'] = self.safe_string(item, 'freezeAmt')
-                result[code] = account
+                result[codeInner] = account
             return self.safe_balance(result)
+        return None
 
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
@@ -879,11 +874,11 @@ class lbank2(Exchange):
             'taker': self.safe_number(fee, 'takerCommission'),
         }
 
-    async def fetch_trading_fee(self, symbol, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         market = self.market(symbol)
@@ -893,7 +888,7 @@ class lbank2(Exchange):
     async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -907,15 +902,15 @@ class lbank2(Exchange):
             result[symbol] = fee
         return result
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1116,11 +1111,11 @@ class lbank2(Exchange):
             'average': None,
         }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1131,7 +1126,7 @@ class lbank2(Exchange):
         result = await getattr(self, method)(id, symbol, params)
         return result
 
-    async def fetch_order_supplement(self, id, symbol=None, params={}):
+    async def fetch_order_supplement(self, id: str, symbol: Optional[str] = None, params={}):
         await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -1165,7 +1160,7 @@ class lbank2(Exchange):
         result = self.safe_value(response, 'data', {})
         return self.parse_order(result)
 
-    async def fetch_order_default(self, id, symbol=None, params={}):
+    async def fetch_order_default(self, id: str, symbol: Optional[str] = None, params={}):
         # Id can be a list of ids delimited by a comma
         await self.load_markets()
         if symbol is None:
@@ -1207,14 +1202,14 @@ class lbank2(Exchange):
                 parsedOrders.append(parsedOrder)
             return parsedOrders
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -1224,17 +1219,18 @@ class lbank2(Exchange):
         params = self.omit(params, 'start_date')
         request = {
             'symbol': market['id'],
-            # 'start_date': str Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-            # 'end_date': str Finish time yyyy-mm-dd, the maximum is today, the default is today
+            # 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+            # 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
             # 'The start': and end date of the query window is up to 2 days
-            # 'from': str Initial transaction number inquiring
-            # 'direct': str inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-            # 'size': str Query the number of defaults to 100
+            # 'from' Initial transaction number inquiring
+            # 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+            # 'size' Query the number of defaults to 100
         }
         if limit is not None:
             request['size'] = limit
         if since is not None:
             request['start_date'] = self.ymd(since, '-')  # max query 2 days ago
+            request['end_date'] = self.ymd(since + 86400000, '-')  # will cover 2 days
         response = await self.privatePostTransactionHistory(self.extend(request, params))
         #
         #      {
@@ -1259,14 +1255,14 @@ class lbank2(Exchange):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # default query is for canceled and completely filled orders
         # does not return open orders unless specified explicitly
@@ -1314,14 +1310,14 @@ class lbank2(Exchange):
         orders = self.safe_value(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -1366,12 +1362,12 @@ class lbank2(Exchange):
         orders = self.safe_value(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1403,12 +1399,12 @@ class lbank2(Exchange):
         result = self.safe_value(response, 'data', {})
         return result
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
-        :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -1446,11 +1442,11 @@ class lbank2(Exchange):
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         return network
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
@@ -1461,7 +1457,7 @@ class lbank2(Exchange):
             method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
         return await getattr(self, method)(code, params)
 
-    async def fetch_deposit_address_default(self, code, params={}):
+    async def fetch_deposit_address_default(self, code: str, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1499,7 +1495,7 @@ class lbank2(Exchange):
             'info': response,
         }
 
-    async def fetch_deposit_address_supplement(self, code, params={}):
+    async def fetch_deposit_address_supplement(self, code: str, params={}):
         # returns the address for whatever the default network is...
         await self.load_markets()
         currency = self.currency(code)
@@ -1538,14 +1534,14 @@ class lbank2(Exchange):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param str tag:
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -1564,7 +1560,7 @@ class lbank2(Exchange):
             # 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
             # 'memo': memo: memo word of bts and dct
             # 'mark': Withdrawal Notes
-            # 'name': Remarks of the address. After filling in self parameter, it will be added to the withdrawal address book of the currency.
+            # 'name': Remarks of the address. After hasattr(self, filling) parameter, it will be added to the withdrawal address book of the currency.
             # 'withdrawOrderId': withdrawOrderId
             # 'type': type=1 is for intra-site transfer
         }
@@ -1694,14 +1690,14 @@ class lbank2(Exchange):
             'fee': fee,
         }
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -1742,14 +1738,14 @@ class lbank2(Exchange):
         deposits = self.safe_value(data, 'depositOrders', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -1796,9 +1792,10 @@ class lbank2(Exchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
-        *DEPRECATED* please use fetchDepositWithdrawFees instead
-        :param [str]|None codes: not used by lbank2 fetchTransactionFees()
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+         * @deprecated
+        please use fetchDepositWithdrawFees instead
+        :param str[]|None codes: not used by lbank2 fetchTransactionFees()
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         # private only returns information for currencies with non-zero balance
@@ -1911,26 +1908,26 @@ class lbank2(Exchange):
             canWithdraw = self.safe_value(item, 'canWithDraw')
             if canWithdraw == 'true':
                 currencyId = self.safe_string(item, 'assetCode')
-                code = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(currencyId)
                 chain = self.safe_string(item, 'chain')
                 network = self.safe_string(self.options['inverse-networks'], chain, chain)
                 if network is None:
-                    network = code
+                    network = codeInner
                 fee = self.safe_string(item, 'fee')
-                if withdrawFees[code] is None:
-                    withdrawFees[code] = {}
-                withdrawFees[code][network] = self.parse_number(fee)
+                if withdrawFees[codeInner] is None:
+                    withdrawFees[codeInner] = {}
+                withdrawFees[codeInner][network] = self.parse_number(fee)
         return {
             'withdraw': withdrawFees,
             'deposit': {},
             'info': response,
         }
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying self.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
-        :param [str]|None codes: array of unified currency codes
-        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :param str[]|None codes: array of unified currency codes
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
@@ -2145,7 +2142,7 @@ class lbank2(Exchange):
                 'timestamp': timestamp,
             }, query)))
             encoded = self.encode(auth)
-            hash = self.hash(encoded, 'sha256')
+            hash = self.hash(encoded, 'md5')
             uppercaseHash = hash.upper()
             sign = None
             if signatureMethod == 'RSA':
@@ -2185,7 +2182,7 @@ class lbank2(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         success = self.safe_string(response, 'result')
         if success == 'false':
             errorCode = self.safe_string(response, 'error_code')
@@ -2295,3 +2292,4 @@ class lbank2(Exchange):
                 '10702': PermissionDenied,  # 'not allowed deposit',
             }, errorCode, ExchangeError)
             raise ErrorClass(message)
+        return None

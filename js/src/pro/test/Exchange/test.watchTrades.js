@@ -6,14 +6,14 @@
 
 'use strict';
 // ----------------------------------------------------------------------------
-import log from 'ololog';
 import assert from 'assert';
-import testTrade from '../../../test/Exchange/test.trade.js';
+import testTrade from '../../../test/Exchange/base/test.trade.js';
 import errors from '../../../base/errors.js';
 /*  ------------------------------------------------------------------------ */
 export default async (exchange, symbol) => {
     // log (symbol.green, 'watching trades...')
     const method = 'watchTrades';
+    const skippedProperties = {};
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [
         'binanceje',
@@ -29,11 +29,11 @@ export default async (exchange, symbol) => {
         'independentreserve',
     ];
     if (skippedExchanges.includes(exchange.id)) {
-        log(exchange.id, method + '() test skipped');
+        console.log(exchange.id, method + '() test skipped');
         return;
     }
     if (!exchange.has[method]) {
-        log(exchange.id, 'does not support', method + '() method');
+        console.log(exchange.id, 'does not support', method + '() method');
         return;
     }
     let response = undefined;
@@ -44,10 +44,10 @@ export default async (exchange, symbol) => {
             response = await exchange[method](symbol);
             now = Date.now();
             assert(response instanceof Array);
-            log(exchange.iso8601(now), exchange.id, symbol, method, Object.values(response).length, 'trades');
+            console.log(exchange.iso8601(now), exchange.id, symbol, method, Object.values(response).length, 'trades');
             // log.noLocate (asTable (response))
             for (let i = 0; i < response.length; i++) {
-                testTrade(exchange, response[i], symbol, now);
+                testTrade(exchange, skippedProperties, method, response[i], symbol, now);
             }
         }
         catch (e) {

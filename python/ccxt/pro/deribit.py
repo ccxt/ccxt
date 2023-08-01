@@ -6,6 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -63,8 +65,8 @@ class deribit(ccxt.async_support.deribit):
     async def watch_balance(self, params={}):
         """
         see https://docs.deribit.com/#user-portfolio-currency
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the deribit api endpoint
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :param dict [params]: extra parameters specific to the deribit api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.authenticate(params)
@@ -86,7 +88,7 @@ class deribit(ccxt.async_support.deribit):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # subscription
         #     {
@@ -140,15 +142,16 @@ class deribit(ccxt.async_support.deribit):
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         see https://docs.deribit.com/#ticker-instrument_name-interval
         watches a price ticker, a statistical calculation with the information for a specific market.
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the deribit api endpoint
-        :param str|None params['interval']: specify aggregation and frequency of notifications. Possible values: 100ms, raw
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         interval = self.safe_string(params, 'interval', '100ms')
@@ -168,7 +171,7 @@ class deribit(ccxt.async_support.deribit):
         request = self.deep_extend(message, params)
         return await self.watch(url, channel, request, channel, request)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -207,16 +210,16 @@ class deribit(ccxt.async_support.deribit):
         self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         see https://docs.deribit.com/#trades-instrument_name-interval
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the deribit api endpoint
-        :param str|None params['interval']: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -236,9 +239,11 @@ class deribit(ccxt.async_support.deribit):
         }
         request = self.deep_extend(message, params)
         trades = await self.watch(url, channel, request, channel, request)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -279,16 +284,16 @@ class deribit(ccxt.async_support.deribit):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], channel)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of trades associated with the user
         see https://docs.deribit.com/#user-trades-instrument_name-interval
         :param str symbol: unified symbol of the market to fetch trades for. Use 'any' to watch all trades
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the deribit api endpoint
-        :param str|None params['interval']: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.authenticate(params)
         if symbol is not None:
@@ -310,7 +315,7 @@ class deribit(ccxt.async_support.deribit):
         trades = await self.watch(url, channel, request, channel, request)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -359,14 +364,14 @@ class deribit(ccxt.async_support.deribit):
             marketIds[symbol] = True
         client.resolve(cachedTrades, channel)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         see https://docs.deribit.com/#public-get_book_summary_by_instrument
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the deribit api endpoint
-        :param str params['interval']: Frequency of notifications. Events will be aggregated over self interval. Possible values: 100ms, raw
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :param str [params.interval]: Frequency of notifications. Events will be aggregated over self interval. Possible values: 100ms, raw
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -389,7 +394,7 @@ class deribit(ccxt.async_support.deribit):
         orderbook = await self.watch(url, channel, request, channel)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #  snapshot
         #     {
@@ -440,7 +445,7 @@ class deribit(ccxt.async_support.deribit):
         channel = self.safe_string(params, 'channel')
         marketId = self.safe_string(data, 'instrument_name')
         symbol = self.safe_symbol(marketId)
-        timestamp = self.safe_number(data, 'timestamp')
+        timestamp = self.safe_integer(data, 'timestamp')
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         if storedOrderBook is None:
             storedOrderBook = self.counted_order_book()
@@ -480,15 +485,15 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         see https://docs.deribit.com/#user-orders-instrument_name-raw
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the deribit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         await self.authenticate(params)
@@ -514,7 +519,7 @@ class deribit(ccxt.async_support.deribit):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message):
         # Does not return a snapshot of current orders
         #
         #     {
@@ -561,20 +566,21 @@ class deribit(ccxt.async_support.deribit):
         else:
             order = self.parse_order(data)
             orders = [order]
+        cachedOrders = self.orders
         for i in range(0, len(orders)):
-            self.orders.append(orders[i])
+            cachedOrders.append(orders[i])
         client.resolve(self.orders, channel)
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         see https://docs.deribit.com/#chart-trades-instrument_name-resolution
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the deribit api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -598,7 +604,7 @@ class deribit(ccxt.async_support.deribit):
             limit = ohlcv.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -639,7 +645,7 @@ class deribit(ccxt.async_support.deribit):
         self.ohlcvs[symbol] = stored
         client.resolve(stored, channel)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         # error
         #     {
@@ -729,7 +735,7 @@ class deribit(ccxt.async_support.deribit):
             return self.handle_authentication_message(client, message)
         return message
 
-    def handle_authentication_message(self, client, message):
+    def handle_authentication_message(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -747,21 +753,19 @@ class deribit(ccxt.async_support.deribit):
         #         testnet: False
         #     }
         #
-        future = self.safe_value(client.futures, 'authenticated')
-        if future is not None:
-            future.resolve(True)
+        messageHash = 'authenticated'
+        client.resolve(message, messageHash)
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         time = self.milliseconds()
         timeString = self.number_to_string(time)
         nonce = timeString
         messageHash = 'authenticated'
-        future = client.future('authenticated')
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
             self.check_required_credentials()
             requestId = self.request_id()
             signature = self.hmac(self.encode(timeString + '\n' + nonce + '\n'), self.encode(self.secret), hashlib.sha256)
@@ -778,5 +782,6 @@ class deribit(ccxt.async_support.deribit):
                     'data': '',
                 },
             }
-            self.spawn(self.watch, url, messageHash, self.extend(request, params), messageHash)
-        return await future
+            future = self.watch(url, messageHash, self.extend(request, params))
+            client.subscriptions[messageHash] = future
+        return future

@@ -5,6 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import ArgumentsRequired
 
 
@@ -20,7 +22,7 @@ class bitrue(ccxt.async_support.bitrue):
                 'watchTrades': False,
                 'watchMyTrades': False,
                 'watchOrders': True,
-                'watchOrderBook': False,
+                'watchOrderBook': True,
                 'watchOHLCV': False,
             },
             'urls': {
@@ -57,9 +59,9 @@ class bitrue(ccxt.async_support.bitrue):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict [params]: extra parameters specific to the bitrue api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         url = await self.authenticate()
@@ -73,7 +75,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         e: 'BALANCE',
@@ -161,14 +163,14 @@ class bitrue(ccxt.async_support.bitrue):
                 self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on user orders
         see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-        :param [str] symbols: unified symbols of the market to watch the orders for
-        :param int|None since: timestamp in ms of the earliest order
-        :param int|None limit: the maximum amount of orders to return
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param str[] symbols: unified symbols of the market to watch the orders for
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the maximum amount of orders to return
+        :param dict [params]: extra parameters specific to the bitrue api endpoint
         :returns dict: A dictionary of `order structure <https://docs.ccxt.com/#/?id=order-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -189,7 +191,7 @@ class bitrue(ccxt.async_support.bitrue):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         #    {
         #        e: 'ORDER',
@@ -281,7 +283,7 @@ class bitrue(ccxt.async_support.bitrue):
             },
         }, market)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrderBook() requires a symbol argument')
         await self.load_markets()
@@ -301,7 +303,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         "channel": "market_ethbtc_simple_depth_step0",
@@ -365,7 +367,7 @@ class bitrue(ccxt.async_support.bitrue):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_ping(self, client, message):
+    def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)
 
     async def pong(self, client, message):
@@ -380,7 +382,7 @@ class bitrue(ccxt.async_support.bitrue):
         }
         await client.send(pong)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if 'channel' in message:
             self.handle_order_book(client, message)
         elif 'ping' in message:

@@ -7,6 +7,8 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 import json
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
 
@@ -124,7 +126,7 @@ class bittrex(ccxt.async_support.bittrex):
         subscription = {'params': params}
         return await self.send_request_to_subscribe(negotiation, messageHash, subscription, params)
 
-    def handle_authenticate(self, client, message, subscription):
+    def handle_authenticate(self, client: Client, message, subscription):
         requestId = self.safe_string(subscription, 'id')
         if requestId in client.subscriptions:
             del client.subscriptions[requestId]
@@ -134,7 +136,7 @@ class bittrex(ccxt.async_support.bittrex):
         negotiation = await self.negotiate()
         return await self.send_request_to_authenticate(negotiation, True)
 
-    def handle_authentication_expiring(self, client, message):
+    def handle_authentication_expiring(self, client: Client, message):
         #
         #     {
         #         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
@@ -196,14 +198,14 @@ class bittrex(ccxt.async_support.bittrex):
         }))
         return await self.signalrGetStart(request)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the bittrex api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         if symbol is not None:
@@ -218,7 +220,7 @@ class bittrex(ccxt.async_support.bittrex):
         messageHash = 'order'
         return await self.send_authenticated_request_to_subscribe(authentication, messageHash, params)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         #     {
         #         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -252,8 +254,8 @@ class bittrex(ccxt.async_support.bittrex):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the bittrex api endpoint
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :param dict [params]: extra parameters specific to the bittrex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
@@ -264,7 +266,7 @@ class bittrex(ccxt.async_support.bittrex):
         messageHash = 'balance'
         return await self.send_authenticated_request_to_subscribe(authentication, messageHash, params)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -308,7 +310,7 @@ class bittrex(ccxt.async_support.bittrex):
         }
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    def handle_heartbeat(self, client, message):
+    def handle_heartbeat(self, client: Client, message):
         #
         # every 20 seconds(approx) if no other updates are sent
         #
@@ -316,11 +318,11 @@ class bittrex(ccxt.async_support.bittrex):
         #
         client.resolve(message, 'heartbeat')
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bittrex api endpoint
+        :param dict [params]: extra parameters specific to the bittrex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -340,7 +342,7 @@ class bittrex(ccxt.async_support.bittrex):
         }
         return await self.send_request_to_subscribe(negotiation, messageHash, subscription)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         # summary subscription update
         #
@@ -363,15 +365,15 @@ class bittrex(ccxt.async_support.bittrex):
         messageHash = name + '_' + market['id']
         client.resolve(ticker, messageHash)
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bittrex api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -395,7 +397,7 @@ class bittrex(ccxt.async_support.bittrex):
         }
         return await self.send_request_to_subscribe(negotiation, messageHash, subscription)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         sequence: 28286,
@@ -429,14 +431,14 @@ class bittrex(ccxt.async_support.bittrex):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the bittrex api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -458,7 +460,7 @@ class bittrex(ccxt.async_support.bittrex):
         }
         return await self.send_request_to_subscribe(negotiation, messageHash, subscription)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         deltas: [
@@ -490,14 +492,14 @@ class bittrex(ccxt.async_support.bittrex):
         self.trades[symbol] = stored
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the bittrex api endpoint
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -511,7 +513,7 @@ class bittrex(ccxt.async_support.bittrex):
         messageHash = 'execution'
         return await self.send_authenticated_request_to_subscribe(authentication, messageHash, params)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #     {
         #         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -542,12 +544,12 @@ class bittrex(ccxt.async_support.bittrex):
         messageHash = 'execution'
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the bittrex api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         limit = 25 if (limit is None) else limit  # 25 by default
@@ -564,12 +566,12 @@ class bittrex(ccxt.async_support.bittrex):
         #     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
         #     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message(see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
         #     7. Continue to apply messages are received from the socket number on the stream is always increasing by 1 each message(Note: for private streams, the sequence number is scoped to a single account or subaccount).
-        #     8. If a message is received that is not the next in order, return to step 2 in self process
+        #     8. If a message is received that is not the next in order, return to step hasattr(self, 2) process
         #
         orderbook = await self.subscribe_to_order_book(negotiation, symbol, limit, params)
         return orderbook.limit()
 
-    async def subscribe_to_order_book(self, negotiation, symbol, limit=None, params={}):
+    async def subscribe_to_order_book(self, negotiation, symbol, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         name = 'orderbook'
@@ -630,7 +632,7 @@ class bittrex(ccxt.async_support.bittrex):
         except Exception as e:
             client.reject(e, messageHash)
 
-    def handle_subscribe_to_order_book(self, client, message, subscription):
+    def handle_subscribe_to_order_book(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:
@@ -659,7 +661,7 @@ class bittrex(ccxt.async_support.bittrex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         marketSymbol: 'BTC-USDT',
@@ -683,7 +685,7 @@ class bittrex(ccxt.async_support.bittrex):
         else:
             orderbook.cache.append(message)
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
         #         marketSymbol: 'BTC-USDT',
@@ -712,12 +714,12 @@ class bittrex(ccxt.async_support.bittrex):
         negotiation = await self.negotiate()
         await self.start(negotiation)
 
-    def handle_system_status(self, client, message):
+    def handle_system_status(self, client: Client, message):
         # send signalR protocol start() call
         self.spawn(self.handle_system_status_helper)
         return message
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         # success
         #
@@ -746,7 +748,7 @@ class bittrex(ccxt.async_support.bittrex):
             method(client, message, subscription)
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         # subscription confirmation
         #
