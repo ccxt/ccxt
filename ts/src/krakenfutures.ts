@@ -2062,13 +2062,15 @@ export default class krakenfutures extends Exchange {
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} response from the exchange
          */
+        this.checkRequiredSymbol ('setLeverage', symbol);
         await this.loadMarkets ();
         const request = {
             'maxLeverage': leverage,
+            'symbol': this.marketId (symbol).toUpperCase (),
         };
-        if (symbol !== undefined) {
-            request['symbol'] = this.marketId (symbol);
-        }
+        //
+        // { result: 'success', serverTime: '2023-08-01T09:40:32.345Z' }
+        //
         return await this.privatePutLeveragepreferences (this.extend (request, params));
     }
 
