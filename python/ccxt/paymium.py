@@ -42,7 +42,6 @@ class paymium(Exchange, ImplicitAPI):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchMarkOHLCV': False,
-                'fetchOHLCV': 'emulated',
                 'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPremiumIndexOHLCV': False,
@@ -468,32 +467,6 @@ class paymium(Exchange, ImplicitAPI):
         #     }
         #
         return self.parse_transfer(response, currency)
-    
-    def fetch_ohlcv(self, symbol, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :param str symbol: unified symbol of the market to fetch OHLCV data for
-        :param str timeframe: the length of time each candle represents
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the paymium api endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
-        """
-        self.load_markets()
-        trades = self.fetch_trades(symbol, since, limit, params)
-        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
-        result = []
-        for i in range(0, len(ohlcvc)):
-            ohlcv = ohlcvc[i]
-            result.append([
-                ohlcv[0],
-                ohlcv[1],
-                ohlcv[2],
-                ohlcv[3],
-                ohlcv[4],
-                ohlcv[5],
-            ])
-        return result
 
     def parse_transfer(self, transfer, currency=None):
         #

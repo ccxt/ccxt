@@ -41,7 +41,6 @@ export default class paymium extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchMarkOHLCV': false,
-                'fetchOHLCV': 'emulated',
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -506,36 +505,6 @@ export default class paymium extends Exchange {
         //     }
         //
         return this.parseTransfer (response, currency);
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name paymium#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const trades = await this.fetchTrades (symbol, since, limit, params);
-        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
-        const result = [];
-        for (let i = 0; i < ohlcvc.length; i++) {
-            const ohlcv = ohlcvc[i];
-            result.push ([
-                ohlcv[0],
-                ohlcv[1],
-                ohlcv[2],
-                ohlcv[3],
-                ohlcv[4],
-                ohlcv[5],
-            ]);
-        }
-        return result;
     }
 
     parseTransfer (transfer, currency = undefined) {
