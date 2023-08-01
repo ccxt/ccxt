@@ -1286,6 +1286,30 @@ export default class bybit extends Exchange {
         return reconstructedDate;
     }
 
+    convertMarketIdExpireDate (date) {
+        // parse 22JAN23 to 230122
+        const monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        };
+        const year = date.slice (0, 2);
+        const monthName = date.slice (2, 5);
+        const month = this.safeString (monthMappping, monthName);
+        const day = date.slice (5, 7);
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
+    }
+
     createExpiredOptionMarket (symbol) {
         // support expired option contracts
         const quote = 'USD';
@@ -1299,7 +1323,7 @@ export default class bybit extends Exchange {
             expiry = this.safeString (optionParts, 1);
         } else {
             base = this.safeString (optionParts, 0);
-            expiry = this.yymmdd (this.safeString (optionParts, 1));
+            expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
         }
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
