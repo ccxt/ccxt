@@ -99,9 +99,29 @@ export default class binance extends binanceRest {
                             'rateLimit': 1000, // The WS-API now only allows 300 connections requests every 5 minutes. // 1 req per second  = 1000ms
                         },
                         'messages': {
-                            'rateLimit': 1000, // 1 message per second  = 1000ms, check this
+                            'rateLimit': 100, // biggest limit: futures 10 message per second = 100ms
                         },
-                        'wss://testnet.binance.vision': {
+                        'wss://stream.binance.com:9443': {
+                            'connections': 1,
+                            'messages': 2, // 5 per second
+                        },
+                        'wss://fstream.binance.com': {
+                            'connections': 1,
+                            'messages': 1, // 10 per second
+                        },
+                        'wss://dstream.binance.com': {
+                            'connections': 1,
+                            'messages': 1, // 10 per second
+                        },
+                        'wss://stream.binancefuture.com/ws': { // testnet url
+                            'connections': 1,
+                            'messages': 1, // 10 per second
+                        },
+                        'wss://testnet.binance.vision': { // testnet url
+                            'connections': 1,
+                            'messages': 2,  // spot is 5 msg per second
+                        },
+                        'wss://dstream.binancefuture.com': { // testnet url
                             'connections': 1,
                             'messages': 1,
                         },
@@ -1864,7 +1884,8 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleOrdersWs,
         };
-        const orders = await this.watch (url, messageHash, message, messageHash, subscription);
+        const messageCost = (symbol === undefined) ? 40 : 1;
+        const orders = await this.watch (url, messageHash, message, messageHash, subscription, messageCost);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
