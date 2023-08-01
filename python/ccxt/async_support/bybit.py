@@ -15,6 +15,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -1245,6 +1246,153 @@ class bybit(Exchange, ImplicitAPI):
 
     async def upgrade_unified_trade_account(self, params={}):
         return await self.privatePostV5AccountUpgradeToUta(params)
+
+    def convert_expire_date(self, date):
+        # parse YYMMDD to timestamp
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
+    def convert_expire_date_to_market_id_date(self, date):
+        # parse 231229 to 29DEC23
+        year = date[0:2]
+        monthRaw = date[2:4]
+        month = None
+        day = date[4:6]
+        if monthRaw == '01':
+            month = 'JAN'
+        elif monthRaw == '02':
+            month = 'FEB'
+        elif monthRaw == '03':
+            month = 'MAR'
+        elif monthRaw == '04':
+            month = 'APR'
+        elif monthRaw == '05':
+            month = 'MAY'
+        elif monthRaw == '06':
+            month = 'JUN'
+        elif monthRaw == '07':
+            month = 'JUL'
+        elif monthRaw == '08':
+            month = 'AUG'
+        elif monthRaw == '09':
+            month = 'SEP'
+        elif monthRaw == '10':
+            month = 'OCT'
+        elif monthRaw == '11':
+            month = 'NOV'
+        elif monthRaw == '12':
+            month = 'DEC'
+        reconstructedDate = day + month + year
+        return reconstructedDate
+
+    def convert_market_id_expire_date(self, date):
+        # parse 22JAN23 to 230122
+        monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        }
+        year = date[0:2]
+        monthName = date[2:5]
+        month = self.safe_string(monthMappping, monthName)
+        day = date[5:7]
+        reconstructedDate = day + month + year
+        return reconstructedDate
+
+    def create_expired_option_market(self, symbol):
+        # support expired option contracts
+        quote = 'USD'
+        settle = 'USDC'
+        optionParts = symbol.split('-')
+        symbolBase = symbol.split('/')
+        base = None
+        expiry = None
+        if symbol.find('/') > -1:
+            base = self.safe_string(symbolBase, 0)
+            expiry = self.safe_string(optionParts, 1)
+        else:
+            base = self.safe_string(optionParts, 0)
+            expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
+        strike = self.safe_string(optionParts, 2)
+        optionType = self.safe_string(optionParts, 3)
+        datetime = self.convert_expire_date(expiry)
+        timestamp = self.parse8601(datetime)
+        return {
+            'id': base + '-' + self.convert_expire_date_to_market_id_date(expiry) + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': False,
+            'type': 'option',
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': True,
+            'margin': False,
+            'contract': True,
+            'contractSize': None,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': 'call' if (optionType == 'C') else 'put',
+            'strike': self.parse_number(strike),
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
+
+    def market(self, symbol):
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if isinstance(symbol, str):
+            if symbol in self.markets:
+                return self.markets[symbol]
+            elif symbol in self.markets_by_id:
+                markets = self.markets_by_id[symbol]
+                return markets[0]
+            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):
+                return self.create_expired_option_market(symbol)
+        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
+
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
+        if isOption and not (marketId in self.markets_by_id):
+            # handle expired option contracts
+            return self.create_expired_option_market(marketId)
+        return super(bybit, self).safe_market(marketId, market, delimiter, marketType)
 
     async def fetch_time(self, params={}):
         """
@@ -8125,7 +8273,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'list', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_settlement(self, settlement, market):
         #

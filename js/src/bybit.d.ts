@@ -11,6 +11,55 @@ export default class bybit extends Exchange {
     isUnifiedEnabled(params?: {}): Promise<any[]>;
     upgradeUnifiedAccount(params?: {}): Promise<any>;
     upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
+    convertExpireDate(date: any): string;
+    convertExpireDateToMarketIdDate(date: any): any;
+    convertMarketIdExpireDate(date: any): string;
+    createExpiredOptionMarket(symbol: any): {
+        id: string;
+        symbol: string;
+        base: any;
+        quote: string;
+        settle: string;
+        baseId: any;
+        quoteId: string;
+        settleId: string;
+        active: boolean;
+        type: string;
+        linear: any;
+        inverse: any;
+        spot: boolean;
+        swap: boolean;
+        future: boolean;
+        option: boolean;
+        margin: boolean;
+        contract: boolean;
+        contractSize: any;
+        expiry: number;
+        expiryDatetime: string;
+        optionType: string;
+        strike: number;
+        precision: {
+            amount: any;
+            price: any;
+        };
+        limits: {
+            amount: {
+                min: any;
+                max: any;
+            };
+            price: {
+                min: any;
+                max: any;
+            };
+            cost: {
+                min: any;
+                max: any;
+            };
+        };
+        info: any;
+    };
+    market(symbol: any): any;
+    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any>;
