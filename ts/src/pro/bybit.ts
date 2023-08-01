@@ -104,7 +104,7 @@ export default class bybit extends bybitRest {
                 'ws': {
                     'rateLimits': {
                         'connections': {
-                            'rateLimit': 1666, // The WS-API allows 500 connections requests every 5 minutes. // 1,666 req per second  = 1666ms
+                            'rateLimit': 600, // The WS-API allows 500 connections requests every 5 minutes. // 1,666 req per second  = 600
                         },
                         'messages': {
                             'rateLimit': 100, // can't find this information so defaulting to 100
