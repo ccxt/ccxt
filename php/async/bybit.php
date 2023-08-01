@@ -7261,7 +7261,7 @@ class bybit extends Exchange {
                 }
                 $results[] = $this->parse_position($rawPosition);
             }
-            return $this->filter_by_array($results, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -7338,7 +7338,7 @@ class bybit extends Exchange {
                 }
                 $results[] = $this->parse_position($rawPosition, $market);
             }
-            return $this->filter_by_array($results, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
         }) ();
     }
 

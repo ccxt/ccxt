@@ -252,6 +252,7 @@ class bitget extends Exchange {
                             'position/singlePosition-v2' => 2,
                             'position/allPosition' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'position/allPosition-v2' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'position/history-position' => 1,
                             'account/accountBill' => 2,
                             'account/accountBusinessBill' => 4,
                             'order/current' => 1, // 20 times/1s (UID) => 20/20 = 1
@@ -1013,6 +1014,9 @@ class bitget extends Exchange {
                 'networksById' => array(
                     'TRC20' => 'TRX',
                     'BSC' => 'BEP20',
+                ),
+                'fetchPositions' => array(
+                    'method' => 'privateMixGetPositionAllPositionV2', // or privateMixGetPositionHistoryPosition
                 ),
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ),
@@ -3850,6 +3854,8 @@ class bitget extends Exchange {
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $this->load_markets();
+        $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
+        $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateMixGetPositionAllPositionV2');
         $market = null;
         if ($symbols !== null) {
             $first = $this->safe_string($symbols, 0);
@@ -3864,13 +3870,33 @@ class bitget extends Exchange {
         $request = array(
             'productType' => $productType,
         );
-        $response = $this->privateMixGetPositionAllPositionV2 (array_merge($request, $params));
+        if ($method === 'privateMixGetPositionHistoryPosition') {
+            // endTime and startTime mandatory
+            $since = $this->safe_integer_2($params, 'startTime', 'since');
+            if ($since === null) {
+                $since = $this->milliseconds() - 7689600000; // 3 months ago
+            }
+            $request['startTime'] = $since;
+            $until = $this->safe_integer_2($params, 'endTime', 'until');
+            if ($until === null) {
+                $until = $this->milliseconds();
+            }
+            $request['endTime'] = $until;
+        }
+        $response = null;
+        $isHistory = false;
+        if ($method === 'privateMixGetPositionAllPositionV2') {
+            $response = $this->privateMixGetPositionAllPositionV2 (array_merge($request, $params));
+        } else {
+            $isHistory = true;
+            $response = $this->privateMixGetPositionHistoryPosition (array_merge($request, $params));
+        }
         //
         //     {
         //       code => '00000',
         //       msg => 'success',
         //       requestTime => '1645933905060',
-        //       data => array(
+        //       $data => array(
         //         {
         //           marginCoin => 'USDT',
         //           symbol => 'BTCUSDT_UMCBL',
@@ -3892,14 +3918,47 @@ class bitget extends Exchange {
         //         }
         //       )
         //     }
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 0,
+        //         "data" => {
+        //           "list" => array(
+        //             {
+        //               "symbol" => "ETHUSDT_UMCBL",
+        //               "marginCoin" => "USDT",
+        //               "holdSide" => "short",
+        //               "openAvgPrice" => "1206.7",
+        //               "closeAvgPrice" => "1206.8",
+        //               "marginMode" => "fixed",
+        //               "openTotalPos" => "1.15",
+        //               "closeTotalPos" => "1.15",
+        //               "pnl" => "-0.11",
+        //               "netProfit" => "-1.780315",
+        //               "totalFunding" => "0",
+        //               "openFee" => "-0.83",
+        //               "closeFee" => "-0.83",
+        //               "ctime" => "1689300233897",
+        //               "utime" => "1689300238205"
+        //             }
+        //           ),
+        //           "endId" => "1062308959580516352"
+        //         }
+        //       }
         //
-        $position = $this->safe_value($response, 'data', array());
+        $position = array();
+        if (!$isHistory) {
+            $position = $this->safe_value($response, 'data', array());
+        } else {
+            $data = $this->safe_value($response, 'data', array());
+            $position = $this->safe_value($data, 'list', array());
+        }
         $result = array();
         for ($i = 0; $i < count($position); $i++) {
             $result[] = $this->parse_position($position[$i]);
         }
         $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {
@@ -3924,10 +3983,30 @@ class bitget extends Exchange {
         //         cTime => '1645922194988'
         //     }
         //
+        // history
+        //
+        //     {
+        //       "symbol" => "ETHUSDT_UMCBL",
+        //       "marginCoin" => "USDT",
+        //       "holdSide" => "short",
+        //       "openAvgPrice" => "1206.7",
+        //       "closeAvgPrice" => "1206.8",
+        //       "marginMode" => "fixed",
+        //       "openTotalPos" => "1.15",
+        //       "closeTotalPos" => "1.15",
+        //       "pnl" => "-0.11",
+        //       "netProfit" => "-1.780315",
+        //       "totalFunding" => "0",
+        //       "openFee" => "-0.83",
+        //       "closeFee" => "-0.83",
+        //       "ctime" => "1689300233897",
+        //       "utime" => "1689300238205"
+        //     }
+        //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer($position, 'cTime');
+        $timestamp = $this->safe_integer_2($position, 'cTime', 'ctime');
         $marginMode = $this->safe_string($position, 'marginMode');
         $collateral = null;
         $initialMargin = null;
@@ -3952,13 +4031,16 @@ class bitget extends Exchange {
         $contractSizeNumber = $this->safe_value($market, 'contractSize');
         $contractSize = $this->number_to_string($contractSizeNumber);
         $baseAmount = $this->safe_string($position, 'total');
-        $entryPrice = $this->safe_string($position, 'averageOpenPrice');
+        $entryPrice = $this->safe_string_2($position, 'averageOpenPrice', 'openAvgPrice');
         $maintenanceMarginPercentage = $this->safe_string($position, 'keepMarginRate');
         $openNotional = Precise::string_mul($entryPrice, $baseAmount);
         if ($initialMargin === null) {
             $initialMargin = Precise::string_div($openNotional, $leverage);
         }
         $contracts = $this->parse_number(Precise::string_div($baseAmount, $contractSize));
+        if ($contracts === null) {
+            $contracts = $this->safe_number($position, 'closeTotalPos');
+        }
         $markPrice = $this->safe_string($position, 'marketPrice');
         $notional = Precise::string_mul($baseAmount, $markPrice);
         $initialMarginPercentage = Precise::string_div($initialMargin, $notional);
@@ -3994,16 +4076,17 @@ class bitget extends Exchange {
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPrice),
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'realizedPnl' => $this->safe_number($position, 'pnl'),
             'percentage' => $this->parse_number($percentage),
             'contracts' => $contracts,
             'contractSize' => $contractSizeNumber,
             'markPrice' => $this->parse_number($markPrice),
-            'lastPrice' => null,
+            'lastPrice' => $this->safe_number($position, 'closeAvgPrice'),
             'side' => $side,
             'hedged' => $hedged,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer($position, 'utime'),
             'maintenanceMargin' => $this->parse_number($maintenanceMargin),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
             'collateral' => $this->parse_number($collateral),

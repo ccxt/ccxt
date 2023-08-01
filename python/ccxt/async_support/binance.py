@@ -6758,7 +6758,7 @@ class binance(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(response)):
             result.append(self.parse_position(response[i], market))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -6860,7 +6860,7 @@ class binance(Exchange, ImplicitAPI):
         account = await getattr(self, method)(query)
         result = self.parse_account_positions(account)
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     async def fetch_positions_risk(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -6949,7 +6949,7 @@ class binance(Exchange, ImplicitAPI):
             parsed = self.parse_position_risk(response[i])
             result.append(parsed)
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

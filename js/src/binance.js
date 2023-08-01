@@ -7285,7 +7285,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             result.push(this.parsePosition(response[i], market));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -7401,7 +7401,7 @@ export default class binance extends Exchange {
         const account = await this[method](query);
         const result = this.parseAccountPositions(account);
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPositionsRisk(symbols = undefined, params = {}) {
         /**
@@ -7498,7 +7498,7 @@ export default class binance extends Exchange {
             result.push(parsed);
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

@@ -99,7 +99,7 @@ export default class delta extends Exchange {
         leverage: any;
         marginRatio: any;
     }>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): {
         info: any;
         id: any;

@@ -176,11 +176,11 @@ export default class bybit extends Exchange {
         fee: any;
     }>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
-    fetchUnifiedPositions(symbols?: string[], params?: {}): Promise<any>;
-    fetchUSDCPositions(symbols?: string[], params?: {}): Promise<any>;
-    fetchDerivativesPositions(symbols?: string[], params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchUnifiedPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchUSDCPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchDerivativesPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setUnifiedMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setDerivativesMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;

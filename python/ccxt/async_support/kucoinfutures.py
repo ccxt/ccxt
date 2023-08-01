@@ -1042,7 +1042,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_value(market, 'contractSize'),
-            #     realisedPnl: position['realised_pnl'],
+            'realizedPnl': self.safe_number(position, 'realised_pnl'),
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),

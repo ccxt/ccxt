@@ -1747,7 +1747,7 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const result = this.parsePositions(response);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePositions(response, symbols = undefined, params = {}) {
         const result = [];

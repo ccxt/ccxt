@@ -1660,7 +1660,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         result = self.parse_positions(response)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_positions(self, response, symbols: Optional[List[str]] = None, params={}):
         result = []
