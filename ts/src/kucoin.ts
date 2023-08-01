@@ -2411,9 +2411,6 @@ export default class kucoin extends Exchange {
         if (cancelExist) {
             status = 'canceled';
         }
-        if (status === undefined) {
-            status = 'closed';
-        }
         const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
             'info': order,
