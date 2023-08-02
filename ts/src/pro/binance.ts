@@ -743,7 +743,7 @@ export default class binance extends binanceRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchMultipleOHLCV (symbols: string[], timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMultipleOHLCV (symbols: string[], timeframes = [ '1m' ], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOHLCV
@@ -757,18 +757,17 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const options = this.safeValue (this.options, 'watchOHLCV', {});
         const nameOption = this.safeString (options, 'name', 'kline');
         const name = this.safeString (params, 'name', nameOption);
         params = this.omit (params, 'name');
-        const messageHash = 'multipleOHLCV::' + symbols.join (',') + '::' + name + '::' + interval;
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const subParams = [];
+        const unifiedTimeframes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -777,9 +776,15 @@ export default class binance extends binanceRest {
             // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
             }
-            const messageHash = marketId + '@' + name + '_' + interval;
-            subParams.push (messageHash);
+            for (let j = 0; j < timeframes.length; j++) {
+                const timeframe = timeframes[j];
+                const interval = this.safeString (this.timeframes, timeframe, timeframe);
+                const messageHash = marketId + '@' + name + '_' + interval;
+                subParams.push (messageHash);
+                unifiedTimeframes.push (interval);
+            }
         }
+        const messageHash = 'multipleOHLCV::' + symbols.join (',') + '::' + name + '::' + unifiedTimeframes.join (',');
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
@@ -790,11 +795,15 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+        const [ symbol, timeframe, stored ] = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (undefined, limit);
+            limit = stored.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const res = {};
+        res[symbol] = {};
+        res[symbol][timeframe] = filtered;
+        return res; // check this out
     }
 
     handleOHLCV (client: Client, message) {
@@ -866,11 +875,13 @@ export default class binance extends binanceRest {
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
-            const subInterval = parts[3];
+            const intervals = parts[3].split (',');
             const symbolsString = parts[1];
             const symbols = symbolsString.split (',');
-            if ((subInterval === interval) && this.inArray (symbol, symbols)) {
-                client.resolve (stored, messageHash);
+            if ((this.inArray (interval, intervals)) && this.inArray (symbol, symbols)) {
+                // const result = {};
+                // result[symbol][]
+                client.resolve ([ symbol, interval, stored ], messageHash);
             }
         }
     }
