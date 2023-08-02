@@ -1248,6 +1248,7 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchMarkets
          * @description retrieves data on all markets for okx
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -1364,12 +1365,10 @@ export default class okx extends Exchange {
             }
         }
         const tickSize = this.safeString (market, 'tickSz');
-        const minAmountString = this.safeString (market, 'minSz');
-        const minAmount = this.parseNumber (minAmountString);
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        const precisionPrice = this.parseNumber (tickSize);
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
+        const maxSpotCost = this.safeNumber (market, 'maxMktSz');
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -1396,7 +1395,7 @@ export default class okx extends Exchange {
             'optionType': optionType,
             'precision': {
                 'amount': this.safeNumber (market, 'lotSz'),
-                'price': precisionPrice,
+                'price': this.parseNumber (tickSize),
             },
             'limits': {
                 'leverage': {
@@ -1404,16 +1403,16 @@ export default class okx extends Exchange {
                     'max': this.parseNumber (maxLeverage),
                 },
                 'amount': {
-                    'min': minAmount,
+                    'min': this.safeNumber (market, 'minSz'),
                     'max': undefined,
                 },
                 'price': {
-                    'min': precisionPrice,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
