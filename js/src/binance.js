@@ -928,7 +928,8 @@ export default class binance extends Exchange {
                         'bnb-transfer': 0.6667,
                         'portfolio/repay-futures-switch': 150,
                         'portfolio/repay-futures-negative-balance': 150,
-                        'listenKey': 1, // 1
+                        'listenKey': 1,
+                        'asset-collection': 3,
                     },
                     'put': {
                         'listenKey': 1, // 1

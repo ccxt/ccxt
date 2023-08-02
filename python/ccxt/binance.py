@@ -951,6 +951,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/repay-futures-switch': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1,  # 1
+                        'asset-collection': 3,
                     },
                     'put': {
                         'listenKey': 1,  # 1

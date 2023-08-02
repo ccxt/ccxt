@@ -32,21 +32,7 @@ export default class huobijp extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    parseTrade(trade: any, market?: any): {
-        id: string;
-        info: any;
-        order: string;
-        timestamp: number;
-        datetime: string;
-        symbol: any;
-        type: string;
-        side: string;
-        takerOrMaker: string;
-        price: number;
-        amount: number;
-        cost: number;
-        fee: any;
-    };
+    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: number, params?: {}): Promise<any>;
