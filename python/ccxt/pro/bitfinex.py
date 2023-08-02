@@ -155,15 +155,12 @@ class bitfinex(ccxt.async_support.bitfinex):
         if event == 'tu':
             id = self.safe_string(trade, tradeLength - 4)
         timestamp = self.safe_timestamp(trade, tradeLength - 3)
-        price = self.safe_float(trade, tradeLength - 2)
-        amount = self.safe_float(trade, tradeLength - 1)
+        price = self.safe_string(trade, tradeLength - 2)
+        amount = self.safe_string(trade, tradeLength - 1)
         side = None
         if amount is not None:
-            side = 'buy' if (amount > 0) else 'sell'
-            amount = abs(amount)
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+            side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
+            amount = Precise.string_abs(amount)
         seq = self.safe_string(trade, 2)
         parts = seq.split('-')
         marketId = self.safe_string(parts, 1)
@@ -172,7 +169,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         symbol = self.safe_symbol(marketId, market)
         takerOrMaker = None
         orderId = None
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -184,9 +181,9 @@ class bitfinex(ccxt.async_support.bitfinex):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        })
 
     def handle_ticker(self, client: Client, message, subscription):
         #

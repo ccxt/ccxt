@@ -1766,13 +1766,17 @@ class kucoin extends kucoin$1 {
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {object} [params]  Extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+         * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+         * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
          * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
          * @param {string} [params.tradeType] 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
          * limit orders ---------------------------------------------------
-         * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
          * @param {float} [params.cancelAfter] long, // cancel after n seconds, requires timeInForce to be GTT
-         * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
          * @param {bool} [params.hidden] false, // Order will not be displayed in the order book
          * @param {bool} [params.iceberg] false, // Only a portion of the order is displayed in the order book
          * @param {string} [params.visibleSize] this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order
@@ -1780,11 +1784,9 @@ class kucoin extends kucoin$1 {
          * @param {string} [params.funds] // Amount of quote currency to use
          * stop orders ----------------------------------------------------
          * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires stopPrice to be defined
-         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
          * margin orders --------------------------------------------------
          * @param {float} [params.leverage] Leverage size of the order
          * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
-         * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
          * @param {bool} [params.autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
          * @param {bool} [params.hf] false, // true for hf order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1832,7 +1834,6 @@ class kucoin extends kucoin$1 {
         }
         else if (triggerPrice || stopLossPrice || takeProfitPrice) {
             if (triggerPrice) {
-                request['stop'] = (side === 'buy') ? 'up' : 'down';
                 request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
             else if (stopLossPrice || takeProfitPrice) {
@@ -2402,9 +2403,6 @@ class kucoin extends kucoin$1 {
         }
         if (cancelExist) {
             status = 'canceled';
-        }
-        if (status === undefined) {
-            status = 'closed';
         }
         const stopPrice = this.safeNumber(order, 'stopPrice');
         return this.safeOrder({
