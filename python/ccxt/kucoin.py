@@ -488,8 +488,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchCurrencies': {
-                    'webApiEnable': False,  # fetches from WEB
-                    'webApiRetries': 5,
+                    'webApiEnable': True,  # fetches from WEB
+                    'webApiRetries': 1,
                     'webApiMuteFailure': True,
                 },
                 'fetchMarkets': {

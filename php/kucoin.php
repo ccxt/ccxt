@@ -465,8 +465,8 @@ class kucoin extends Exchange {
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
                 'fetchCurrencies' => array(
-                    'webApiEnable' => false, // fetches from WEB
-                    'webApiRetries' => 5,
+                    'webApiEnable' => true, // fetches from WEB
+                    'webApiRetries' => 1,
                     'webApiMuteFailure' => true,
                 ),
                 'fetchMarkets' => array(
