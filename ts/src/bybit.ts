@@ -3519,7 +3519,7 @@ export default class bybit extends Exchange {
         } else if (market['option']) {
             request['category'] = 'option';
         } else {
-            throw new NotSupported (this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
+            throw new NotSupported (this.id + ' createUnifiedAccountOrder only support spot, linear, inverse and option market');
         }
         if (market['spot'] && (type === 'market') && (side === 'buy')) {
             // for market buy it requires the amount of quote currency to spend
@@ -3619,9 +3619,6 @@ export default class bybit extends Exchange {
     async createNormalAccountOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['option']) {
-            throw new NotSupported (this.id + ' createOrder does not allow option market orders for ' + symbol + ' markets');
-        }
         const lowerCaseType = type.toLowerCase ();
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
@@ -3658,7 +3655,7 @@ export default class bybit extends Exchange {
         } else if (market['inverse']) {
             request['category'] = 'inverse';
         } else {
-            throw new NotSupported (this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
+            throw new NotSupported (this.id + ' createNormalAccountOrder only support spot, linear and inverse market');
         }
         if (market['spot'] && (type === 'market') && (side === 'buy')) {
             // for market buy it requires the amount of quote currency to spend
@@ -4063,12 +4060,14 @@ export default class bybit extends Exchange {
         }
         if (market['spot']) {
             request['category'] = 'spot';
-        } else if (market['option']) {
-            request['category'] = 'option';
         } else if (market['linear']) {
             request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
+        } else if (market['option']) {
+            request['category'] = 'option';
         } else {
-            throw new NotSupported (this.id + ' cancelOrder() does not allow inverse market orders for ' + symbol + ' markets');
+            throw new NotSupported (this.id + ' cancelUnifiedAccountOrder() only support spot, linear, inverse and option market');
         }
         const response = await this.privatePostV5OrderCancel (this.extend (request, params));
         //
@@ -4087,48 +4086,9 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelSpotOrder (id: string, symbol: string = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
-            // 'orderId': id
-        };
-        if (id !== undefined) { // The user can also use argument params["order_link_id"]
-            request['orderId'] = id;
-        }
-        const response = await this.privatePostSpotV3PrivateCancelOrder (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": "0",
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "orderId": "1275046248585414144",
-        //             "orderLinkId": "1666733357434617",
-        //             "symbol": "AAVEUSDT",
-        //             "status": "NEW",
-        //             "accountId": "13380434",
-        //             "createTime": "1666733357438",
-        //             "orderPrice": "80",
-        //             "orderQty": "0.11",
-        //             "execQty": "0",
-        //             "timeInForce": "GTC",
-        //             "orderType": "LIMIT",
-        //             "side": "BUY",
-        //             "orderCategory": "0"
-        //         },
-        //         "retExtMap": {},
-        //         "retExtInfo": null,
-        //         "time": "1666733839493"
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        return this.parseOrder (result, market);
-    }
-
-    async cancelUnifiedMarginOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelNormalAccountOrder (id: string, symbol: string = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelUnifiedMarginOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4137,31 +4097,37 @@ export default class bybit extends Exchange {
             // 'orderLinkId': 'string',
             // 'orderId': id,
             // conditional orders
-            // 'orderFilter': '',
-            // 'category': '',
+            // 'orderFilter': '', // Valid for spot only. Order,tpslOrder. If not passed, Order by default
         };
-        const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
-        request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+        if (market['spot']) {
+            // only works for spot market
+            const isStop = this.safeValue (params, 'stop', false);
+            params = this.omit (params, [ 'stop' ]);
+            request['orderFilter'] = isStop ? 'tpslOrder' : 'Order';
+        }
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
         }
-        if (market['option']) {
-            request['category'] = 'option';
+        if (market['spot']) {
+            request['category'] = 'spot';
         } else if (market['linear']) {
             request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
         } else {
-            throw new NotSupported (this.id + ' cancelUnifiedMarginOrder() does not allow inverse market orders for ' + symbol + ' markets');
+            throw new NotSupported (this.id + ' cancelNormalAccountOrder() only support spot, linear and inverse market');
         }
-        const response = await this.privatePostUnifiedV3PrivateOrderCancel (this.extend (request, params));
+        const response = await this.privatePostV5OrderCancel (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //             "orderId": "42c86d66331e41998d12c2440ce90c1a",
-        //             "orderLinkId": "e80d558e-ed"
-        //         }
+        //             "orderId": "c6f055d9-7f21-4079-913d-e6523a9cfffa",
+        //             "orderLinkId": "linear-004"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672217377164
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -4209,35 +4175,6 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelDerivativesOrder (id: string, symbol: string = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelDerivativesOrder() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'orderId': id,
-        };
-        const response = await this.privatePostContractV3PrivateOrderCancel (this.extend (request, params));
-        //
-        // contract v3
-        //
-        //     {
-        //         "retCode":0,
-        //         "retMsg":"OK",
-        //         "result":{
-        //             "orderId": "4030430d-1dba-4134-ac77-3d81c14aaa00",
-        //             "orderLinkId": ""
-        //         },
-        //         "retExtInfo":null,
-        //         "time":1658850321861
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        return this.parseOrder (result, market);
-    }
-
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
@@ -4254,17 +4191,15 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
-        if (enableUnifiedAccount) {
-            return await this.cancelUnifiedAccountOrder (id, symbol, params);
-        } else if (market['spot']) {
-            return await this.cancelSpotOrder (id, symbol, params);
-        } else if (enableUnifiedMargin && !market['inverse']) {
-            return await this.cancelUnifiedMarginOrder (id, symbol, params);
-        } else if (isUsdcSettled) {
+        if (isUsdcSettled) {
             return await this.cancelUSDCOrder (id, symbol, params);
+        } else if (isUnifiedAccount) {
+            return await this.cancelUnifiedAccountOrder (id, symbol, params);
+        } else {
+            return await this.cancelNormalAccountOrder (id, symbol, params);
         }
-        return await this.cancelDerivativesOrder (id, symbol, params);
     }
 
     async cancelAllUnifiedAccountOrders (symbol: string = undefined, params = {}) {
