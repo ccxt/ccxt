@@ -50,6 +50,7 @@ class krakenfutures extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
+                'fetchLeverage' => true,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -64,7 +65,7 @@ class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'setLeverage' => false,
+                'setLeverage' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
             ),
@@ -109,6 +110,8 @@ class krakenfutures extends Exchange {
                         'recentorders',
                         'fills',
                         'transfers',
+                        'leveragepreferences',
+                        'pnlpreferences',
                     ),
                     'post' => array(
                         'sendorder',
@@ -119,6 +122,10 @@ class krakenfutures extends Exchange {
                         'cancelallorders',
                         'cancelallordersafter',
                         'withdrawal',                              // for futures wallet -> kraken spot wallet
+                    ),
+                    'put' => array(
+                        'leveragepreferences',
+                        'pnlpreferences',
                     ),
                 ),
                 'charts' => array(
@@ -1764,7 +1771,7 @@ class krakenfutures extends Exchange {
             //    }
             //
             $result = $this->parse_positions($response);
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -2059,6 +2066,54 @@ class krakenfutures extends Exchange {
                 'fromAccount' => $fromAccount,
                 'toAccount' => $toAccount,
             ));
+        }) ();
+    }
+
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($leverage, $symbol, $params) {
+            /**
+             * set the level of $leverage for a market
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-$leverage-setting-for-a-market
+             * @param {float} $leverage the rate of $leverage
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @return {array} response from the exchange
+             */
+            $this->check_required_symbol('setLeverage', $symbol);
+            Async\await($this->load_markets());
+            $request = array(
+                'maxLeverage' => $leverage,
+                'symbol' => strtoupper($this->market_id($symbol)),
+            );
+            //
+            // array( result => 'success', serverTime => '2023-08-01T09:40:32.345Z' )
+            //
+            return Async\await($this->privatePutLeveragepreferences (array_merge($request, $params)));
+        }) ();
+    }
+
+    public function fetch_leverage(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the set leverage for a market
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             */
+            $this->check_required_symbol('fetchLeverage', $symbol);
+            Async\await($this->load_markets());
+            $request = array(
+                'symbol' => strtoupper($this->market_id($symbol)),
+            );
+            //
+            //   {
+            //       result => 'success',
+            //       serverTime => '2023-08-01T09:54:08.900Z',
+            //       leveragePreferences => array( array( $symbol => 'PF_LTCUSD', maxLeverage => '5.00' ) )
+            //   }
+            //
+            return Async\await($this->privateGetLeveragepreferences (array_merge($request, $params)));
         }) ();
     }
 

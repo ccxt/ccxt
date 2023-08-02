@@ -48,6 +48,7 @@ class krakenfutures extends krakenfutures$1 {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -62,7 +63,7 @@ class krakenfutures extends krakenfutures$1 {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
             },
@@ -107,6 +108,8 @@ class krakenfutures extends krakenfutures$1 {
                         'recentorders',
                         'fills',
                         'transfers',
+                        'leveragepreferences',
+                        'pnlpreferences',
                     ],
                     'post': [
                         'sendorder',
@@ -117,6 +120,10 @@ class krakenfutures extends krakenfutures$1 {
                         'cancelallorders',
                         'cancelallordersafter',
                         'withdrawal', // for futures wallet -> kraken spot wallet
+                    ],
+                    'put': [
+                        'leveragepreferences',
+                        'pnlpreferences',
                     ],
                 },
                 'charts': {
@@ -1747,7 +1754,7 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const result = this.parsePositions(response);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePositions(response, symbols = undefined, params = {}) {
         const result = [];
@@ -2035,6 +2042,52 @@ class krakenfutures extends krakenfutures$1 {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });
+    }
+    async setLeverage(leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol('setLeverage', symbol);
+        await this.loadMarkets();
+        const request = {
+            'maxLeverage': leverage,
+            'symbol': this.marketId(symbol).toUpperCase(),
+        };
+        //
+        // { result: 'success', serverTime: '2023-08-01T09:40:32.345Z' }
+        //
+        return await this.privatePutLeveragepreferences(this.extend(request, params));
+    }
+    async fetchLeverage(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        this.checkRequiredSymbol('fetchLeverage', symbol);
+        await this.loadMarkets();
+        const request = {
+            'symbol': this.marketId(symbol).toUpperCase(),
+        };
+        //
+        //   {
+        //       result: 'success',
+        //       serverTime: '2023-08-01T09:54:08.900Z',
+        //       leveragePreferences: [ { symbol: 'PF_LTCUSD', maxLeverage: '5.00' } ]
+        //   }
+        //
+        return await this.privateGetLeveragepreferences(this.extend(request, params));
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

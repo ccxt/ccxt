@@ -6900,7 +6900,7 @@ class huobi extends huobi$1 {
                 'datetime': this.iso8601(timestamp),
             }));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPosition(symbol, params = {}) {
         /**

@@ -602,6 +602,7 @@ interface binance {
     papiPostPortfolioRepayFuturesSwitch (params?: {}): Promise<implicitReturnType>;
     papiPostPortfolioRepayFuturesNegativeBalance (params?: {}): Promise<implicitReturnType>;
     papiPostListenKey (params?: {}): Promise<implicitReturnType>;
+    papiPostAssetCollection (params?: {}): Promise<implicitReturnType>;
     papiPutListenKey (params?: {}): Promise<implicitReturnType>;
     papiDeleteUmOrder (params?: {}): Promise<implicitReturnType>;
     papiDeleteUmAllOpenOrders (params?: {}): Promise<implicitReturnType>;
