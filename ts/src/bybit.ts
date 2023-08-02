@@ -3025,11 +3025,12 @@ export default class bybit extends Exchange {
         const request = {};
         let method = undefined;
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const isSpot = (type === 'spot');
         const isSwap = (type === 'swap');
-        if (enableUnifiedAccount || enableUnifiedMargin) {
+        if (isUnifiedAccount) {
             if (isSpot || isSwap) {
                 type = 'unified';
             }
@@ -3465,13 +3466,13 @@ export default class bybit extends Exchange {
         this.checkRequiredSymbol ('createOrder', symbol);
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const values = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = this.safeValue (values, 1);
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUSDCSettled = market['settle'] === 'USDC';
-        if (isUnifiedAccount) {
-            return await this.createUnifiedAccountOrder (symbol, type, side, amount, price, params);
-        } else if (isUSDCSettled) {
+        if (isUSDCSettled) {
             return await this.createUsdcOrder (symbol, type, side, amount, price, params);
+        } else if (isUnifiedAccount) {
+            return await this.createUnifiedAccountOrder (symbol, type, side, amount, price, params);
         } else {
             return await this.createNormalAccountOrder (symbol, type, side, amount, price, params);
         }
@@ -3872,13 +3873,9 @@ export default class bybit extends Exchange {
     async editUnifiedAccountOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['linear'] && !market['option']) {
-            throw new NotSupported (this.id + ' editOrder does not allow inverse market orders for ' + symbol + ' markets');
-        }
         const request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': this.amountToPrecision (symbol, amount),
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
@@ -3889,10 +3886,17 @@ export default class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
+        if (market['linear']) {
             request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
+        } else if (market['option']) {
+            request['category'] = 'option';
+        } else {
+            throw new NotSupported (this.id + ' editUnifiedAccountOrder only support linear, inverse and option market');
+        }
+        if (amount !== undefined) {
+            request['qty'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -3945,112 +3949,32 @@ export default class bybit extends Exchange {
         });
     }
 
-    async editUnifiedMarginOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editNormalAccountOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['linear'] && !market['option']) {
-            throw new NotSupported (this.id + ' editOrder does not allow inverse market orders for ' + symbol + ' markets');
-        }
-        const lowerCaseType = type.toLowerCase ();
-        if ((price === undefined) && (lowerCaseType === 'limit')) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires a price argument for limit orders');
-        }
         const request = {
-            'orderId': id,
             'symbol': market['id'],
-            'side': this.capitalize (side),
-            'orderType': this.capitalize (lowerCaseType), // limit or market
-            'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'qty': this.amountToPrecision (symbol, amount),
+            'orderId': id,
+            // 'orderLinkId': 'string', // unique client order id, max 36 characters
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
-            // 'orderLinkId': 'string', // unique client order id, max 36 characters
             // 'triggerPrice': 123.45, // trigger price, required for conditional orders
-            // 'triggerBy': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'tptriggerby': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'iv': '0', // Implied volatility, for options only; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
+            // 'triggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'tpTriggerby': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // Valid for option only.
+            // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
         if (market['linear']) {
             request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
         } else {
-            request['category'] = 'option';
+            throw new NotSupported (this.id + ' editNormalAccountOrder only support linear and inverse market');
         }
-        const isMarket = lowerCaseType === 'market';
-        const isLimit = lowerCaseType === 'limit';
-        if (isLimit) {
-            request['price'] = this.priceToPrecision (symbol, price);
+        if (amount !== undefined) {
+            request['qty'] = this.amountToPrecision (symbol, amount);
         }
-        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
-        const timeInForce = this.safeStringLower (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
-        if (postOnly) {
-            request['timeInForce'] = 'PostOnly';
-        } else if (timeInForce === 'gtc') {
-            request['timeInForce'] = 'GoodTillCancel';
-        } else if (timeInForce === 'fok') {
-            request['timeInForce'] = 'FillOrKill';
-        } else if (timeInForce === 'ioc') {
-            request['timeInForce'] = 'ImmediateOrCancel';
-        }
-        let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
-        const stopLoss = this.safeNumber (params, 'stopLoss');
-        const takeProfit = this.safeNumber (params, 'takeProfit');
-        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
-        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
-        const isStopLoss = stopLoss !== undefined;
-        const isTakeProfit = takeProfit !== undefined;
-        if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
-        }
-        if (triggerPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-        }
-        if (isStopLoss || isTakeProfit) {
-            if (isStopLoss) {
-                request['stopLoss'] = this.priceToPrecision (symbol, stopLoss);
-            }
-            if (isTakeProfit) {
-                request['takeProfit'] = this.priceToPrecision (symbol, takeProfit);
-            }
-        }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['orderLinkId'] = clientOrderId;
-        }
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
-        const response = await this.privatePostUnifiedV3PrivateOrderReplace (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "orderId": "42c86d66331e41998d12c2440ce90c1a",
-        //             "orderLinkId": "e80d558e-ed"
-        //         }
-        //     }
-        //
-        const order = this.safeValue (response, 'result', {});
-        return this.parseOrder (order);
-    }
-
-    async editContractV3Order (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'orderId': id,
-            'qty': this.amountToPrecision (symbol, amount),
-            // 'orderLinkId': '', // User customised order id. Either orderId or orderLinkId is required
-            // 'triggerPrice': '', // Trigger price. Don't pass it if not modify the qty
-            // 'takeProfit': '', // Take profit price after modification. Don't pass it if not modify the take profit
-            // 'stopLoss': '', // Stop loss price after modification. Don't pass it if not modify the Stop loss
-            // 'tpTriggerBy': '', // The price type to trigger take profit. When set a take profit, this param is required if no initial value for the order
-            // 'slTriggerBy': '', // The price type to trigger stop loss. When set a stop loss, this param is required if no initial value for the order
-            // 'triggerBy': '', // Trigger price type. LastPrice, IndexPrice, MarkPrice, LastPrice
-        };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -4082,19 +4006,17 @@ export default class bybit extends Exchange {
             request['orderLinkId'] = clientOrderId;
         }
         params = this.omit (params, [ 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
-        const response = await this.privatePostContractV3PrivateOrderReplace (this.extend (request, params));
-        //
-        // contract v3
+        const response = await this.privatePostV5OrderAmend (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //             "orderId": "db8b74b3-72d3-4264-bf3f-52d39b41956e",
-        //             "orderLinkId": "x002"
+        //             "orderId": "c6f055d9-7f21-4079-913d-e6523a9cfffa",
+        //             "orderLinkId": "linear-004"
         //         },
         //         "retExtInfo": {},
-        //         "time": 1658902610749
+        //         "time": 1672217093461
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -4109,16 +4031,12 @@ export default class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an symbol argument');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount) {
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        if (isUnifiedAccount) {
             return await this.editUnifiedAccountOrder (id, symbol, type, side, amount, price, params);
-        } else if (market['spot']) {
-            throw new NotSupported (this.id + ' editOrder() does not support spot markets');
-        } else if (enableUnifiedMargin && !market['inverse']) {
-            return await this.editUnifiedMarginOrder (id, symbol, type, side, amount, price, params);
         }
-        return await this.editContractV3Order (id, symbol, type, side, amount, price, params);
+        return await this.editNormalAccountOrder (id, symbol, type, side, amount, price, params);
     }
 
     async cancelUnifiedAccountOrder (id: string, symbol: string = undefined, params = {}) {
