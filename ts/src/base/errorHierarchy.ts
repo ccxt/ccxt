@@ -26,7 +26,7 @@ const errorHierarchy = {
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
-                'ContractSettled': {},
+                'ContractUnavailable': {},
             },
             'NotSupported': {},
         },

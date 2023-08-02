@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractSettled } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -553,7 +553,7 @@ export default class okx extends Exchange {
                     '51027': BadSymbol, // Contract expired
                     '51028': BadSymbol, // Contract under delivery
                     '51029': BadSymbol, // Contract is being settled
-                    '51030': ContractSettled, // Funding fee is being settled
+                    '51030': ContractUnavailable, // Funding fee is being settled
                     '51046': InvalidOrder, // The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder, // The stop loss trigger price must be lower than the order price
                     '51031': InvalidOrder, // This order price is not within the closing price range
