@@ -8,6 +8,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class tokocrypto
+ * @extends Exchange
+ */
 class tokocrypto extends tokocrypto$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -54,6 +58,7 @@ class tokocrypto extends tokocrypto$1 {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -593,8 +598,9 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchTime
+         * @see https://www.tokocrypto.com/apidocs/#check-server-time
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetOpenV1CommonTime(params);
@@ -607,9 +613,10 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchMarkets
+         * @see https://www.tokocrypto.com/apidocs/#get-all-supported-trading-symbol
          * @description retrieves data on all markets for tokocrypto
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetOpenV1CommonSymbols(params);
         //
@@ -667,8 +674,8 @@ class tokocrypto extends tokocrypto$1 {
             const symbol = base + '/' + quote;
             const filters = this.safeValue(market, 'filters', []);
             const filtersByType = this.indexBy(filters, 'filterType');
-            const status = this.safeString2(market, 'status', 'contractStatus');
-            let active = (status === 'TRADING');
+            const status = this.safeString(market, 'spotTradingEnable');
+            let active = (status === '1');
             const permissions = this.safeValue(market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
                 if (permissions[j] === 'TRD_GRP_003') {
@@ -771,10 +778,11 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchOrderBook
+         * @see https://www.tokocrypto.com/apidocs/#order-book
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -960,12 +968,14 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchTrades
+         * @see https://www.tokocrypto.com/apidocs/#recent-trades-list
+         * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1117,9 +1127,10 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchTickers
+         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -1132,9 +1143,10 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchTicker
+         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -1153,9 +1165,10 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchBidsAsks
+         * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
          * @description fetches the bid and ask price and volume for multiple markets
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -1210,15 +1223,16 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchOHLCV
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @param {string|undefined} params.price "mark" or "index" for mark price and index price candles
-         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1261,11 +1275,12 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchBalance
+         * @see https://www.tokocrypto.com/apidocs/#account-information-signed
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
-         * @param {[string]|undefined} params.symbols unified market symbols, only used in isolated margin mode
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+         * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -1504,13 +1519,14 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#createOrder
+         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1592,10 +1608,10 @@ class tokocrypto extends tokocrypto$1 {
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
-                const quoteOrderQty = this.safeValue2(params, 'quoteOrderQty', 'cost');
+                const quoteOrderQtyInner = this.safeValue2(params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
-                if (quoteOrderQty !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQty, number.TRUNCATE, precision, this.precisionMode);
+                if (quoteOrderQtyInner !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyInner, number.TRUNCATE, precision, this.precisionMode);
                     params = this.omit(params, ['quoteOrderQty', 'cost']);
                 }
                 else if (price !== undefined) {
@@ -1682,9 +1698,10 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchOrder
+         * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
@@ -1730,12 +1747,13 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchOrders
+         * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
@@ -1800,12 +1818,13 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchOpenOrders
+         * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = { 'type': 1 }; // -1 = all, 1 = open, 2 = closed
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
@@ -1814,12 +1833,13 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchClosedOrders
+         * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = { 'type': 2 }; // -1 = all, 1 = open, 2 = closed
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
@@ -1828,10 +1848,11 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#cancelOrder
+         * @see https://www.tokocrypto.com/apidocs/#cancel-order-signed
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
@@ -1872,12 +1893,13 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchMyTrades
+         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
@@ -1932,9 +1954,10 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchDepositAddress
+         * @see https://www.tokocrypto.com/apidocs/#deposit-address-signed
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
@@ -1987,13 +2010,14 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchDeposits
+         * @see https://www.tokocrypto.com/apidocs/#deposit-history-signed
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @param {int|undefined} params.until the latest time in ms to fetch deposits for
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch deposits for
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -2047,12 +2071,13 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchWithdrawals
+         * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2238,12 +2263,13 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name bybit#withdraw
+         * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
@@ -2366,17 +2392,17 @@ class tokocrypto extends tokocrypto$1 {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeValue(response, 'success', true);
         if (!success) {
-            const message = this.safeString(response, 'msg');
+            const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;
-            if (message !== undefined) {
+            if (messageInner !== undefined) {
                 try {
-                    parsedMessage = JSON.parse(message);
+                    parsedMessage = JSON.parse(messageInner);
                 }
                 catch (e) {
                     // do nothing
@@ -2421,8 +2447,9 @@ class tokocrypto extends tokocrypto$1 {
         if (!success) {
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
+        return undefined;
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         }

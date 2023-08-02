@@ -1,0 +1,27 @@
+from ccxt.base.types import Entry
+
+
+class ImplicitAPI:
+    public_get_time = publicGetTime = Entry('time', 'public', 'GET', {'cost': 1})
+    public_get_markets = publicGetMarkets = Entry('markets', 'public', 'GET', {'cost': 1})
+    public_get_assets = publicGetAssets = Entry('assets', 'public', 'GET', {'cost': 1})
+    public_get_market_book = publicGetMarketBook = Entry('{market}/book', 'public', 'GET', {'cost': 1})
+    public_get_market_trades = publicGetMarketTrades = Entry('{market}/trades', 'public', 'GET', {'cost': 5})
+    public_get_market_candles = publicGetMarketCandles = Entry('{market}/candles', 'public', 'GET', {'cost': 1})
+    public_get_ticker_price = publicGetTickerPrice = Entry('ticker/price', 'public', 'GET', {'cost': 1})
+    public_get_ticker_book = publicGetTickerBook = Entry('ticker/book', 'public', 'GET', {'cost': 1})
+    public_get_ticker_24h = publicGetTicker24h = Entry('ticker/24h', 'public', 'GET', {'cost': 1, 'noMarket': 25})
+    private_get_account = privateGetAccount = Entry('account', 'private', 'GET', {'cost': 1})
+    private_get_order = privateGetOrder = Entry('order', 'private', 'GET', {'cost': 1})
+    private_get_orders = privateGetOrders = Entry('orders', 'private', 'GET', {'cost': 5})
+    private_get_ordersopen = privateGetOrdersOpen = Entry('ordersOpen', 'private', 'GET', {'cost': 1, 'noMarket': 25})
+    private_get_trades = privateGetTrades = Entry('trades', 'private', 'GET', {'cost': 5})
+    private_get_balance = privateGetBalance = Entry('balance', 'private', 'GET', {'cost': 5})
+    private_get_deposit = privateGetDeposit = Entry('deposit', 'private', 'GET', {'cost': 1})
+    private_get_deposithistory = privateGetDepositHistory = Entry('depositHistory', 'private', 'GET', {'cost': 5})
+    private_get_withdrawalhistory = privateGetWithdrawalHistory = Entry('withdrawalHistory', 'private', 'GET', {'cost': 5})
+    private_post_order = privatePostOrder = Entry('order', 'private', 'POST', {'cost': 1})
+    private_post_withdrawal = privatePostWithdrawal = Entry('withdrawal', 'private', 'POST', {'cost': 1})
+    private_put_order = privatePutOrder = Entry('order', 'private', 'PUT', {'cost': 1})
+    private_delete_order = privateDeleteOrder = Entry('order', 'private', 'DELETE', {'cost': 1})
+    private_delete_orders = privateDeleteOrders = Entry('orders', 'private', 'DELETE', {'cost': 1})

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import asyncio
 import json
 # import logging
 import os
@@ -9,21 +8,18 @@ import sys
 import time  # noqa: F401
 from traceback import format_tb
 
+import importlib  # noqa: E402
+import glob  # noqa: E402
+import re
+
 # ------------------------------------------------------------------------------
 # logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
-
-root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(root)
 
-# ------------------------------------------------------------------------------
-
 import ccxt.async_support as ccxt  # noqa: E402
-from test_trade import test_trade  # noqa: E402
-from test_order import test_order  # noqa: E402
-from test_ohlcv import test_ohlcv  # noqa: E402
-from test_position import test_position  # noqa: E402
-from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -37,663 +33,682 @@ class Argv(object):
     nonce = None
     exchange = None
     symbol = None
+    info = False
     pass
 
 
 argv = Argv()
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--token_bucket', action='store_true', help='enable token bucket experimental test')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
+parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
-
 parser.parse_args(namespace=argv)
-
-exchanges = {}
 
 # ------------------------------------------------------------------------------
 
 path = os.path.dirname(ccxt.__file__)
-print(os.getcwd(), path)
-print(sys.argv)
 if 'site-packages' in os.path.dirname(ccxt.__file__):
     raise Exception("You are running test_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
 
 # ------------------------------------------------------------------------------
-# string coloring functions
 
+Error = Exception
 
-def style(s, style):
-    return str(s)  # style + str (s) + '\033[0m'
-
-
-def green(s):
-    return style(s, '\033[92m')
-
-
-def blue(s):
-    return style(s, '\033[94m')
-
-
-def yellow(s):
-    return style(s, '\033[93m')
-
-
-def red(s):
-    return style(s, '\033[91m')
-
-
-def pink(s):
-    return style(s, '\033[95m')
-
-
-def bold(s):
-    return style(s, '\033[1m')
-
-
-def underline(s):
-    return style(s, '\033[4m')
-
-
-# print a colored string
-def dump(*args):
-    print(' '.join([str(arg) for arg in args]))
-
-
-# print an error string
-def dump_error(*args):
-    string = ' '.join([str(arg) for arg in args])
-    print(string)
-    sys.stderr.write(string + "\n")
-    sys.stderr.flush()
-
-
-# ------------------------------------------------------------------------------
+# # print an error string
+# def dump_error(*args):
+#     string = ' '.join([str(arg) for arg in args])
+#     print(string)
+#     sys.stderr.write(string + "\n")
+#     sys.stderr.flush()
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    dump_error(yellow(type), yellow(value), '\n\n' + yellow('\n'.join(format_tb(traceback))))
+    dump((type), (value), '\n\n' + ('\n'.join(format_tb(traceback))))
     exit(1)  # unrecoverable crash
 
 
 sys.excepthook = handle_all_unhandled_exceptions
-
 # ------------------------------------------------------------------------------
 
+# non-transpiled part, but shared names among langs
 
-async def test_order_book(exchange, symbol):
-    method = 'fetchOrderBook'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching order book...')
-        orderbook = await getattr(exchange, method)(symbol)
-        dump(
-            green(exchange.id),
-            green(symbol),
-            'order book',
-            orderbook['datetime'],
-            'bid: ' + str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
-            'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
-            'ask: ' + str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
-            'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
+
+class baseMainTestClass():
+    pass
+
+
+is_synchronous = 'async' not in os.path.basename(__file__)
+
+rootDir = current_dir + '/../../../'
+rootDirForSkips = current_dir + '/../../../'
+envVars = os.environ
+ext = 'py'
+
+
+def dump(*args):
+    print(' '.join([str(arg) for arg in args]))
+
+
+def get_cli_arg_value(arg):
+    arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
+    with_hyphen = '--' + arg
+    arg_exists_with_hyphen = getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
+    without_hyphen = arg.replace('--', '')
+    arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
+    return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
+
+
+def get_test_name(methodName):
+    snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()  # snake_case
+    snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
+    full_name = 'test_' + snake_cased
+    return full_name
+
+
+def io_file_exists(path):
+    return os.path.isfile(path)
+
+
+def io_file_read(path, decode=True):
+    fs = open(path, "r", encoding="utf-8")
+    content = fs.read()
+    if decode:
+        return json.loads(content)
     else:
-        dump(yellow(exchange.id), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
+        return content
 
 
-async def test_ohlcvs(exchange, symbol):
-    method = 'fetchOHLCV'
-    ignored_exchanges = [
-        'cex',  # CEX can return historical candles for a certain date only
-        'okex',  # okex fetchOHLCV counts "limit" candles from current time backwards
-        'okcoinusd',  # okex base class
-    ]
-    if exchange.id in ignored_exchanges:
-        return
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-        timeframes = exchange.timeframes if exchange.timeframes else {'1d': '1d'}
-        exchange_has_one_minute_timeframe = '1m' in timeframes
-        timeframe = '1m' if exchange_has_one_minute_timeframe else list(timeframes.keys())[0]
-        limit = 10
-        duration = exchange.parse_timeframe(timeframe)
-        since = exchange.milliseconds() - duration * limit * 1000 - 1000
-        ohlcvs = await getattr(exchange, method)(symbol, timeframe, since, limit)
-        for ohlcv in ohlcvs:
-            test_ohlcv(exchange, ohlcv, symbol, int(time.time() * 1000))
-        dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
-    else:
-        dump(yellow(exchange.id), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
+async def call_method(testFiles, methodName, exchange, skippedProperties, args):
+    return await getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
 
 
-async def test_tickers(exchange, symbol):
-    method = 'fetchTickers'
-    ignored_exchanges = [
-        'digifinex',  # requires apiKey to call v2 tickers
-    ]
-    if exchange.id in ignored_exchanges:
-        return
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-        tickers = None
+def exception_message(exc):
+    return '[' + type(exc).__name__ + '] ' + str(exc)[0:500]
+
+
+def exit_script():
+    exit(0)
+
+
+def get_exchange_prop(exchange, prop, defaultValue=None):
+    if hasattr(exchange, prop):
+        res = getattr(exchange, prop)
+        if res is not None and res != '':
+            return res
+    return defaultValue
+
+
+def set_exchange_prop(exchange, prop, value):
+    setattr(exchange, prop, value)
+
+
+def init_exchange(exchangeId, args):
+    return getattr(ccxt, exchangeId)(args)
+
+
+async def set_test_files(holderClass, properties):
+    skip_tests = ['test_throttle']
+    setattr(holderClass, 'testFiles', {})
+    syncAsync = 'async' if not is_synchronous else 'sync'
+    for file_path in glob.glob(current_dir + '/' + syncAsync + '/test_*.py'):
+        name = os.path.basename(file_path)[:-3]
+        if not (name in skip_tests):
+            imp = importlib.import_module('ccxt.test.' + syncAsync + '.' + name)
+            holderClass.testFiles[name] = imp  # getattr(imp, finalName)
+
+
+async def close(exchange):
+    if (hasattr(exchange, 'close')):
+        await exchange.close()
+
+# *********************************
+# ***** AUTO-TRANSPILER-START *****
+# -*- coding: utf-8 -*-
+
+# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
+# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
+
+
+import asyncio
+from ccxt.base.errors import NetworkError
+from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
+
+
+class testMainClass(baseMainTestClass):
+
+    def parse_cli_args(self):
+        self.info = get_cli_arg_value('--info')
+        self.verbose = get_cli_arg_value('--verbose')
+        self.debug = get_cli_arg_value('--debug')
+        self.privateTest = get_cli_arg_value('--private')
+        self.privateTestOnly = get_cli_arg_value('--privateOnly')
+        self.sandbox = get_cli_arg_value('--sandbox')
+
+    async def init(self, exchangeId, symbol):
+        self.parse_cli_args()
+        symbolStr = symbol is not symbol if None else 'all'
+        print('\nTESTING ', ext, {'exchange': exchangeId, 'symbol': symbolStr}, '\n')
+        exchangeArgs = {
+            'verbose': self.verbose,
+            'debug': self.debug,
+            'enableRateLimit': True,
+            'timeout': 30000,
+        }
+        exchange = init_exchange(exchangeId, exchangeArgs)
+        await self.import_files(exchange)
+        self.expand_settings(exchange, symbol)
+        await self.start_test(exchange, symbol)
+        await close(exchange)
+
+    async def import_files(self, exchange):
+        # exchange tests
+        self.testFiles = {}
+        properties = list(exchange.has.keys())
+        properties.append('loadMarkets')
+        await set_test_files(self, properties)
+
+    def expand_settings(self, exchange, symbol):
+        exchangeId = exchange.id
+        keysGlobal = rootDir + 'keys.json'
+        keysLocal = rootDir + 'keys.local.json'
+        keysGlobalExists = io_file_exists(keysGlobal)
+        keysLocalExists = io_file_exists(keysLocal)
+        globalSettings = io_file_read(keysGlobal) if keysGlobalExists else {}
+        localSettings = io_file_read(keysLocal) if keysLocalExists else {}
+        allSettings = exchange.deep_extend(globalSettings, localSettings)
+        exchangeSettings = exchange.safe_value(allSettings, exchangeId, {})
+        if exchangeSettings:
+            settingKeys = list(exchangeSettings.keys())
+            for i in range(0, len(settingKeys)):
+                key = settingKeys[i]
+                if exchangeSettings[key]:
+                    finalValue = None
+                    if isinstance(exchangeSettings[key], dict):
+                        existing = get_exchange_prop(exchange, key, {})
+                        finalValue = exchange.deep_extend(existing, exchangeSettings[key])
+                    else:
+                        finalValue = exchangeSettings[key]
+                    set_exchange_prop(exchange, key, finalValue)
+        # credentials
+        reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        objkeys = list(reqCreds.keys())
+        for i in range(0, len(objkeys)):
+            credential = objkeys[i]
+            isRequired = reqCreds[credential]
+            if isRequired and get_exchange_prop(exchange, credential) is None:
+                fullKey = exchangeId + '_' + credential
+                credentialEnvName = fullKey.upper()  # example: KRAKEN_APIKEY
+                credentialValue = envVars[credentialEnvName] if (credentialEnvName in envVars) else None
+                if credentialValue:
+                    set_exchange_prop(exchange, credential, credentialValue)
+        # skipped tests
+        skippedFile = rootDirForSkips + 'skip-tests.json'
+        skippedSettings = io_file_read(skippedFile)
+        skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
+        # others
+        timeout = exchange.safe_value(skippedSettingsForExchange, 'timeout')
+        if timeout is not None:
+            exchange.timeout = timeout
+        exchange.httpsProxy = exchange.safe_string(skippedSettingsForExchange, 'httpsProxy')
+        self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
+        self.checkedPublicTests = {}
+
+    def add_padding(self, message, size):
+        # has to be transpilable
+        res = ''
+        missingSpace = size - len(message) - 0  # - 0 is added just to trick transpile to treat the .length string for php
+        if missingSpace > 0:
+            for i in range(0, missingSpace):
+                res += ' '
+        return message + res
+
+    async def test_method(self, methodName, exchange, args, isPublic):
+        methodNameInTest = get_test_name(methodName)
+        # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in base exchange)
+        if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
+            return
+        skipMessage = None
+        isFetchOhlcvEmulated = (methodName == 'fetchOHLCV' and exchange.has['fetchOHLCV'] == 'emulated')  # todo: remove emulation from base
+        if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
+            skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
+        elif (methodName in self.skippedMethods) and (isinstance(self.skippedMethods[methodName], str)):
+            skipMessage = '[INFO:SKIPPED_TEST]'
+        elif not (methodNameInTest in self.testFiles):
+            skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
+        if skipMessage:
+            if self.info:
+                dump(self.add_padding(skipMessage, 25), exchange.id, methodNameInTest)
+            return
+        argsStringified = '(' + ','.join(args) + ')'
+        if self.info:
+            dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         try:
-            # dump(green(exchange.id), 'fetching all tickers at once...')
-            tickers = await getattr(exchange, method)()
-            dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
+            skippedProperties = exchange.safe_value(self.skippedMethods, methodName, {})
+            await call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
+            if isPublic:
+                self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
-            dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
-            tickers = await exchange.fetch_tickers([symbol])
-            dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
-    elif argv.token_bucket:
-        await test_tickers_async(exchange)
-    if argv.token_bucket:
-        await test_l2_order_books_async(exchange)
+            isAuthError = (isinstance(e, AuthenticationError))
+            # If public test faces authentication error, we don't break(see comments under `testSafe` method)
+            if isPublic and isAuthError:
+                if self.info:
+                    dump('[TEST_WARNING]', 'Authentication problem for public method', exception_message(e), exchange.id, methodNameInTest, argsStringified)
+            else:
+                raise e
 
+    async def test_safe(self, methodName, exchange, args, isPublic):
+        # `testSafe` method does not raise an exception, instead mutes it.
+        # The reason we mute the thrown exceptions here is because if self test is part
+        # of "runPublicTests", then we don't want to stop the whole test if any single
+        # test-method fails. For example, if "fetchOrderBook" public test fails, we still
+        # want to run "fetchTickers" and other methods. However, independently self fact,
+        # from those test-methods we still echo-out(console.log/print...) the exception
+        # messages with specific formatted message "[TEST_FAILURE] ..." and that output is
+        # then regex-parsed by run-tests.js, so the exceptions are still printed out to
+        # console from there. So, even if some public tests fail, the script will continue
+        # doing other things(testing other spot/swap or private tests ...)
+        maxRetries = 3
+        argsStringified = '(' + ','.join(args) + ')'
+        for i in range(0, maxRetries):
+            try:
+                await self.test_method(methodName, exchange, args, isPublic)
+                return True
+            except Exception as e:
+                isRateLimitExceeded = (isinstance(e, RateLimitExceeded))
+                isExchangeNotAvailable = (isinstance(e, ExchangeNotAvailable))
+                isNetworkError = (isinstance(e, NetworkError))
+                isDDoSProtection = (isinstance(e, DDoSProtection))
+                isRequestTimeout = (isinstance(e, RequestTimeout))
+                tempFailure = (isRateLimitExceeded or isExchangeNotAvailable or isNetworkError or isDDoSProtection or isRequestTimeout)
+                if tempFailure:
+                    # wait and retry again
+                    await exchange.sleep(i * 1000)  # increase wait seconds on every retry
+                    continue
+                else:
+                    # if not temp failure, then dump exception without retrying
+                    dump('[TEST_WARNING]', 'Method could not be tested', exception_message(e), exchange.id, methodName, argsStringified)
+                    return False
+        # if maxretries was gone with same `tempFailure` error, then let's eventually return False
+        dump('[TEST_WARNING]', 'Method not tested due to a Network/Availability issue', exchange.id, methodName, argsStringified)
+        return False
 
-# ------------------------------------------------------------------------------
+    async def run_public_tests(self, exchange, symbol):
+        tests = {
+            'loadMarkets': [],
+            'fetchCurrencies': [],
+            'fetchTicker': [symbol],
+            'fetchTickers': [symbol],
+            'fetchOHLCV': [symbol],
+            'fetchTrades': [symbol],
+            'fetchOrderBook': [symbol],
+            'fetchL2OrderBook': [symbol],
+            'fetchOrderBooks': [],
+            'fetchBidsAsks': [],
+            'fetchStatus': [],
+            'fetchTime': [],
+        }
+        market = exchange.market(symbol)
+        isSpot = market['spot']
+        if isSpot:
+            tests['fetchCurrencies'] = []
+        else:
+            tests['fetchFundingRates'] = [symbol]
+            tests['fetchFundingRate'] = [symbol]
+            tests['fetchFundingRateHistory'] = [symbol]
+            tests['fetchIndexOHLCV'] = [symbol]
+            tests['fetchMarkOHLCV'] = [symbol]
+            tests['fetchPremiumIndexOHLCV'] = [symbol]
+        self.publicTests = tests
+        testNames = list(tests.keys())
+        promises = []
+        for i in range(0, len(testNames)):
+            testName = testNames[i]
+            testArgs = tests[testName]
+            promises.append(self.test_safe(testName, exchange, testArgs, True))
+        # todo - not yet ready in other langs too
+        # promises.append(testThrottle())
+        results = await asyncio.gather(*promises)
+        # now count which test-methods retuned `false` from "testSafe" and dump that info below
+        errors = []
+        for i in range(0, len(testNames)):
+            if not results[i]:
+                errors.append(testNames[i])
+        if self.info:
+            # we don't raise exception for public-tests, see comments under 'testSafe' method
+            failedMsg = ''
+            if len(errors):
+                failedMsg = ' | Failed methods: ' + ', '.join(errors)
+            dump(self.add_padding('[INFO:PUBLIC_TESTS_DONE]' + market['type'] + failedMsg, 25), exchange.id)
 
-def get_active_symbols(exchange):
-    return [symbol for symbol in exchange.symbols if is_active_symbol(exchange, symbol)]
-
-
-def is_active_symbol(exchange, symbol):
-    return ('.' not in symbol) and (('active' not in exchange.markets[symbol]) or (exchange.markets[symbol]['active']))
-
-
-async def test_tickers_async(exchange):
-    print('Activated here')
-    dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
-    symbols_to_load = get_active_symbols(exchange)
-    input_coroutines = [exchange.fetch_ticker(symbol) for symbol in symbols_to_load]
-    tickers = await asyncio.gather(*input_coroutines, return_exceptions=True)
-    for ticker, symbol in zip(tickers, symbols_to_load):
-        if not isinstance(ticker, dict):
-            dump_error(red('[Error with symbol loading ticker]'),
-                       ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, ticker))
-    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
-
-
-async def test_l2_order_books_async(exchange):
-    dump(green(exchange.id), 'fetching all order books by simultaneous multiple concurrent requests')
-    symbols_to_load = get_active_symbols(exchange)
-    input_coroutines = [exchange.fetch_l2_order_book(symbol) for symbol in symbols_to_load]
-    orderbooks = await asyncio.gather(*input_coroutines, return_exceptions=True)
-    for orderbook, symbol in zip(orderbooks, symbols_to_load):
-        if not isinstance(orderbook, dict):
-            dump_error(red('[Error with symbol loading l2 order book]'),
-                       ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, orderbook))
-    dump(green(exchange.id), 'fetched', green(len(list(orderbooks))), 'order books')
-
-# ------------------------------------------------------------------------------
-
-
-async def test_ticker(exchange, symbol):
-    method = 'fetchTicker'
-    ignored_exchanges = [
-        'digifinex',  # requires apiKey to call v2 tickers
-    ]
-    if exchange.id in ignored_exchanges:
-        return
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-        ticker = await getattr(exchange, method)(symbol)
-        dump(
-            green(exchange.id),
-            green(symbol),
-            'ticker',
-            ticker['datetime'],
-            'high: ' + str(ticker['high']),
-            'low: ' + str(ticker['low']),
-            'bid: ' + str(ticker['bid']),
-            'ask: ' + str(ticker['ask']),
-            'volume: ' + str(ticker['quoteVolume']))
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-async def test_trades(exchange, symbol):
-    method = 'fetchTrades'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching trades...')
-        trades = await getattr(exchange, method)(symbol)
-        if trades:
-            test_trade(exchange, trades[0], symbol, int(time.time() * 1000))
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(trades)), 'trades')
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-async def test_orders(exchange, symbol):
-    method = 'fetchOrders'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+    async def load_exchange(self, exchange):
         try:
-            orders = await exchange.fetch_orders(symbol)
-            for order in orders:
-                test_order(exchange, order, symbol, int(time.time() * 1000))
-            dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+            await exchange.load_markets()
         except Exception as e:
-            dump_error(green(exchange.id), green(symbol), method + '() failed with:', str(e))
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-async def test_positions(exchange, symbol):
-    method = 'fetchPositions'
-    if exchange.has[method]:
-        skipped_exchanges = [
+            if isinstance(e, OnMaintenance):
+                dump('[SKIPPED] Exchange is on maintenance', exchangeId)
+                exit_script()
+            raise e
+        assert isinstance(exchange.markets, dict), '.markets is not an object'
+        assert isinstance(exchange.symbols, list), '.symbols is not an array'
+        symbolsLength = len(exchange.symbols)
+        marketKeys = list(exchange.markets.keys())
+        marketKeysLength = len(marketKeys)
+        assert symbolsLength > 0, '.symbols count <= 0(less than or equal to zero)'
+        assert marketKeysLength > 0, '.markets objects keys length <= 0(less than or equal to zero)'
+        assert symbolsLength == marketKeysLength, 'number of .symbols is not equal to the number of .markets'
+        symbols = [
+            'BTC/CNY',
+            'BTC/USD',
+            'BTC/USDT',
+            'BTC/EUR',
+            'BTC/ETH',
+            'ETH/BTC',
+            'BTC/JPY',
+            'ETH/EUR',
+            'ETH/JPY',
+            'ETH/CNY',
+            'ETH/USD',
+            'LTC/CNY',
+            'DASH/BTC',
+            'DOGE/BTC',
+            'BTC/AUD',
+            'BTC/PLN',
+            'USD/SLL',
+            'BTC/RUB',
+            'BTC/UAH',
+            'LTC/BTC',
+            'EUR/USD',
         ]
-        if exchange.id in skipped_exchanges:
-            dump(green(exchange.id), green(symbol), method + '() skipped')
-            return
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-        # without symbol
-        dump(green(exchange.id), 'fetching positions...')
-        positions = await getattr(exchange, method)()
-        for position in positions:
-            test_position(exchange, position, None, int(time.time() * 1000))
-        dump(green(exchange.id), 'fetched', green(len(positions)), 'positions')
+        resultSymbols = []
+        exchangeSpecificSymbols = exchange.symbols
+        for i in range(0, len(exchangeSpecificSymbols)):
+            symbol = exchangeSpecificSymbols[i]
+            if exchange.in_array(symbol, symbols):
+                resultSymbols.append(symbol)
+        resultMsg = ''
+        resultLength = len(resultSymbols)
+        exchangeSymbolsLength = len(exchange.symbols)
+        if resultLength > 0:
+            if exchangeSymbolsLength > resultLength:
+                resultMsg = ', '.join(resultSymbols) + ' + more...'
+            else:
+                resultMsg = ', '.join(resultSymbols)
+        dump('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg)
 
-        # with symbol
-        dump(green(exchange.id), green(symbol), 'fetching positions...')
-        positions = await getattr(exchange, method)([symbol])
-        for position in positions:
-            test_position(exchange, position, symbol, int(time.time() * 1000))
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(positions)), 'positions')
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
+    def get_test_symbol(self, exchange, isSpot, symbols):
+        symbol = None
+        for i in range(0, len(symbols)):
+            s = symbols[i]
+            market = exchange.safe_value(exchange.markets, s)
+            if market is not None:
+                active = exchange.safe_value(market, 'active')
+                if active or (active is None):
+                    symbol = s
+                    break
+        return symbol
 
-# ------------------------------------------------------------------------------
+    def get_exchange_code(self, exchange, codes=None):
+        if codes is None:
+            codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
+        code = codes[0]
+        for i in range(0, len(codes)):
+            if codes[i] in exchange.currencies:
+                return codes[i]
+        return code
 
+    def get_markets_from_exchange(self, exchange, spot=True):
+        res = {}
+        markets = exchange.markets
+        keys = list(markets.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            market = markets[key]
+            if spot and market['spot']:
+                res[market['symbol']] = market
+            elif not spot and not market['spot']:
+                res[market['symbol']] = market
+        return res
 
-async def test_closed_orders(exchange, symbol):
-    method = 'fetchClosedOrders'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = await getattr(exchange, method)(symbol)
-        for order in orders:
-            test_order(exchange, order, symbol, int(time.time() * 1000))
-            assert order['status'] == 'closed' or order['status'] == 'canceled'
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'closed orders')
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-async def test_open_orders(exchange, symbol):
-    method = 'fetchOpenOrders'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = await getattr(exchange, method)(symbol)
-        for order in orders:
-            test_order(exchange, order, symbol, int(time.time() * 1000))
-            assert order['status'] == 'open'
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'open orders')
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-async def test_transactions(exchange, code):
-    method = 'fetchTransactions'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-
-        transactions = await getattr(exchange, method)(code)
-        for transaction in transactions:
-            test_transaction(exchange, transaction, code, int(time.time() * 1000))
-        dump(green(exchange.id), green(code), 'fetched', green(len(transactions)), 'transactions')
-    else:
-        dump(green(exchange.id), green(code), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-async def test_balance(exchange):
-    method = 'fetchBalance'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        await asyncio.sleep(delay)
-
-        await getattr(exchange, method)()
-        dump(green(exchange.id), 'fetched balance')
-    else:
-        dump(green(exchange.id), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-async def test_symbol(exchange, symbol, code):
-    if not argv.privateOnly:
-        await run_public_tests(exchange, symbol, code)
-
-    if argv.privateOnly or argv.private:
-        if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
-            dump(yellow(exchange.id), 'keys not found, skipping private API tests')
-            return
-        await run_private_tests(exchange, symbol, code)
-
-# ------------------------------------------------------------------------------
-
-
-async def run_public_tests(exchange, symbol, code):
-    dump(green('SYMBOL: ' + symbol))
-    dump(green('CODE: ' + code))
-    dump('Testing fetch_ticker:' + symbol)
-    await test_ticker(exchange, symbol)
-    dump('Testing fetch_tickers:' + symbol)
-    await test_tickers(exchange, symbol)
-    dump('Testing fetch_ohlcv:' + symbol)
-    await test_ohlcvs(exchange, symbol)
-    dump('Testing fetch_order_book:' + symbol)
-    await test_order_book(exchange, symbol)
-    dump('Testing fetch_trades:' + symbol)
-    await test_trades(exchange, symbol)
-
-# ------------------------------------------------------------------------------
-
-
-async def run_private_tests(exchange, symbol, code):
-    method = 'signIn'
-    if exchange.has[method]:
-        dump('Testing ' + method + '()')
-        await getattr(exchange, method)()
-    dump('Testing fetch_orders:' + symbol)
-    await test_orders(exchange, symbol)
-    dump('Testing fetch_open_orders:' + symbol)
-    await test_open_orders(exchange, symbol)
-    dump('Testing fetch_closed_orders:' + symbol)
-    await test_closed_orders(exchange, symbol)
-    dump('Testing fetch_transactions:' + code)
-    await test_transactions(exchange, code)
-    dump('Testing fetch_balance')
-    await test_balance(exchange)
-    dump('Testing fetch_positions:' + symbol)
-    await test_positions(exchange, symbol)
-
-# ------------------------------------------------------------------------------
-
-
-async def load_exchange(exchange):
-    await exchange.load_markets()
-
-
-def get_test_symbol(exchange, symbols):
-    symbol = None
-    for s in symbols:
-        market = exchange.safe_value(exchange.markets, s)
-        if market is not None:
-            active = exchange.safe_value(market, 'active')
-            if active or (active is None):
-                symbol = s
-                break
-    return symbol
-
-
-def get_exchange_code(exchange, codes=None):
-    if codes is None:
-        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
-    code = codes[0]
-    for i in range(0, len(codes)):
-        if codes[i] in exchange.currencies:
-            code = codes[i]
-    return code
-
-
-async def test_exchange(exchange, symbol=None):
-
-    dump(green('EXCHANGE: ' + exchange.id))
-    # delay = 2
-
-    # ..........................................................................
-    # public API
-    codes = [
-        'BTC',
-        'ETH',
-        'XRP',
-        'LTC',
-        'BCH',
-        'EOS',
-        'BNB',
-        'BSV',
-        'USDT',
-        'ATOM',
-        'BAT',
-        'BTG',
-        'DASH',
-        'DOGE',
-        'ETC',
-        'IOTA',
-        'LSK',
-        'MKR',
-        'NEO',
-        'PAX',
-        'QTUM',
-        'TRX',
-        'TUSD',
-        'USD',
-        'USDC',
-        'WAVES',
-        'XEM',
-        'XMR',
-        'ZEC',
-        'ZRX',
-    ]
-
-    code = get_exchange_code(exchange, codes)
-
-    if not symbol:
-        symbol = get_test_symbol(exchange, [
+    def get_valid_symbol(self, exchange, spot=True):
+        currentTypeMarkets = self.get_markets_from_exchange(exchange, spot)
+        codes = [
+            'BTC',
+            'ETH',
+            'XRP',
+            'LTC',
+            'BCH',
+            'EOS',
+            'BNB',
+            'BSV',
+            'USDT',
+            'ATOM',
+            'BAT',
+            'BTG',
+            'DASH',
+            'DOGE',
+            'ETC',
+            'IOTA',
+            'LSK',
+            'MKR',
+            'NEO',
+            'PAX',
+            'QTUM',
+            'TRX',
+            'TUSD',
+            'USD',
+            'USDC',
+            'WAVES',
+            'XEM',
+            'XMR',
+            'ZEC',
+            'ZRX',
+        ]
+        spotSymbols = [
             'BTC/USD',
             'BTC/USDT',
             'BTC/CNY',
             'BTC/EUR',
             'BTC/ETH',
             'ETH/BTC',
+            'ETH/USD',
             'ETH/USDT',
             'BTC/JPY',
             'LTC/BTC',
-            'USD/SLL',
+            'ZRX/WETH',
             'EUR/USD',
-        ])
-
+        ]
+        swapSymbols = [
+            'BTC/USDT:USDT',
+            'BTC/USD:USD',
+            'ETH/USDT:USDT',
+            'ETH/USD:USD',
+            'LTC/USDT:USDT',
+            'DOGE/USDT:USDT',
+            'ADA/USDT:USDT',
+            'BTC/USD:BTC',
+            'ETH/USD:ETH',
+        ]
+        targetSymbols = spotSymbols if spot else swapSymbols
+        symbol = self.get_test_symbol(exchange, spot, targetSymbols)
+        # if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if symbol is None:
-            for code in codes:
-                markets = list(exchange.markets.values())
-                activeMarkets = [market for market in markets if market['base'] == code]
-                if len(activeMarkets):
-                    activeSymbols = [market['symbol'] for market in activeMarkets]
-                    symbol = get_test_symbol(exchange, activeSymbols)
+            for i in range(0, len(codes)):
+                currentCode = codes[i]
+                marketsArrayForCurrentCode = exchange.filter_by(currentTypeMarkets, 'base', currentCode)
+                indexedMkts = exchange.index_by(marketsArrayForCurrentCode, 'symbol')
+                symbolsArrayForCurrentCode = list(indexedMkts.keys())
+                symbolsLength = len(symbolsArrayForCurrentCode)
+                if symbolsLength:
+                    symbol = self.get_test_symbol(exchange, spot, symbolsArrayForCurrentCode)
                     break
-
+        # if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if symbol is None:
-            markets = list(exchange.markets.values())
-            activeMarkets = [market for market in markets if market['base'] in codes]
-            activeSymbols = [market['symbol'] for market in activeMarkets]
-            symbol = get_test_symbol(exchange, activeSymbols)
-
+            activeMarkets = exchange.filter_by(currentTypeMarkets, 'active', True)
+            activeSymbols = []
+            for i in range(0, len(activeMarkets)):
+                activeSymbols.append(activeMarkets[i]['symbol'])
+            symbol = self.get_test_symbol(exchange, spot, activeSymbols)
         if symbol is None:
-            markets = list(exchange.markets.values())
-            activeMarkets = [market for market in markets if not exchange.safe_value(market, 'active', False)]
-            activeSymbols = [market['symbol'] for market in activeMarkets]
-            symbol = get_test_symbol(exchange, activeSymbols)
+            values = list(currentTypeMarkets.values())
+            valuesLength = len(values)
+            if valuesLength > 0:
+                first = values[0]
+                if first is not None:
+                    symbol = first['symbol']
+        return symbol
 
-        if symbol is None:
-            symbol = get_test_symbol(exchange, exchange.symbols)
-
-        if symbol is None:
-            symbol = exchange.symbols[0]
-
-    if symbol.find('.d') < 0:
-        await test_symbol(exchange, symbol, code)
-
-    # ..........................................................................
-    # private API
-
-    # move to testnet/sandbox if possible before accessing the balance if possible
-    # if 'test' in exchange.urls:
-    #     exchange.urls['api'] = exchange.urls['test']
-
-    # await asyncio.sleep(exchange.rateLimit / 1000)
-
-    # time.sleep(delay)
-
-    # amount = 1
-    # price = 0.0161
-
-    # marketBuy = exchange.create_market_buy_order(symbol, amount)
-    # print(marketBuy)
-    # time.sleep(delay)
-
-    # marketSell = exchange.create_market_sell_order(symbol, amount)
-    # print(marketSell)
-    # time.sleep(delay)
-
-    # limitBuy = exchange.create_limit_buy_order(symbol, amount, price)
-    # print(limitBuy)
-    # time.sleep(delay)
-
-    # limitSell = exchange.create_limit_sell_order(symbol, amount, price)
-    # print(limitSell)
-    # time.sleep(delay)
-
-# ------------------------------------------------------------------------------
-
-
-async def try_all_proxies(exchange, proxies=['']):
-    current_proxy = 0
-    max_retries = len(proxies)
-    if exchange.proxy in proxies:
-        current_proxy = proxies.index(exchange.proxy)
-    for num_retries in range(0, max_retries):
-        try:
-            # do not use cors proxy when using a http proxy
-            if not hasattr(exchange, "httpProxy"):
-                exchange.proxy = proxies[current_proxy]
-                dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
-                current_proxy = (current_proxy + 1) % len(proxies)
-            await load_exchange(exchange)
-            await test_exchange(exchange)
-        except (ccxt.RequestTimeout, ccxt.AuthenticationError, ccxt.NotSupported, ccxt.DDoSProtection, ccxt.ExchangeNotAvailable, ccxt.ExchangeError) as e:
-            print({'type': type(e).__name__, 'num_retries': num_retries, 'max_retries': max_retries}, str(e)[0:200])
-            if (num_retries + 1) == max_retries:
-                dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
-        else:
-            # no exception
-            return True
-    # exception
-    return False
-
-
-# ------------------------------------------------------------------------------
-
-def read_credentials_from_env(exchange):
-    requiredCredentials = exchange.requiredCredentials
-    for credential, isRequired in requiredCredentials.items():
-        if isRequired and credential and not getattr(exchange, credential, None):
-            credentialEnvName = (exchange.id + '_' + credential).upper()  # example: KRAKEN_APIKEY
-            if credentialEnvName in os.environ:
-                credentialValue = os.environ[credentialEnvName]
-                setattr(exchange, credential, credentialValue)
-
-
-# ------------------------------------------------------------------------------
-
-proxies = [
-    '',
-    'https://cors-anywhere.herokuapp.com/',
-]
-
-# prefer local testing keys to global keys
-keys_folder = os.path.dirname(root)
-keys_global = os.path.join(keys_folder, 'keys.json')
-keys_local = os.path.join(keys_folder, 'keys.local.json')
-keys_file = keys_local if os.path.exists(keys_local) else keys_global
-
-# load the api keys from config
-with open(keys_file, encoding='utf8') as file:
-    config = json.load(file)
-
-# instantiate all exchanges
-for id in ccxt.exchanges:
-    exchange = getattr(ccxt, id)
-    exchange_config = {'verbose': argv.verbose}
-    if sys.version_info[0] < 3:
-        exchange_config.update()
-    if id in config:
-        exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
-    exchanges[id] = exchange(exchange_config)
-
-    # check auth keys in env var
-    read_credentials_from_env(exchanges[id])
-
-# ------------------------------------------------------------------------------
-
-
-async def main():
-
-    if argv.exchange:
-
-        exchange = exchanges[argv.exchange]
-        symbol = argv.symbol
-        if hasattr(exchange, 'skip') and exchange.skip:
-            dump(green(exchange.id), 'skipped')
-        elif hasattr(exchange, 'alias') and exchange.alias:
-            dump(green(exchange.id), 'Skipped alias')
-        else:
-            # add http proxy if any
-            if hasattr(exchange, 'httpProxy'):
-                exchange.aiohttp_proxy = exchange.httpProxy
-
-            if argv.sandbox or getattr(exchange, 'sandbox', None):
-                exchange.set_sandbox_mode(True)
-
-            if symbol:
-                code = get_exchange_code(exchange)
-                await load_exchange(exchange)
-                await test_symbol(exchange, symbol, code)
+    async def test_exchange(self, exchange, providedSymbol=None):
+        spotSymbol = None
+        swapSymbol = None
+        if providedSymbol is not None:
+            market = exchange.market(providedSymbol)
+            if market['spot']:
+                spotSymbol = providedSymbol
             else:
-                await try_all_proxies(exchange, proxies)
+                swapSymbol = providedSymbol
+        else:
+            if exchange.has['spot']:
+                spotSymbol = self.get_valid_symbol(exchange, True)
+            if exchange.has['swap']:
+                swapSymbol = self.get_valid_symbol(exchange, False)
+        if spotSymbol is not None:
+            dump('Selected SPOT SYMBOL:', spotSymbol)
+        if swapSymbol is not None:
+            dump('Selected SWAP SYMBOL:', swapSymbol)
+        if not self.privateTestOnly:
+            if exchange.has['spot'] and spotSymbol is not None:
+                if self.info:
+                    dump('[INFO:SPOT TESTS]')
+                exchange.options['type'] = 'spot'
+                await self.run_public_tests(exchange, spotSymbol)
+            if exchange.has['swap'] and swapSymbol is not None:
+                if self.info:
+                    dump('[INFO:SWAP TESTS]')
+                exchange.options['type'] = 'swap'
+                await self.run_public_tests(exchange, swapSymbol)
+        if self.privateTest or self.privateTestOnly:
+            if exchange.has['spot'] and spotSymbol is not None:
+                exchange.options['defaultType'] = 'spot'
+                await self.run_private_tests(exchange, spotSymbol)
+            if exchange.has['swap'] and swapSymbol is not None:
+                exchange.options['defaultType'] = 'swap'
+                await self.run_private_tests(exchange, swapSymbol)
 
-    else:
-        for exchange in sorted(exchanges.values(), key=lambda x: x.id):
-            if hasattr(exchange, 'skip') and exchange.skip:
-                dump(green(exchange.id), 'skipped')
-            else:
-                await try_all_proxies(exchange, proxies)
+    async def run_private_tests(self, exchange, symbol):
+        if not exchange.check_required_credentials(False):
+            dump('[Skipping private tests]', 'Keys not found')
+            return
+        code = self.get_exchange_code(exchange)
+        # if exchange.extendedTest:
+        #     await test('InvalidNonce', exchange, symbol)
+        #     await test('OrderNotFound', exchange, symbol)
+        #     await test('InvalidOrder', exchange, symbol)
+        #     await test('InsufficientFunds', exchange, symbol, balance)  # danger zone - won't execute with non-empty balance
+        # }
+        tests = {
+            'signIn': [],
+            'fetchBalance': [],
+            'fetchAccounts': [],
+            'fetchTransactionFees': [],
+            'fetchTradingFees': [],
+            'fetchStatus': [],
+            'fetchOrders': [symbol],
+            'fetchOpenOrders': [symbol],
+            'fetchClosedOrders': [symbol],
+            'fetchMyTrades': [symbol],
+            'fetchLeverageTiers': [symbol],
+            'fetchLedger': [code],
+            'fetchTransactions': [code],
+            'fetchDeposits': [code],
+            'fetchWithdrawals': [code],
+            'fetchBorrowRates': [code],
+            'fetchBorrowRate': [code],
+            'fetchBorrowInterest': [code, symbol],
+            'addMargin': [symbol],
+            'reduceMargin': [symbol],
+            'setMargin': [symbol],
+            'setMarginMode': [symbol],
+            'setLeverage': [symbol],
+            'cancelAllOrders': [symbol],
+            'cancelOrder': [symbol],
+            'cancelOrders': [symbol],
+            'fetchCanceledOrders': [symbol],
+            'fetchClosedOrder': [symbol],
+            'fetchOpenOrder': [symbol],
+            'fetchOrder': [symbol],
+            'fetchOrderTrades': [symbol],
+            'fetchPosition': [symbol],
+            'fetchDeposit': [code],
+            'createDepositAddress': [code],
+            'fetchDepositAddress': [code],
+            'fetchDepositAddresses': [code],
+            'fetchDepositAddressesByNetwork': [code],
+            'editOrder': [symbol],
+            'fetchBorrowRateHistory': [symbol],
+            'fetchBorrowRatesPerSymbol': [symbol],
+            'fetchLedgerEntry': [code],
+            'fetchWithdrawal': [code],
+            'transfer': [code],
+            'withdraw': [code],
+        }
+        market = exchange.market(symbol)
+        isSpot = market['spot']
+        if isSpot:
+            tests['fetchCurrencies'] = [symbol]
+        else:
+            # derivatives only
+            tests['fetchPositions'] = [symbol]  # self test fetches all positions for 1 symbol
+            tests['fetchPosition'] = [symbol]
+            tests['fetchPositionRisk'] = [symbol]
+            tests['setPositionMode'] = [symbol]
+            tests['setMarginMode'] = [symbol]
+            tests['fetchOpenInterestHistory'] = [symbol]
+            tests['fetchFundingRateHistory'] = [symbol]
+            tests['fetchFundingHistory'] = [symbol]
+        combinedPublicPrivateTests = exchange.deep_extend(self.publicTests, tests)
+        testNames = list(combinedPublicPrivateTests.keys())
+        promises = []
+        for i in range(0, len(testNames)):
+            testName = testNames[i]
+            testArgs = combinedPublicPrivateTests[testName]
+            promises.append(self.test_safe(testName, exchange, testArgs, False))
+        results = await asyncio.gather(*promises)
+        errors = []
+        for i in range(0, len(testNames)):
+            testName = testNames[i]
+            success = results[i]
+            if not success:
+                errors.append(testName)
+        errorsCnt = len(errors)  # PHP transpile count($errors)
+        if errorsCnt > 0:
+            raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
+        else:
+            if self.info:
+                dump(self.add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
 
-# ------------------------------------------------------------------------------
+    async def start_test(self, exchange, symbol):
+        # we don't need to test aliases
+        if exchange.alias:
+            return
+        if self.sandbox or get_exchange_prop(exchange, 'sandbox'):
+            exchange.set_sandbox_mode(True)
+        await self.load_exchange(exchange)
+        await self.test_exchange(exchange, symbol)
+
+# ***** AUTO-TRANSPILER-END *****
+# *******************************
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(testMainClass().init(argv.exchange, argv.symbol))

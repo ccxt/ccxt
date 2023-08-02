@@ -30,6 +30,28 @@ export default class phemex extends phemexRest {
         quoteVolume: number;
         info: any;
     };
+    parsePerpetualTicker(ticker: any, market?: any): {
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        high: number;
+        low: number;
+        bid: any;
+        bidVolume: any;
+        ask: any;
+        askVolume: any;
+        vwap: any;
+        open: number;
+        close: number;
+        last: number;
+        previousClose: any;
+        change: any;
+        percentage: any;
+        average: any;
+        baseVolume: number;
+        quoteVolume: number;
+        info: any;
+    };
     handleTicker(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(type: any, client: any, message: any): void;
@@ -46,7 +68,7 @@ export default class phemex extends phemexRest {
     handleMyTrades(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
-    parseWSSwapOrder(order: any, market?: any): any;
+    parseWSSwapOrder(order: any, market?: any): import("../base/types.js").Order;
     handleMessage(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
     subscribePrivate(type: any, messageHash: any, params?: {}): Promise<any>;

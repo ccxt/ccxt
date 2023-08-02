@@ -117,15 +117,16 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     createPHPClassDeclaration (className, baseClass) {
-        let lines = [
-            'class ' + className + ' extends ' + '\\ccxt\\async\\' +  baseClass.replace ('Rest', '') + ' {',
-        ]
-        // if (baseClass.indexOf ('Rest') >= 0) {
-        //     lines = lines.concat ([
-        //         '',
-        //         // '    use ClientTrait;'
-        //     ])
-        // }
+        let lines = []
+        if (baseClass.indexOf ('Rest') >= 0) {
+            //     lines = lines.concat ([
+            //         '',
+            //         // '    use ClientTrait;'
+            //     ])
+            lines.push('class ' + className + ' extends ' + '\\ccxt\\async\\' +  baseClass.replace ('Rest', '') + ' {')
+        } else {
+            lines.push('class ' + className + ' extends ' + '\\ccxt\\pro\\' +  baseClass + ' {')
+        }
         return lines.join ("\n")
     }
 
@@ -258,7 +259,7 @@ class CCXTProTranspiler extends Transpiler {
             , phpAsyncFolder = './php/pro/'
             , jsFolder = './js/src/pro/'
             , tsFolder = './ts/src/pro/'
-            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
+            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, jsFolder, exchanges }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)

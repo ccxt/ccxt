@@ -1,5 +1,9 @@
 import Exchange from './abstract/kucoin.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class kucoin
+ * @extends Exchange
+ */
 export default class kucoin extends Exchange {
     describe(): any;
     nonce(): number;
@@ -19,8 +23,30 @@ export default class kucoin extends Exchange {
         withdraw: {};
         deposit: {};
     }>;
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
-    parseDepositWithdrawFee(fee: any, currency?: any): any;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<{
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    }>;
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
     isFuturesMethod(methodName: any, params: any): boolean;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
@@ -29,10 +55,10 @@ export default class kucoin extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     createDepositAddress(code: string, params?: {}): Promise<{
         info: any;
-        currency: string;
-        network: string;
+        currency: any;
         address: string;
         tag: string;
+        network: string;
     }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
@@ -48,17 +74,18 @@ export default class kucoin extends Exchange {
         tag: string;
         network: string;
     };
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<any[]>;
-    parseDepositAddressesByNetwork(depositAddresses: any, currency?: any): any[];
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    handleTriggerPrices(params: any): any[];
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    parseOrder(order: any, market?: any): any;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -164,7 +191,7 @@ export default class kucoin extends Exchange {
         info: any;
     };
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}, context?: {}): any;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: any): {
@@ -214,11 +241,12 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }
