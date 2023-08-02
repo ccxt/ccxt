@@ -544,15 +544,15 @@ export default class okx extends Exchange {
                     '51018': ExchangeError, // User with option account can not hold net short positions
                     '51019': ExchangeError, // No net long positions can be held under isolated margin mode in options
                     '51020': InvalidOrder, // Order amount should be greater than the min available amount
-                    '51021': BadSymbol, // Contract to be listed
-                    '51022': BadSymbol, // Contract suspended
+                    '51021': ContractUnavailable, // Contract to be listed
+                    '51022': ContractUnavailable, // Contract suspended
                     '51023': ExchangeError, // Position does not exist
                     '51024': AccountSuspended, // Unified accountblocked
                     '51025': ExchangeError, // Order count exceeds the limit
                     '51026': BadSymbol, // Instrument type does not match underlying index
-                    '51027': BadSymbol, // Contract expired
-                    '51028': BadSymbol, // Contract under delivery
-                    '51029': BadSymbol, // Contract is being settled
+                    '51027': ContractUnavailable, // Contract expired
+                    '51028': ContractUnavailable, // Contract under delivery
+                    '51029': ContractUnavailable, // Contract is being settled
                     '51030': ContractUnavailable, // Funding fee is being settled
                     '51046': InvalidOrder, // The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder, // The stop loss trigger price must be lower than the order price
