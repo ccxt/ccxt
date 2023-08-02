@@ -211,6 +211,62 @@ export default class binance extends binanceRest {
         return orderbook.limit ();
     }
 
+    async watchMultipleOrderBook (symbols: string[], limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        if (limit !== undefined) {
+            if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
+                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
+            }
+        }
+        //
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const firstMarket = this.market (symbols[0]);
+        let type = firstMarket['type'];
+        if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
+        }
+        const name = 'depth';
+        // const messageHash = market['lowercaseId'] + '@' + name;
+        const messageHash = 'multipleOrderbook::' + symbols.join (',');
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOrderbook');
+        const requestId = this.requestId (url);
+        const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
+        const subParams = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const messageHash = market['lowercaseId'] + '@' + name + watchOrderBookRate + 'ms';
+            subParams.push (messageHash);
+        }
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': subParams,
+            'id': requestId,
+        };
+        const subscription = {
+            'id': requestId.toString (),
+            'messageHash': messageHash,
+            'name': name,
+            'symbols': symbols,
+            'method': this.handleOrderBookSubscription,
+            'limit': limit,
+            'type': type,
+            'params': params,
+        };
+        const message = this.extend (request, params);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        return orderbook.limit ();
+    }
+
     async fetchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol');
@@ -386,14 +442,20 @@ export default class binance extends binanceRest {
 
     handleOrderBookSubscription (client: Client, message, subscription) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-        const symbol = this.safeString (subscription, 'symbol');
+        // const messageHash = this.safeString (subscription, 'messageHash');
+        const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
+        const symbols = this.safeValue (subscription, 'symbols', [ symbol ]); // watchMultipleOrderBook
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        // handle list of symbols
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            if (symbol in this.orderbooks) {
+                delete this.orderbooks[symbol];
+            }
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            // fetch the snapshot in a separate async call
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-        // fetch the snapshot in a separate async call
-        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client: Client, message) {
