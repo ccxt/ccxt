@@ -314,6 +314,17 @@ export default class binance extends binanceRest {
             }
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
+            // watchMultipleOrderbook part
+            const messageHashes = this.findMessageHashes (client, 'multipleOrderbook::');
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const parts = messageHash.split ('::');
+                const symbolsString = parts[1];
+                const symbols = symbolsString.split (',');
+                if (this.inArray (symbol, symbols)) {
+                    client.resolve (orderbook, messageHash);
+                }
+            }
         } catch (e) {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
@@ -409,6 +420,17 @@ export default class binance extends binanceRest {
                             this.handleOrderBookMessage (client, message, orderbook);
                             if (nonce < orderbook['nonce']) {
                                 client.resolve (orderbook, messageHash);
+                                // watchMultipleOrderbook part (dry logic)
+                                const messageHashes = this.findMessageHashes (client, 'multipleOrderbook::');
+                                for (let i = 0; i < messageHashes.length; i++) {
+                                    const messageHash = messageHashes[i];
+                                    const parts = messageHash.split ('::');
+                                    const symbolsString = parts[1];
+                                    const symbols = symbolsString.split (',');
+                                    if (this.inArray (symbol, symbols)) {
+                                        client.resolve (orderbook, messageHash);
+                                    }
+                                }
                             }
                         } else {
                             // todo: client.reject from handleOrderBookMessage properly
@@ -425,6 +447,17 @@ export default class binance extends binanceRest {
                             this.handleOrderBookMessage (client, message, orderbook);
                             if (nonce <= orderbook['nonce']) {
                                 client.resolve (orderbook, messageHash);
+                                // watchMultipleOrderbook part (dry logic)
+                                const messageHashes = this.findMessageHashes (client, 'multipleOrderbook::');
+                                for (let i = 0; i < messageHashes.length; i++) {
+                                    const messageHash = messageHashes[i];
+                                    const parts = messageHash.split ('::');
+                                    const symbolsString = parts[1];
+                                    const symbols = symbolsString.split (',');
+                                    if (this.inArray (symbol, symbols)) {
+                                        client.resolve (orderbook, messageHash);
+                                    }
+                                }
                             }
                         } else {
                             // todo: client.reject from handleOrderBookMessage properly
@@ -453,6 +486,7 @@ export default class binance extends binanceRest {
                 delete this.orderbooks[symbol];
             }
             this.orderbooks[symbol] = this.orderBook ({}, limit);
+            subscription['symbol'] = symbol;
             // fetch the snapshot in a separate async call
             this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
