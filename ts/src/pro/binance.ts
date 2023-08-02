@@ -743,6 +743,60 @@ export default class binance extends binanceRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async watchMultipleOHLCV (symbols: string[], timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const options = this.safeValue (this.options, 'watchOHLCV', {});
+        const nameOption = this.safeString (options, 'name', 'kline');
+        const name = this.safeString (params, 'name', nameOption);
+        params = this.omit (params, 'name');
+        const messageHash = 'multipleOHLCV::' + symbols.join (',') + '::' + name + '::' + interval;
+        const firstMarket = this.market (symbols[0]);
+        let type = firstMarket['type'];
+        if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
+        }
+        const subParams = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            let marketId = market['lowercaseId'];
+            if (name === 'indexPriceKline') {
+            // weird behavior for index price kline we can't use the perp suffix
+                marketId = marketId.replace ('_perp', '');
+            }
+            const messageHash = marketId + '@' + name + '_' + interval;
+            subParams.push (messageHash);
+        }
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': subParams,
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (undefined, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //     {
@@ -807,6 +861,18 @@ export default class binance extends binanceRest {
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
+        // watchMultipleOHLCV part
+        const messageHashes = this.findMessageHashes (client, 'multipleOHLCV::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const subInterval = parts[3];
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            if ((subInterval === interval) && this.inArray (symbol, symbols)) {
+                client.resolve (stored, messageHash);
+            }
+        }
     }
 
     async watchTicker (symbol: string, params = {}) {
