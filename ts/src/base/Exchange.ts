@@ -1656,7 +1656,7 @@ export default class Exchange {
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
-        throw new NotSupported (this.id + ' parseWsOHLCV() is not supported yet');
+        return this.parseOHLCV (ohlcv, market);
     }
 
     async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
