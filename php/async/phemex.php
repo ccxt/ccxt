@@ -3422,7 +3422,7 @@ class phemex extends Exchange {
                 $position = $positions[$i];
                 $result[] = $this->parse_position($position);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 

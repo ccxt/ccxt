@@ -1786,6 +1786,9 @@ abstract class binance extends \ccxt\Exchange {
     public function papi_post_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function papi_post_asset_collection($params = array()) {
+        return $this->request('asset-collection', 'papi', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function papi_put_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -3591,6 +3594,9 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function papiPostListenKey($params = array()) {
         return $this->request('listenKey', 'papi', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function papiPostAssetCollection($params = array()) {
+        return $this->request('asset-collection', 'papi', 'POST', $params, null, null, array("cost" => 3));
     }
     public function papiPutListenKey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 1));

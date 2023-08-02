@@ -6771,7 +6771,7 @@ export default class huobi extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             }));
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     async fetchPosition (symbol: string, params = {}) {

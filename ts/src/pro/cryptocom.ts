@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from '../base/types.js';
@@ -52,7 +52,12 @@ export default class cryptocom extends cryptocomRest {
         //     "method": "public/heartbeat",
         //     "code": 0
         // }
-        await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
+        try {
+            await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
+        } catch (e) {
+            const error = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
+            client.reset (error);
+        }
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {

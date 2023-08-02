@@ -178,6 +178,7 @@ class kraken extends Exchange {
                         'QueryTrades' => 3,
                         'RetrieveExport' => 3,
                         'RemoveExport' => 3,
+                        'BalanceEx' => 3,
                         'TradeBalance' => 3,
                         'TradesHistory' => 6,
                         'TradeVolume' => 3,

@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
+import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -89,6 +89,7 @@ export default class bybit extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -1235,6 +1236,173 @@ export default class bybit extends Exchange {
     }
     async upgradeUnifiedTradeAccount(params = {}) {
         return await this.privatePostV5AccountUpgradeToUta(params);
+    }
+    convertExpireDate(date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice(0, 2);
+        const month = date.slice(2, 4);
+        const day = date.slice(4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+    convertExpireDateToMarketIdDate(date) {
+        // parse 231229 to 29DEC23
+        const year = date.slice(0, 2);
+        const monthRaw = date.slice(2, 4);
+        let month = undefined;
+        const day = date.slice(4, 6);
+        if (monthRaw === '01') {
+            month = 'JAN';
+        }
+        else if (monthRaw === '02') {
+            month = 'FEB';
+        }
+        else if (monthRaw === '03') {
+            month = 'MAR';
+        }
+        else if (monthRaw === '04') {
+            month = 'APR';
+        }
+        else if (monthRaw === '05') {
+            month = 'MAY';
+        }
+        else if (monthRaw === '06') {
+            month = 'JUN';
+        }
+        else if (monthRaw === '07') {
+            month = 'JUL';
+        }
+        else if (monthRaw === '08') {
+            month = 'AUG';
+        }
+        else if (monthRaw === '09') {
+            month = 'SEP';
+        }
+        else if (monthRaw === '10') {
+            month = 'OCT';
+        }
+        else if (monthRaw === '11') {
+            month = 'NOV';
+        }
+        else if (monthRaw === '12') {
+            month = 'DEC';
+        }
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
+    }
+    convertMarketIdExpireDate(date) {
+        // parse 22JAN23 to 230122
+        const monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        };
+        const year = date.slice(0, 2);
+        const monthName = date.slice(2, 5);
+        const month = this.safeString(monthMappping, monthName);
+        const day = date.slice(5, 7);
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
+    }
+    createExpiredOptionMarket(symbol) {
+        // support expired option contracts
+        const quote = 'USD';
+        const settle = 'USDC';
+        const optionParts = symbol.split('-');
+        const symbolBase = symbol.split('/');
+        let base = undefined;
+        let expiry = undefined;
+        if (symbol.indexOf('/') > -1) {
+            base = this.safeString(symbolBase, 0);
+            expiry = this.safeString(optionParts, 1);
+        }
+        else {
+            base = this.safeString(optionParts, 0);
+            expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
+        }
+        const strike = this.safeString(optionParts, 2);
+        const optionType = this.safeString(optionParts, 3);
+        const datetime = this.convertExpireDate(expiry);
+        const timestamp = this.parse8601(datetime);
+        return {
+            'id': base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': false,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': undefined,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': this.parseNumber(strike),
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
+    }
+    market(symbol) {
+        if (this.markets === undefined) {
+            throw new ExchangeError(this.id + ' markets not loaded');
+        }
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                return this.markets[symbol];
+            }
+            else if (symbol in this.markets_by_id) {
+                const markets = this.markets_by_id[symbol];
+                return markets[0];
+            }
+            else if ((symbol.indexOf('-C') > -1) || (symbol.indexOf('-P') > -1)) {
+                return this.createExpiredOptionMarket(symbol);
+            }
+        }
+        throw new BadSymbol(this.id + ' does not have market symbol ' + symbol);
+    }
+    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket(marketId);
+        }
+        return super.safeMarket(marketId, market, delimiter, marketType);
     }
     async fetchTime(params = {}) {
         /**
@@ -3290,13 +3458,13 @@ export default class bybit extends Exchange {
             'PENDING_CANCEL': 'open',
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
-            'PARTIALLY_FILLED_CANCELLED': 'canceled',
+            'PARTIALLY_FILLED_CANCELLED': 'closed',
             // v3 contract / unified margin / unified account
             'Created': 'open',
             'New': 'open',
             'Rejected': 'rejected',
             'PartiallyFilled': 'open',
-            'PartiallyFilledCanceled': 'canceled',
+            'PartiallyFilledCanceled': 'closed',
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -3332,7 +3500,7 @@ export default class bybit extends Exchange {
         //         "symbol": "XRPUSDT",
         //         "side": "Buy",
         //         "orderType": "Market",
-        //         "price": "0.3431",
+        //         "price": "0.3432",
         //         "qty": "65",
         //         "reduceOnly": true,
         //         "timeInForce": "ImmediateOrCancel",
@@ -7243,7 +7411,7 @@ export default class bybit extends Exchange {
             }
             results.push(this.parsePosition(rawPosition));
         }
-        return this.filterByArray(results, 'symbol', symbols, false);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
     async fetchUSDCPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -7318,7 +7486,7 @@ export default class bybit extends Exchange {
             }
             results.push(this.parsePosition(rawPosition, market));
         }
-        return this.filterByArray(results, 'symbol', symbols, false);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
     async fetchDerivativesPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -8755,7 +8923,7 @@ export default class bybit extends Exchange {
         const data = this.safeValue(result, 'list', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
     }
     parseSettlement(settlement, market) {
         //
@@ -8788,6 +8956,62 @@ export default class bybit extends Exchange {
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push(this.parseSettlement(settlements[i], market));
+        }
+        return result;
+    }
+    async fetchVolatilityHistory(code, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchVolatilityHistory
+         * @description fetch the historical volatility of an option market based on an underlying asset
+         * @see https://bybit-exchange.github.io/docs/v5/market/iv
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
+         * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'category': 'option',
+            'baseCoin': currency['id'],
+        };
+        const response = await this.publicGetV5MarketHistoricalVolatility(this.extend(request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "SUCCESS",
+        //         "category": "option",
+        //         "result": [
+        //             {
+        //                 "period": 7,
+        //                 "value": "0.23854072",
+        //                 "time": "1690574400000"
+        //             }
+        //         ]
+        //     }
+        //
+        const volatility = this.safeValue(response, 'result', []);
+        return this.parseVolatilityHistory(volatility);
+    }
+    parseVolatilityHistory(volatility) {
+        //
+        //     {
+        //         "period": 7,
+        //         "value": "0.23854072",
+        //         "time": "1690574400000"
+        //     }
+        //
+        const result = [];
+        for (let i = 0; i < volatility.length; i++) {
+            const entry = volatility[i];
+            const timestamp = this.safeInteger(entry, 'time');
+            result.push({
+                'info': volatility,
+                'timestamp': timestamp,
+                'datetime': this.iso8601(timestamp),
+                'volatility': this.safeNumber(entry, 'value'),
+            });
         }
         return result;
     }

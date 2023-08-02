@@ -64,6 +64,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
+                'fetchLeverage': True,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
@@ -78,7 +79,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'setLeverage': False,
+                'setLeverage': True,
                 'setMarginMode': False,
                 'transfer': True,
             },
@@ -123,6 +124,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'recentorders',
                         'fills',
                         'transfers',
+                        'leveragepreferences',
+                        'pnlpreferences',
                     ],
                     'post': [
                         'sendorder',
@@ -133,6 +136,10 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'cancelallorders',
                         'cancelallordersafter',
                         'withdrawal',                              # for futures wallet -> kraken spot wallet
+                    ],
+                    'put': [
+                        'leveragepreferences',
+                        'pnlpreferences',
                     ],
                 },
                 'charts': {
@@ -1660,7 +1667,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         result = self.parse_positions(response)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_positions(self, response, symbols: Optional[List[str]] = None, params={}):
         result = []
@@ -1932,6 +1939,48 @@ class krakenfutures(Exchange, ImplicitAPI):
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         })
+
+    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+        """
+        set the level of leverage for a market
+        see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_symbol('setLeverage', symbol)
+        self.load_markets()
+        request = {
+            'maxLeverage': leverage,
+            'symbol': self.market_id(symbol).upper(),
+        }
+        #
+        # {result: 'success', serverTime: '2023-08-01T09:40:32.345Z'}
+        #
+        return self.privatePutLeveragepreferences(self.extend(request, params))
+
+    def fetch_leverage(self, symbol: Optional[str] = None, params={}):
+        """
+        fetch the set leverage for a market
+        see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.check_required_symbol('fetchLeverage', symbol)
+        self.load_markets()
+        request = {
+            'symbol': self.market_id(symbol).upper(),
+        }
+        #
+        #   {
+        #       result: 'success',
+        #       serverTime: '2023-08-01T09:54:08.900Z',
+        #       leveragePreferences: [{symbol: 'PF_LTCUSD', maxLeverage: '5.00'}]
+        #   }
+        #
+        return self.privateGetLeveragepreferences(self.extend(request, params))
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

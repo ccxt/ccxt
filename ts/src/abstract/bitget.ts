@@ -109,6 +109,7 @@ interface Exchange {
     privateMixGetPositionSinglePositionV2 (params?: {}): Promise<implicitReturnType>;
     privateMixGetPositionAllPosition (params?: {}): Promise<implicitReturnType>;
     privateMixGetPositionAllPositionV2 (params?: {}): Promise<implicitReturnType>;
+    privateMixGetPositionHistoryPosition (params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccountBill (params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccountBusinessBill (params?: {}): Promise<implicitReturnType>;
     privateMixGetOrderCurrent (params?: {}): Promise<implicitReturnType>;

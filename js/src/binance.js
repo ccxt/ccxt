@@ -108,6 +108,7 @@ export default class binance extends Exchange {
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -927,7 +928,8 @@ export default class binance extends Exchange {
                         'bnb-transfer': 0.6667,
                         'portfolio/repay-futures-switch': 150,
                         'portfolio/repay-futures-negative-balance': 150,
-                        'listenKey': 1, // 1
+                        'listenKey': 1,
+                        'asset-collection': 3,
                     },
                     'put': {
                         'listenKey': 1, // 1
@@ -7284,7 +7286,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             result.push(this.parsePosition(response[i], market));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -7400,7 +7402,7 @@ export default class binance extends Exchange {
         const account = await this[method](query);
         const result = this.parseAccountPositions(account);
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPositionsRisk(symbols = undefined, params = {}) {
         /**
@@ -7497,7 +7499,7 @@ export default class binance extends Exchange {
             result.push(parsed);
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

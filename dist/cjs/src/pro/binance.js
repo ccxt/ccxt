@@ -1817,7 +1817,6 @@ class binance extends binance$1 {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('fetchOpenOrdersWs', symbol);
         await this.loadMarkets();
         this.checkIsSpot('fetchOpenOrdersWs', symbol);
         const url = this.urls['api']['ws']['ws'];
@@ -1826,9 +1825,11 @@ class binance extends binance$1 {
         let returnRateLimits = false;
         [returnRateLimits, params] = this.handleOptionAndParams(params, 'fetchOrderWs', 'returnRateLimits', false);
         const payload = {
-            'symbol': this.marketId(symbol),
             'returnRateLimits': returnRateLimits,
         };
+        if (symbol !== undefined) {
+            payload['symbol'] = this.marketId(symbol);
+        }
         const message = {
             'id': messageHash,
             'method': 'openOrders.status',

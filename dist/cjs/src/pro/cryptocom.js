@@ -46,7 +46,13 @@ class cryptocom extends cryptocom$1 {
         //     "method": "public/heartbeat",
         //     "code": 0
         // }
-        await client.send({ 'id': this.safeInteger(message, 'id'), 'method': 'public/respond-heartbeat' });
+        try {
+            await client.send({ 'id': this.safeInteger(message, 'id'), 'method': 'public/respond-heartbeat' });
+        }
+        catch (e) {
+            const error = new errors.NetworkError(this.id + ' pong failed with error ' + this.json(e));
+            client.reset(error);
+        }
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
