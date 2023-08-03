@@ -607,16 +607,6 @@ export default class huobi extends huobiRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
-    }
-
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
