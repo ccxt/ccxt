@@ -669,16 +669,6 @@ export default class bittrex extends bittrexRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
-    }
-
     handleDelta (bookside, delta) {
         //
         //     {
