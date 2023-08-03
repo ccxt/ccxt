@@ -73,8 +73,11 @@ export default class binance extends binanceRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchOrderBook': {
+                    'fetchSnapshotAttempts': 3,
+                    'limit': 1000, // default limit
+                },
                 'requestId': {},
-                'watchOrderBookLimit': 1000, // default limit
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
@@ -211,12 +214,14 @@ export default class binance extends binanceRest {
         return orderbook.limit ();
     }
 
-    async fetchOrderBookSnapshot (client, message, subscription) {
+    async watchOrderBookFetchSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol');
         try {
-            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+            const defaultLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+            const defaultLimit = this.handleOptionAndParams ({}, 'watchOrderBook', 'limit', defaultLimitOld);
             const type = this.safeValue (subscription, 'type');
+            // @ts-ignore
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             const params = this.safeValue (subscription, 'params');
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
@@ -382,18 +387,6 @@ export default class binance extends binanceRest {
                 client.reject (e, messageHash);
             }
         }
-    }
-
-    handleOrderBookSubscription (client: Client, message, subscription) {
-        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-        // fetch the snapshot in a separate async call
-        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client: Client, message) {
