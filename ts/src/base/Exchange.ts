@@ -2467,7 +2467,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
+    handleOrderBookSubscription (client, message, subscription) {
         const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
@@ -2481,7 +2481,7 @@ export default class Exchange {
         this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
     }
 
-    spawnOrderBookSnapshot (client: Client, message, subscription, sequence, snapshot) {
+    spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot) {
         const symbol = this.safeString (subscription, 'symbol');
         const orderbook = this.orderbooks[symbol];
         const messages = orderbook.cache;
@@ -2524,7 +2524,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' wsFetchOrderBookSnapshot() not implemented yet');
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook, messageHash = undefined) {
+    handleOrderBookMessage (client, message, orderbook, messageHash = undefined) {
         // this method should be implemented in derived classes
         throw new NotSupported (this.id + ' handleOrderBookMessage() not implemented yet');
     }
