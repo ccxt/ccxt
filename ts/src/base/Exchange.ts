@@ -219,7 +219,7 @@ export default class Exchange {
     minFundingAddressLength: Int = 1 // used in checkAddress
     substituteCommonCurrencyCodes: boolean = true  // reserved
     quoteJsonNumbers: boolean = true // treat numbers in json as quoted precise strings
-    number: (numberString: string) => number = Number // or String (a pointer to a function)
+    number: NumberConstructor | StringConstructor // or String (a pointer to a function)
     handleContentTypeApplicationZip: boolean = false
 
     // whether fees should be summed by currency code
@@ -802,7 +802,6 @@ export default class Exchange {
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
         this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
-        this.number = Number // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false
         // whether fees should be summed by currency code
         this.reduceFees = true
@@ -896,6 +895,8 @@ export default class Exchange {
         if (this.markets) {
             this.setMarkets (this.markets)
         }
+        const assignedType = this.safeStringLower (this.options, 'number', 'number');
+        this.number = (assignedType === 'string' ? String : Number);
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
@@ -1374,7 +1375,7 @@ export default class Exchange {
         return
     }
 
-    parseNumber (value, d: Num = undefined): number {
+    parseNumber (value, d: Num = undefined): number | string {
         if (value === undefined) {
             return d
         } else {
@@ -5661,12 +5662,12 @@ export default class Exchange {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
-    safeNumber (obj, key: IndexType, defaultNumber: Num = undefined): Num {
+    safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): Num | Str {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
     }
 
-    safeNumberN (obj: object, arr: IndexType[], defaultNumber: Num = undefined): Num {
+    safeNumberN (obj: object, arr: IndexType[], defaultNumber: Num = undefined): Num | Str {
         const value = this.safeStringN (obj, arr);
         return this.parseNumber (value, defaultNumber);
     }
