@@ -1442,6 +1442,8 @@ export default class bingx extends Exchange {
             request['timeInForce'] = 'POC';
         } else if (exchangeSpecificTifParam === 'POC') {
             request['timeInForce'] = 'POC';
+        } else if (!isSpotMarket) {
+            request['timeInForce'] = 'GTC';
         }
         if (isSpotMarket) {
             response = await this.spotV1PrivatePostTradeOrder (this.extend (request, query));
@@ -1625,7 +1627,7 @@ export default class bingx extends Exchange {
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
-            'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
             'FAILED': 'failed',
         };
         return this.safeString (statuses, status, status);
