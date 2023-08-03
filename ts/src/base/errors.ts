@@ -152,7 +152,7 @@ class InvalidOrder extends ExchangeError {
 class ContractUnavailable extends InvalidOrder {
     constructor (message) {
         super (message);
-        this.name = 'InvalidOrder';
+        this.name = 'ContractUnavailable';
     }
 }
 class OrderNotFound extends InvalidOrder {
