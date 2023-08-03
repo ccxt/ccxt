@@ -1221,6 +1221,13 @@ class Exchange {
             }
         }
 
+        $type_names = array(
+            'string' => 'string',
+            'number' => 'floatval',
+        );
+        $assigned_type = $this->safe_string_lower($this->options, 'number', 'number');
+        $this->number = $type_names[$assigned_type];
+
         if ($this->markets) {
             $this->set_markets($this->markets);
         }
