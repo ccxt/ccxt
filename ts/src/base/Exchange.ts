@@ -2520,10 +2520,12 @@ export default class Exchange {
     }
 
     async wsFetchOrderBookSnapshot (client, message, subscription) {
+        // this method should be implemented in derived classes
         throw new NotSupported (this.id + ' wsFetchOrderBookSnapshot() not implemented yet');
     }
 
     handleOrderBookMessageCommon (client: Client, message, orderbook, messageHash = undefined) {
+        // this method should be implemented in derived classes
         throw new NotSupported (this.id + ' handleOrderBookMessageCommon() not implemented yet');
     }
 
