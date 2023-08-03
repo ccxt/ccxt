@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import huobiRest from '../huobi.js';
-import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
@@ -87,12 +87,14 @@ export default class huobi extends huobiRest {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api', // or api-aws for clients hosted on AWS
-                'maxOrderBookSyncAttempts': 3,
                 'ws': {
                     'gunzip': true,
                 },
                 'watchTicker': {
                     'name': 'market.{marketId}.detail', // 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
+                },
+                'watchOrderBook': {
+                    'fetchSnapshotAttempts': 3,
                 },
             },
             'exceptions': {
@@ -398,42 +400,6 @@ export default class huobi extends huobiRest {
         }
     }
 
-    spawnOrderBookSnapshot (client: Client, message, subscription, sequence, snapshot) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const orderbook = this.orderbooks[symbol];
-        const messages = orderbook.cache;
-        const messageHash = this.safeString (subscription, 'messageHash');
-        // if the received snapshot is earlier than the first cached delta
-        // then we cannot align it with the cached deltas and we need to
-        // retry synchronizing in maxAttempts
-        if ((sequence !== undefined) && snapshot['nonce'] < sequence) {
-            const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
-            let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-            // retry to synchronize if we have not reached maxAttempts yet
-            if (numAttempts < maxAttempts) {
-                // safety guard
-                if (messageHash in client.subscriptions) {
-                    numAttempts = this.sum (numAttempts, 1);
-                    subscription['numAttempts'] = numAttempts;
-                    client.subscriptions[messageHash] = subscription;
-                    this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
-                }
-            } else {
-                // throw upon failing to synchronize in maxAttempts
-                throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
-            }
-        } else {
-            orderbook.reset (snapshot);
-            // unroll the accumulated deltas
-            for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
-                this.handleOrderBookMessage (client, message, orderbook);
-            }
-            this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, messageHash);
-        }
-    }
-
     async watchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
@@ -648,9 +614,7 @@ export default class huobi extends huobiRest {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        if (this.markets[symbol]['spot'] === true) {
-            this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
-        }
+        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
