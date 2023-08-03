@@ -881,6 +881,16 @@ export default class cex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // ws response
+        //    {
+        //        "complete":false,
+        //        "id":"69150338125",
+        //        "time":1691081223864,
+        //        "pending":"0.15000000",
+        //        "amount":"0.15000000",
+        //        "type":"sell",
+        //        "price":"100"
+        //    }
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         let timestamp = this.safeValue (order, 'time');
