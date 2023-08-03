@@ -44,7 +44,7 @@ export default class bittrex extends bittrexRest {
                 'tradesLimit': 1000,
                 'watchOrderBook': {
                     'fetchSnapshotAttempts': 3,
-                    'limit': 25, // default is 25
+                    'limit': 25, // the default
                 },
                 'hub': 'c3',
                 'I': this.milliseconds (),
