@@ -647,7 +647,7 @@ export default class bittrex extends bittrexRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBookSnapshot (client, message, subscription) {
+    async watchOrderBookFetchSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
             const symbol = this.safeString (subscription, 'symbol');
