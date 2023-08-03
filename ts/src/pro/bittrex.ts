@@ -723,6 +723,10 @@ export default class bittrex extends bittrexRest {
         }
     }
 
+    handleOrderBookMessageCommon (client: Client, message, orderbook) {
+        return this.handleOrderBookMessage (client, message, orderbook);
+    }
+
     handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {

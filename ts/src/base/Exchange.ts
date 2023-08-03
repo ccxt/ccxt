@@ -2512,7 +2512,7 @@ export default class Exchange {
             // Playback the cached Level 2 data flow.
             for (let i = 0; i < messages.length; i++) {
                 const message = messages[i];
-                this.handleOrderBookMessage (client, message, orderbook);
+                this.handleOrderBookMessageCommon (client, message, orderbook);
             }
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
@@ -2523,8 +2523,8 @@ export default class Exchange {
         throw new NotSupported (this.id + ' wsFetchOrderBookSnapshot() not implemented yet');
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook, messageHash = undefined) {
-        throw new NotSupported (this.id + ' handleOrderBookMessage() not implemented yet');
+    handleOrderBookMessageCommon (client: Client, message, orderbook, messageHash = undefined) {
+        throw new NotSupported (this.id + ' handleOrderBookMessageCommon() not implemented yet');
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
