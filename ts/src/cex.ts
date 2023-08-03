@@ -869,7 +869,16 @@ export default class cex extends Exchange {
             'pair': market['id'],
         };
         const orders = await this.privatePostCancelOrdersPair (this.extend (request, params));
-        return this.parseOrders (orders, market);
+        //
+        //  {
+        //      "e":"cancel_orders",
+        //      "ok":"ok",
+        //      "data":[
+        //      ]
+        //   }
+        //
+        const data = this.safeValue (orders, 'data', []);
+        return this.parseOrders (data, market);
     }
 
     parseOrder (order, market = undefined) {
