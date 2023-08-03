@@ -381,6 +381,7 @@ export default class huobi extends huobiRest {
         //     }
         //
         const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = this.safeString (subscription, 'messageHash');
         const id = this.safeString (message, 'id');
         try {
             const orderbook = this.orderbooks[symbol];
@@ -397,7 +398,6 @@ export default class huobi extends huobiRest {
             client.resolve (snapshotOrderBook, id);
             this.spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot);
         } catch (e) {
-            const messageHash = this.safeString (subscription, 'messageHash');
             client.reject (e, messageHash);
         }
     }
