@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bittrexRest from '../bittrex.js';
-import { BadRequest } from '../base/errors.js';
+import { InvalidNonce, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -670,6 +670,58 @@ export default class bittrex extends bittrexRest {
         } catch (e) {
             client.reject (e, messageHash);
         }
+    }
+
+    spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const orderbook = this.orderbooks[symbol];
+        const messages = orderbook.cache;
+        const messageHash = this.safeString (subscription, 'messageHash');
+        // if the received snapshot is earlier than the first cached delta
+        // then we cannot align it with the cached deltas and we need to
+        // retry synchronizing in maxAttempts
+        if (sequence !== undefined && snapshot['nonce'] < sequence) {
+            const options = this.safeValue (this.options, 'watchOrderBook', {});
+            const maxAttempts = this.safeInteger (options, 'fetchSnapshotAttempts', 3);
+            let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+            // retry to synchronize if we have not reached maxAttempts yet
+            if (numAttempts < maxAttempts) {
+                // safety guard
+                if (messageHash in client.subscriptions) {
+                    numAttempts = this.sum (numAttempts, 1);
+                    subscription['numAttempts'] = numAttempts;
+                    client.subscriptions[messageHash] = subscription;
+                    this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
+                }
+            } else {
+                // throw upon failing to synchronize in maxAttempts
+                throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+            }
+        } else {
+            orderbook.reset (snapshot);
+            // unroll the accumulated deltas
+            // Playback the cached Level 2 data flow.
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                this.handleOrderBookMessage (client, message, orderbook);
+            }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        }
+    }
+
+    handleOrderBookSubscription (client, message, subscription) {
+        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        // watch the snapshot in a separate async call
+        this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleDelta (bookside, delta) {

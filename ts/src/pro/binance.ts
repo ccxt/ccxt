@@ -389,6 +389,20 @@ export default class binance extends binanceRest {
         }
     }
 
+    handleOrderBookSubscription (client, message, subscription) {
+        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        // watch the snapshot in a separate async call
+        this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
+    }
+
     handleSubscriptionStatus (client: Client, message) {
         //
         //     {
