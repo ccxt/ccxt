@@ -513,6 +513,13 @@ class Exchange(object):
             self.session.trust_env = self.requests_trust_env
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
+        type_names = {
+            'string': str,
+            'number': float,
+        }
+        assigned_type = self.safe_string_lower(self.options, 'number', 'number')
+        self.number = type_names[assigned_type]
+
     def __del__(self):
         if self.session:
             try:
