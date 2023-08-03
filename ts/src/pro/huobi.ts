@@ -447,10 +447,6 @@ export default class huobi extends huobiRest {
         }
     }
 
-    handleOrderBookMessageCommon (client: Client, message, orderbook) {
-        return this.handleOrderBookMessage (client, message, orderbook);
-    }
-
     handleOrderBookMessage (client: Client, message, orderbook) {
         // spot markets
         //
