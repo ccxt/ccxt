@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bittrexRest from '../bittrex.js';
-import { InvalidNonce, BadRequest } from '../base/errors.js';
+import { BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -44,6 +44,9 @@ export default class bittrex extends bittrexRest {
                 'tradesLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds (),
+                'watchOrderBook': {
+                    'fetchSnapshotAttempts': 3,
+                },
             },
         });
     }
@@ -631,30 +634,24 @@ export default class bittrex extends bittrexRest {
         //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note: for private streams, the sequence number is scoped to a single account or subaccount).
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
-        const orderbook = await this.subscribeToOrderBook (negotiation, symbol, limit, params);
-        return orderbook.limit ();
-    }
-
-    async subscribeToOrderBook (negotiation, symbol, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
         const market = this.market (symbol);
-        const name = 'orderbook';
-        const messageHash = name + '_' + market['id'] + '_' + limit.toString ();
+        const messageHash = 'orderbook' + '_' + market['id'] + '_' + limit.toString ();
         const subscription = {
             'symbol': symbol,
             'messageHash': messageHash,
-            'method': this.handleSubscribeToOrderBook,
+            'method': this.handleOrderBookSubscription,
             'limit': limit,
             'params': params,
         };
-        return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
+        const orderbook = await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
+        return orderbook.limit ();
     }
 
-    async fetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
+    async watchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
+            const symbol = this.safeString (subscription, 'symbol');
+            const limit = this.safeInteger (subscription, 'limit');
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
             const snapshot = await this.fetchOrderBook (symbol, limit);
@@ -666,51 +663,20 @@ export default class bittrex extends bittrexRest {
             // https://github.com/ccxt/ccxt/issues/6762
             const firstMessage = this.safeValue (messages, 0, {});
             const sequence = this.safeInteger (firstMessage, 'sequence');
-            const nonce = this.safeInteger (snapshot, 'nonce');
-            // if the received snapshot is earlier than the first cached delta
-            // then we cannot align it with the cached deltas and we need to
-            // retry synchronizing in maxAttempts
-            if ((sequence !== undefined) && (nonce < sequence)) {
-                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
-                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-                // retry to syncrhonize if we haven't reached maxAttempts yet
-                if (numAttempts < maxAttempts) {
-                    // safety guard
-                    if (messageHash in client.subscriptions) {
-                        numAttempts = this.sum (numAttempts, 1);
-                        subscription['numAttempts'] = numAttempts;
-                        client.subscriptions[messageHash] = subscription;
-                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
-                    }
-                } else {
-                    // throw upon failing to synchronize in maxAttempts
-                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
-                }
-            } else {
-                orderbook.reset (snapshot);
-                // unroll the accumulated deltas
-                // 3. Playback the cached Level 2 data flow.
-                for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
-                }
-                this.orderbooks[symbol] = orderbook;
-                client.resolve (orderbook, messageHash);
-            }
+            this.spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot);
         } catch (e) {
             client.reject (e, messageHash);
         }
     }
 
-    handleSubscribeToOrderBook (client: Client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
     handleDelta (bookside, delta) {
