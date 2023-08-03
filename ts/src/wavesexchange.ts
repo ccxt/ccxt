@@ -1385,12 +1385,23 @@ export default class wavesexchange extends Exchange {
             'chainId': chainId,
         };
         if (isStopOrder) {
+            //
+            // {
+            //     'v': 1, // version (int)
+            //     'c': { // condition (object)
+            //         't': 'sp', // condition type. for now only "stop-price" (string)
+            //         'v': { // value (object)
+            //             'p': '123', // price (long)
+            //         },
+            //     },
+            // }
+            //
             const attachment = {
-                'v': 1, // version (int)
-                'c': {  // condition (object)
-                    't': 'sp', // condition type. for now only "stop-price" (string)
-                    'v': { // value (object)
-                        'p': this.customPriceToPrecision (symbol, stopPrice), // price (long)
+                'v': 1,
+                'c': {
+                    't': 'sp',
+                    'v': {
+                        'p': this.customPriceToPrecision (symbol, stopPrice),
                     },
                 },
             };
