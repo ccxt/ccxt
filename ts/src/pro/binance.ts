@@ -1237,7 +1237,7 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleBalanceWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription, 10);
     }
 
     handleBalanceWs (client: Client, message) {
@@ -1807,7 +1807,7 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleOrderWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription, 2);
     }
 
     async fetchOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1848,7 +1848,7 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleOrdersWs,
         };
-        const orders = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orders = await this.watch (url, messageHash, message, messageHash, subscription, 10);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -1873,9 +1873,11 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
         const payload = {
-            'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
+        if (symbol !== undefined) {
+            payload['symbol'] = this.marketId (symbol);
+        }
         const message = {
             'id': messageHash,
             'method': 'openOrders.status',
@@ -1884,7 +1886,7 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleOrdersWs,
         };
-        const messageCost = (symbol === undefined) ? 40 : 1;
+        const messageCost = (symbol === undefined) ? 40 : 3;
         const orders = await this.watch (url, messageHash, message, messageHash, subscription, messageCost);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
@@ -2217,7 +2219,7 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleTradesWs,
         };
-        const trades = await this.watch (url, messageHash, message, messageHash, subscription);
+        const trades = await this.watch (url, messageHash, message, messageHash, subscription, 10);
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
@@ -2283,7 +2285,7 @@ export default class binance extends binanceRest {
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;
-        const trades = await this.watch (url, messageHash, message, type);
+        const trades = await this.watch (url, messageHash, message, type, 10);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
