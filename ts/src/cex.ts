@@ -877,8 +877,7 @@ export default class cex extends Exchange {
         //      ]
         //   }
         //
-        const data = this.safeValue (orders, 'data', []);
-        return this.parseOrders (data, market);
+        return orders;
     }
 
     parseOrder (order, market = undefined) {
