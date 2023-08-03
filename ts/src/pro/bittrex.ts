@@ -42,6 +42,7 @@ export default class bittrex extends bittrexRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds (),
             },
@@ -464,7 +465,7 @@ export default class bittrex extends bittrexRest {
         const timeframe = this.findTimeframe (interval);
         const delta = this.safeValue (message, 'delta', {});
         const parsed = this.parseOHLCV (delta);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.saf4eValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
