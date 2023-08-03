@@ -132,7 +132,6 @@ import { Precise } from './Precise.js'
 
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
-import Client from './ws/Client.js';
 import { createFuture, Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 
