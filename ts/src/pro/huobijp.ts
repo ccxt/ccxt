@@ -462,17 +462,6 @@ export default class huobijp extends huobijpRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-        // watch the snapshot in a separate async call
-        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
-    }
-
     handleSubscriptionStatus (client: Client, message) {
         //
         //     {
