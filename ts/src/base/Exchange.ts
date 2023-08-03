@@ -117,6 +117,7 @@ const {
     , NullResponse
     , InvalidAddress
     , InvalidOrder
+    , InvalidNonce
     , NotSupported
     , BadResponse
     , AuthenticationError
@@ -132,6 +133,7 @@ import { Precise } from './Precise.js'
 
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
+import Client from './ws/Client.js';
 import { createFuture, Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 
@@ -2463,6 +2465,52 @@ export default class Exchange {
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
+    }
+
+    spawnOrderBookSnapshot (client: Client, message, subscription, sequence, snapshot) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const orderbook = this.orderbooks[symbol];
+        const messages = orderbook.cache;
+        const messageHash = this.safeString (subscription, 'messageHash');
+        // if the received snapshot is earlier than the first cached delta
+        // then we cannot align it with the cached deltas and we need to
+        // retry synchronizing in maxAttempts
+        if (sequence !== undefined && snapshot['nonce'] < sequence) {
+            const options = this.safeValue (this.options, 'watchOrderBook', {});
+            const maxAttempts = this.safeInteger (options, 'fetchSnapshotAttempts', 3);
+            let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+            // retry to synchronize if we have not reached maxAttempts yet
+            if (numAttempts < maxAttempts) {
+                // safety guard
+                if (messageHash in client.subscriptions) {
+                    numAttempts = this.sum (numAttempts, 1);
+                    subscription['numAttempts'] = numAttempts;
+                    client.subscriptions[messageHash] = subscription;
+                    this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+                }
+            } else {
+                // throw upon failing to synchronize in maxAttempts
+                throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+            }
+        } else {
+            orderbook.reset (snapshot);
+            // unroll the accumulated deltas
+            // Playback the cached Level 2 data flow.
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                this.handleOrderBookMessage (client, message, orderbook);
+            }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        }
+    }
+
+    async watchOrderBookSnapshot (client, message, subscription) {
+        throw new NotSupported (this.id + ' watchOrderBookSnapshot() not implemented yet');
+    }
+
+    handleOrderBookMessage (client: Client, message, orderbook, messageHash = undefined) {
+        throw new NotSupported (this.id + ' handleOrderBookMessage() not implemented yet');
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
