@@ -2767,8 +2767,8 @@ export default class bitget extends Exchange {
         const isTakeProfit = takeProfit !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const isStopLossOrTakeProfit = isStopLoss || isTakeProfit;
-        if (this.sum (isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isStopLoss, isTakeProfit) > 1) {
-            throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, stopLoss, takeProfit');
+        if (this.sum (isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder) > 1) {
+            throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice');
         }
         if ((type === 'limit') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -2873,7 +2873,8 @@ export default class bitget extends Exchange {
                 if (isStopLoss) {
                     const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
                     request['presetStopLossPrice'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
-                } else if (isTakeProfit) {
+                }
+                if (isTakeProfit) {
                     const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
                     request['presetTakeProfitPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
                 }
