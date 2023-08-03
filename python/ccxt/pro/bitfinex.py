@@ -325,13 +325,13 @@ class bitfinex(ccxt.async_support.bitfinex):
             orderbook = self.orderbooks[symbol]
             if isRaw:
                 id = self.safe_string(message, 1)
-                price = self.safe_float(message, 2)
+                price = self.safe_string(message, 2)
                 size = -message[3] if (message[3] < 0) else message[3]
                 side = 'asks' if (message[3] < 0) else 'bids'
                 bookside = orderbook[side]
                 # price = 0 means that you have to remove the order from your book
-                amount = size if (price > 0) else 0
-                bookside.store(price, amount, id)
+                amount = size if Precise.string_gt(price, '0') else '0'
+                bookside.store(self.parse_number(price), self.parse_number(amount), id)
             else:
                 size = -message[3] if (message[3] < 0) else message[3]
                 side = 'asks' if (message[3] < 0) else 'bids'
