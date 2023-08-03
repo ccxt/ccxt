@@ -42,6 +42,7 @@ export default class bittrex extends bittrexRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'watchOrderBook': {
                     'fetchSnapshotAttempts': 3,
                     'limit': 25, // the default

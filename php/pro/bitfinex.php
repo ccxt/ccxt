@@ -355,13 +355,13 @@ class bitfinex extends \ccxt\async\bitfinex {
             $orderbook = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $id = $this->safe_string($message, 1);
-                $price = $this->safe_float($message, 2);
+                $price = $this->safe_string($message, 2);
                 $size = ($message[3] < 0) ? -$message[3] : $message[3];
                 $side = ($message[3] < 0) ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
                 // $price = 0 means that you have to remove the order from your book
-                $amount = ($price > 0) ? $size : 0;
-                $bookside->store ($price, $amount, $id);
+                $amount = Precise::string_gt($price, '0') ? $size : '0';
+                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $id);
             } else {
                 $size = ($message[3] < 0) ? -$message[3] : $message[3];
                 $side = ($message[3] < 0) ? 'asks' : 'bids';
