@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
 import cexRest from '../cex.js';
-import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import { Int, OrderSide, OrderType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -24,6 +24,14 @@ export default class cex extends cexRest {
                 'watchOrderBook': true,
                 'watchOHLCV': true,
                 'watchPosition': undefined,
+                'createOrderWs': true,
+                'editOrderWs': true,
+                'cancelOrderWs': true,
+                'cancelOrdersWs': true,
+                'fetchOrderWs': true,
+                'fetchOpenOrdersWs': true,
+                'fetchTickerWs': true,
+                'fetchBalanceWs': true,
             },
             'urls': {
                 'api': {
@@ -56,7 +64,7 @@ export default class cex extends cexRest {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.authenticate (params);
-        const messageHash = 'balance';
+        const messageHash = this.requestId ();
         const url = this.urls['api']['ws'];
         const subscribe = {
             'e': 'get-balance',
@@ -104,7 +112,8 @@ export default class cex extends cexRest {
             result[code] = account;
         }
         this.balance = this.safeBalance (result);
-        client.resolve (this.balance, 'balance');
+        const messageHash = this.safeString (message, 'oid');
+        client.resolve (this.balance, messageHash);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -301,6 +310,28 @@ export default class cex extends cexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
+    async fetchTickerWs (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchTickerWs
+         * @see https://docs.cex.io/#ws-api-ticker-deprecated
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const request = this.extend ({
+            'e': 'ticker',
+            'oid': messageHash,
+            'data': [ market['base'], market['quote'] ],
+        }, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
     handleTicker (client: Client, message) {
         //
         //     {
@@ -317,10 +348,12 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
-        const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
+        let messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
         client.resolve (ticker, 'tickers');
+        messageHash = this.safeString (message, 'oid');
+        client.resolve (ticker, messageHash);
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -1146,6 +1179,234 @@ export default class cex extends cexRest {
         }
     }
 
+    async fetchOrderWs (id: string, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOrderWs
+         * @description fetches information on an order made by the user
+         * @see https://docs.cex.io/#ws-api-get-order
+         * @param {string} symbol not used by cex fetchOrder
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const data = this.extend ({
+            'id': id.toString (),
+        }, params);
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const request = {
+            'e': 'get-order',
+            'oid': messageHash,
+            'data': data,
+        };
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOpenOrdersWs
+         * @see https://docs.cex.io/#ws-api-open-orders
+         * @description fetch all unfilled currently open orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchOpenOrdersWs requires a symbol.');
+        }
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const data = this.extend ({
+            'pair': [ market['baseId'], market['quoteId'] ],
+        }, params);
+        const request = {
+            'e': 'open-orders',
+            'oid': messageHash,
+            'data': data,
+        };
+        const orders = await this.watch (url, messageHash, request, messageHash);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#createOrderWs
+         * @see https://docs.cex.io/#ws-api-order-placement
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (price === undefined) {
+            throw new BadRequest (this.id + ' createOrderWs requires a price argument');
+        }
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const data = this.extend ({
+            'pair': [ market['baseId'], market['quoteId'] ],
+            'amount': amount,
+            'price': price,
+            'type': side,
+        }, params);
+        const request = {
+            'e': 'place-order',
+            'oid': messageHash,
+            'data': data,
+        };
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async editOrderWs (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#editOrderWs
+         * @description edit a trade order
+         * @see https://docs.cex.io/#ws-api-cancel-replace
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a amount argument');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const data = this.extend ({
+            'pair': market['id'],
+            'type': side,
+            'amount': amount,
+            'price': price,
+            'order_id': id,
+        }, params);
+        const messageHash = this.requestId ();
+        const url = this.urls['api']['ws'];
+        const request = {
+            'e': 'cancel-replace-order',
+            'oid': messageHash,
+            'data': data,
+        };
+        return await this.watch (url, messageHash, request, messageHash, messageHash);
+    }
+
+    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#cancelOrderWs
+         * @see https://docs.cex.io/#ws-api-order-cancel
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol not used by cex cancelOrder ()
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const data = this.extend ({
+            'order_id': id,
+        }, params);
+        const messageHash = this.requestId ();
+        const request = {
+            'e': 'cancel-order',
+            'oid': messageHash,
+            'data': data,
+        };
+        return await this.watch (messageHash, request, messageHash, messageHash);
+    }
+
+    async cancelOrdersWs (ids, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#cancelOrdersWs
+         * @description cancel multiple orders
+         * @see https://docs.cex.io/#ws-api-mass-cancel-place
+         * @param {string[]} ids order ids
+         * @param {string} symbol not used by cex cancelOrders()
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const messageHash = this.requestId ();
+        const data = this.extend ({
+            'cancel-orders': ids,
+        }, params);
+        const request = {
+            'e': 'mass_cancel_place_orders',
+            'oid': messageHash,
+            'data': data,
+        };
+        return await this.watch (messageHash, request, messageHash, messageHash);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //    {
+        //        "e": "place-order",
+        //        "data": {
+        //            "complete": false,
+        //            "id": "2477098",
+        //            "time": 1435927928618,
+        //            "pending": "0.02000000",
+        //            "amount": "0.02000000",
+        //            "type": "buy",
+        //            "price": "241.9477"
+        //        },
+        //        "oid": "1435927928274_7_place-order",
+        //        "ok": "ok"
+        //    }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const messageHash = this.safeString (message, 'oid');
+        const order = this.parseOrder (data);
+        client.resolve (order, messageHash);
+    }
+
+    handleOrders (client: Client, message) {
+        //
+        //    "e": "open-orders",
+        //    "data": [
+        //       {
+        //          "id": "2477098",
+        //          "time": "1435927928618",
+        //          "type": "buy",
+        //          "price": "241.9477",
+        //          "amount": "0.02000000",
+        //          "pending": "0.02000000"
+        //       },
+        //       ...
+        //    ],
+        //    "oid": "1435927928274_9_open-orders",
+        //    "ok": "ok"
+        //    }
+        //
+        const data = this.safeValue (message, 'data', []);
+        const messageHash = this.safeString (message, 'oid');
+        const order = this.parseOrders (data);
+        client.resolve (order, messageHash);
+    }
+
     handleConnected (client: Client, message) {
         //
         //     {
@@ -1164,7 +1425,23 @@ export default class cex extends cexRest {
         //         ok: 'error'
         //     }
         //
-        throw new ExchangeError (this.id + ' ' + this.json (message));
+        try {
+            const data = this.safeValue (message, 'data', {});
+            const error = this.safeString (data, 'error');
+            const event = this.safeString (message, 'e', '');
+            const feedback = this.id + ' ' + event + ' ' + error;
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback);
+        } catch (error) {
+            const messageHash = this.safeString (message, 'oid');
+            const future = this.safeValue (client['futures'], messageHash);
+            if (future !== undefined) {
+                client.reject (error, messageHash);
+            } else {
+                throw error;
+            }
+        }
     }
 
     handleMessage (client: Client, message) {
@@ -1190,6 +1467,11 @@ export default class cex extends cexRest {
             'history-update': this.handleTrade,
             'history': this.handleTradesSnapshot,
             'tx': this.handleTransaction,
+            'place-order': this.handleOrder,
+            'cancel-replace-order': this.handleOrder,
+            'cancel-order': this.handleOrder,
+            'mass_cancel_place_orders': this.handleOrders,
+            'get-order': this.handleOrder,
         };
         const handler = this.safeValue (handlers, event);
         if (handler !== undefined) {
