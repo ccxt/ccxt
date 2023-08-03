@@ -235,9 +235,9 @@ export default class okx extends Exchange {
         };
     };
     fetchLeverage(symbol: string, params?: {}): Promise<any>;
-    fetchPosition(symbol: string, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;

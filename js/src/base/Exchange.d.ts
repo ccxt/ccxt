@@ -4,8 +4,8 @@ ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotA
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, FundingRate, OpenInterest, Position, BorrowInterest, BorrowRate, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, TransferEntry } from './types';
-export { Market, Trade, Fee, Ticker } from './types';
+import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position } from './types.js';
+export { Market, Trade, Fee, Ticker } from './types.js';
 /**
  * @class Exchange
  */
@@ -346,6 +346,7 @@ export default class Exchange {
             fetchPermissions: any;
             fetchPosition: any;
             fetchPositions: any;
+            fetchPositionsBySymbol: any;
             fetchPositionsRisk: any;
             fetchPremiumIndexOHLCV: any;
             fetchStatus: string;
@@ -626,8 +627,8 @@ export default class Exchange {
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<any>>;
-    safePosition(position: any): any;
-    parsePositions(positions: any, symbols?: string[], params?: {}): any;
+    safePosition(position: any): Position;
+    parsePositions(positions: any, symbols?: string[], params?: {}): Position[];
     parseAccounts(accounts: any, params?: {}): any[];
     parseTrades(trades: any, market?: object, since?: Int, limit?: Int, params?: {}): Trade[];
     parseTransactions(transactions: any, currency?: object, since?: Int, limit?: Int, params?: {}): any;
@@ -651,6 +652,7 @@ export default class Exchange {
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPositionsBySymbol(symbol: string, params?: {}): Promise<Position[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
@@ -789,5 +791,6 @@ export default class Exchange {
     parseIncomes(incomes: any, market?: any, since?: Int, limit?: Int): any;
     getMarketFromSymbols(symbols?: string[]): any;
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    filterByArrayPositions(objects: any, key: IndexType, values?: any, indexed?: boolean): Position[];
 }
 export { Exchange, };

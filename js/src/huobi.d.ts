@@ -267,8 +267,8 @@ export default class huobi extends Exchange {
         id: string;
         amount: number;
     };
-    parsePosition(position: any, market?: any): any;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {

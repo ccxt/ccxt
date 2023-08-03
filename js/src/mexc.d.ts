@@ -142,8 +142,8 @@ export default class mexc extends Exchange {
     };
     parseTransactionStatusByType(status: any, type?: any): string;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     fetchTransfer(id: string, since?: Int, limit?: Int, params?: {}): Promise<{
         info: any;
         id: string;

@@ -186,8 +186,8 @@ export default class phemex extends Exchange {
         updated: any;
         fee: any;
     };
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;

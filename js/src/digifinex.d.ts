@@ -193,7 +193,7 @@ export default class digifinex extends Exchange {
         maker: number;
         taker: number;
     };
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): {
         info: any;

@@ -79,7 +79,7 @@ class lbank2 extends lbank2$1 {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'minute1',

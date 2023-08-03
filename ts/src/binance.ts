@@ -928,6 +928,7 @@ export default class binance extends Exchange {
                         'portfolio/repay-futures-switch': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-negative-balance': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1, // 1
+                        'asset-collection': 3,
                     },
                     'put': {
                         'listenKey': 1, // 1
@@ -7212,7 +7213,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             result.push (this.parsePosition (response[i], market));
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
@@ -7326,7 +7327,7 @@ export default class binance extends Exchange {
         const account = await this[method] (query);
         const result = this.parseAccountPositions (account);
         symbols = this.marketSymbols (symbols);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     async fetchPositionsRisk (symbols: string[] = undefined, params = {}) {
@@ -7422,7 +7423,7 @@ export default class binance extends Exchange {
             result.push (parsed);
         }
         symbols = this.marketSymbols (symbols);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

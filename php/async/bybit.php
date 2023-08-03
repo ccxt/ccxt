@@ -10,6 +10,7 @@ use ccxt\async\abstract\bybit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\NotSupported;
@@ -1249,6 +1250,165 @@ class bybit extends Exchange {
         return Async\async(function () use ($params) {
             return Async\await($this->privatePostV5AccountUpgradeToUta ($params));
         }) ();
+    }
+
+    public function convert_expire_date($date) {
+        // parse YYMMDD to timestamp
+        $year = mb_substr($date, 0, 2 - 0);
+        $month = mb_substr($date, 2, 4 - 2);
+        $day = mb_substr($date, 4, 6 - 4);
+        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+        return $reconstructedDate;
+    }
+
+    public function convert_expire_date_to_market_id_date($date) {
+        // parse 231229 to 29DEC23
+        $year = mb_substr($date, 0, 2 - 0);
+        $monthRaw = mb_substr($date, 2, 4 - 2);
+        $month = null;
+        $day = mb_substr($date, 4, 6 - 4);
+        if ($monthRaw === '01') {
+            $month = 'JAN';
+        } elseif ($monthRaw === '02') {
+            $month = 'FEB';
+        } elseif ($monthRaw === '03') {
+            $month = 'MAR';
+        } elseif ($monthRaw === '04') {
+            $month = 'APR';
+        } elseif ($monthRaw === '05') {
+            $month = 'MAY';
+        } elseif ($monthRaw === '06') {
+            $month = 'JUN';
+        } elseif ($monthRaw === '07') {
+            $month = 'JUL';
+        } elseif ($monthRaw === '08') {
+            $month = 'AUG';
+        } elseif ($monthRaw === '09') {
+            $month = 'SEP';
+        } elseif ($monthRaw === '10') {
+            $month = 'OCT';
+        } elseif ($monthRaw === '11') {
+            $month = 'NOV';
+        } elseif ($monthRaw === '12') {
+            $month = 'DEC';
+        }
+        $reconstructedDate = $day . $month . $year;
+        return $reconstructedDate;
+    }
+
+    public function convert_market_id_expire_date($date) {
+        // parse 22JAN23 to 230122
+        $monthMappping = array(
+            'JAN' => '01',
+            'FEB' => '02',
+            'MAR' => '03',
+            'APR' => '04',
+            'MAY' => '05',
+            'JUN' => '06',
+            'JUL' => '07',
+            'AUG' => '08',
+            'SEP' => '09',
+            'OCT' => '10',
+            'NOV' => '11',
+            'DEC' => '12',
+        );
+        $year = mb_substr($date, 0, 2 - 0);
+        $monthName = mb_substr($date, 2, 5 - 2);
+        $month = $this->safe_string($monthMappping, $monthName);
+        $day = mb_substr($date, 5, 7 - 5);
+        $reconstructedDate = $day . $month . $year;
+        return $reconstructedDate;
+    }
+
+    public function create_expired_option_market($symbol) {
+        // support expired option contracts
+        $quote = 'USD';
+        $settle = 'USDC';
+        $optionParts = explode('-', $symbol);
+        $symbolBase = explode('/', $symbol);
+        $base = null;
+        $expiry = null;
+        if (mb_strpos($symbol, '/') > -1) {
+            $base = $this->safe_string($symbolBase, 0);
+            $expiry = $this->safe_string($optionParts, 1);
+        } else {
+            $base = $this->safe_string($optionParts, 0);
+            $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
+        }
+        $strike = $this->safe_string($optionParts, 2);
+        $optionType = $this->safe_string($optionParts, 3);
+        $datetime = $this->convert_expire_date($expiry);
+        $timestamp = $this->parse8601($datetime);
+        return array(
+            'id' => $base . '-' . $this->convert_expire_date_to_market_id_date($expiry) . '-' . $strike . '-' . $optionType,
+            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $base,
+            'quoteId' => $quote,
+            'settleId' => $settle,
+            'active' => false,
+            'type' => 'option',
+            'linear' => null,
+            'inverse' => null,
+            'spot' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => true,
+            'margin' => false,
+            'contract' => true,
+            'contractSize' => null,
+            'expiry' => $timestamp,
+            'expiryDatetime' => $datetime,
+            'optionType' => ($optionType === 'C') ? 'call' : 'put',
+            'strike' => $this->parse_number($strike),
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+            ),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => null,
+        );
+    }
+
+    public function market($symbol) {
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' $markets not loaded');
+        }
+        if (gettype($symbol) === 'string') {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                return $this->markets[$symbol];
+            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
+                $markets = $this->markets_by_id[$symbol];
+                return $markets[0];
+            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1)) {
+                return $this->create_expired_option_market($symbol);
+            }
+        }
+        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+    }
+
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            // handle expired option contracts
+            return $this->create_expired_option_market($marketId);
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
     public function fetch_time($params = array ()) {
@@ -7261,7 +7421,7 @@ class bybit extends Exchange {
                 }
                 $results[] = $this->parse_position($rawPosition);
             }
-            return $this->filter_by_array($results, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -7338,7 +7498,7 @@ class bybit extends Exchange {
                 }
                 $results[] = $this->parse_position($rawPosition, $market);
             }
-            return $this->filter_by_array($results, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -8798,7 +8958,7 @@ class bybit extends Exchange {
             $data = $this->safe_value($result, 'list', array());
             $settlements = $this->parse_settlements($data, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
         }) ();
     }
 
