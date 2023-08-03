@@ -42,11 +42,11 @@ export default class bittrex extends bittrexRest {
             },
             'options': {
                 'tradesLimit': 1000,
-                'hub': 'c3',
-                'I': this.milliseconds (),
                 'watchOrderBook': {
                     'fetchSnapshotAttempts': 3,
                 },
+                'hub': 'c3',
+                'I': this.milliseconds (),
             },
         });
     }
