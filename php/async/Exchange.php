@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.37';
+$version = '4.0.48';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.37';
+    const VERSION = '4.0.48';
 
     public $browser;
     public $marketsLoading = null;
@@ -824,6 +824,7 @@ class Exchange extends \ccxt\Exchange {
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
         $symbol = $this->safe_string($order, 'symbol');
         $side = $this->safe_string($order, 'side');
+        $status = $this->safe_string($order, 'status');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
         $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
@@ -933,18 +934,22 @@ class Exchange extends \ccxt\Exchange {
             // ensure $amount = $filled . $remaining
             if ($filled !== null && $remaining !== null) {
                 $amount = Precise::string_add($filled, $remaining);
-            } elseif ($this->safe_string($order, 'status') === 'closed') {
+            } elseif ($status === 'closed') {
                 $amount = $filled;
             }
         }
         if ($filled === null) {
             if ($amount !== null && $remaining !== null) {
                 $filled = Precise::string_sub($amount, $remaining);
+            } elseif ($status === 'closed' && $amount !== null) {
+                $filled = $amount;
             }
         }
         if ($remaining === null) {
             if ($amount !== null && $filled !== null) {
                 $remaining = Precise::string_sub($amount, $filled);
+            } elseif ($status === 'closed') {
+                $remaining = '0';
             }
         }
         // ensure that the $average field is calculated correctly
@@ -1054,7 +1059,7 @@ class Exchange extends \ccxt\Exchange {
             'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
-            'status' => $this->safe_string($order, 'status'),
+            'status' => $status,
             'fee' => $this->safe_value($order, 'fee'),
         ));
     }
@@ -1757,7 +1762,7 @@ class Exchange extends \ccxt\Exchange {
             $position = array_merge($this->parse_position($positions[$i], null), $params);
             $result[] = $position;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filterByArrayPositions ($result, 'symbol', $symbols, false);
     }
 
     public function parse_accounts($accounts, $params = array ()) {
@@ -1993,6 +1998,16 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_position(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
+    }
+
+    public function fetch_positions_by_symbol(string $symbol, $params = array ()) {
+        /**
+         * specifically fetches positions for specific $symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+         * @param {string} $symbol unified market $symbol of the market the position is held in
+         * @param {array} $params extra parameters specific to the endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported($this->id . ' fetchPositionsBySymbol() is not supported yet');
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
@@ -3192,9 +3207,9 @@ class Exchange extends \ccxt\Exchange {
     public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
         /**
          * @ignore
-         * @param {string} $argument the $argument to check
-         * @param {string} $argumentName the name of the $argument to check
          * @param {string} $methodName the name of the method that the $argument is being checked for
+         * @param {string} $argument the argument's actual value provided
+         * @param {string} $argumentName the name of the $argument being checked (for logging purposes)
          * @param {string[]} $options a list of $options that the $argument can be
          * @return {null}
          */
@@ -3355,5 +3370,13 @@ class Exchange extends \ccxt\Exchange {
                 throw new NotSupported($this->id . ' fetchTransactions () is not supported yet');
             }
         }) ();
+    }
+
+    public function filter_by_array_positions($objects, int|string $key, $values = null, $indexed = true) {
+        /**
+         * @ignore
+         * Typed wrapper for filterByArray that returns a list of positions
+         */
+        return $this->filter_by_array($objects, $key, $values, $indexed);
     }
 }

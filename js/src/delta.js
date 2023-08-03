@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/delta.js';
-import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } from './base/errors.js';
+import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -27,14 +27,15 @@ export default class delta extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': true,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -42,14 +43,18 @@ export default class delta extends Exchange {
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -58,6 +63,8 @@ export default class delta extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -65,9 +72,14 @@ export default class delta extends Exchange {
                 'fetchTrades': true,
                 'fetchTransfer': undefined,
                 'fetchTransfers': undefined,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': true,
+                'setLeverage': true,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -226,6 +238,107 @@ export default class delta extends Exchange {
             },
         });
     }
+    convertExpireDate(date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice(0, 2);
+        const month = date.slice(2, 4);
+        const day = date.slice(4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+    createExpiredOptionMarket(symbol) {
+        // support expired option contracts
+        const quote = 'USDT';
+        const optionParts = symbol.split('-');
+        const symbolBase = symbol.split('/');
+        let base = undefined;
+        let expiry = undefined;
+        let optionType = undefined;
+        if (symbol.indexOf('/') > -1) {
+            base = this.safeString(symbolBase, 0);
+            expiry = this.safeString(optionParts, 1);
+            optionType = this.safeString(optionParts, 3);
+        }
+        else {
+            base = this.safeString(optionParts, 1);
+            expiry = this.safeString(optionParts, 3);
+            optionType = this.safeString(optionParts, 0);
+        }
+        const settle = quote;
+        const strike = this.safeString(optionParts, 2);
+        const datetime = this.convertExpireDate(expiry);
+        const timestamp = this.parse8601(datetime);
+        return {
+            'id': optionType + '-' + base + '-' + strike + '-' + expiry,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': false,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': this.parseNumber('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': this.parseNumber(strike),
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
+    }
+    market(symbol) {
+        if (this.markets === undefined) {
+            throw new ExchangeError(this.id + ' markets not loaded');
+        }
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                return this.markets[symbol];
+            }
+            else if (symbol in this.markets_by_id) {
+                const markets = this.markets_by_id[symbol];
+                return markets[0];
+            }
+            else if ((symbol.indexOf('-C') > -1) || (symbol.indexOf('-P') > -1) || (symbol.indexOf('C')) || (symbol.indexOf('P'))) {
+                return this.createExpiredOptionMarket(symbol);
+            }
+        }
+        throw new BadSymbol(this.id + ' does not have market symbol ' + symbol);
+    }
+    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1) || (marketId.indexOf('C')) || (marketId.indexOf('P')));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket(marketId);
+        }
+        return super.safeMarket(marketId, market, delimiter, marketType);
+    }
     async fetchTime(params = {}) {
         /**
          * @method
@@ -318,6 +431,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.delta.exchange/#get-list-of-all-assets
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -404,6 +518,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchMarkets
          * @description retrieves data on all markets for delta
+         * @see https://docs.delta.exchange/#get-list-of-products
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -1151,6 +1266,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.delta.exchange/#get-l2-orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the delta api endpoint
@@ -1291,6 +1407,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.delta.exchange/#get-public-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1346,6 +1463,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.delta.exchange/#get-ohlc-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1356,7 +1474,6 @@ export default class delta extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe);
@@ -1371,6 +1488,17 @@ export default class delta extends Exchange {
             request['start'] = start;
             request['end'] = this.sum(start, limit * duration);
         }
+        const price = this.safeString(params, 'price');
+        if (price === 'mark') {
+            request['symbol'] = 'MARK:' + market['id'];
+        }
+        else if (price === 'index') {
+            request['symbol'] = market['info']['spot_index']['symbol'];
+        }
+        else {
+            request['symbol'] = market['id'];
+        }
+        params = this.omit(params, 'price');
         const response = await this.publicGetHistoryCandles(this.extend(request, params));
         //
         //     {
@@ -1406,6 +1534,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.delta.exchange/#get-wallet-balances
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -1439,6 +1568,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://docs.delta.exchange/#get-position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -1467,6 +1597,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.delta.exchange/#get-margined-positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -1665,12 +1796,14 @@ export default class delta extends Exchange {
          * @method
          * @name delta#createOrder
          * @description create a trade order
+         * @see https://docs.delta.exchange/#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1694,6 +1827,11 @@ export default class delta extends Exchange {
         params = this.omit(params, ['clientOrderId', 'client_order_id']);
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
+        }
+        const reduceOnly = this.safeValue(params, 'reduceOnly');
+        if (reduceOnly) {
+            request['reduce_only'] = reduceOnly;
+            params = this.omit(params, 'reduceOnly');
         }
         const response = await this.privatePostOrders(this.extend(request, params));
         //
@@ -1736,6 +1874,20 @@ export default class delta extends Exchange {
         return this.parseOrder(result, market);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#editOrder
+         * @description edit a trade order
+         * @see https://docs.delta.exchange/#edit-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1776,14 +1928,13 @@ export default class delta extends Exchange {
          * @method
          * @name delta#cancelOrder
          * @description cancels an open order
+         * @see https://docs.delta.exchange/#cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1835,13 +1986,12 @@ export default class delta extends Exchange {
          * @method
          * @name delta#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://docs.delta.exchange/#cancel-all-open-orders
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelAllOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1863,9 +2013,10 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.delta.exchange/#get-active-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1876,9 +2027,10 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.delta.exchange/#get-order-history-cancelled-and-closed
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the delta api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1939,6 +2091,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.delta.exchange/#get-user-fills-by-filters
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2020,6 +2173,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.delta.exchange/#get-wallet-transactions
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
@@ -2639,6 +2793,225 @@ export default class delta extends Exchange {
             'datetime': this.iso8601(timestamp),
             'info': interest,
         };
+    }
+    async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.delta.exchange/#get-order-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'product_id': market['numericId'],
+        };
+        //
+        //     {
+        //         "result": {
+        //             "index_symbol": null,
+        //             "leverage": "10",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84,
+        //             "user_id": 30084879
+        //         },
+        //         "success": true
+        //     }
+        //
+        return await this.privateGetProductsProductIdOrdersLeverage(this.extend(request, params));
+    }
+    async setLeverage(leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.delta.exchange/#change-order-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol('setLeverage', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'product_id': market['numericId'],
+            'leverage': leverage,
+        };
+        //
+        //     {
+        //         "result": {
+        //             "leverage": "20",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84
+        //         },
+        //         "success": true
+        //     }
+        //
+        return await this.privatePostProductsProductIdOrdersLeverage(this.extend(request, params));
+    }
+    async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://docs.delta.exchange/#get-product-settlement-prices
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [settlement history objects]
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const request = {
+            'states': 'expired',
+        };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.publicGetProducts(this.extend(request, params));
+        //
+        //     {
+        //         "result": [
+        //             {
+        //                 "contract_value": "0.001",
+        //                 "basis_factor_max_limit": "10.95",
+        //                 "maker_commission_rate": "0.0003",
+        //                 "launch_time": "2023-07-19T04:30:03Z",
+        //                 "trading_status": "operational",
+        //                 "product_specs": {
+        //                     "backup_vol_expiry_time": 31536000,
+        //                     "max_deviation_from_external_vol": 0.75,
+        //                     "max_lower_deviation_from_external_vol": 0.75,
+        //                     "max_upper_deviation_from_external_vol": 0.5,
+        //                     "max_volatility": 3,
+        //                     "min_volatility": 0.1,
+        //                     "premium_commission_rate": 0.1,
+        //                     "settlement_index_price": "29993.536675710806",
+        //                     "vol_calculation_method": "orderbook",
+        //                     "vol_expiry_time": 31536000
+        //                 },
+        //                 "description": "BTC call option expiring on 19-7-2023",
+        //                 "settlement_price": "0",
+        //                 "disruption_reason": null,
+        //                 "settling_asset": {},
+        //                 "initial_margin": "1",
+        //                 "tick_size": "0.1",
+        //                 "maintenance_margin": "0.5",
+        //                 "id": 117542,
+        //                 "notional_type": "vanilla",
+        //                 "ui_config": {},
+        //                 "contract_unit_currency": "BTC",
+        //                 "symbol": "C-BTC-30900-190723",
+        //                 "insurance_fund_margin_contribution": "1",
+        //                 "price_band": "2",
+        //                 "annualized_funding": "10.95",
+        //                 "impact_size": 200,
+        //                 "contract_type": "call_options",
+        //                 "position_size_limit": 255633,
+        //                 "max_leverage_notional": "200000",
+        //                 "initial_margin_scaling_factor": "0.000002",
+        //                 "strike_price": "30900",
+        //                 "is_quanto": false,
+        //                 "settlement_time": "2023-07-19T12:00:00Z",
+        //                 "liquidation_penalty_factor": "0.5",
+        //                 "funding_method": "mark_price",
+        //                 "taker_commission_rate": "0.0003",
+        //                 "default_leverage": "100.000000000000000000",
+        //                 "state": "expired",
+        //                 "auction_start_time": null,
+        //                 "short_description": "BTC  Call",
+        //                 "quoting_asset": {},
+        //                 "maintenance_margin_scaling_factor":"0.000002"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const result = this.safeValue(response, 'result', []);
+        const settlements = this.parseSettlements(result, market);
+        const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+    }
+    parseSettlement(settlement, market) {
+        //
+        //     {
+        //         "contract_value": "0.001",
+        //         "basis_factor_max_limit": "10.95",
+        //         "maker_commission_rate": "0.0003",
+        //         "launch_time": "2023-07-19T04:30:03Z",
+        //         "trading_status": "operational",
+        //         "product_specs": {
+        //             "backup_vol_expiry_time": 31536000,
+        //             "max_deviation_from_external_vol": 0.75,
+        //             "max_lower_deviation_from_external_vol": 0.75,
+        //             "max_upper_deviation_from_external_vol": 0.5,
+        //             "max_volatility": 3,
+        //             "min_volatility": 0.1,
+        //             "premium_commission_rate": 0.1,
+        //             "settlement_index_price": "29993.536675710806",
+        //             "vol_calculation_method": "orderbook",
+        //             "vol_expiry_time": 31536000
+        //         },
+        //         "description": "BTC call option expiring on 19-7-2023",
+        //         "settlement_price": "0",
+        //         "disruption_reason": null,
+        //         "settling_asset": {},
+        //         "initial_margin": "1",
+        //         "tick_size": "0.1",
+        //         "maintenance_margin": "0.5",
+        //         "id": 117542,
+        //         "notional_type": "vanilla",
+        //         "ui_config": {},
+        //         "contract_unit_currency": "BTC",
+        //         "symbol": "C-BTC-30900-190723",
+        //         "insurance_fund_margin_contribution": "1",
+        //         "price_band": "2",
+        //         "annualized_funding": "10.95",
+        //         "impact_size": 200,
+        //         "contract_type": "call_options",
+        //         "position_size_limit": 255633,
+        //         "max_leverage_notional": "200000",
+        //         "initial_margin_scaling_factor": "0.000002",
+        //         "strike_price": "30900",
+        //         "is_quanto": false,
+        //         "settlement_time": "2023-07-19T12:00:00Z",
+        //         "liquidation_penalty_factor": "0.5",
+        //         "funding_method": "mark_price",
+        //         "taker_commission_rate": "0.0003",
+        //         "default_leverage": "100.000000000000000000",
+        //         "state": "expired",
+        //         "auction_start_time": null,
+        //         "short_description": "BTC  Call",
+        //         "quoting_asset": {},
+        //         "maintenance_margin_scaling_factor":"0.000002"
+        //     }
+        //
+        const datetime = this.safeString(settlement, 'settlement_time');
+        const marketId = this.safeString(settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol(marketId, market),
+            'price': this.safeNumber(settlement, 'settlement_price'),
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
+        };
+    }
+    parseSettlements(settlements, market) {
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push(this.parseSettlement(settlements[i], market));
+        }
+        return result;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams(path, params);

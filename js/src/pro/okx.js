@@ -632,7 +632,7 @@ export default class okx extends okxRest {
         /**
          * @method
          * @name okx#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -723,12 +723,12 @@ export default class okx extends okxRest {
          * @name okx#watchMyTrades
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
          * @description watches information on multiple trades made by the user
-         * @param {string} [symbol] unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} [symbol] unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         await this.authenticate();

@@ -206,11 +206,11 @@ class bitfinex2 extends bitfinex2$1 {
          * @method
          * @name bitfinex2#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         let messageHash = 'myTrade';
@@ -619,22 +619,22 @@ class bitfinex2 extends bitfinex2$1 {
             const deltas = message[1];
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
-                const price = this.safeFloat(deltas, 1);
+                const price = this.safeString(deltas, 1);
                 const size = (deltas[2] < 0) ? -deltas[2] : deltas[2];
                 const side = (deltas[2] < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store(price, amount, id);
+                const amount = Precise["default"].stringGt(price, '0') ? size : '0';
+                bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
             }
             else {
-                const amount = this.safeNumber(deltas, 2);
-                const counter = this.safeNumber(deltas, 1);
-                const price = this.safeNumber(deltas, 0);
-                const size = (amount < 0) ? -amount : amount;
-                const side = (amount < 0) ? 'asks' : 'bids';
+                const amount = this.safeString(deltas, 2);
+                const counter = this.safeString(deltas, 1);
+                const price = this.safeString(deltas, 0);
+                const size = Precise["default"].stringLt(amount, '0') ? Precise["default"].stringNeg(amount) : amount;
+                const side = Precise["default"].stringLt(amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbook[side];
-                bookside.store(price, size, counter);
+                bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
             }
             client.resolve(orderbook, messageHash);
         }
@@ -680,7 +680,7 @@ class bitfinex2 extends bitfinex2$1 {
         /**
          * @method
          * @name bitfinex2#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
@@ -1021,11 +1021,11 @@ class bitfinex2 extends bitfinex2$1 {
         const clientOrderId = this.safeString(order, 1);
         const marketId = this.safeString(order, 3);
         const symbol = this.safeSymbol(marketId);
-        market = this.safeMarket(marketId);
-        let amount = this.safeNumber(order, 7);
+        market = this.safeMarket(symbol);
+        let amount = this.safeString(order, 7);
         let side = 'buy';
-        if (amount < 0) {
-            amount = Math.abs(amount);
+        if (Precise["default"].stringLt(amount, '0')) {
+            amount = Precise["default"].stringAbs(amount);
             side = 'sell';
         }
         const remaining = Precise["default"].stringAbs(this.safeString(order, 6));

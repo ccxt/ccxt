@@ -1535,7 +1535,7 @@ class bitfinex(Exchange, ImplicitAPI):
             body = self.json(query)
             payload = self.string_to_base64(body)
             secret = self.encode(self.secret)
-            signature = self.hmac(payload, secret, hashlib.sha384)
+            signature = self.hmac(self.encode(payload), secret, hashlib.sha384)
             headers = {
                 'X-BFX-APIKEY': self.apiKey,
                 'X-BFX-PAYLOAD': payload,

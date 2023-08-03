@@ -526,7 +526,10 @@ class phemex extends phemex$1 {
         const status = this.safeString(market, 'status');
         const contractSizeString = this.safeString(market, 'contractSize', ' ');
         let contractSize = undefined;
-        if (contractSizeString.indexOf(' ')) {
+        if (settle === 'USDT') {
+            contractSize = 1;
+        }
+        else if (contractSizeString.indexOf(' ')) {
             // "1 USD"
             // "0.005 ETH"
             const parts = contractSizeString.split(' ');
@@ -3419,7 +3422,7 @@ class phemex extends phemex$1 {
             const position = positions[i];
             result.push(this.parsePosition(position));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //

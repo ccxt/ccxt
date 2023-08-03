@@ -129,11 +129,13 @@ class gate extends gate$1 {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
+                'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
                 'withdraw': true,
@@ -800,7 +802,8 @@ class gate extends gate$1 {
                     'CROSS_ACCOUNT_NOT_FOUND': errors.ExchangeError,
                     'RISK_LIMIT_TOO_LOW': errors.BadRequest,
                     'AUTO_TRIGGER_PRICE_LESS_LAST': errors.InvalidOrder,
-                    'AUTO_TRIGGER_PRICE_GREATE_LAST': errors.InvalidOrder, // {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST': errors.InvalidOrder,
+                    'POSITION_HOLDING': errors.BadRequest,
                 },
                 'broad': {},
             },
@@ -5974,6 +5977,23 @@ class gate extends gate$1 {
             'dnw': 'deposit/withdraw',
         };
         return this.safeString(ledgerType, type, type);
+    }
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#setPositionMode
+         * @description set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
+         * @see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+         * @param {bool} hedged set to true to enable dual mode
+         * @param {string|undefined} symbol if passed, dual mode is set for all markets with the same settle currency
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @param {string} params.settle settle currency
+         * @returns {object} response from the exchange
+         */
+        const market = (symbol !== undefined) ? this.market(symbol) : undefined;
+        const [request, query] = this.prepareRequest(market, 'swap', params);
+        request['dual_mode'] = hedged;
+        return await this.privateFuturesPostSettleDualMode(this.extend(request, query));
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

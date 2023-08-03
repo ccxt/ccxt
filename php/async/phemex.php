@@ -534,7 +534,9 @@ class phemex extends Exchange {
         $status = $this->safe_string($market, 'status');
         $contractSizeString = $this->safe_string($market, 'contractSize', ' ');
         $contractSize = null;
-        if (mb_strpos($contractSizeString, ' ')) {
+        if ($settle === 'USDT') {
+            $contractSize = 1;
+        } elseif (mb_strpos($contractSizeString, ' ')) {
             // "1 USD"
             // "0.005 ETH"
             $parts = explode(' ', $contractSizeString);
@@ -3420,7 +3422,7 @@ class phemex extends Exchange {
                 $position = $positions[$i];
                 $result[] = $this->parse_position($position);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 

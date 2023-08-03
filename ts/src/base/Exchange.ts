@@ -140,8 +140,8 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
-export {Market, Trade, Fee, Ticker} from './types'
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position } from './types.js';
+export {Market, Trade, Fee, Ticker} from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -516,6 +516,7 @@ export default class Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
+                'fetchPositionsBySymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
@@ -1921,6 +1922,7 @@ export default class Exchange {
         let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
         let symbol = this.safeString (order, 'symbol');
         let side = this.safeString (order, 'side');
+        const status = this.safeString (order, 'status');
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
         const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
@@ -2030,18 +2032,22 @@ export default class Exchange {
             // ensure amount = filled + remaining
             if (filled !== undefined && remaining !== undefined) {
                 amount = Precise.stringAdd (filled, remaining);
-            } else if (this.safeString (order, 'status') === 'closed') {
+            } else if (status === 'closed') {
                 amount = filled;
             }
         }
         if (filled === undefined) {
             if (amount !== undefined && remaining !== undefined) {
                 filled = Precise.stringSub (amount, remaining);
+            } else if (status === 'closed' && amount !== undefined) {
+                filled = amount;
             }
         }
         if (remaining === undefined) {
             if (amount !== undefined && filled !== undefined) {
                 remaining = Precise.stringSub (amount, filled);
+            } else if (status === 'closed') {
+                remaining = '0';
             }
         }
         // ensure that the average field is calculated correctly
@@ -2151,7 +2157,7 @@ export default class Exchange {
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'status': this.safeString (order, 'status'),
+            'status': status,
             'fee': this.safeValue (order, 'fee'),
         });
     }
@@ -2828,7 +2834,7 @@ export default class Exchange {
         return this.markets;
     }
 
-    safePosition (position) {
+    safePosition (position): Position {
         // simplified version of: /pull/12765/
         const unrealizedPnlString = this.safeString (position, 'unrealisedPnl');
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -2841,10 +2847,10 @@ export default class Exchange {
             const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber (percentageString);
         }
-        return position;
+        return position as any;
     }
 
-    parsePositions (positions, symbols: string[] = undefined, params = {}) {
+    parsePositions (positions, symbols: string[] = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
         const result = [];
@@ -2852,7 +2858,7 @@ export default class Exchange {
             const position = this.extend (this.parsePosition (positions[i], undefined), params);
             result.push (position);
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parseAccounts (accounts, params = {}) {
@@ -3070,15 +3076,27 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 
-    async fetchPosition (symbol: string, params = {}): Promise<any> {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<any> {
+    async fetchPositionsBySymbol (symbol: string, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsBySymbol
+         * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not supported yet');
+    }
+
+    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 
-    async fetchPositionsRisk (symbols: string[] = undefined, params = {}) {
+    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
@@ -4222,9 +4240,9 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * @param {string} argument the argument to check
-         * @param {string} argumentName the name of the argument to check
          * @param {string} methodName the name of the method that the argument is being checked for
+         * @param {string} argument the argument's actual value provided
+         * @param {string} argumentName the name of the argument being checked (for logging purposes)
          * @param {string[]} options a list of options that the argument can be
          * @returns {undefined}
          */
@@ -4390,6 +4408,15 @@ export default class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchTransactions () is not supported yet');
         }
+    }
+
+    filterByArrayPositions (objects, key: IndexType, values = undefined, indexed = true): Position[] {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of positions
+         */
+        return this.filterByArray (objects, key, values, indexed) as Position[];
     }
 }
 

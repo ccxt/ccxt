@@ -129,6 +129,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': True,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
@@ -1241,6 +1242,7 @@ class okx(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for okx
+        see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -1348,12 +1350,10 @@ class okx(Exchange, ImplicitAPI):
                 symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType
                 optionType = 'put' if (optionType == 'P') else 'call'
         tickSize = self.safe_string(market, 'tickSz')
-        minAmountString = self.safe_string(market, 'minSz')
-        minAmount = self.parse_number(minAmountString)
         fees = self.safe_value_2(self.fees, type, 'trading', {})
-        precisionPrice = self.parse_number(tickSize)
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
+        maxSpotCost = self.safe_number(market, 'maxMktSz')
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -1380,7 +1380,7 @@ class okx(Exchange, ImplicitAPI):
             'optionType': optionType,
             'precision': {
                 'amount': self.safe_number(market, 'lotSz'),
-                'price': precisionPrice,
+                'price': self.parse_number(tickSize),
             },
             'limits': {
                 'leverage': {
@@ -1388,16 +1388,16 @@ class okx(Exchange, ImplicitAPI):
                     'max': self.parse_number(maxLeverage),
                 },
                 'amount': {
-                    'min': minAmount,
+                    'min': self.safe_number(market, 'minSz'),
                     'max': None,
                 },
                 'price': {
-                    'min': precisionPrice,
+                    'min': None,
                     'max': None,
                 },
                 'cost': {
                     'min': None,
-                    'max': None,
+                    'max': None if contract else maxSpotCost,
                 },
             },
             'info': market,
@@ -4538,7 +4538,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         position = self.safe_value(data, 0)
         if position is None:
-            return position
+            return None
         return self.parse_position(position)
 
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
@@ -4618,7 +4618,7 @@ class okx(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #

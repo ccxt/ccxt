@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.37'
+__version__ = '4.0.48'
 
 # -----------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BaseError, BadSymbol, BadRequest, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress
+from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
 from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
 
@@ -952,6 +952,7 @@ class Exchange(BaseExchange):
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
         symbol = self.safe_string(order, 'symbol')
         side = self.safe_string(order, 'side')
+        status = self.safe_string(order, 'status')
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
@@ -1035,14 +1036,18 @@ class Exchange(BaseExchange):
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
                 amount = Precise.string_add(filled, remaining)
-            elif self.safe_string(order, 'status') == 'closed':
+            elif status == 'closed':
                 amount = filled
         if filled is None:
             if amount is not None and remaining is not None:
                 filled = Precise.string_sub(amount, remaining)
+            elif status == 'closed' and amount is not None:
+                filled = amount
         if remaining is None:
             if amount is not None and filled is not None:
                 remaining = Precise.string_sub(amount, filled)
+            elif status == 'closed':
+                remaining = '0'
         # ensure that the average field is calculated correctly
         inverse = self.safe_value(market, 'inverse', False)
         contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
@@ -1137,7 +1142,7 @@ class Exchange(BaseExchange):
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'status': self.safe_string(order, 'status'),
+            'status': status,
             'fee': self.safe_value(order, 'fee'),
         })
 
@@ -1717,7 +1722,7 @@ class Exchange(BaseExchange):
         for i in range(0, len(positions)):
             position = self.extend(self.parse_position(positions[i], None), params)
             result.append(position)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filterByArrayPositions(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts, params={}):
         accounts = self.to_array(accounts)
@@ -1896,6 +1901,15 @@ class Exchange(BaseExchange):
 
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def fetch_positions_by_symbol(self, symbol: str, params={}):
+        """
+        specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        """
+        raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
@@ -2810,9 +2824,9 @@ class Exchange(BaseExchange):
     def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """
          * @ignore
-        :param str argument: the argument to check
-        :param str argumentName: the name of the argument to check
         :param str methodName: the name of the method that the argument is being checked for
+        :param str argument: the argument's actual value provided
+        :param str argumentName: the name of the argument being checked(for logging purposes)
         :param str[] options: a list of options that the argument can be
         :returns None:
         """
@@ -2949,3 +2963,10 @@ class Exchange(BaseExchange):
             return await self.fetchDepositsWithdrawals(code, since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
+
+    def filter_by_array_positions(self, objects, key: IndexType, values=None, indexed=True):
+        """
+         * @ignore
+        Typed wrapper for filterByArray that returns a list of positions
+        """
+        return self.filter_by_array(objects, key, values, indexed)

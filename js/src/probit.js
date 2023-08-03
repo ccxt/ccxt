@@ -1221,7 +1221,9 @@ export default class probit extends Exchange {
                 if (createMarketBuyOrderRequiresPrice) {
                     if (price !== undefined) {
                         if (cost === undefined) {
-                            cost = amount * price;
+                            const amountString = this.numberToString(amount);
+                            const priceString = this.numberToString(price);
+                            cost = this.parseNumber(Precise.stringMul(amountString, priceString));
                         }
                     }
                     else if (cost === undefined) {

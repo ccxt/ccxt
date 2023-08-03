@@ -101,6 +101,7 @@ class binance extends Exchange {
                 'fetchTransactionFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
@@ -921,6 +922,7 @@ class binance extends Exchange {
                         'portfolio/repay-futures-switch' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-negative-balance' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'listenKey' => 1, // 1
+                        'asset-collection' => 3,
                     ),
                     'put' => array(
                         'listenKey' => 1, // 1
@@ -3633,10 +3635,11 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @param {string} $id cancel order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -3645,30 +3648,8 @@ class binance extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' editSpotOrder() does not support ' . $market['type'] . ' orders');
         }
-        $request = array(
-            'symbol' => $market['id'],
-            'side' => strtoupper($side),
-        );
-        $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
-        $response = null;
-        if ($market['spot']) {
-            $response = $this->privatePostOrderCancelReplace (array_merge($request, $params));
-        } else {
-            $request['orderId'] = $id;
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            if ($clientOrderId !== null) {
-                $request['origClientOrderId'] = $clientOrderId;
-            }
-            $params = $this->omit($params, array( 'clientOrderId', 'newClientOrderId' ));
-            if ($market['linear']) {
-                $response = $this->fapiPrivatePutOrder (array_merge($request, $params));
-            } elseif ($market['inverse']) {
-                $response = $this->dapiPrivatePutOrder (array_merge($request, $params));
-            }
-        }
+        $payload = $this->edit_spot_order_request($id, $symbol, $type, $side, $amount, $price, $params);
+        $response = $this->privatePostOrderCancelReplace ($payload);
         //
         // spot
         //
@@ -3721,9 +3702,9 @@ class binance extends Exchange {
          * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the binance api endpoint
-         * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
@@ -7135,7 +7116,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $result[] = $this->parse_position($response[$i], $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {
@@ -7245,7 +7226,7 @@ class binance extends Exchange {
         $account = $this->$method ($query);
         $result = $this->parse_account_positions($account);
         $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function fetch_positions_risk(?array $symbols = null, $params = array ()) {
@@ -7339,7 +7320,7 @@ class binance extends Exchange {
             $result[] = $parsed;
         }
         $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

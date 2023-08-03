@@ -3231,7 +3231,7 @@ class digifinex extends Exchange {
             for ($i = 0; $i < count($positions); $i++) {
                 $result[] = $this->parse_position($positions[$i], $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 

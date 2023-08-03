@@ -92,7 +92,7 @@ class lbank2(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'withdraw': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'minute1',

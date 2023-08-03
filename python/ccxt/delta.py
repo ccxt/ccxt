@@ -11,7 +11,6 @@ from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -36,14 +35,15 @@ class delta(Exchange, ImplicitAPI):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': True,
+                'future': False,
+                'option': True,
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -51,14 +51,18 @@ class delta(Exchange, ImplicitAPI):
                 'fetchDeposit': None,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
+                'fetchIndexOHLCV': True,
                 'fetchLedger': True,
+                'fetchLeverage': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -67,6 +71,8 @@ class delta(Exchange, ImplicitAPI):
                 'fetchPosition': True,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -74,9 +80,14 @@ class delta(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransfer': None,
                 'fetchTransfers': None,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': None,
                 'reduceMargin': True,
+                'setLeverage': True,
+                'setMargin': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
             },
@@ -236,6 +247,99 @@ class delta(Exchange, ImplicitAPI):
             },
         })
 
+    def convert_expire_date(self, date):
+        # parse YYMMDD to timestamp
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
+    def create_expired_option_market(self, symbol):
+        # support expired option contracts
+        quote = 'USDT'
+        optionParts = symbol.split('-')
+        symbolBase = symbol.split('/')
+        base = None
+        expiry = None
+        optionType = None
+        if symbol.find('/') > -1:
+            base = self.safe_string(symbolBase, 0)
+            expiry = self.safe_string(optionParts, 1)
+            optionType = self.safe_string(optionParts, 3)
+        else:
+            base = self.safe_string(optionParts, 1)
+            expiry = self.safe_string(optionParts, 3)
+            optionType = self.safe_string(optionParts, 0)
+        settle = quote
+        strike = self.safe_string(optionParts, 2)
+        datetime = self.convert_expire_date(expiry)
+        timestamp = self.parse8601(datetime)
+        return {
+            'id': optionType + '-' + base + '-' + strike + '-' + expiry,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': False,
+            'type': 'option',
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': True,
+            'margin': False,
+            'contract': True,
+            'contractSize': self.parse_number('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': 'call' if (optionType == 'C') else 'put',
+            'strike': self.parse_number(strike),
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
+
+    def market(self, symbol):
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if isinstance(symbol, str):
+            if symbol in self.markets:
+                return self.markets[symbol]
+            elif symbol in self.markets_by_id:
+                markets = self.markets_by_id[symbol]
+                return markets[0]
+            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1) or (symbol.find('C')) or (symbol.find('P')):
+                return self.create_expired_option_market(symbol)
+        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
+
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1) or (marketId.find('C')) or (marketId.find('P')))
+        if isOption and not (marketId in self.markets_by_id):
+            # handle expired option contracts
+            return self.create_expired_option_market(marketId)
+        return super(delta, self).safe_market(marketId, market, delimiter, marketType)
+
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
@@ -322,6 +426,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        see https://docs.delta.exchange/#get-list-of-all-assets
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -403,6 +508,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for delta
+        see https://docs.delta.exchange/#get-list-of-products
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -1133,6 +1239,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://docs.delta.exchange/#get-l2-orderbook
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the delta api endpoint
@@ -1265,6 +1372,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://docs.delta.exchange/#get-public-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1318,6 +1426,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://docs.delta.exchange/#get-ohlc-candles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1328,7 +1437,6 @@ class delta(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
@@ -1341,6 +1449,14 @@ class delta(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['start'] = start
             request['end'] = self.sum(start, limit * duration)
+        price = self.safe_string(params, 'price')
+        if price == 'mark':
+            request['symbol'] = 'MARK:' + market['id']
+        elif price == 'index':
+            request['symbol'] = market['info']['spot_index']['symbol']
+        else:
+            request['symbol'] = market['id']
+        params = self.omit(params, 'price')
         response = self.publicGetHistoryCandles(self.extend(request, params))
         #
         #     {
@@ -1373,6 +1489,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://docs.delta.exchange/#get-wallet-balances
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
@@ -1404,6 +1521,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
+        see https://docs.delta.exchange/#get-position
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -1430,6 +1548,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
+        see https://docs.delta.exchange/#get-margined-positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -1621,12 +1740,14 @@ class delta(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://docs.delta.exchange/#place-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the delta api endpoint
+        :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1649,6 +1770,10 @@ class delta(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly:
+            request['reduce_only'] = reduceOnly
+            params = self.omit(params, 'reduceOnly')
         response = self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -1690,6 +1815,18 @@ class delta(Exchange, ImplicitAPI):
         return self.parse_order(result, market)
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        see https://docs.delta.exchange/#edit-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1726,13 +1863,13 @@ class delta(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
+        see https://docs.delta.exchange/#cancel-order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        self.check_required_symbol('cancelOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1782,12 +1919,12 @@ class delta(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
+        see https://docs.delta.exchange/#cancel-all-open-orders
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
+        self.check_required_symbol('cancelAllOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1807,9 +1944,10 @@ class delta(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
+        see https://docs.delta.exchange/#get-active-orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1818,9 +1956,10 @@ class delta(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
+        see https://docs.delta.exchange/#get-order-history-cancelled-and-closed
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the delta api endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1876,6 +2015,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
+        see https://docs.delta.exchange/#get-user-fills-by-filters
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1952,6 +2092,7 @@ class delta(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
+        see https://docs.delta.exchange/#get-wallet-transactions
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
@@ -2551,6 +2692,216 @@ class delta(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': interest,
         }
+
+    def fetch_leverage(self, symbol: str, params={}):
+        """
+        fetch the set leverage for a market
+        see https://docs.delta.exchange/#get-order-leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['numericId'],
+        }
+        #
+        #     {
+        #         "result": {
+        #             "index_symbol": null,
+        #             "leverage": "10",
+        #             "margin_mode": "isolated",
+        #             "order_margin": "0",
+        #             "product_id": 84,
+        #             "user_id": 30084879
+        #         },
+        #         "success": True
+        #     }
+        #
+        return self.privateGetProductsProductIdOrdersLeverage(self.extend(request, params))
+
+    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+        """
+        set the level of leverage for a market
+        see https://docs.delta.exchange/#change-order-leverage
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_symbol('setLeverage', symbol)
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['numericId'],
+            'leverage': leverage,
+        }
+        #
+        #     {
+        #         "result": {
+        #             "leverage": "20",
+        #             "margin_mode": "isolated",
+        #             "order_margin": "0",
+        #             "product_id": 84
+        #         },
+        #         "success": True
+        #     }
+        #
+        return self.privatePostProductsProductIdOrdersLeverage(self.extend(request, params))
+
+    def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical settlement records
+        see https://docs.delta.exchange/#get-product-settlement-prices
+        :param str symbol: unified market symbol of the settlement history
+        :param int [since]: timestamp in ms
+        :param int [limit]: number of records
+        :param dict [params]: exchange specific params
+        :returns dict[]: a list of [settlement history objects]
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'states': 'expired',
+        }
+        if limit is not None:
+            request['page_size'] = limit
+        response = self.publicGetProducts(self.extend(request, params))
+        #
+        #     {
+        #         "result": [
+        #             {
+        #                 "contract_value": "0.001",
+        #                 "basis_factor_max_limit": "10.95",
+        #                 "maker_commission_rate": "0.0003",
+        #                 "launch_time": "2023-07-19T04:30:03Z",
+        #                 "trading_status": "operational",
+        #                 "product_specs": {
+        #                     "backup_vol_expiry_time": 31536000,
+        #                     "max_deviation_from_external_vol": 0.75,
+        #                     "max_lower_deviation_from_external_vol": 0.75,
+        #                     "max_upper_deviation_from_external_vol": 0.5,
+        #                     "max_volatility": 3,
+        #                     "min_volatility": 0.1,
+        #                     "premium_commission_rate": 0.1,
+        #                     "settlement_index_price": "29993.536675710806",
+        #                     "vol_calculation_method": "orderbook",
+        #                     "vol_expiry_time": 31536000
+        #                 },
+        #                 "description": "BTC call option expiring on 19-7-2023",
+        #                 "settlement_price": "0",
+        #                 "disruption_reason": null,
+        #                 "settling_asset": {},
+        #                 "initial_margin": "1",
+        #                 "tick_size": "0.1",
+        #                 "maintenance_margin": "0.5",
+        #                 "id": 117542,
+        #                 "notional_type": "vanilla",
+        #                 "ui_config": {},
+        #                 "contract_unit_currency": "BTC",
+        #                 "symbol": "C-BTC-30900-190723",
+        #                 "insurance_fund_margin_contribution": "1",
+        #                 "price_band": "2",
+        #                 "annualized_funding": "10.95",
+        #                 "impact_size": 200,
+        #                 "contract_type": "call_options",
+        #                 "position_size_limit": 255633,
+        #                 "max_leverage_notional": "200000",
+        #                 "initial_margin_scaling_factor": "0.000002",
+        #                 "strike_price": "30900",
+        #                 "is_quanto": False,
+        #                 "settlement_time": "2023-07-19T12:00:00Z",
+        #                 "liquidation_penalty_factor": "0.5",
+        #                 "funding_method": "mark_price",
+        #                 "taker_commission_rate": "0.0003",
+        #                 "default_leverage": "100.000000000000000000",
+        #                 "state": "expired",
+        #                 "auction_start_time": null,
+        #                 "short_description": "BTC  Call",
+        #                 "quoting_asset": {},
+        #                 "maintenance_margin_scaling_factor":"0.000002"
+        #             }
+        #         ],
+        #         "success": True
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        settlements = self.parse_settlements(result, market)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+
+    def parse_settlement(self, settlement, market):
+        #
+        #     {
+        #         "contract_value": "0.001",
+        #         "basis_factor_max_limit": "10.95",
+        #         "maker_commission_rate": "0.0003",
+        #         "launch_time": "2023-07-19T04:30:03Z",
+        #         "trading_status": "operational",
+        #         "product_specs": {
+        #             "backup_vol_expiry_time": 31536000,
+        #             "max_deviation_from_external_vol": 0.75,
+        #             "max_lower_deviation_from_external_vol": 0.75,
+        #             "max_upper_deviation_from_external_vol": 0.5,
+        #             "max_volatility": 3,
+        #             "min_volatility": 0.1,
+        #             "premium_commission_rate": 0.1,
+        #             "settlement_index_price": "29993.536675710806",
+        #             "vol_calculation_method": "orderbook",
+        #             "vol_expiry_time": 31536000
+        #         },
+        #         "description": "BTC call option expiring on 19-7-2023",
+        #         "settlement_price": "0",
+        #         "disruption_reason": null,
+        #         "settling_asset": {},
+        #         "initial_margin": "1",
+        #         "tick_size": "0.1",
+        #         "maintenance_margin": "0.5",
+        #         "id": 117542,
+        #         "notional_type": "vanilla",
+        #         "ui_config": {},
+        #         "contract_unit_currency": "BTC",
+        #         "symbol": "C-BTC-30900-190723",
+        #         "insurance_fund_margin_contribution": "1",
+        #         "price_band": "2",
+        #         "annualized_funding": "10.95",
+        #         "impact_size": 200,
+        #         "contract_type": "call_options",
+        #         "position_size_limit": 255633,
+        #         "max_leverage_notional": "200000",
+        #         "initial_margin_scaling_factor": "0.000002",
+        #         "strike_price": "30900",
+        #         "is_quanto": False,
+        #         "settlement_time": "2023-07-19T12:00:00Z",
+        #         "liquidation_penalty_factor": "0.5",
+        #         "funding_method": "mark_price",
+        #         "taker_commission_rate": "0.0003",
+        #         "default_leverage": "100.000000000000000000",
+        #         "state": "expired",
+        #         "auction_start_time": null,
+        #         "short_description": "BTC  Call",
+        #         "quoting_asset": {},
+        #         "maintenance_margin_scaling_factor":"0.000002"
+        #     }
+        #
+        datetime = self.safe_string(settlement, 'settlement_time')
+        marketId = self.safe_string(settlement, 'symbol')
+        return {
+            'info': settlement,
+            'symbol': self.safe_symbol(marketId, market),
+            'price': self.safe_number(settlement, 'settlement_price'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+        }
+
+    def parse_settlements(self, settlements, market):
+        result = []
+        for i in range(0, len(settlements)):
+            result.append(self.parse_settlement(settlements[i], market))
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)

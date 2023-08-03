@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\delta as Exchange;
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\Precise;
@@ -27,14 +26,15 @@ class delta extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
-                'option' => null,
+                'margin' => false,
+                'swap' => true,
+                'future' => false,
+                'option' => true,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -42,14 +42,18 @@ class delta extends Exchange {
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => null,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -58,6 +62,8 @@ class delta extends Exchange {
                 'fetchPosition' => true,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -65,9 +71,14 @@ class delta extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransfer' => null,
                 'fetchTransfers' => null,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => null,
                 'reduceMargin' => true,
+                'setLeverage' => true,
+                'setMargin' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
             ),
@@ -228,6 +239,108 @@ class delta extends Exchange {
         ));
     }
 
+    public function convert_expire_date($date) {
+        // parse YYMMDD to timestamp
+        $year = mb_substr($date, 0, 2 - 0);
+        $month = mb_substr($date, 2, 4 - 2);
+        $day = mb_substr($date, 4, 6 - 4);
+        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+        return $reconstructedDate;
+    }
+
+    public function create_expired_option_market($symbol) {
+        // support expired option contracts
+        $quote = 'USDT';
+        $optionParts = explode('-', $symbol);
+        $symbolBase = explode('/', $symbol);
+        $base = null;
+        $expiry = null;
+        $optionType = null;
+        if (mb_strpos($symbol, '/') > -1) {
+            $base = $this->safe_string($symbolBase, 0);
+            $expiry = $this->safe_string($optionParts, 1);
+            $optionType = $this->safe_string($optionParts, 3);
+        } else {
+            $base = $this->safe_string($optionParts, 1);
+            $expiry = $this->safe_string($optionParts, 3);
+            $optionType = $this->safe_string($optionParts, 0);
+        }
+        $settle = $quote;
+        $strike = $this->safe_string($optionParts, 2);
+        $datetime = $this->convert_expire_date($expiry);
+        $timestamp = $this->parse8601($datetime);
+        return array(
+            'id' => $optionType . '-' . $base . '-' . $strike . '-' . $expiry,
+            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $base,
+            'quoteId' => $quote,
+            'settleId' => $settle,
+            'active' => false,
+            'type' => 'option',
+            'linear' => null,
+            'inverse' => null,
+            'spot' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => true,
+            'margin' => false,
+            'contract' => true,
+            'contractSize' => $this->parse_number('1'),
+            'expiry' => $timestamp,
+            'expiryDatetime' => $datetime,
+            'optionType' => ($optionType === 'C') ? 'call' : 'put',
+            'strike' => $this->parse_number($strike),
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+            ),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => null,
+        );
+    }
+
+    public function market($symbol) {
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' $markets not loaded');
+        }
+        if (gettype($symbol) === 'string') {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                return $this->markets[$symbol];
+            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
+                $markets = $this->markets_by_id[$symbol];
+                return $markets[0];
+            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1) || (mb_strpos($symbol, 'C')) || (mb_strpos($symbol, 'P'))) {
+                return $this->create_expired_option_market($symbol);
+            }
+        }
+        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+    }
+
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1) || (mb_strpos($marketId, 'C')) || (mb_strpos($marketId, 'P')));
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            // handle expired option contracts
+            return $this->create_expired_option_market($marketId);
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
+    }
+
     public function fetch_time($params = array ()) {
         return Async\async(function () use ($params) {
             /**
@@ -321,6 +434,7 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
+             * @see https://docs.delta.exchange/#get-list-of-all-assets
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array} an associative dictionary of $currencies
              */
@@ -411,6 +525,7 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for delta
+             * @see https://docs.delta.exchange/#get-list-of-products
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -1158,6 +1273,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.delta.exchange/#get-l2-orderbook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the delta api endpoint
@@ -1299,6 +1415,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://docs.delta.exchange/#get-public-trades
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1355,7 +1472,8 @@ class delta extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+             * @see https://docs.delta.exchange/#get-ohlc-candles
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1366,7 +1484,6 @@ class delta extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe);
@@ -1380,6 +1497,15 @@ class delta extends Exchange {
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $limit * $duration);
             }
+            $price = $this->safe_string($params, 'price');
+            if ($price === 'mark') {
+                $request['symbol'] = 'MARK:' . $market['id'];
+            } elseif ($price === 'index') {
+                $request['symbol'] = $market['info']['spot_index']['symbol'];
+            } else {
+                $request['symbol'] = $market['id'];
+            }
+            $params = $this->omit($params, 'price');
             $response = Async\await($this->publicGetHistoryCandles (array_merge($request, $params)));
             //
             //     {
@@ -1417,6 +1543,7 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://docs.delta.exchange/#get-wallet-balances
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
@@ -1451,6 +1578,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade position
+             * @see https://docs.delta.exchange/#get-position
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -1480,6 +1608,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             * @see https://docs.delta.exchange/#get-margined-positions
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -1681,12 +1810,14 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://docs.delta.exchange/#place-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1710,6 +1841,11 @@ class delta extends Exchange {
             $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
+            }
+            $reduceOnly = $this->safe_value($params, 'reduceOnly');
+            if ($reduceOnly) {
+                $request['reduce_only'] = $reduceOnly;
+                $params = $this->omit($params, 'reduceOnly');
             }
             $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
             //
@@ -1755,6 +1891,18 @@ class delta extends Exchange {
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @see https://docs.delta.exchange/#edit-order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1796,14 +1944,13 @@ class delta extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://docs.delta.exchange/#cancel-order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1856,13 +2003,12 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             * @see https://docs.delta.exchange/#cancel-all-open-orders
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelAllOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1885,9 +2031,10 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://docs.delta.exchange/#get-active-orders
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -1899,9 +2046,10 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             * @see https://docs.delta.exchange/#get-order-history-cancelled-and-closed
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the delta api endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -1966,6 +2114,7 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             * @see https://docs.delta.exchange/#get-user-fills-by-filters
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -2048,6 +2197,7 @@ class delta extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * @see https://docs.delta.exchange/#get-wallet-transactions
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
@@ -2682,6 +2832,230 @@ class delta extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         );
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the set leverage for a $market
+             * @see https://docs.delta.exchange/#get-order-leverage
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'product_id' => $market['numericId'],
+            );
+            //
+            //     {
+            //         "result" => array(
+            //             "index_symbol" => null,
+            //             "leverage" => "10",
+            //             "margin_mode" => "isolated",
+            //             "order_margin" => "0",
+            //             "product_id" => 84,
+            //             "user_id" => 30084879
+            //         ),
+            //         "success" => true
+            //     }
+            //
+            return Async\await($this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params)));
+        }) ();
+    }
+
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($leverage, $symbol, $params) {
+            /**
+             * set the level of $leverage for a $market
+             * @see https://docs.delta.exchange/#change-order-$leverage
+             * @param {float} $leverage the rate of $leverage
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @return {array} response from the exchange
+             */
+            $this->check_required_symbol('setLeverage', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'product_id' => $market['numericId'],
+                'leverage' => $leverage,
+            );
+            //
+            //     {
+            //         "result" => array(
+            //             "leverage" => "20",
+            //             "margin_mode" => "isolated",
+            //             "order_margin" => "0",
+            //             "product_id" => 84
+            //         ),
+            //         "success" => true
+            //     }
+            //
+            return Async\await($this->privatePostProductsProductIdOrdersLeverage (array_merge($request, $params)));
+        }) ();
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical settlement records
+             * @see https://docs.delta.exchange/#get-product-settlement-prices
+             * @param {string} $symbol unified $market $symbol of the settlement history
+             * @param {int} [$since] timestamp in ms
+             * @param {int} [$limit] number of records
+             * @param {array} [$params] exchange specific $params
+             * @return {array[]} a list of [settlement history objects]
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array(
+                'states' => 'expired',
+            );
+            if ($limit !== null) {
+                $request['page_size'] = $limit;
+            }
+            $response = Async\await($this->publicGetProducts (array_merge($request, $params)));
+            //
+            //     {
+            //         "result" => array(
+            //             {
+            //                 "contract_value" => "0.001",
+            //                 "basis_factor_max_limit" => "10.95",
+            //                 "maker_commission_rate" => "0.0003",
+            //                 "launch_time" => "2023-07-19T04:30:03Z",
+            //                 "trading_status" => "operational",
+            //                 "product_specs" => array(
+            //                     "backup_vol_expiry_time" => 31536000,
+            //                     "max_deviation_from_external_vol" => 0.75,
+            //                     "max_lower_deviation_from_external_vol" => 0.75,
+            //                     "max_upper_deviation_from_external_vol" => 0.5,
+            //                     "max_volatility" => 3,
+            //                     "min_volatility" => 0.1,
+            //                     "premium_commission_rate" => 0.1,
+            //                     "settlement_index_price" => "29993.536675710806",
+            //                     "vol_calculation_method" => "orderbook",
+            //                     "vol_expiry_time" => 31536000
+            //                 ),
+            //                 "description" => "BTC call option expiring on 19-7-2023",
+            //                 "settlement_price" => "0",
+            //                 "disruption_reason" => null,
+            //                 "settling_asset" => array(),
+            //                 "initial_margin" => "1",
+            //                 "tick_size" => "0.1",
+            //                 "maintenance_margin" => "0.5",
+            //                 "id" => 117542,
+            //                 "notional_type" => "vanilla",
+            //                 "ui_config" => array(),
+            //                 "contract_unit_currency" => "BTC",
+            //                 "symbol" => "C-BTC-30900-190723",
+            //                 "insurance_fund_margin_contribution" => "1",
+            //                 "price_band" => "2",
+            //                 "annualized_funding" => "10.95",
+            //                 "impact_size" => 200,
+            //                 "contract_type" => "call_options",
+            //                 "position_size_limit" => 255633,
+            //                 "max_leverage_notional" => "200000",
+            //                 "initial_margin_scaling_factor" => "0.000002",
+            //                 "strike_price" => "30900",
+            //                 "is_quanto" => false,
+            //                 "settlement_time" => "2023-07-19T12:00:00Z",
+            //                 "liquidation_penalty_factor" => "0.5",
+            //                 "funding_method" => "mark_price",
+            //                 "taker_commission_rate" => "0.0003",
+            //                 "default_leverage" => "100.000000000000000000",
+            //                 "state" => "expired",
+            //                 "auction_start_time" => null,
+            //                 "short_description" => "BTC  Call",
+            //                 "quoting_asset" => array(),
+            //                 "maintenance_margin_scaling_factor":"0.000002"
+            //             }
+            //         ),
+            //         "success" => true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $settlements = $this->parse_settlements($result, $market);
+            $sorted = $this->sort_by($settlements, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        }) ();
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        //     {
+        //         "contract_value" => "0.001",
+        //         "basis_factor_max_limit" => "10.95",
+        //         "maker_commission_rate" => "0.0003",
+        //         "launch_time" => "2023-07-19T04:30:03Z",
+        //         "trading_status" => "operational",
+        //         "product_specs" => array(
+        //             "backup_vol_expiry_time" => 31536000,
+        //             "max_deviation_from_external_vol" => 0.75,
+        //             "max_lower_deviation_from_external_vol" => 0.75,
+        //             "max_upper_deviation_from_external_vol" => 0.5,
+        //             "max_volatility" => 3,
+        //             "min_volatility" => 0.1,
+        //             "premium_commission_rate" => 0.1,
+        //             "settlement_index_price" => "29993.536675710806",
+        //             "vol_calculation_method" => "orderbook",
+        //             "vol_expiry_time" => 31536000
+        //         ),
+        //         "description" => "BTC call option expiring on 19-7-2023",
+        //         "settlement_price" => "0",
+        //         "disruption_reason" => null,
+        //         "settling_asset" => array(),
+        //         "initial_margin" => "1",
+        //         "tick_size" => "0.1",
+        //         "maintenance_margin" => "0.5",
+        //         "id" => 117542,
+        //         "notional_type" => "vanilla",
+        //         "ui_config" => array(),
+        //         "contract_unit_currency" => "BTC",
+        //         "symbol" => "C-BTC-30900-190723",
+        //         "insurance_fund_margin_contribution" => "1",
+        //         "price_band" => "2",
+        //         "annualized_funding" => "10.95",
+        //         "impact_size" => 200,
+        //         "contract_type" => "call_options",
+        //         "position_size_limit" => 255633,
+        //         "max_leverage_notional" => "200000",
+        //         "initial_margin_scaling_factor" => "0.000002",
+        //         "strike_price" => "30900",
+        //         "is_quanto" => false,
+        //         "settlement_time" => "2023-07-19T12:00:00Z",
+        //         "liquidation_penalty_factor" => "0.5",
+        //         "funding_method" => "mark_price",
+        //         "taker_commission_rate" => "0.0003",
+        //         "default_leverage" => "100.000000000000000000",
+        //         "state" => "expired",
+        //         "auction_start_time" => null,
+        //         "short_description" => "BTC  Call",
+        //         "quoting_asset" => array(),
+        //         "maintenance_margin_scaling_factor":"0.000002"
+        //     }
+        //
+        $datetime = $this->safe_string($settlement, 'settlement_time');
+        $marketId = $this->safe_string($settlement, 'symbol');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'settlement_price'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+        );
+    }
+
+    public function parse_settlements($settlements, $market) {
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -103,6 +103,7 @@ class okx extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => true,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
@@ -1234,6 +1235,7 @@ class okx extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for okx
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -1350,12 +1352,10 @@ class okx extends Exchange {
             }
         }
         $tickSize = $this->safe_string($market, 'tickSz');
-        $minAmountString = $this->safe_string($market, 'minSz');
-        $minAmount = $this->parse_number($minAmountString);
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
-        $precisionPrice = $this->parse_number($tickSize);
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
+        $maxSpotCost = $this->safe_number($market, 'maxMktSz');
         return array_merge($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1382,7 +1382,7 @@ class okx extends Exchange {
             'optionType' => $optionType,
             'precision' => array(
                 'amount' => $this->safe_number($market, 'lotSz'),
-                'price' => $precisionPrice,
+                'price' => $this->parse_number($tickSize),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1390,16 +1390,16 @@ class okx extends Exchange {
                     'max' => $this->parse_number($maxLeverage),
                 ),
                 'amount' => array(
-                    'min' => $minAmount,
+                    'min' => $this->safe_number($market, 'minSz'),
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $precisionPrice,
+                    'min' => null,
                     'max' => null,
                 ),
                 'cost' => array(
                     'min' => null,
-                    'max' => null,
+                    'max' => $contract ? null : $maxSpotCost,
                 ),
             ),
             'info' => $market,
@@ -4742,7 +4742,7 @@ class okx extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $position = $this->safe_value($data, 0);
         if ($position === null) {
-            return $position;
+            return null;
         }
         return $this->parse_position($position);
     }
@@ -4828,7 +4828,7 @@ class okx extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i]);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {

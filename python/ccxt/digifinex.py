@@ -3014,7 +3014,7 @@ class digifinex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i], market))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def fetch_position(self, symbol: str, params={}):
         """

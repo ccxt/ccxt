@@ -3209,7 +3209,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push(this.parsePosition(positions[i], market));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPosition(symbol, params = {}) {
         /**
