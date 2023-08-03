@@ -496,38 +496,43 @@ export default class wavesexchange extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.matcherGetMatcherOrderbook ();
+        const response = await this.marketGetTickers ();
         //
-        //     {
-        //         "markets": [
-        //             {
-        //                 "amountAsset": "4mjTVQ5UXFH1CDxZoncR9TgsHsuCuRLCgUS2iQfRC3t4",
-        //                 "amountAssetName": "KMGVB",
-        //                 "amountAssetInfo": {
-        //                   "decimals": 1
-        //                 },
-        //                 "priceAsset": "WAVES",
-        //                 "priceAssetName": "WAVES",
-        //                 "priceAssetInfo": {
-        //                   "decimals": 8
-        //                 },
-        //                 "created": 1690531665728,
-        //                 "matchingRules": {
-        //                   "tickSize": "0.00000001"
-        //                 }
-        //             }
-        //         ]
-        //     }
+        //   [
+        //       {
+        //           "symbol": "WAVES/BTC",
+        //           "amountAssetID": "WAVES",
+        //           "amountAssetName": "Waves",
+        //           "amountAssetDecimals": 8,
+        //           "amountAssetTotalSupply": "106908766.00000000",
+        //           "amountAssetMaxSupply": "106908766.00000000",
+        //           "amountAssetCirculatingSupply": "106908766.00000000",
+        //           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //           "priceAssetName": "WBTC",
+        //           "priceAssetDecimals": 8,
+        //           "priceAssetTotalSupply": "20999999.96007507",
+        //           "priceAssetMaxSupply": "20999999.96007507",
+        //           "priceAssetCirculatingSupply": "20999999.66019601",
+        //           "24h_open": "0.00032688",
+        //           "24h_high": "0.00033508",
+        //           "24h_low": "0.00032443",
+        //           "24h_close": "0.00032806",
+        //           "24h_vwap": "0.00032988",
+        //           "24h_volume": "42349.69440104",
+        //           "24h_priceVolume": "13.97037207",
+        //           "timestamp":1640232379124
+        //       }
+        //       ...
+        //   ]
         //
-        const data = this.safeValue (response, 'markets');
         const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const baseId = this.safeString (entry, 'amountAsset');
-            const quoteId = this.safeString (entry, 'priceAsset');
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const baseId = this.safeString (entry, 'amountAssetID');
+            const quoteId = this.safeString (entry, 'priceAssetID');
             const id = baseId + '/' + quoteId;
-            let base = this.safeString (entry, 'amountAssetName');
-            let quote = this.safeString (entry, 'priceAssetName');
+            const marketId = this.safeString (entry, 'symbol');
+            let [ base, quote ] = marketId.split ('/');
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
@@ -556,8 +561,8 @@ export default class wavesexchange extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (this.safeValue (entry, 'amountAssetInfo'), 'decimals'),
-                    'price': this.safeInteger (this.safeValue (entry, 'priceAssetInfo'), 'decimals'),
+                    'amount': this.safeInteger (entry, 'amountAssetDecimals'),
+                    'price': this.safeInteger (entry, 'priceAssetDecimals'),
                 },
                 'limits': {
                     'leverage': {
