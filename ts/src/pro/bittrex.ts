@@ -651,10 +651,10 @@ export default class bittrex extends bittrexRest {
     }
 
     async wsFetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
-            const symbol = this.safeString (subscription, 'symbol');
-            const limit = this.safeInteger (subscription, 'limit');
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
             const snapshot = await this.fetchOrderBook (symbol, limit);
