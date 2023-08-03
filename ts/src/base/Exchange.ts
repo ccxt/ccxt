@@ -1159,11 +1159,14 @@ export default class Exchange {
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue (this.options, 'ws', {});
+            const wsConnectionsTokenConfig = this.calculateWsTokenBucket (wsOptions, url);
+            const wsMessagesTokenConfig = this.calculateWsTokenBucket (wsOptions, url, 'messages');
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
                 'verbose': this.verbose,
-                'throttler': new Throttler (this.tokenBucket),
+                'connectionsThrottler': new Throttler (wsConnectionsTokenConfig),
+                'messagesThrottler': new Throttler (wsMessagesTokenConfig),
                 // add support for proxies
                 'options': {
                     'agent': this.agent,
@@ -1174,7 +1177,7 @@ export default class Exchange {
         return this.clients[url];
     }
 
-    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined, messageCost = 1) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1220,20 +1223,21 @@ export default class Exchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
-        const connected = client.connect (backoffDelay);
+        let connected = undefined;
+        if (this.enableRateLimit && !client.startedConnecting) {
+            // const connectionCost = this.safeValue (this.options, 'ws', {}).connectionCost;
+            connected = client.connectionsThrottler.throttle ().then (() => client.connect (backoffDelay));
+        } else {
+            connected = client.connect (backoffDelay);
+        }
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
         if (!clientSubscription) {
             connected.then (() => {
-                    const options = this.safeValue (this.options, 'ws');
-                    const cost = this.safeValue (options, 'cost', 1);
                     if (message) {
-                        if (this.enableRateLimit && client.throttle) {
-                            // add cost here |
-                            //               |
-                            //               V
-                            client.throttle (cost).then (() => {
+                        if (this.enableRateLimit && client.messagesThrottler) {
+                            client.messagesThrottler.throttle (messageCost).then (() => {
                                 client.send (message);
                             }).catch ((e) => { throw e });
                         } else {
@@ -1387,6 +1391,38 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    calculateWsTokenBucket (wsOptions, url, tokenKey = 'connections') {
+        const rateLimits = this.safeValue (wsOptions, 'rateLimits');
+        const specificRateLimit = this.safeValue (rateLimits, tokenKey);
+        const rateLimit = this.safeNumber (specificRateLimit, 'rateLimit');
+        if (rateLimits === undefined || rateLimit === undefined) {
+            return this.tokenBucket; // default to the rest bucket
+        }
+        let cost = 1;
+        const rateLimitsKeys = Object.keys (rateLimits);
+        for (let i = 0; i < rateLimitsKeys.length; i++) {
+            const rateLimitKey = rateLimitsKeys[i];
+            if (url.startsWith (rateLimitKey)) {
+                const value = this.safeValue (rateLimits, rateLimitKey);
+                const urlCost = this.safeInteger (value, tokenKey);
+                if (urlCost !== undefined) {
+                    cost = urlCost;
+                    break;
+                }
+            }
+        }
+        const refillRate = (rateLimit !== undefined) ? (1 / rateLimit) : Number.MAX_SAFE_INTEGER;
+        const tokenBucket = this.safeValue (rateLimits, 'tokenBucket', {});
+        const config = this.extend ({
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': cost,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        }, tokenBucket);
+        return config;
+    }
 
     checkProxySettings (url, method, headers, body) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;

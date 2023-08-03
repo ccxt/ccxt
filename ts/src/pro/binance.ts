@@ -94,7 +94,38 @@ export default class binance extends binanceRest {
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
                 'ws': {
-                    'cost': 5,
+                    'rateLimits': {
+                        'connections': {
+                            'rateLimit': 1000, // The WS-API now only allows 300 connections requests every 5 minutes. // 1 req per second  = 1000ms
+                        },
+                        'messages': {
+                            'rateLimit': 100, // biggest limit: futures 10 message per second = 100ms
+                        },
+                        'wss://stream.binance.com:9443': {
+                            'connections': 1,
+                            'messages': 2, // 5 per second
+                        },
+                        'wss://fstream.binance.com': {
+                            'connections': 1,
+                            'messages': 1, // 10 per second
+                        },
+                        'wss://dstream.binance.com': {
+                            'connections': 1,
+                            'messages': 1, // 10 per second
+                        },
+                        'wss://stream.binancefuture.com/ws': { // testnet url
+                            'connections': 1,
+                            'messages': 1, // 10 per second
+                        },
+                        'wss://testnet.binance.vision': { // testnet url
+                            'connections': 1,
+                            'messages': 2,  // spot is 5 msg per second
+                        },
+                        'wss://dstream.binancefuture.com': { // testnet url
+                            'connections': 1,
+                            'messages': 1,
+                        },
+                    },
                 },
             },
         });
@@ -1206,7 +1237,7 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleBalanceWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription, 10);
     }
 
     handleBalanceWs (client: Client, message) {
@@ -1776,7 +1807,7 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleOrderWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription, 2);
     }
 
     async fetchOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1817,7 +1848,7 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleOrdersWs,
         };
-        const orders = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orders = await this.watch (url, messageHash, message, messageHash, subscription, 10);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -1854,7 +1885,8 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleOrdersWs,
         };
-        const orders = await this.watch (url, messageHash, message, messageHash, subscription);
+        const messageCost = (symbol === undefined) ? 40 : 3;
+        const orders = await this.watch (url, messageHash, message, messageHash, subscription, messageCost);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -2186,7 +2218,7 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleTradesWs,
         };
-        const trades = await this.watch (url, messageHash, message, messageHash, subscription);
+        const trades = await this.watch (url, messageHash, message, messageHash, subscription, 10);
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
@@ -2252,7 +2284,7 @@ export default class binance extends binanceRest {
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;
-        const trades = await this.watch (url, messageHash, message, type);
+        const trades = await this.watch (url, messageHash, message, type, 10);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
