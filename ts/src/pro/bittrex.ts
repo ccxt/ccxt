@@ -44,6 +44,7 @@ export default class bittrex extends bittrexRest {
                 'tradesLimit': 1000,
                 'watchOrderBook': {
                     'fetchSnapshotAttempts': 3,
+                    'limit': 25, // default is 25
                 },
                 'hub': 'c3',
                 'I': this.milliseconds (),
@@ -617,7 +618,8 @@ export default class bittrex extends bittrexRest {
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        limit = (limit === undefined) ? 25 : limit; // 25 by default
+        const defaultLimitFromOptions = this.handleOption ('watchOrderBook', 'limit', 25);
+        limit = (limit === undefined) ? defaultLimitFromOptions : limit; // 25 by default
         if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
             throw new BadRequest (this.id + ' watchOrderBook() limit argument must be undefined, 1, 25 or 500, default is 25');
         }
@@ -647,7 +649,7 @@ export default class bittrex extends bittrexRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBookFetchSnapshot (client, message, subscription) {
+    async wsFetchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
             const symbol = this.safeString (subscription, 'symbol');

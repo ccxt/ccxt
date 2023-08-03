@@ -34,6 +34,10 @@ export default class huobijp extends huobijpRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchOrderBook': {
+                    'fetchSnapshotAttempts': 3,
+                    'limit': 150, // the default
+                },
                 'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
                     'gunzip': true,
@@ -283,8 +287,9 @@ export default class huobijp extends huobijpRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
+        const defaultLimit = this.handleOption ('watchOrderBook', 'limit', 150);
         // only supports a limit of 150 at this time
-        limit = (limit === undefined) ? 150 : limit;
+        limit = (limit === undefined) ? defaultLimit : limit;
         const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
@@ -344,7 +349,7 @@ export default class huobijp extends huobijpRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchOrderBookFetchSnapshot (client, message, subscription) {
+    async wsFetchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
             const symbol = this.safeString (subscription, 'symbol');

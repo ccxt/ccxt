@@ -2478,7 +2478,7 @@ export default class Exchange {
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         // watch the snapshot in a separate async call
-        this.spawn (this.watchOrderBookFetchSnapshot, client, message, subscription);
+        this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
     }
 
     spawnOrderBookSnapshot (client: Client, message, subscription, sequence, snapshot) {
@@ -2500,7 +2500,7 @@ export default class Exchange {
                     numAttempts = this.sum (numAttempts, 1);
                     subscription['numAttempts'] = numAttempts;
                     client.subscriptions[messageHash] = subscription;
-                    this.spawn (this.watchOrderBookFetchSnapshot, client, message, subscription);
+                    this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
                 }
             } else {
                 // throw upon failing to synchronize in maxAttempts
@@ -2519,8 +2519,8 @@ export default class Exchange {
         }
     }
 
-    async watchOrderBookFetchSnapshot (client, message, subscription) {
-        throw new NotSupported (this.id + ' watchOrderBookFetchSnapshot() not implemented yet');
+    async wsFetchOrderBookSnapshot (client, message, subscription) {
+        throw new NotSupported (this.id + ' wsFetchOrderBookSnapshot() not implemented yet');
     }
 
     handleOrderBookMessage (client: Client, message, orderbook, messageHash = undefined) {

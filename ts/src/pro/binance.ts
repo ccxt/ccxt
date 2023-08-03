@@ -214,14 +214,14 @@ export default class binance extends binanceRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBookFetchSnapshot (client, message, subscription) {
+    async wsFetchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol');
         try {
-            const defaultLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-            const defaultLimit = this.handleOptionAndParams ({}, 'watchOrderBook', 'limit', defaultLimitOld);
-            const type = this.safeValue (subscription, 'type');
+            const defaultLimitFromOptions = this.handleOption ('watchOrderBook', 'limit', 1000);
             // @ts-ignore
+            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', defaultLimitFromOptions);
+            const type = this.safeValue (subscription, 'type');
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             const params = this.safeValue (subscription, 'params');
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
