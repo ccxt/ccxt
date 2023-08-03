@@ -86,15 +86,15 @@ export default class huobi extends huobiRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchOrderBook': {
+                    'fetchSnapshotAttempts': 3,
+                },
                 'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
                     'gunzip': true,
                 },
                 'watchTicker': {
                     'name': 'market.{marketId}.detail', // 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
-                },
-                'watchOrderBook': {
-                    'fetchSnapshotAttempts': 3,
                 },
             },
             'exceptions': {
