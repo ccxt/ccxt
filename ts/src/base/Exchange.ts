@@ -2467,6 +2467,20 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
+    handleOrderBookSubscription (client: Client, message, subscription) {
+        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        // watch the snapshot in a separate async call
+        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+    }
+
     spawnOrderBookSnapshot (client: Client, message, subscription, sequence, snapshot) {
         const symbol = this.safeString (subscription, 'symbol');
         const orderbook = this.orderbooks[symbol];
