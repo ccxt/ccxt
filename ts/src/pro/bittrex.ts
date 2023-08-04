@@ -631,12 +631,6 @@ export default class bittrex extends bittrexRest {
         //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note: for private streams, the sequence number is scoped to a single account or subaccount).
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
-        const orderbook = await this.subscribeToOrderBook (negotiation, symbol, limit, params);
-        return orderbook.limit ();
-    }
-
-    async subscribeToOrderBook (negotiation, symbol, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'] + '_' + limit.toString ();
@@ -647,7 +641,8 @@ export default class bittrex extends bittrexRest {
             'limit': limit,
             'params': params,
         };
-        return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
+        const orderbook = await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
