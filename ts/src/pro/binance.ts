@@ -142,7 +142,7 @@ export default class binance extends binanceRest {
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
         // valid <levels> are 5, 10, or 20
         //
-        this.wsOrderBookLimit (undefined, limit); // validate the limit argument here
+        this.wsOrderBookLimitValidation (limit);
         //
         await this.loadMarkets ();
         const market = this.market (symbol);

@@ -3369,7 +3369,18 @@ export default class Exchange {
         return result;
     }
 
-    wsOrderBookLimit (subscription = undefined, defaultValue = undefined) {
+    wsOrderBookLimitValidation (limit = undefined, validLimitsArray = undefined) {
+        if (limit !== undefined) {
+            if (validLimitsArray) {
+                validLimitsArray = this.handleOption ('watchOrderBook', 'validLimits');
+            }
+            if (validLimitsArray !== undefined && !this.inArray (limit, validLimitsArray)) {
+                throw new ExchangeError (this.id + ' watchOrderBook - if limit argument is defined, it must be one of ' + validLimitsArray.join (', '));
+            }
+        }
+    }
+
+    wsOrderBookLimit (subscription = undefined, defaultValue = undefined, validLimitsArray = undefined) {
         const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', defaultValue); // support obsolete format for some period
         let limit = this.handleOption ('watchOrderBook', 'limit', orderBookLimitOld);
         if (subscription !== undefined) {
@@ -3377,9 +3388,9 @@ export default class Exchange {
         }
         if (limit !== undefined) {
             const options = this.safeValue (this.options, 'watchOrderBook', {});
-            const validLimits = this.safeValue (options, 'validLimits', {});
-            if (validLimits !== undefined && !this.inArray (limit, validLimits)) {
-                throw new ExchangeError (this.id + ' watchOrderBook - if limit argument is defined, it must be one of ' + validLimits.join (', '));
+            validLimitsArray = this.safeValue (options, 'validLimits', validLimitsArray);
+            if (validLimitsArray !== undefined && !this.inArray (limit, validLimitsArray)) {
+                throw new ExchangeError (this.id + ' watchOrderBook - if limit argument is defined, it must be one of ' + validLimitsArray.join (', '));
             }
         }
         return limit;
