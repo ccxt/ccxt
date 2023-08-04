@@ -34,10 +34,6 @@ export default class huobijp extends huobijpRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'watchOrderBook': {
-                    'fetchSnapshotAttempts': 3,
-                    'limit': 150, // the default
-                },
                 'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
                     'gunzip': true,
@@ -287,9 +283,8 @@ export default class huobijp extends huobijpRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const defaultLimit = this.handleOption ('watchOrderBook', 'limit', 150);
         // only supports a limit of 150 at this time
-        limit = (limit === undefined) ? defaultLimit : limit;
+        limit = (limit === undefined) ? 150 : limit;
         const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
@@ -349,7 +344,7 @@ export default class huobijp extends huobijpRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async wsFetchOrderBookSnapshot (client, message, subscription) {
+    async watchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
             const symbol = this.safeString (subscription, 'symbol');
@@ -467,18 +462,15 @@ export default class huobijp extends huobijpRest {
         }
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
-        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         // watch the snapshot in a separate async call
-        this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
+        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client: Client, message) {

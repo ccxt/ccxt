@@ -73,11 +73,8 @@ export default class binance extends binanceRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'watchOrderBook': {
-                    'fetchSnapshotAttempts': 3,
-                    'limit': 1000, // default limit
-                },
                 'requestId': {},
+                'watchOrderBookLimit': 1000, // default limit
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
@@ -214,13 +211,11 @@ export default class binance extends binanceRest {
         return orderbook.limit ();
     }
 
-    async wsFetchOrderBookSnapshot (client, message, subscription) {
+    async fetchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol');
         try {
-            const defaultLimitFromOptions = this.handleOption ('watchOrderBook', 'limit', 1000);
-            // @ts-ignore
-            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', defaultLimitFromOptions);
+            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const type = this.safeValue (subscription, 'type');
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             const params = this.safeValue (subscription, 'params');
@@ -389,18 +384,16 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
-        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
+    handleOrderBookSubscription (client: Client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        // watch the snapshot in a separate async call
-        this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
+        // fetch the snapshot in a separate async call
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client: Client, message) {
