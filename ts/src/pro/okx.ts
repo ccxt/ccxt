@@ -393,10 +393,10 @@ export default class okx extends okxRest {
         // 2. Public depth channel, verification not required
         // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
         //
-        // limits are different depending endpoint: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         const depthChannel = 'books';
         // temporary commented below, as it could be breaking change for some users, as it changes endpoint
         // if (limit !== undefined) {
+        //     // limits are different depending endpoint: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         //     const depthLimits = {
         //         '1': 'bto-tbt',
         //         '5': 'books5',
