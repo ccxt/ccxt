@@ -76,6 +76,7 @@ export default class binance extends binanceRest {
                 'requestId': {},
                 'watchOrderBook': {
                     'limit': 1000, // default limit
+                    'validLimits': [ 5, 10, 20, 50, 100, 500, 1000 ], // exchange default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
                 },
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
@@ -141,12 +142,7 @@ export default class binance extends binanceRest {
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
         // valid <levels> are 5, 10, or 20
         //
-        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        if (limit !== undefined) {
-            if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
-            }
-        }
+        this.getOrderBookLimit (); // validate the limit argument here
         //
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -393,15 +389,17 @@ export default class binance extends binanceRest {
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
-    getOrderBookLimit (subscription) {
+    getOrderBookLimit (subscription = undefined) {
         const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-        // exchange default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        const validLimits = [ 5, 10, 20, 50, 100, 500, 1000 ];
-        if (limit !== undefined && !this.inArray (limit, validLimits)) {
-            throw new BadRequest (this.id + ' watchOrderBook limit argument (' + limit + ') is not one of ' + validLimits.join (', '));
+        if (limit !== undefined) {
+            const options = this.safeValue (this.options, 'watchOrderBook', {});
+            const validLimits = this.safeValue (options, 'validLimits', {});
+            if (!this.inArray (limit, validLimits)) {
+                throw new ExchangeError (this.id + ' watchOrderBook - if limit argument is defined, it must be one of ' + validLimits.join (', '));
+            }
         }
         return limit;
     }
