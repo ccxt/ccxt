@@ -637,7 +637,7 @@ export default class bittrex extends bittrexRest {
         const subscription = {
             'symbol': symbol,
             'messageHash': messageHash,
-            'method': this.handleSubscribeToOrderBook,
+            'method': this.handleOrderBookSubscription,
             'limit': limit,
             'params': params,
         };
@@ -698,7 +698,7 @@ export default class bittrex extends bittrexRest {
         }
     }
 
-    handleSubscribeToOrderBook (client: Client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
