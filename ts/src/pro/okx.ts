@@ -392,7 +392,22 @@ export default class okx extends okxRest {
         // 2. Public depth channel, verification not required
         // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
         //
-        const depth = this.safeString (options, 'depth', 'books');
+        let depthChannel = 'books';
+        if (limit !== undefined) {
+            // limits are different depending endpoint: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+            const depthLimits = {
+                '1': 'bto-tbt',
+                '5': 'books5',
+                '50': 'books50-l2-tbt',
+                '400': 'books',
+            };
+            const limitString = this.numberToString (limit);
+            if (!(limitString in depthLimits)) {
+                throw new BadRequest (this.id + ' limit should be among: ' + this.json (depthLimits));
+            }
+            depthChannel = this.safeString (depthLimits, limitString);
+        }
+        const depth = this.safeString (options, 'depth', depthChannel);
         if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
             await this.authenticate ({ 'access': 'public' });
         }
