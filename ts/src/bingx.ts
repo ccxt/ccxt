@@ -1437,7 +1437,6 @@ export default class bingx extends Exchange {
             request['type'] = 'TAKE_PROFIT_MARKET';
             request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
         }
-        request['timeInForce'] = 'IOC';
         if (postOnly) {
             request['timeInForce'] = 'POC';
         } else if (exchangeSpecificTifParam === 'POC') {
