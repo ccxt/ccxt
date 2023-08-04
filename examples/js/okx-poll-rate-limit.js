@@ -14,7 +14,7 @@ async function main () {
         'api': {
             'private': {
                 'get': {
-                    'trade/fills-history': 2.1,
+                    'trade/fills-history': 2.2,
                 },
             },
         },
