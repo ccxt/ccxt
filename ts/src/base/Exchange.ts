@@ -1577,7 +1577,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
-
     spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot) {
         const symbol = this.safeString (subscription, 'symbol');
         const orderbook = this.orderbooks[symbol];
@@ -1617,12 +1616,12 @@ export default class Exchange {
     }
 
     async wsFetchOrderBookSnapshot (client, message, subscription) {
-        //stub
+        // stub
         throw new NotSupported (this.id + ' wsFetchOrderBookSnapshot not supported yet');
     }
 
     handleOrderBookMessage (client, message, orderbook, messageHash = undefined) {
-        //stub
+        // stub
         throw new NotSupported (this.id + ' handleOrderBookMessage not supported yet');
     }
 

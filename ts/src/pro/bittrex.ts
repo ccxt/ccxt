@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bittrexRest from '../bittrex.js';
-import { InvalidNonce, BadRequest, ExchangeError } from '../base/errors.js';
+import { BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -650,7 +650,7 @@ export default class bittrex extends bittrexRest {
         return orderbook.limit ();
     }
 
-    async wsFetchOrderBookSnapshot (client, message, subscription) {
+    async fetchOrderBookSnapshot (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         const messageHash = this.safeString (subscription, 'messageHash');
@@ -683,7 +683,7 @@ export default class bittrex extends bittrexRest {
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         // watch the snapshot in a separate async call
-        this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleDelta (bookside, delta) {

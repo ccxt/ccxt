@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import huobiRest from '../huobi.js';
-import { ExchangeError, ArgumentsRequired, BadRequest, BadSymbol, InvalidNonce, AuthenticationError, NetworkError } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
