@@ -404,9 +404,13 @@ export default class huobi extends huobiRest {
 
     spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot) {
         const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = subscription['messageHash'];
+        if (symbol === undefined || !(symbol in this.orderbooks)) {
+            client.reject (new ExchangeError (this.id + ' spawnOrderBookSnapshot() - orderbook is not initiated'), messageHash);
+            return;
+        }
         const orderbook = this.orderbooks[symbol];
         const messages = orderbook.cache;
-        const messageHash = this.safeString (subscription, 'messageHash');
         // if the received snapshot is earlier than the first cached delta
         // then we cannot align it with the cached deltas and we need to
         // retry synchronizing in maxAttempts

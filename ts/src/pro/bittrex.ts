@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bittrexRest from '../bittrex.js';
-import { InvalidNonce, BadRequest } from '../base/errors.js';
+import { InvalidNonce, BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -674,9 +674,13 @@ export default class bittrex extends bittrexRest {
 
     spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot) {
         const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = subscription['messageHash'];
+        if (symbol === undefined || !(symbol in this.orderbooks)) {
+            client.reject (new ExchangeError (this.id + ' spawnOrderBookSnapshot() - orderbook is not initiated'), messageHash);
+            return;
+        }
         const orderbook = this.orderbooks[symbol];
         const messages = orderbook.cache;
-        const messageHash = this.safeString (subscription, 'messageHash');
         // if the received snapshot is earlier than the first cached delta
         // then we cannot align it with the cached deltas and we need to
         // retry synchronizing in maxAttempts
@@ -710,7 +714,7 @@ export default class bittrex extends bittrexRest {
         }
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
