@@ -400,7 +400,7 @@ export default class binance extends binanceRest {
         if (limit !== undefined) {
             const options = this.safeValue (this.options, 'watchOrderBook', {});
             const validLimits = this.safeValue (options, 'validLimits', {});
-            if (!this.inArray (limit, validLimits)) {
+            if (validLimits !== undefined && !this.inArray (limit, validLimits)) {
                 throw new ExchangeError (this.id + ' watchOrderBook - if limit argument is defined, it must be one of ' + validLimits.join (', '));
             }
         }
