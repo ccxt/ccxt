@@ -393,7 +393,10 @@ export default class binance extends binanceRest {
         const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
-        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        let limit = defaultLimit;
+        if (subscription !== undefined) {
+            limit = this.safeInteger (subscription, 'limit', limit);
+        }
         if (limit !== undefined) {
             const options = this.safeValue (this.options, 'watchOrderBook', {});
             const validLimits = this.safeValue (options, 'validLimits', {});
