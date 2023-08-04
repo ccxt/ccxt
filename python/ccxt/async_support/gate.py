@@ -3797,8 +3797,8 @@ class gate(Exchange, ImplicitAPI):
         #        "order_type": ""
         #    }
         #
-        put = self.safe_value_2(order, 'put', 'initial')
-        trigger = self.safe_value(order, 'trigger')
+        put = self.safe_value_2(order, 'put', 'initial', {})
+        trigger = self.safe_value(order, 'trigger', {})
         contract = self.safe_string(put, 'contract')
         type = self.safe_string(put, 'type')
         timeInForce = self.safe_string_upper_2(put, 'time_in_force', 'tif')

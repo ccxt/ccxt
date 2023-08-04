@@ -384,6 +384,8 @@
         }
     },
     "bkex": {
+        "skip": "system buy",
+        "until": "2023-08-05T23:56:12.257Z",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",

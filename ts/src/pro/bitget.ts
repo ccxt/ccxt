@@ -430,7 +430,8 @@ export default class bitget extends bitgetRest {
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
             const checksum = this.safeValue (this.options, 'checksum', true);
-            if (checksum) {
+            const isSnapshot = this.safeString (message, 'action') === 'snapshot'; // snapshot does not have a checksum
+            if (!isSnapshot && checksum) {
                 const storedAsks = storedOrderBook['asks'];
                 const storedBids = storedOrderBook['bids'];
                 const asksLength = storedAsks.length;
