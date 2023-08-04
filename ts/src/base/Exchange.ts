@@ -3369,6 +3369,22 @@ export default class Exchange {
         return result;
     }
 
+    wsOrderBookLimit (subscription = undefined, defaultValue = undefined) {
+        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', defaultValue); // support obsolete format for some period
+        let limit = this.handleOption ('watchOrderBook', 'limit', orderBookLimitOld);
+        if (subscription !== undefined) {
+            limit = this.safeInteger (subscription, 'limit', limit);
+        }
+        if (limit !== undefined) {
+            const options = this.safeValue (this.options, 'watchOrderBook', {});
+            const validLimits = this.safeValue (options, 'validLimits', {});
+            if (validLimits !== undefined && !this.inArray (limit, validLimits)) {
+                throw new ExchangeError (this.id + ' watchOrderBook - if limit argument is defined, it must be one of ' + validLimits.join (', '));
+            }
+        }
+        return limit;
+    }
+
     handleMarketTypeAndParams (methodName, market = undefined, params = {}): any {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
