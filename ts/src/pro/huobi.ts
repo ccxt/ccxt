@@ -96,7 +96,7 @@ export default class huobi extends huobiRest {
                 },
                 'watchOrderBook': {
                     'limit': 150, // default limit
-                    'validLimits': [ 20, 150 ],
+                    'validLimits': [ 5, 20, 150, 400 ], // all possible valid limits
                 },
             },
             'exceptions': {
@@ -335,7 +335,7 @@ export default class huobi extends huobiRest {
         symbol = market['symbol'];
         limit = this.wsOrderBookLimit (undefined, limit);
         if (market['spot']) {
-            this.wsOrderBookLimitValidation (limit, [ 150 ]);
+            this.wsOrderBookLimitValidation (limit, [ 5, 20, 150, 400 ]);
         }
         if (!market['spot']) {
             this.wsOrderBookLimitValidation (limit, [ 20, 150 ]);
