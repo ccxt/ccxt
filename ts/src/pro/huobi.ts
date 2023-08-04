@@ -333,12 +333,12 @@ export default class huobi extends huobiRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        limit = this.wsOrderBookLimit (undefined, limit);
+        limit = this.wsDefaultOrderBookLimit (undefined, limit);
         if (market['spot']) {
-            this.wsOrderBookLimitValidation (limit, [ 5, 20, 150, 400 ]);
+            this.wsValidateOrderBookLimit (limit, [ 5, 20, 150, 400 ]);
         }
         if (!market['spot']) {
-            this.wsOrderBookLimitValidation (limit, [ 20, 150 ]);
+            this.wsValidateOrderBookLimit (limit, [ 20, 150 ]);
         }
         let messageHash = undefined;
         if (market['spot']) {
@@ -391,7 +391,7 @@ export default class huobi extends huobiRest {
             const sequence = this.safeInteger (tick, 'seqNum');
             const nonce = this.safeInteger (data, 'seqNum');
             snapshot['nonce'] = nonce;
-            const snapshotLimit = this.wsOrderBookLimit (subscription);
+            const snapshotLimit = this.wsDefaultOrderBookLimit (subscription);
             const snapshotOrderBook = this.orderBook (snapshot, snapshotLimit);
             client.resolve (snapshotOrderBook, id);
             if ((sequence !== undefined) && (nonce < sequence)) {
@@ -429,7 +429,7 @@ export default class huobi extends huobiRest {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
             const symbol = this.safeString (subscription, 'symbol');
-            const limit = this.wsOrderBookLimit (subscription);
+            const limit = this.wsDefaultOrderBookLimit (subscription);
             const params = this.safeValue (subscription, 'params');
             const attempts = this.safeInteger (subscription, 'numAttempts', 0);
             const market = this.market (symbol);
@@ -634,7 +634,7 @@ export default class huobi extends huobiRest {
 
     handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.wsOrderBookLimit (subscription);
+        const limit = this.wsDefaultOrderBookLimit (subscription);
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }

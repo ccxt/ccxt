@@ -3369,17 +3369,17 @@ export default class Exchange {
         return result;
     }
 
-    wsOrderBookLimit (subscription = undefined, defaultValue = undefined, validLimitsArray = undefined) {
+    wsDefaultOrderBookLimit (subscription = undefined, defaultValue = undefined, validLimitsArray = undefined) {
         const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', defaultValue); // support obsolete format for some period
         let limit = this.handleOption ('watchOrderBook', 'limit', orderBookLimitOld);
         if (subscription !== undefined) {
             limit = this.safeInteger (subscription, 'limit', limit);
         }
-        this.wsOrderBookLimitValidation (limit, validLimitsArray);
+        this.wsValidateOrderBookLimit (limit, validLimitsArray);
         return limit;
     }
 
-    wsOrderBookLimitValidation (limit = undefined, validLimitsArray = undefined) {
+    wsValidateOrderBookLimit (limit = undefined, validLimitsArray = undefined) {
         if (limit !== undefined) {
             if (validLimitsArray === undefined) {
                 validLimitsArray = this.handleOption ('watchOrderBook', 'validLimits');

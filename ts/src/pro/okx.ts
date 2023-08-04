@@ -403,7 +403,7 @@ export default class okx extends okxRest {
         //         '50': 'books50-l2-tbt',
         //         '400': 'books',
         //     };
-        //     this.wsOrderBookLimitValidation (limit);
+        //     this.wsValidateOrderBookLimit (limit);
         //     depthChannel = this.safeString (depthLimits, this.numberToString (limit), depthChannel);
         // }
         const depth = this.safeString (options, 'depth', depthChannel);

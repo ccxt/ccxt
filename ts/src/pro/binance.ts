@@ -142,7 +142,7 @@ export default class binance extends binanceRest {
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
         // valid <levels> are 5, 10, or 20
         //
-        this.wsOrderBookLimitValidation (limit);
+        this.wsValidateOrderBookLimit (limit);
         //
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -217,7 +217,7 @@ export default class binance extends binanceRest {
             const params = this.safeValue (subscription, 'params');
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
-            const snapshot = await this.fetchOrderBook (symbol, this.wsOrderBookLimit (subscription, 1000), params);
+            const snapshot = await this.fetchOrderBook (symbol, this.wsDefaultOrderBookLimit (subscription, 1000), params);
             const orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook === undefined) {
                 // if the orderbook is dropped before the snapshot is received
@@ -384,7 +384,7 @@ export default class binance extends binanceRest {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, this.wsOrderBookLimit (subscription, 1000));
+        this.orderbooks[symbol] = this.orderBook ({}, this.wsDefaultOrderBookLimit (subscription, 1000));
         // fetch the snapshot in a separate async call
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
