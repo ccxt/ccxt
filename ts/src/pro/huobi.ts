@@ -402,7 +402,7 @@ export default class huobi extends huobiRest {
         }
     }
 
-    async wsFetchOrderBookSnapshot (client, message, subscription) {
+    async watchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
             const symbol = this.safeString (subscription, 'symbol');
@@ -620,7 +620,7 @@ export default class huobi extends huobiRest {
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         // watch the snapshot in a separate async call
-        this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
+        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
