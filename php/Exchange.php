@@ -1222,7 +1222,7 @@ class Exchange {
         }
 
         $type_names = array(
-            'string' => 'string',
+            'string' => 'strval',
             'number' => 'floatval',
         );
         $assigned_type = $this->safe_string_lower($this->options, 'number', 'number');
