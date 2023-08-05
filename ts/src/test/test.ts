@@ -32,6 +32,7 @@ class baseMainTestClass {
     debug = false;
     privateTest = false;
     privateTestOnly = false;
+    createOrderTest = false;
     sandbox = false;
     skippedMethods = {};
     checkedPublicTests = {};
@@ -129,6 +130,7 @@ export default class testMainClass extends baseMainTestClass {
         this.debug = getCliArgValue ('--debug');
         this.privateTest = getCliArgValue ('--private');
         this.privateTestOnly = getCliArgValue ('--privateOnly');
+        this.createOrderTest = getCliArgValue ('--createOrderTest');
         this.sandbox = getCliArgValue ('--sandbox');
     }
 
@@ -677,6 +679,9 @@ export default class testMainClass extends baseMainTestClass {
             'transfer': [ code ],
             'withdraw': [ code ],
         };
+        if (this.createOrderTest) {
+            tests['createOrder'] = [ symbol ];
+        }
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
         if (isSpot) {
