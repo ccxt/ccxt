@@ -347,6 +347,7 @@
             },
             "fetchL2OrderBook": {
                 "compareToZero": "same"
+	    },
             "fetchTicker": {
                 "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027"
             },
