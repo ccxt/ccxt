@@ -31,12 +31,6 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function getIterator() {
-        // look at the python for equivalence
-        return new \LimitIterator(parent::getIterator(), 0, $this->n);
-    }
-
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];
@@ -66,8 +60,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         $this->storeArray(array($price, $size));
     }
 
-    public function limit($n = null) {
-        $this->n = $n ? $n : PHP_INT_MAX;
+    public function limit() {
         $difference = count($this) - $this->depth;
         if ($difference > 0) {
             array_splice($this->index, -$difference);

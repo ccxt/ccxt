@@ -1,4 +1,4 @@
-const ccxt = require ('../../ccxt');
+import ccxt from '../../js/ccxt.js';
 
 const exchange = new ccxt.huobi ({
     'apiKey': 'YOUR_API_KEY',

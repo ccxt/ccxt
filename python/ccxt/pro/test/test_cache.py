@@ -11,7 +11,7 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxt.pro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402
 
 
 def equals(a, b):
@@ -269,8 +269,8 @@ outsideLimit = 5
 limited = cache.getLimit(symbol, outsideLimit)
 limited2 = cache.getLimit(None, outsideLimit)
 
-assert 1 == limited
-assert 2 == limited2
+assert limited == 1
+assert limited2 == 2
 
 
 # ----------------------------------------------------------------------------
@@ -309,3 +309,40 @@ outsideLimit = 2  # if limit < newsUpdate that should be returned
 limited = cache.getLimit(None, outsideLimit)
 
 assert outsideLimit == limited
+
+
+# ----------------------------------------------------------------------------
+# test ArrayCacheBySymbolById, watch all orders, same symbol and order id gets updated
+
+cache = ArrayCacheBySymbolById()
+symbol = 'BTC/USDT'
+outsideLimit = 5
+cache.append({'symbol': symbol, 'id': 'oneId', 'i': 3})  # create first order
+cache.getLimit(None, outsideLimit)  # watch all orders
+cache.append({'symbol': symbol, 'id': 'oneId', 'i': 4})  # first order is closed
+cache.getLimit(None, outsideLimit)  # watch all orders
+cache.append({'symbol': symbol, 'id': 'twoId', 'i': 5})  # create second order
+cache.getLimit(None, outsideLimit)  # watch all orders
+cache.append({'symbol': symbol, 'id': 'twoId', 'i': 6})  # second order is closed
+limited = cache.getLimit(None, outsideLimit)  # watch all orders
+assert limited == 1  # one new update
+
+# ----------------------------------------------------------------------------
+# test ArrayCacheBySymbolById, watch all orders, and watchOrders(symbol) work independently
+
+cache = ArrayCacheBySymbolById()
+symbol = 'BTC/USDT'
+symbol2 = 'ETH/USDT'
+
+outsideLimit = 5
+cache.append({'symbol': symbol, 'id': 'one', 'i': 1})  # create first order
+cache.append({'symbol': symbol2, 'id': 'two', 'i': 1})  # create second order
+assert cache.getLimit(None, outsideLimit) == 2  # watch all orders
+assert cache.getLimit(symbol, outsideLimit) == 1  # watch by symbol
+cache.append({'symbol': symbol, 'id': 'one', 'i': 2})  # update first order
+cache.append({'symbol': symbol2, 'id': 'two', 'i': 2})  # update second order
+assert cache.getLimit(symbol, outsideLimit) == 1  # watch by symbol
+assert cache.getLimit(None, outsideLimit) == 2  # watch all orders
+cache.append({'symbol': symbol2, 'id': 'two', 'i': 3})  # update second order
+cache.append({'symbol': symbol2, 'id': 'three', 'i': 3})  # create third order
+assert cache.getLimit(None, outsideLimit) == 2  # watch all orders

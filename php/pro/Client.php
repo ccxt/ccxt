@@ -49,11 +49,14 @@ class Client {
     public $verbose = false; // verbose output
     public $gunzip = false;
     public $inflate = false;
-    public $throttle = null;
+    public $throttler = null;
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;
     public $noOriginHeader = true;
+    public $log = null;
+    public $heartbeat = null;
+    public $cost = 1;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
@@ -142,7 +145,8 @@ class Client {
         if ($this->verbose) {
             echo date('c'), ' connecting to ', $this->url, "\n";
         }
-        $promise = call_user_func($this->connector, $this->url);
+        $headers = property_exists($this, 'options') && array_key_exists('headers', $this->options) ? $this->options['headers'] : [];
+        $promise = call_user_func($this->connector, $this->url, [], $headers);
         Timer\timeout($promise, $timeout, Loop::get())->then(
             function($connection) {
                 if ($this->verbose) {
@@ -195,12 +199,13 @@ class Client {
     }
 
     public function send($data) {
-        $message = is_string($data) ? $data : Exchange::json($data);
-        if ($this->verbose) {
-            echo date('c'), ' sending ', $message, "\n";
-        }
-        $this->connection->send($message);
-        return null;
+        return React\Async\async(function () use ($data) {
+            $message = is_string($data) ? $data : Exchange::json($data);
+            if ($this->verbose) {
+                echo date('c'), ' sending ', $message, "\n";
+            }
+            return $this->connection->send($message);
+        })();
     }
 
     public function close() {
@@ -253,10 +258,14 @@ class Client {
             if ($this->verbose) {
                 echo date('c'), ' on_message json_decode ', $e->getMessage(), "\n";
             }
-            // reset with a json encoding error ?
+            // reset with a json encoding error?
         }
-        $on_message_callback = $this->on_message_callback;
-        $on_message_callback($this, $message);
+        try {
+            $on_message_callback = $this->on_message_callback;
+            $on_message_callback($this, $message);
+        } catch (Exception $error) {
+            $this->reject($error);
+        }
     }
 
     public function reset($error) {
