@@ -10,7 +10,7 @@ import Precise from '../../base/Precise.js';
 const testName = 'testCreateOrder';
 const warningPrefix = ' !!! ' + testName;
 const debugPrefix = ' >>> ' + testName;
-const isVerbose = true; // process.argv.includes ('--verbose');
+const isVerbose = true;
 function verboseOutput (exchange, symbol, ...args) {
     if (isVerbose) {
         console.log (debugPrefix + ' [' + exchange['id'] + ' : ' + symbol + '] ', ...args);
@@ -18,7 +18,7 @@ function verboseOutput (exchange, symbol, ...args) {
 }
 // ----------------------------------------------------------------------------
 
-async function testCreateOrder (exchange, symbol) {
+async function testCreateOrder (exchange, skippedProperties, symbol) {
     const method = 'createOrder';
     if (!exchange.has[method]) {
         console.log (warningPrefix, exchange.id, 'does not have method ', method, ' yet, skipping test...');
@@ -51,11 +51,11 @@ async function testCreateOrder (exchange, symbol) {
     if (initialQuoteBalance === undefined) {
         assert (false, warningPrefix + ' ' +  exchange.id + ' does not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
     }
-    verboseOutput (exchange, symbol, 'fetched balance for', symbol,':', initialBaseBalance, market['base'], '/', initialQuoteBalance, market['quote']);
+    verboseOutput (exchange, symbol, 'fetched balance for', symbol, ':', initialBaseBalance, market['base'], '/', initialQuoteBalance, market['quote']);
     // get best bid & ask
-    const [bestBid, bestAsk] = await testCreateOrder_getBestBidAsk (exchange, symbol);
+    const [ bestBid, bestAsk ] = await testCreateOrder_getBestBidAsk (exchange, symbol);
     // get minimum order amount & cost
-    let [minimumAmountForBuy, minimumCostForBuy ] = getMinimumMarketCostAndAmountForBuy (exchange, market, bestAsk);
+    const [ minimumAmountForBuy, minimumCostForBuy ] = getMinimumMarketCostAndAmountForBuy (exchange, market, bestAsk);
     if (minimumAmountForBuy === undefined && minimumCostForBuy === undefined) {
         assert (false, warningPrefix + ' ' +  exchange.id + ' can not determine minimum amount/cost of order for ' + symbol + ' market');
     }
@@ -64,12 +64,12 @@ async function testCreateOrder (exchange, symbol) {
     // ************************************ //
     // *********** [Scenario 1] *********** //
     // ************************************ //
-    try{
+    try {
         // create limit order which IS GUARANTEED not to be filled (far from the best bid|ask price)
         const limitBuyPrice_nonFillable = bestBid / limitPriceSafetyMultiplierFromMedian;
         const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, minimumAmountForBuy, minimumCostForBuy, limitBuyPrice_nonFillable);
-        const buyOrder_nonFillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_nonFillable, {});
-        const buyOrder_nonFillable_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_nonFillable['id']);
+        const buyOrder_nonFillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_nonFillable, {}, skippedProperties);
+        const buyOrder_nonFillable_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_nonFillable['id'], skippedProperties);
         // ensure that order is not filled
         const isClosed = testCreateOrder_orderIs (exchange, buyOrder_nonFillable, 'closed');
         const isClosedFetched = testCreateOrder_orderIs (exchange, buyOrder_nonFillable_fetched, 'closed');
@@ -79,7 +79,7 @@ async function testCreateOrder (exchange, symbol) {
         await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonFillable['id']);
         verboseOutput (exchange, symbol, 'SCENARIO 1 PASSED !!!');
     } catch (e) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 1: ' + e.message);
+        assert (false, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 1: ' + e.toString ());
     }
     // *********** [Scenario 1 - END ] *********** //
 
@@ -87,15 +87,15 @@ async function testCreateOrder (exchange, symbol) {
     // ************************************ //
     // *********** [Scenario 2] *********** //
     // ************************************ //
-    try{
+    try {
         // create limit/market order which IS GUARANTEED to have a fill (full or partial), then sell the bought amount
         const limitBuyPrice_fillable = bestAsk * limitPriceSafetyMultiplierFromMedian;
         const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, minimumAmountForBuy, minimumCostForBuy, limitBuyPrice_fillable);
-        const buyOrder_fillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_fillable, {});
+        const buyOrder_fillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_fillable, {}, skippedProperties);
         // try to cancel remnant (if any) of order
-        testCreateOrder_tryCancelOrder (exchange, symbol, buyOrder_fillable);
+        testCreateOrder_tryCancelOrder (exchange, symbol, buyOrder_fillable, skippedProperties);
         // now, as order is closed/canceled, we can reliably fetch the order information
-        const buyOrder_filled_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_fillable['id']);
+        const buyOrder_filled_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_fillable['id'], skippedProperties);
         // we need to find out the amount of base asset that was bought
         let amountToSell = undefined;
         if (buyOrder_filled_fetched['filled'] !== undefined) {
@@ -107,21 +107,22 @@ async function testCreateOrder (exchange, symbol) {
             amountToSell = balance[market['base']]['free'] - ((initialBaseBalance !== undefined) ? initialBaseBalance : 0);
         }
         // We should use 'reduceOnly' to ensure we don't open a margin-ed position accidentally (i.e. on FTX you can open a margin position with sell order even if you don't have target base coin to sell)
-        let params = {'reduceOnly': true};
+        let params = { 'reduceOnly': true };
         let priceForMarketSellOrder = undefined;
         if (exchange.id === 'binance') {
+            // @ts-ignore
             params = {};  // because of temporary bug, we should remove 'reduceOnly' from binance createOrder for spot (it should be fixed)
             priceForMarketSellOrder = (minimumCostForBuy / amountToSell) * limitPriceSafetyMultiplierFromMedian;
         }
-        const sellOrder = await testCreateOrder_submitSafeOrder (exchange, symbol, 'market', 'sell', amountToSell, priceForMarketSellOrder, params);
-        const sellOrder_fetched = await testCreateOrder_fetchOrder (exchange, symbol, sellOrder['id']);
+        const sellOrder = await testCreateOrder_submitSafeOrder (exchange, symbol, 'market', 'sell', amountToSell, priceForMarketSellOrder, params, skippedProperties);
+        const sellOrder_fetched = await testCreateOrder_fetchOrder (exchange, symbol, sellOrder['id'], skippedProperties);
         // try to test that order was fully filled
-        const isClosedFetched = testCreateOrder_orderIs(exchange, sellOrder_fetched, 'closed');
-        const isOpenFetched = testCreateOrder_orderIs(exchange, sellOrder_fetched, 'open');
+        const isClosedFetched = testCreateOrder_orderIs (exchange, sellOrder_fetched, 'closed');
+        const isOpenFetched = testCreateOrder_orderIs (exchange, sellOrder_fetched, 'open');
         assert (isClosedFetched || isOpenFetched === undefined, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should be filled, but it is not. ' + exchange.json (sellOrder_fetched));
         verboseOutput (exchange, symbol, 'SCENARIO 2 PASSED !!!');
     } catch (e) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 2: ' + e.message);
+        assert (false, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 2: ' + e.toString ());
     }
     // *********** [Scenario 2 - END ] *********** //
 
@@ -151,41 +152,42 @@ async function testCreateOrder_getBestBidAsk (exchange, symbol) {
         bestAsk = ticker.ask;
     } else if (exchange.has['fetchTickers']) {
         usedMethod = 'fetchTickers';
-        const tickers = await exchange.fetchTickers ([symbol]);
+        const tickers = await exchange.fetchTickers ([ symbol ]);
         bestBid = tickers[symbol].bid;
         bestAsk = tickers[symbol].ask;
     } else if (exchange.has['fetchL1OrderBooks']) {
         usedMethod = 'fetchL1OrderBooks';
-        const tickers = await exchange.fetchL1OrderBooks ([symbol]);
+        const tickers = await exchange.fetchL1OrderBooks ([ symbol ]);
         bestBid = tickers[symbol].bid;
         bestAsk = tickers[symbol].ask;
     } else if (exchange.has['fetchBidsAsks']) {
         usedMethod = 'fetchBidsAsks';
-        const tickers = await exchange.fetchBidsAsks ([symbol]);
+        const tickers = await exchange.fetchBidsAsks ([ symbol ]);
         bestBid = tickers[symbol].bid;
         bestAsk = tickers[symbol].ask;
     }
     //
     if (bestBid === undefined || bestAsk === undefined) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' could not get best bid/ask, skipping ' + method + ' test...');
+        assert (false, warningPrefix + ' ' +  exchange.id + ' could not get best bid/ask, skipping createOrder test...');
     }
     // ensure values are correct
-    assert ( (bestBid !== undefined) && (bestAsk !== undefined) && (bestBid > 0) || (bestAsk > 0) && (bestBid >= bestAsk), warningPrefix + ' ' +  exchange.id + ' best bid/ask seem incorrect. Bid:' + bestBid + ' Ask:' + bestAsk);
+    assert ((bestBid !== undefined) && (bestAsk !== undefined) && (bestBid > 0) || (bestAsk > 0) && (bestBid >= bestAsk), warningPrefix + ' ' +  exchange.id + ' best bid/ask seem incorrect. Bid:' + bestBid + ' Ask:' + bestAsk);
     verboseOutput (exchange, symbol, 'fetched best bid/ask using', usedMethod, '- Bid:', bestBid, ' Ask:', bestAsk);
     return [ bestBid, bestAsk ];
 }
 
 // ----------------------------------------------------------------------------
 
-async function testCreateOrder_fetchOrder (exchange, symbol, orderId) {
+async function testCreateOrder_fetchOrder (exchange, symbol, orderId, skippedProperties) {
     let fetchedOrder = undefined;
     let usedMethod = undefined;
-    let originalId = orderId;
+    const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
-    const sinceTime = Date.now () - 1000 * 60 * 5; 
+    const sinceTime = Date.now () - 1000 * 60 * 5;
     //
     // search through singular methods
-    for (const singularFetchName of ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder']) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const singularFetchName of [ 'fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder' ]) {
         if (exchange.has[singularFetchName]) {
             usedMethod = singularFetchName;
             const currentOrder = await exchange[singularFetchName] (originalId, symbol);
@@ -199,7 +201,8 @@ async function testCreateOrder_fetchOrder (exchange, symbol, orderId) {
     //
     // search through plural methods
     if (fetchedOrder === undefined) {
-        for (const pluralFetchName of ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders']) {
+        // eslint-disable-next-line no-restricted-syntax
+        for (const pluralFetchName of [ 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders' ]) {
             if (exchange.has[pluralFetchName]) {
                 usedMethod = pluralFetchName;
                 const orders = await exchange[pluralFetchName] (symbol, sinceTime);
@@ -220,7 +223,7 @@ async function testCreateOrder_fetchOrder (exchange, symbol, orderId) {
     }
     // test fetched order object
     if (fetchedOrder !== undefined) {
-        testOrder (exchange, fetchedOrder, symbol, Date.now ());
+        testOrder (exchange, skippedProperties, 'createOrder', fetchedOrder, symbol, Date.now ());
     }
     if (usedMethod !== undefined) {
         verboseOutput (exchange, symbol, 'fetched order using', usedMethod);
@@ -245,7 +248,7 @@ async function testCreateOrder_cancelOrder (exchange, symbol, orderId = undefine
         if (orderId === undefined) {
             cancelResult = await exchange.cancelOrders ([], symbol);
         } else {
-            cancelResult = await exchange.cancelOrders ([orderId], symbol);
+            cancelResult = await exchange.cancelOrders ([ orderId ], symbol);
         }
     }
     verboseOutput (exchange, symbol, 'canceled order using', usedMethod, ' : ', exchange.json (cancelResult));
@@ -261,7 +264,7 @@ function testCreateOrder_orderIs (exchange, order, statusSlug) {
             return true;
         }
     } else if (statusSlug === 'closed') {
-        if (order['status'] === 'closed' || order['status'] === 'canceled' || (order['status'] === undefined && filled_amount !== undefined && whole_amount !== undefined && Precise.stringEq (filled_amount,whole_amount))) {
+        if (order['status'] === 'closed' || order['status'] === 'canceled' || (order['status'] === undefined && filled_amount !== undefined && whole_amount !== undefined && Precise.stringEq (filled_amount, whole_amount))) {
             return true;
         }
     }
@@ -271,20 +274,20 @@ function testCreateOrder_orderIs (exchange, order, statusSlug) {
 
 // ----------------------------------------------------------------------------
 
-async function testCreateOrder_submitSafeOrder (exchange, symbol, orderType, side, amount, price = undefined, params = {}) {
+async function testCreateOrder_submitSafeOrder (exchange, symbol, orderType, side, amount, price = undefined, params = {}, skippedProperties = {}) {
     verboseOutput (exchange, symbol, 'Executing createOrder', symbol, orderType, side, amount, price, params);
-    let order = await exchange.createOrder (symbol, orderType, side, amount, price, params);
+    const order = await exchange.createOrder (symbol, orderType, side, amount, price, params);
     try {
         // test through regular order object test
-        testOrder (exchange, order, symbol, Date.now ());
+        testOrder (exchange, skippedProperties, 'createOrder', order, symbol, Date.now ());
     } catch (e) {
         // if test failed for some reason, then we stop any futher testing and throw exception. However, before it, we should try to cancel that order, if possible.
         if (orderType !== 'market') // market order is not cancelable
         {
-            testCreateOrder_tryCancelOrder (exchange, symbol, order);
+            testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedProperties);
         }
         // now, we can throw the initial error
-        assert (false, warningPrefix + ' ' +  exchange.id + ' failed to createOrder: ' + e.message);
+        assert (false, warningPrefix + ' ' +  exchange.id + ' failed to createOrder: ' + e.toString ());
     }
     return order;
 }
@@ -313,15 +316,16 @@ function getMinimumAmountForLimitPrice (exchange, market, amount, cost, price) {
     } else {
         // some exchanges require total cost (notional) to be above specific value. So, we need to calculate the order size suitable for our limit-price
         finalAmountToBuy = (cost * orderCostSafetyMultiplier / price);
-    } 
+    }
     finalAmountToBuy = finalAmountToBuy * orderAmountSafetyMultiplier;
-    finalAmountToBuy = ccxt.decimalToPrecision (finalAmountToBuy, ccxt.ROUND_UP, market['precision']['amount'], exchange.precisionMode);
+    const ROUND_UP = 2; // temp avoid import "numbers"
+    finalAmountToBuy = exchange.decimalToPrecision (finalAmountToBuy, ROUND_UP, market['precision']['amount'], exchange.precisionMode);
     return finalAmountToBuy;
 }
 
-async function testCreateOrder_tryCancelOrder (exchange, symbol, order) {
+async function testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedProperties) {
     // fetch order for maximum accuracy
-    const orderFetched = await testCreateOrder_fetchOrder (exchange, symbol, order['id']);
+    const orderFetched = await testCreateOrder_fetchOrder (exchange, symbol, order['id'], skippedProperties);
     // check their status
     const isClosedFetched = testCreateOrder_orderIs (exchange, orderFetched, 'closed');
     const isOpenFetched = testCreateOrder_orderIs (exchange, orderFetched, 'open');
@@ -332,12 +336,11 @@ async function testCreateOrder_tryCancelOrder (exchange, symbol, order) {
             await testCreateOrder_cancelOrder (exchange, symbol, order['id']);
         } catch (e) {
             // we don't throw exception here, because order might have been closed/filled already, before 'cancelOrder' call reaches server, so it is tolerable
-            console.log (warningPrefix + ' ' +  exchange['id'] + ' ' + symbol + ' order ' + order['id'] + ' a moment ago order was reported as pending, but could not be cancelled at this moment: ' + exchange.json (order) + '. Exception message: ' + e.message);
+            console.log (warningPrefix + ' ' +  exchange['id'] + ' ' + symbol + ' order ' + order['id'] + ' a moment ago order was reported as pending, but could not be cancelled at this moment: ' + exchange.json (order) + '. Exception message: ' + e.toString ());
         }
     } else {
         verboseOutput (exchange, symbol, 'order is already closed/filled, no need to cancel it');
     }
 }
-
 
 export default testCreateOrder;
