@@ -1576,6 +1576,23 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
+    async fetchOrderBookInitialSnapshot (symbol, limit = undefined, params = {}) {
+        let snapshot = undefined;
+        const initialSnapshotFetchAttempts = this.handleOption ('watchOrderBook', 'initialSnapshotFetchAttempts', 3);
+        for (let i = 0; i < initialSnapshotFetchAttempts; i++) {
+            try {
+                snapshot = await this.fetchOrderBook (symbol, limit, params);
+                break;
+            } catch (e) {
+                if (i < initialSnapshotFetchAttempts - 1) {
+                    continue;
+                }
+                throw e;
+            }
+        }
+        return snapshot;
+    }
+
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
