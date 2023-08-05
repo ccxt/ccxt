@@ -249,7 +249,6 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
-                    '200': CancelPending, // { "orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : "" }
                     '500': ExchangeNotAvailable, // Internal System Error
                     '603': RequestTimeout, // Internal Request Timeout
                     '601': BadRequest, // Invalid Parameter
@@ -1324,7 +1323,8 @@ export default class poloniex extends Exchange {
         }
         request['id'] = id;
         params = this.omit (params, 'clientOrderId');
-        return await this.privateDeleteOrdersId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol: string = undefined, params = {}) {
@@ -2233,7 +2233,8 @@ export default class poloniex extends Exchange {
         //         "message" : "Low available balance"
         //     }
         //
-        if ('code' in response) {
+        const responseCode = this.safeString (response, 'code');
+        if ((responseCode !== undefined) && (responseCode !== '200')) {
             const codeInner = response['code'];
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
