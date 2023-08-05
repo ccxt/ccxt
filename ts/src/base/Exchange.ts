@@ -1578,13 +1578,13 @@ export default class Exchange {
 
     async fetchOrderBookInitialSnapshot (symbol, limit = undefined, params = {}) {
         let snapshot = undefined;
-        const initialSnapshotFetchAttempts = this.handleOption ('watchOrderBook', 'initialSnapshotFetchAttempts', 3);
-        for (let i = 0; i < initialSnapshotFetchAttempts; i++) {
+        const initialFetchOrderBookMaxRetries = this.handleOption ('watchOrderBook', 'initialFetchOrderBookMaxRetries', 3);
+        for (let i = 0; i < initialFetchOrderBookMaxRetries; i++) {
             try {
                 snapshot = await this.fetchOrderBook (symbol, limit, params);
                 break;
             } catch (e) {
-                if (i < initialSnapshotFetchAttempts - 1) {
+                if (i < initialFetchOrderBookMaxRetries - 1) {
                     continue;
                 }
                 throw e;
