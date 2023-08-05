@@ -1327,17 +1327,28 @@ export default class Exchange {
     }
 
     handleOrderBookSubscription (client, message, subscription) {
-        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
         const symbol = this.safeString (subscription, 'symbol');
+        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
+        const defaultLimit = this.handleOption ('watchOrderBook', 'limit', orderBookLimitOld);
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         // watch the snapshot in a separate async call
-        this.spawn (this.wsFetchOrderBookSnapshot, client, message, subscription);
+        if (this.methodExists (this, 'watchOrderBookSnapshot')) {
+            this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+        } else {
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        }
+    }
+
+    async watchOrderBookSnapshot (client, message, subscription) {
+        throw new NotSupported (this.id + ' watchOrderBookSnapshot not implemented yet');
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        throw new NotSupported (this.id + ' fetchOrderBookSnapshot not implemented yet');
     }
 
     convertToBigInt(value: string) {
@@ -1353,6 +1364,10 @@ export default class Exchange {
             return array.slice(first);
         }
         return array.slice(first, second);
+    }
+
+    methodExists (obj, methodName) {
+        return (typeof obj[methodName] === 'function');
     }
 
     getProperty (obj, property, defaultValue = undefined) {
