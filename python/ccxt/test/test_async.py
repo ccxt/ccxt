@@ -29,6 +29,7 @@ class Argv(object):
     sandbox = False
     privateOnly = False
     private = False
+    createOrderTest = False
     verbose = False
     nonce = None
     exchange = None
@@ -43,6 +44,7 @@ parser.add_argument('--token_bucket', action='store_true', help='enable token bu
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
+parser.add_argument('--createOrderTest', action='store_true', help='run createOrder tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--nonce', type=int, help='integer')
@@ -193,6 +195,7 @@ class testMainClass(baseMainTestClass):
         self.debug = get_cli_arg_value('--debug')
         self.privateTest = get_cli_arg_value('--private')
         self.privateTestOnly = get_cli_arg_value('--privateOnly')
+        self.createOrderTest = get_cli_arg_value('--createOrderTest')
         self.sandbox = get_cli_arg_value('--sandbox')
 
     async def init(self, exchangeId, symbol):
