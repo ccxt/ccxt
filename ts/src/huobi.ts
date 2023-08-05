@@ -174,6 +174,7 @@ export default class huobi extends Exchange {
                     'https://huobiapi.github.io/docs/dm/v1/en/',
                     'https://huobiapi.github.io/docs/coin_margined_swap/v1/en/',
                     'https://huobiapi.github.io/docs/usdt_swap/v1/en/',
+                    'https://www.huobi.com/en-us/opend/newApiPages/',
                 ],
                 'fees': 'https://www.huobi.com/about/fee/',
             },
