@@ -40,6 +40,7 @@ class baseMainTestClass {
     public $debug = false;
     public $privateTest = false;
     public $privateTestOnly = false;
+    public $createOrderTest = false;
     public $sandbox = false;
 }
 
