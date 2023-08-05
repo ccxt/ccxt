@@ -634,7 +634,7 @@ export default class huobi extends huobiRest {
 
     handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.wsDefaultOrderBookLimit (subscription);
+        const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
