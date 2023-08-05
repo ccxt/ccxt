@@ -1295,7 +1295,7 @@ export default class Exchange {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
                 const cache = stored.cache;
-                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                const orderBook = await this.fetchOrderBookInitialSnapshot (symbol, limit, params);
                 const index = this.getCacheIndex (orderBook, cache);
                 if (index >= 0) {
                     stored.reset (orderBook);
@@ -1577,11 +1577,11 @@ export default class Exchange {
     }
 
     async fetchOrderBookInitialSnapshot (symbol, limit = undefined, params = {}) {
-        let snapshot = undefined;
+        let orderBook = undefined;
         const initialFetchOrderBookMaxRetries = this.handleOption ('watchOrderBook', 'initialFetchOrderBookMaxRetries', 3);
         for (let i = 0; i < initialFetchOrderBookMaxRetries; i++) {
             try {
-                snapshot = await this.fetchOrderBook (symbol, limit, params);
+                orderBook = await this.fetchOrderBook (symbol, limit, params);
                 break;
             } catch (e) {
                 if (i < initialFetchOrderBookMaxRetries - 1) {
@@ -1590,7 +1590,7 @@ export default class Exchange {
                 throw e;
             }
         }
-        return snapshot;
+        return orderBook;
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
