@@ -2302,8 +2302,7 @@ export default class huobi extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        const tradeId = this.safeString2(trade, 'trade-id', 'tradeId');
-        const id = this.safeString2(trade, 'trade_id', 'id', tradeId);
+        const id = this.safeStringN(trade, ['trade_id', 'trade-id', 'id']);
         return this.safeTrade({
             'id': id,
             'info': trade,

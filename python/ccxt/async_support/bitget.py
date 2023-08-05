@@ -2642,8 +2642,10 @@ class bitget(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: *swap only* The price at which a trigger order is triggered at
         :param float [params.stopLossPrice]: *swap only* The price at which a stop loss order is triggered at
         :param float [params.takeProfitPrice]: *swap only* The price at which a take profit order is triggered at
-        :param float [params.stopLoss]: *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
-        :param float [params.takeProfit]: *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
+        :param float [params.takeProfit.triggerPrice]: *swap only* take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float [params.stopLoss.triggerPrice]: *swap only* stop loss trigger price
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2655,11 +2657,11 @@ class bitget(Exchange, ImplicitAPI):
             'orderType': type,
         }
         isMarketOrder = type == 'market'
-        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
-        stopLoss = self.safe_number(params, 'stopLoss')
-        takeProfit = self.safe_number(params, 'takeProfit')
+        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
         isTriggerOrder = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
@@ -2667,8 +2669,8 @@ class bitget(Exchange, ImplicitAPI):
         isTakeProfit = takeProfit is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         isStopLossOrTakeProfit = isStopLoss or isTakeProfit
-        if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isStopLoss, isTakeProfit) > 1:
-            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, stopLoss, takeProfit')
+        if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder) > 1:
+            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
         if (type == 'limit') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
@@ -2716,47 +2718,20 @@ class bitget(Exchange, ImplicitAPI):
             if quantity is not None:
                 request[quantityKey] = quantity
         else:
+            request['marginCoin'] = market['settleId']
             if clientOrderId is not None:
                 request['clientOid'] = clientOrderId
-            if not isStopLossOrTakeProfit:
-                request['size'] = self.amount_to_precision(symbol, amount)
-            if isTriggerOrder or isStopLossOrTakeProfit:
+            if isTriggerOrder or isStopLossOrTakeProfitTrigger:
                 # default triggerType to market price for unification
                 triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
-            if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
+            if isStopLossOrTakeProfitTrigger:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
                 request['holdSide'] = 'long' if (side == 'buy') else 'short'
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
-            if isTriggerOrder:
-                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                if price is not None:
-                    request['executePrice'] = self.price_to_precision(symbol, price)
-                if side == 'buy':
-                    request['side'] = 'open_long'
-                elif side == 'sell':
-                    request['side'] = 'open_short'
-                else:
-                    request['side'] = side
-                method = 'privateMixPostPlanPlacePlan'
-            elif isStopLossOrTakeProfitTrigger:
-                if isStopLossTriggerOrder:
-                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                    request['planType'] = 'loss_plan'
-                elif isTakeProfitTriggerOrder:
-                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                    request['planType'] = 'profit_plan'
-                method = 'privateMixPostPlanPlaceTPSL'
-            elif isStopLossOrTakeProfit:
-                if isStopLoss:
-                    request['triggerPrice'] = self.price_to_precision(symbol, stopLoss)
-                    request['planType'] = 'pos_loss'
-                elif isTakeProfit:
-                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfit)
-                    request['planType'] = 'pos_profit'
-                method = 'privateMixPostPlanPlacePositionsTPSL'
             else:
+                reduceOnly = self.safe_value(params, 'reduceOnly', False)
+                request['size'] = self.amount_to_precision(symbol, amount)
                 if reduceOnly:
                     request['side'] = 'close_short' if (side == 'buy') else 'close_long'
                 else:
@@ -2766,16 +2741,34 @@ class bitget(Exchange, ImplicitAPI):
                         request['side'] = 'open_short'
                     else:
                         request['side'] = side
-            request['marginCoin'] = market['settleId']
-        if not isStopLossOrTakeProfit:
-            if postOnly:
-                request[timeInForceKey] = 'post_only'
-            elif timeInForce == 'gtc':
-                request[timeInForceKey] = 'normal'
-            elif timeInForce == 'fok':
-                request[timeInForceKey] = 'fok'
-            elif timeInForce == 'ioc':
-                request[timeInForceKey] = 'ioc'
+            if isTriggerOrder:
+                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
+                method = 'privateMixPostPlanPlacePlan'
+            elif isStopLossOrTakeProfitTrigger:
+                if isStopLossTriggerOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                    request['planType'] = 'pos_loss'
+                elif isTakeProfitTriggerOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                    request['planType'] = 'pos_profit'
+                method = 'privateMixPostPlanPlacePositionsTPSL'
+            elif isStopLossOrTakeProfit:
+                if isStopLoss:
+                    stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
+                    request['presetStopLossPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                if isTakeProfit:
+                    takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
+                    request['presetTakeProfitPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+        if postOnly:
+            request[timeInForceKey] = 'post_only'
+        elif timeInForce == 'gtc':
+            request[timeInForceKey] = 'normal'
+        elif timeInForce == 'fok':
+            request[timeInForceKey] = 'fok'
+        elif timeInForce == 'ioc':
+            request[timeInForceKey] = 'ioc'
         omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly'])
         response = await getattr(self, method)(self.extend(request, omitted))
         #

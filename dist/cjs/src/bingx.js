@@ -1155,13 +1155,20 @@ class bingx extends bingx$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {boolean} [params.standard] whether to fetch standard contract balances
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
         let response = undefined;
+        let standard = undefined;
+        [standard, params] = this.handleOptionAndParams(params, 'fetchBalance', 'standard', false);
         const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        if (marketType === 'spot') {
+        if (standard) {
+            response = await this.contractV1PrivateGetBalance(marketTypeQuery);
+        }
+        else if (marketType === 'spot') {
             response = await this.spotV1PrivateGetAccountBalance(marketTypeQuery);
         }
         else {
@@ -1203,12 +1210,39 @@ class bingx extends bingx$1 {
         //          }
         //        }
         //    }
+        // standard futures
+        //    {
+        //        "code":"0",
+        //        "timestamp":"1691148990942",
+        //        "data":[
+        //           {
+        //              "asset":"VST",
+        //              "balance":"100000.00000000000000000000",
+        //              "crossWalletBalance":"100000.00000000000000000000",
+        //              "crossUnPnl":"0",
+        //              "availableBalance":"100000.00000000000000000000",
+        //              "maxWithdrawAmount":"100000.00000000000000000000",
+        //              "marginAvailable":false,
+        //              "updateTime":"1691148990902"
+        //           },
+        //           {
+        //              "asset":"USDT",
+        //              "balance":"0",
+        //              "crossWalletBalance":"0",
+        //              "crossUnPnl":"0",
+        //              "availableBalance":"0",
+        //              "maxWithdrawAmount":"0",
+        //              "marginAvailable":false,
+        //              "updateTime":"1691148990902"
+        //           },
+        //        ]
+        //     }
         //
         return this.parseBalance(response);
     }
     parseBalance(response) {
         const data = this.safeValue(response, 'data');
-        const balances = this.safeValue2(data, 'balance', 'balances');
+        const balances = this.safeValue2(data, 'balance', 'balances', data);
         const result = { 'info': response };
         if (Array.isArray(balances)) {
             for (let i = 0; i < balances.length; i++) {
@@ -1216,8 +1250,9 @@ class bingx extends bingx$1 {
                 const currencyId = this.safeString(balance, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
-                account['free'] = this.safeString(balance, 'free');
+                account['free'] = this.safeString2(balance, 'free', 'availableBalance');
                 account['used'] = this.safeString(balance, 'locked');
+                account['total'] = this.safeString(balance, 'balance');
                 result[code] = account;
             }
         }
@@ -1237,13 +1272,23 @@ class bingx extends bingx$1 {
          * @name bingx#fetchPositions
          * @description fetch all open positions
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
+         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {boolean} [params.standard] whether to fetch standard contract positions
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const response = await this.swapV2PrivateGetUserPositions(params);
+        let standard = undefined;
+        [standard, params] = this.handleOptionAndParams(params, 'fetchPositions', 'standard', false);
+        let response = undefined;
+        if (standard) {
+            response = await this.contractV1PrivateGetAllPosition(params);
+        }
+        else {
+            response = await this.swapV2PrivateGetUserPositions(params);
+        }
         //
         //    {
         //        "code": 0,
@@ -1283,8 +1328,21 @@ class bingx extends bingx$1 {
         //         "avgPrice": "2.2",
         //         "leverage": 10,
         //     }
+        // standard position
+        //     {
+        //         "currentPrice":"82.91",
+        //         "symbol":"LTC/USDT",
+        //         "initialMargin":"5.00000000000000000000",
+        //         "unrealizedProfit":"-0.26464500",
+        //         "leverage":"20.000000000",
+        //         "isolated":true,
+        //         "entryPrice":"83.13",
+        //         "positionSide":"LONG",
+        //         "positionAmt":"1.20365912",
+        //     }
         //
-        const marketId = this.safeString(position, 'symbol');
+        let marketId = this.safeString(position, 'symbol');
+        marketId = marketId.replace('/', '-'); // standard return different format
         const isolated = this.safeValue(position, 'isolated');
         const marginMode = isolated ? 'isolated' : 'cross';
         return this.safePosition({
@@ -1294,7 +1352,7 @@ class bingx extends bingx$1 {
             'notional': this.safeString(position, 'positionAmt'),
             'marginMode': marginMode,
             'liquidationPrice': undefined,
-            'entryPrice': this.safeNumber(position, 'avgPrice'),
+            'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
             'percentage': undefined,
             'contracts': undefined,
@@ -1417,12 +1475,14 @@ class bingx extends bingx$1 {
             request['type'] = 'TAKE_PROFIT_MARKET';
             request['stopPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
         }
-        request['timeInForce'] = 'IOC';
         if (postOnly) {
             request['timeInForce'] = 'POC';
         }
         else if (exchangeSpecificTifParam === 'POC') {
             request['timeInForce'] = 'POC';
+        }
+        else if (!isSpotMarket) {
+            request['timeInForce'] = 'GTC';
         }
         if (isSpotMarket) {
             response = await this.spotV1PrivatePostTradeOrder(this.extend(request, query));
@@ -1605,7 +1665,7 @@ class bingx extends bingx$1 {
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
-            'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
             'FAILED': 'failed',
         };
         return this.safeString(statuses, status, status);
@@ -1965,22 +2025,29 @@ class bingx extends bingx$1 {
          * @description fetches information on multiple closed orders made by the user
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Order%20History
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @param {boolean} [params.standard] whether to fetch standard contract orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('fetchOrders', symbol);
+        this.checkRequiredSymbol('fetchClosedOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        if (marketType === 'spot') {
+        let standard = undefined;
+        [standard, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'standard', false);
+        const [marketType, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
+        if (standard) {
+            response = await this.contractV1PrivateGetAllOrders(this.extend(request, query));
+        }
+        else if (marketType === 'spot') {
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, query));
         }
         else {

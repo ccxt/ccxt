@@ -54,9 +54,9 @@ class whitebit extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -172,6 +172,7 @@ class whitebit extends Exchange {
                             'time',
                             'ping',
                             'markets',
+                            'futures',
                         ),
                     ),
                     'private' => array(
@@ -2081,6 +2082,144 @@ class whitebit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
+             * fetch the current funding rate
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+            $response = Async\await($this->fetch_funding_rates(array( $symbol ), $params));
+            return $this->safe_value($response, $symbol);
+        }) ();
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
+             * fetch the funding rate for multiple markets
+             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->v4PublicGetFutures ($params));
+            //
+            //    array(
+            //        {
+            //            "name" => "BTC_USDT",
+            //            "type" => "direct",
+            //            "quanto_multiplier" => "0.0001",
+            //            "ref_discount_rate" => "0",
+            //            "order_price_deviate" => "0.5",
+            //            "maintenance_rate" => "0.005",
+            //            "mark_type" => "index",
+            //            "last_price" => "38026",
+            //            "mark_price" => "37985.6",
+            //            "index_price" => "37954.92",
+            //            "funding_rate_indicative" => "0.000219",
+            //            "mark_price_round" => "0.01",
+            //            "funding_offset" => 0,
+            //            "in_delisting" => false,
+            //            "risk_limit_base" => "1000000",
+            //            "interest_rate" => "0.0003",
+            //            "order_price_round" => "0.1",
+            //            "order_size_min" => 1,
+            //            "ref_rebate_rate" => "0.2",
+            //            "funding_interval" => 28800,
+            //            "risk_limit_step" => "1000000",
+            //            "leverage_min" => "1",
+            //            "leverage_max" => "100",
+            //            "risk_limit_max" => "8000000",
+            //            "maker_fee_rate" => "-0.00025",
+            //            "taker_fee_rate" => "0.00075",
+            //            "funding_rate" => "0.002053",
+            //            "order_size_max" => 1000000,
+            //            "funding_next_apply" => 1610035200,
+            //            "short_users" => 977,
+            //            "config_change_time" => 1609899548,
+            //            "trade_size" => 28530850594,
+            //            "position_size" => 5223816,
+            //            "long_users" => 455,
+            //            "funding_impact_value" => "60000",
+            //            "orders_limit" => 50,
+            //            "trade_id" => 10851092,
+            //            "orderbook_id" => 2129638396
+            //        }
+            //    )
+            //
+            $data = $this->safe_value($response, 'result', array());
+            $result = $this->parse_funding_rates($data);
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        // {
+        //     "ticker_id":"ADA_PERP",
+        //     "stock_currency":"ADA",
+        //     "money_currency":"USDT",
+        //     "last_price":"0.296708",
+        //     "stock_volume":"7982130",
+        //     "money_volume":"2345758.29189",
+        //     "bid":"0.296608",
+        //     "ask":"0.296758",
+        //     "high":"0.298338",
+        //     "low":"0.290171",
+        //     "product_type":"Perpetual",
+        //     "open_interest":"46533000",
+        //     "index_price":"0.29659",
+        //     "index_name":"Cardano",
+        //     "index_currency":"ADA",
+        //     "funding_rate":"0.0001",
+        //     "next_funding_rate_timestamp":"1691193600000",
+        //     "brackets":array(
+        //        "1":"0",
+        //        "2":"0",
+        //        "3":"0",
+        //        "5":"0",
+        //        "10":"0",
+        //        "20":"0",
+        //        "50":"-10000",
+        //        "100":"-5000"
+        //     ),
+        //     "max_leverage":"100"
+        //  }
+        //
+        $marketId = $this->safe_string($contract, 'ticker_id');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $markPrice = $this->safe_number($contract, 'markPrice');
+        $indexPrice = $this->safe_number($contract, 'indexPrice');
+        $interestRate = $this->safe_number($contract, 'interestRate');
+        $fundingRate = $this->safe_number($contract, 'funding_rate');
+        $nextFundingTime = $this->safe_integer($contract, 'next_funding_rate_timestamp');
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'markPrice' => $markPrice,
+            'indexPrice' => $indexPrice,
+            'interestRate' => $interestRate,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => $this->iso8601(null),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => $nextFundingTime,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTime),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 

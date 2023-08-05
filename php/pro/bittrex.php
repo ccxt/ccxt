@@ -42,6 +42,7 @@ class bittrex extends \ccxt\async\bittrex {
             ),
             'options' => array(
                 'tradesLimit' => 1000,
+                'OHLCVLimit' => 1000,
                 'hub' => 'c3',
                 'I' => $this->milliseconds(),
             ),

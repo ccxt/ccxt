@@ -45,6 +45,7 @@ class bittrex(ccxt.async_support.bittrex):
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': self.milliseconds(),
             },

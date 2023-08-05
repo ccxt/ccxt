@@ -2726,8 +2726,10 @@ class bitget extends bitget$1 {
          * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
          * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
-         * @param {float} [params.stopLoss] *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
-         * @param {float} [params.takeProfit] *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2739,11 +2741,11 @@ class bitget extends bitget$1 {
             'orderType': type,
         };
         const isMarketOrder = type === 'market';
-        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-        const stopLoss = this.safeNumber(params, 'stopLoss');
-        const takeProfit = this.safeNumber(params, 'takeProfit');
+        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
+        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
@@ -2751,8 +2753,8 @@ class bitget extends bitget$1 {
         const isTakeProfit = takeProfit !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const isStopLossOrTakeProfit = isStopLoss || isTakeProfit;
-        if (this.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isStopLoss, isTakeProfit) > 1) {
-            throw new errors.ExchangeError(this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, stopLoss, takeProfit');
+        if (this.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder) > 1) {
+            throw new errors.ExchangeError(this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice');
         }
         if ((type === 'limit') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -2812,63 +2814,24 @@ class bitget extends bitget$1 {
             }
         }
         else {
+            request['marginCoin'] = market['settleId'];
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
-            if (!isStopLossOrTakeProfit) {
-                request['size'] = this.amountToPrecision(symbol, amount);
-            }
-            if (isTriggerOrder || isStopLossOrTakeProfit) {
+            if (isTriggerOrder || isStopLossOrTakeProfitTrigger) {
                 // default triggerType to market price for unification
                 const triggerType = this.safeString(params, 'triggerType', 'market_price');
                 request['triggerType'] = triggerType;
             }
-            if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
+            if (isStopLossOrTakeProfitTrigger) {
                 if (!isMarketOrder) {
                     throw new errors.ExchangeError(this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
                 }
                 request['holdSide'] = (side === 'buy') ? 'long' : 'short';
             }
-            const reduceOnly = this.safeValue(params, 'reduceOnly', false);
-            if (isTriggerOrder) {
-                request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-                if (price !== undefined) {
-                    request['executePrice'] = this.priceToPrecision(symbol, price);
-                }
-                if (side === 'buy') {
-                    request['side'] = 'open_long';
-                }
-                else if (side === 'sell') {
-                    request['side'] = 'open_short';
-                }
-                else {
-                    request['side'] = side;
-                }
-                method = 'privateMixPostPlanPlacePlan';
-            }
-            else if (isStopLossOrTakeProfitTrigger) {
-                if (isStopLossTriggerOrder) {
-                    request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                    request['planType'] = 'loss_plan';
-                }
-                else if (isTakeProfitTriggerOrder) {
-                    request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                    request['planType'] = 'profit_plan';
-                }
-                method = 'privateMixPostPlanPlaceTPSL';
-            }
-            else if (isStopLossOrTakeProfit) {
-                if (isStopLoss) {
-                    request['triggerPrice'] = this.priceToPrecision(symbol, stopLoss);
-                    request['planType'] = 'pos_loss';
-                }
-                else if (isTakeProfit) {
-                    request['triggerPrice'] = this.priceToPrecision(symbol, takeProfit);
-                    request['planType'] = 'pos_profit';
-                }
-                method = 'privateMixPostPlanPlacePositionsTPSL';
-            }
             else {
+                const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+                request['size'] = this.amountToPrecision(symbol, amount);
                 if (reduceOnly) {
                     request['side'] = (side === 'buy') ? 'close_short' : 'close_long';
                 }
@@ -2884,21 +2847,46 @@ class bitget extends bitget$1 {
                     }
                 }
             }
-            request['marginCoin'] = market['settleId'];
+            if (isTriggerOrder) {
+                request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                }
+                method = 'privateMixPostPlanPlacePlan';
+            }
+            else if (isStopLossOrTakeProfitTrigger) {
+                if (isStopLossTriggerOrder) {
+                    request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                    request['planType'] = 'pos_loss';
+                }
+                else if (isTakeProfitTriggerOrder) {
+                    request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                    request['planType'] = 'pos_profit';
+                }
+                method = 'privateMixPostPlanPlacePositionsTPSL';
+            }
+            else if (isStopLossOrTakeProfit) {
+                if (isStopLoss) {
+                    const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
+                    request['presetStopLossPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                }
+                if (isTakeProfit) {
+                    const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
+                    request['presetTakeProfitPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                }
+            }
         }
-        if (!isStopLossOrTakeProfit) {
-            if (postOnly) {
-                request[timeInForceKey] = 'post_only';
-            }
-            else if (timeInForce === 'gtc') {
-                request[timeInForceKey] = 'normal';
-            }
-            else if (timeInForce === 'fok') {
-                request[timeInForceKey] = 'fok';
-            }
-            else if (timeInForce === 'ioc') {
-                request[timeInForceKey] = 'ioc';
-            }
+        if (postOnly) {
+            request[timeInForceKey] = 'post_only';
+        }
+        else if (timeInForce === 'gtc') {
+            request[timeInForceKey] = 'normal';
+        }
+        else if (timeInForce === 'fok') {
+            request[timeInForceKey] = 'fok';
+        }
+        else if (timeInForce === 'ioc') {
+            request[timeInForceKey] = 'ioc';
         }
         const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly']);
         const response = await this[method](this.extend(request, omitted));
