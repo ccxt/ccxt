@@ -1326,7 +1326,7 @@ export default class Exchange {
         return -1;
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client = undefined, message = undefined, subscription = undefined, messageHash = undefined) {
         const symbol = this.safeString (subscription, 'symbol');
         const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
         const defaultLimit = this.handleOption ('watchOrderBook', 'limit', orderBookLimitOld);
