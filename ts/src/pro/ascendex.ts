@@ -52,14 +52,13 @@ export default class ascendex extends ascendexRest {
     async watchPublic (messageHash, symbol: string, method = undefined, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
-        const idString = id.toString ();
         const request = {
-            'id': idString,
+            'id': id.toString (),
             'op': 'sub',
         };
         const message = this.extend (request, params);
         const subscription = {
-            'id': idString,
+            'id': id.toString (),
             'messageHash': messageHash,
             'symbol': symbol,
             'params': params,
@@ -922,7 +921,6 @@ export default class ascendex extends ascendexRest {
         //
         //     { m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0 }
         //
-        const channel = this.safeString (message, 'ch', '');
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id);
