@@ -49,15 +49,23 @@ export default class ascendex extends ascendexRest {
         });
     }
 
-    async watchPublic (messageHash, params = {}) {
+    async watchPublic (messageHash, symbol: string, method = undefined, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
+        const idString = id.toString ();
         const request = {
-            'id': id.toString (),
+            'id': idString,
             'op': 'sub',
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        const subscription = {
+            'id': idString,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'params': params,
+            'method': method,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
     async watchPrivate (channel, messageHash, params = {}) {
@@ -99,7 +107,7 @@ export default class ascendex extends ascendexRest {
         params = {
             'ch': channel,
         };
-        const ohlcv = await this.watchPublic (channel, params);
+        const ohlcv = await this.watchPublic (channel, symbol, undefined, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -161,7 +169,7 @@ export default class ascendex extends ascendexRest {
         params = this.extend (params, {
             'ch': channel,
         });
-        const trades = await this.watchPublic (channel, params);
+        const trades = await this.watchPublic (channel, symbol, undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -222,15 +230,18 @@ export default class ascendex extends ascendexRest {
         params = this.extend (params, {
             'ch': channel,
         });
-        const orderbook = await this.watchPublic (channel, params);
+        const method = this.handleOrderBookSubscription;
+        const orderbook = await this.watchPublic (channel, symbol, method, params);
         return orderbook.limit ();
     }
 
-    async watchOrderBookSnapshot (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBookSnapshot (client, message, subscription) {
         await this.loadMarkets ();
+        const symbol = this.safeValue (subscription, 'symbol');
         const market = this.market (symbol);
         const action = 'depth-snapshot-realtime';
         const channel = action + ':' + market['id'];
+        let params = this.safeValue (subscription, 'params', {});
         params = this.extend (params, {
             'action': action,
             'args': {
@@ -238,7 +249,7 @@ export default class ascendex extends ascendexRest {
             },
             'op': 'req',
         });
-        const orderbook = await this.watchPublic (channel, params);
+        const orderbook = await this.watchPublic (channel, symbol, undefined, params);
         return orderbook.limit ();
     }
 
@@ -912,22 +923,30 @@ export default class ascendex extends ascendexRest {
         //     { m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0 }
         //
         const channel = this.safeString (message, 'ch', '');
-        if (channel.indexOf ('depth-realtime') > -1) {
-            this.handleOrderBookSubscription (client, message);
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id);
+        if (subscription !== undefined) {
+            const method = this.safeValue (subscription, 'method');
+            if (method !== undefined) {
+                return method.call (this, client, message, subscription);
+            }
+            // clean up
+            if (id in client.subscriptions) {
+                delete client.subscriptions[id];
+            }
         }
         return message;
     }
 
-    handleOrderBookSubscription (client: Client, message) {
-        const channel = this.safeString (message, 'ch');
-        const parts = channel.split (':');
-        const marketId = parts[1];
-        const symbol = this.safeSymbol (marketId);
+    handleOrderBookSubscription (client: Client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({});
-        this.spawn (this.watchOrderBookSnapshot, symbol);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
     async pong (client, message) {
