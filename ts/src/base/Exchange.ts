@@ -3385,7 +3385,7 @@ export default class Exchange {
                 validLimitsArray = this.handleOption ('watchOrderBook', 'validLimits');
             }
             if (validLimitsArray !== undefined && !this.inArray (limit, validLimitsArray)) {
-                throw new ExchangeError (this.id + ' watchOrderBook - if limit argument is defined, it must be one of ' + validLimitsArray.join (', '));
+                throw new ExchangeError (this.id + ' watchOrderBook - provided limit argument must be one of ' + validLimitsArray.join (', '));
             }
         }
     }
