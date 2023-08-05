@@ -50,6 +50,7 @@ export default class mexc extends mexcRest {
                 'watchOrderBook': {
                     'snapshotDelay': 25,
                     'maxRetries': 3,
+                    'initialFetchOrderBookMaxRetries': 3,
                 },
                 'listenKey': undefined,
             },
