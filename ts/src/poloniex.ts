@@ -1074,7 +1074,7 @@ export default class poloniex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const rawType = this.safeString (order, 'type');
         const type = this.parseOrderType (rawType);
-        const id = this.safeString2 (order, 'orderNumber', 'id');
+        const id = this.safeStringN (order, [ 'orderNumber', 'id', 'orderId' ]);
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'tokenFeeCurrency');
         let feeCost = undefined;
@@ -1324,6 +1324,15 @@ export default class poloniex extends Exchange {
         request['id'] = id;
         params = this.omit (params, 'clientOrderId');
         const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        //
+        //   {
+        //       "orderId":"210832697138888704",
+        //       "clientOrderId":"",
+        //       "state":"PENDING_CANCEL",
+        //       "code":200,
+        //       "message":""
+        //   }
+        //
         return this.parseOrder (response);
     }
 
