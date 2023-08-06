@@ -42,6 +42,7 @@ export default class bittrex extends bittrexRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds(),
             },

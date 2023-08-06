@@ -283,6 +283,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_spot_post_trace_user_gettraderinfo($params = array()) {
         return $this->request('trace/user/getTraderInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_spot_post_trace_getremovablefollower($params = array()) {
+        return $this->request('trace/getRemovableFollower', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_user_removefollower($params = array()) {
+        return $this->request('trace/user/removeFollower', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_spot_post_convert_quoted_price($params = array()) {
         return $this->request('convert/quoted-price', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
@@ -504,6 +510,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function private_mix_post_trace_traderupdatetpslratioconfig($params = array()) {
         return $this->request('trace/traderUpdateTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_closetrackorderbysymbol($params = array()) {
+        return $this->request('trace/closeTrackOrderBySymbol', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_user_get_fee_query($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
@@ -979,6 +988,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateSpotPostTraceUserGetTraderInfo($params = array()) {
         return $this->request('trace/user/getTraderInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privateSpotPostTraceGetRemovableFollower($params = array()) {
+        return $this->request('trace/getRemovableFollower', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceUserRemoveFollower($params = array()) {
+        return $this->request('trace/user/removeFollower', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privateSpotPostConvertQuotedPrice($params = array()) {
         return $this->request('convert/quoted-price', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
@@ -1200,6 +1215,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateMixPostTraceTraderUpdateTpslRatioConfig($params = array()) {
         return $this->request('trace/traderUpdateTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceCloseTrackOrderBySymbol($params = array()) {
+        return $this->request('trace/closeTrackOrderBySymbol', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateUserGetFeeQuery($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));

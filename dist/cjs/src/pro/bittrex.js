@@ -39,6 +39,7 @@ class bittrex extends bittrex$1 {
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds(),
             },

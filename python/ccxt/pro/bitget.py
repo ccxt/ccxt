@@ -411,7 +411,8 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
             checksum = self.safe_value(self.options, 'checksum', True)
-            if checksum:
+            isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
+            if not isSnapshot and checksum:
                 storedAsks = storedOrderBook['asks']
                 storedBids = storedOrderBook['bids']
                 asksLength = len(storedAsks)

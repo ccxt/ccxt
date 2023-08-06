@@ -101,6 +101,8 @@ interface Exchange {
     privateSpotPostTraceProfitProfitHisDetailList (params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceProfitWaitProfitDetailList (params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceUserGetTraderInfo (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostTraceGetRemovableFollower (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostTraceUserRemoveFollower (params?: {}): Promise<implicitReturnType>;
     privateSpotPostConvertQuotedPrice (params?: {}): Promise<implicitReturnType>;
     privateSpotPostConvertTrade (params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccount (params?: {}): Promise<implicitReturnType>;
@@ -175,6 +177,7 @@ interface Exchange {
     privateMixPostTraceReportOrderCurrentList (params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceQueryTraderTpslRatioConfig (params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceTraderUpdateTpslRatioConfig (params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceCloseTrackOrderBySymbol (params?: {}): Promise<implicitReturnType>;
     privateUserGetFeeQuery (params?: {}): Promise<implicitReturnType>;
     privateUserGetSubVirtualList (params?: {}): Promise<implicitReturnType>;
     privateUserGetSubVirtualApiList (params?: {}): Promise<implicitReturnType>;

@@ -213,6 +213,8 @@ class woo(Exchange, ImplicitAPI):
                             'accountinfo': 60,
                             'positions': 3.33,
                             'buypower': 1,
+                            'referrals': 60,
+                            'referral_rewards': 60,
                         },
                         'post': {
                             'algo/order': 5,

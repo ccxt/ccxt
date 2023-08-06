@@ -2272,8 +2272,7 @@ class huobi extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        $tradeId = $this->safe_string_2($trade, 'trade-id', 'tradeId');
-        $id = $this->safe_string_2($trade, 'trade_id', 'id', $tradeId);
+        $id = $this->safe_string_n($trade, array( 'trade_id', 'trade-id', 'id' ));
         return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,

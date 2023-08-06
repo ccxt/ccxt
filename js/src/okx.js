@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -545,16 +545,16 @@ export default class okx extends Exchange {
                     '51018': ExchangeError,
                     '51019': ExchangeError,
                     '51020': InvalidOrder,
-                    '51021': BadSymbol,
-                    '51022': BadSymbol,
+                    '51021': ContractUnavailable,
+                    '51022': ContractUnavailable,
                     '51023': ExchangeError,
                     '51024': AccountSuspended,
                     '51025': ExchangeError,
                     '51026': BadSymbol,
-                    '51027': BadSymbol,
-                    '51028': BadSymbol,
-                    '51029': BadSymbol,
-                    '51030': BadSymbol,
+                    '51027': ContractUnavailable,
+                    '51028': ContractUnavailable,
+                    '51029': ContractUnavailable,
+                    '51030': ContractUnavailable,
                     '51046': InvalidOrder,
                     '51047': InvalidOrder,
                     '51031': InvalidOrder,

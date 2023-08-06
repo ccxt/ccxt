@@ -348,13 +348,13 @@ export default class bitfinex extends bitfinexRest {
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const id = this.safeString(message, 1);
-                const price = this.safeFloat(message, 2);
+                const price = this.safeString(message, 2);
                 const size = (message[3] < 0) ? -message[3] : message[3];
                 const side = (message[3] < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store(price, amount, id);
+                const amount = Precise.stringGt(price, '0') ? size : '0';
+                bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
             }
             else {
                 const size = (message[3] < 0) ? -message[3] : message[3];

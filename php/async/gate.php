@@ -4029,8 +4029,8 @@ class gate extends Exchange {
         //        "order_type" => ""
         //    }
         //
-        $put = $this->safe_value_2($order, 'put', 'initial');
-        $trigger = $this->safe_value($order, 'trigger');
+        $put = $this->safe_value_2($order, 'put', 'initial', array());
+        $trigger = $this->safe_value($order, 'trigger', array());
         $contract = $this->safe_string($put, 'contract');
         $type = $this->safe_string($put, 'type');
         $timeInForce = $this->safe_string_upper_2($put, 'time_in_force', 'tif');
