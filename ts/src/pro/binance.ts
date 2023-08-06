@@ -74,7 +74,10 @@ export default class binance extends binanceRest {
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': {},
-                'watchOrderBookLimit': 1000, // default limit
+                'watchOrderBook': {
+                    'limit': 1000, // default limit
+                    'validLimits': [ 5, 10, 20, 50, 100, 500, 1000 ], // exchange default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+                },
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
@@ -139,12 +142,7 @@ export default class binance extends binanceRest {
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
         // valid <levels> are 5, 10, or 20
         //
-        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        if (limit !== undefined) {
-            if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
-            }
-        }
+        this.wsValidateOrderBookLimit (limit);
         //
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -215,14 +213,11 @@ export default class binance extends binanceRest {
         const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol');
         try {
-            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const type = this.safeValue (subscription, 'type');
-            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             const params = this.safeValue (subscription, 'params');
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-            // todo: this is a synch blocking call in ccxt.php - make it async
-            // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            const snapshot = await this.fetchOrderBook (symbol, limit, params);
+            // todo: this is a synch blocking call - make it async
+            const snapshot = await this.fetchOrderBook (symbol, this.wsDefaultOrderBookLimit (subscription, 1000), params);
             const orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook === undefined) {
                 // if the orderbook is dropped before the snapshot is received
@@ -385,13 +380,11 @@ export default class binance extends binanceRest {
     }
 
     handleOrderBookSubscription (client: Client, message, subscription) {
-        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, this.wsDefaultOrderBookLimit (subscription, 1000));
         // fetch the snapshot in a separate async call
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }

@@ -67,6 +67,9 @@ export default class bybit extends bybitRest {
                 'watchTicker': {
                     'name': 'tickers', // 'tickers' for 24hr statistical ticker or 'tickers_lt' for leverage token ticker
                 },
+                'watchOrderBook': {
+                    'validLimits': [ 1, 50, 200, 500 ],
+                },
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -443,13 +446,11 @@ export default class bybit extends bybitRest {
             } else {
                 limit = 500;
             }
+        }
+        if (market['spot']) {
+            this.wsValidateOrderBookLimit (limit, [ 1, 50 ]);
         } else {
-            if (!market['spot']) {
-                // bybit only support limit 1, 50, 200, 500 for contract
-                if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
-                    throw new BadRequest (this.id + ' watchOrderBook() can only use limit 1, 50, 200 and 500.');
-                }
-            }
+            this.wsValidateOrderBookLimit (limit, [ 1, 50, 200, 500 ]);
         }
         const topics = [ 'orderbook.' + limit.toString () + '.' + market['id'] ];
         const orderbook = await this.watchTopics (url, messageHash, topics, params);

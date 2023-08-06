@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import huobiRest from '../huobi.js';
-import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
+import { InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
@@ -93,6 +93,10 @@ export default class huobi extends huobiRest {
                 },
                 'watchTicker': {
                     'name': 'market.{marketId}.detail', // 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
+                },
+                'watchOrderBook': {
+                    'limit': 150, // default limit
+                    'validLimits': [ 5, 20, 150, 400 ], // all possible valid limits
                 },
             },
             'exceptions': {
@@ -329,14 +333,12 @@ export default class huobi extends huobiRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const allowedSpotLimits = [ 150 ];
-        const allowedSwapLimits = [ 20, 150 ];
-        limit = (limit === undefined) ? 150 : limit;
-        if (market['spot'] && !this.inArray (limit, allowedSpotLimits)) {
-            throw new ExchangeError (this.id + ' watchOrderBook spot market accepts limits of 150 only');
+        limit = this.wsDefaultOrderBookLimit (undefined, limit);
+        if (market['spot']) {
+            this.wsValidateOrderBookLimit (limit, [ 5, 20, 150, 400 ]);
         }
-        if (!market['spot'] && !this.inArray (limit, allowedSwapLimits)) {
-            throw new ExchangeError (this.id + ' watchOrderBook swap market accepts limits of 20 and 150 only');
+        if (!market['spot']) {
+            this.wsValidateOrderBookLimit (limit, [ 20, 150 ]);
         }
         let messageHash = undefined;
         if (market['spot']) {
@@ -389,7 +391,7 @@ export default class huobi extends huobiRest {
             const sequence = this.safeInteger (tick, 'seqNum');
             const nonce = this.safeInteger (data, 'seqNum');
             snapshot['nonce'] = nonce;
-            const snapshotLimit = this.safeInteger (subscription, 'limit');
+            const snapshotLimit = this.wsDefaultOrderBookLimit (subscription);
             const snapshotOrderBook = this.orderBook (snapshot, snapshotLimit);
             client.resolve (snapshotOrderBook, id);
             if ((sequence !== undefined) && (nonce < sequence)) {
@@ -427,7 +429,7 @@ export default class huobi extends huobiRest {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
             const symbol = this.safeString (subscription, 'symbol');
-            const limit = this.safeInteger (subscription, 'limit');
+            const limit = this.wsDefaultOrderBookLimit (subscription);
             const params = this.safeValue (subscription, 'params');
             const attempts = this.safeInteger (subscription, 'numAttempts', 0);
             const market = this.market (symbol);
@@ -632,7 +634,7 @@ export default class huobi extends huobiRest {
 
     handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
+        const limit = this.wsDefaultOrderBookLimit (subscription);
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }

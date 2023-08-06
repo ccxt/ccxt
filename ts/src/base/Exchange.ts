@@ -3369,6 +3369,27 @@ export default class Exchange {
         return result;
     }
 
+    wsDefaultOrderBookLimit (subscription = undefined, defaultValue = undefined, validLimitsArray = undefined) {
+        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', defaultValue); // support obsolete format for some period
+        let limit = this.handleOption ('watchOrderBook', 'limit', orderBookLimitOld);
+        if (subscription !== undefined) {
+            limit = this.safeInteger (subscription, 'limit', limit);
+        }
+        this.wsValidateOrderBookLimit (limit, validLimitsArray);
+        return limit;
+    }
+
+    wsValidateOrderBookLimit (limit = undefined, validLimitsArray = undefined) {
+        if (limit !== undefined) {
+            if (validLimitsArray === undefined) {
+                validLimitsArray = this.handleOption ('watchOrderBook', 'validLimits');
+            }
+            if (validLimitsArray !== undefined && !this.inArray (limit, validLimitsArray)) {
+                throw new ExchangeError (this.id + ' watchOrderBook - provided limit argument must be one of ' + validLimitsArray.join (', '));
+            }
+        }
+    }
+
     handleMarketTypeAndParams (methodName, market = undefined, params = {}): any {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);

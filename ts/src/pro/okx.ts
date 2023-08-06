@@ -69,6 +69,7 @@ export default class okx extends okxRest {
                     // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
                     //
                     'depth': 'books',
+                    'validLimits': [ 1, 5, 50, 400 ], // all possible limits
                 },
                 'watchBalance': 'spot', // margin, futures, swap
                 'watchTicker': {
