@@ -2,6 +2,7 @@
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import { TICK_SIZE } from '../../../base/functions/number.js';
+import testOrder from './test.order.js';
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
@@ -321,6 +322,110 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
     }
 }
 
+async function tryFetchBestBidAsk (exchange, method, symbol) {
+    const logText = logTemplate (exchange, method, {});
+    // find out best bid/ask price
+    let bestBid = undefined;
+    let bestAsk = undefined;
+
+    let usedMethod = undefined;
+    if (exchange.has['fetchOrderBook']) {
+        usedMethod = 'fetchOrderBook';
+        const orderbook = await exchange.fetchOrderBook (symbol);
+        bestBid = orderbook.bids[0][0];
+        bestAsk = orderbook.asks[0][0];
+    } else if (exchange.has['fetchTicker']) {
+        usedMethod = 'fetchTicker';
+        const ticker = await exchange.fetchTicker (symbol);
+        bestBid = ticker.bid;
+        bestAsk = ticker.ask;
+    } else if (exchange.has['fetchTickers']) {
+        usedMethod = 'fetchTickers';
+        const tickers = await exchange.fetchTickers ([ symbol ]);
+        bestBid = tickers[symbol].bid;
+        bestAsk = tickers[symbol].ask;
+    } else if (exchange.has['fetchL1OrderBooks']) {
+        usedMethod = 'fetchL1OrderBooks';
+        const tickers = await exchange.fetchL1OrderBooks ([ symbol ]);
+        bestBid = tickers[symbol].bid;
+        bestAsk = tickers[symbol].ask;
+    } else if (exchange.has['fetchBidsAsks']) {
+        usedMethod = 'fetchBidsAsks';
+        const tickers = await exchange.fetchBidsAsks ([ symbol ]);
+        bestBid = tickers[symbol].bid;
+        bestAsk = tickers[symbol].ask;
+    }
+    //
+    assert (bestBid !== undefined && bestAsk !== undefined, logText + ' ' +  exchange.id + ' could not get best bid/ask for ' + symbol + ' using ' + usedMethod + ' while testing ' + method);
+    return [ bestBid, bestAsk ];
+}
+
+async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
+    let fetchedOrder = undefined;
+    let usedMethod = undefined;
+    const originalId = orderId;
+    // set 'since' to 5 minute ago for optimal results
+    const sinceTime = Date.now () - 1000 * 60 * 5;
+    //
+    // search through singular methods
+    // eslint-disable-next-line no-restricted-syntax
+    for (const singularFetchName of [ 'fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder' ]) {
+        if (exchange.has[singularFetchName]) {
+            usedMethod = singularFetchName;
+            const currentOrder = await exchange[singularFetchName] (originalId, symbol);
+            // if there is an id inside the order, it means the order was fetched successfully
+            if (currentOrder.id === originalId) {
+                fetchedOrder = currentOrder;
+                break;
+            }
+        }
+    }
+    //
+    // search through plural methods
+    if (fetchedOrder === undefined) {
+        // eslint-disable-next-line no-restricted-syntax
+        for (const pluralFetchName of [ 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders' ]) {
+            if (exchange.has[pluralFetchName]) {
+                usedMethod = pluralFetchName;
+                const orders = await exchange[pluralFetchName] (symbol, sinceTime);
+                let found = false;
+                for (let i = 0; i < orders.length; i++) {
+                    const currentOrder = orders[i];
+                    if (currentOrder.id === originalId) {
+                        fetchedOrder = currentOrder;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    break;
+                }
+            }
+        }
+    }
+    // test fetched order object
+    if (fetchedOrder !== undefined) {
+        testOrder (exchange, skippedProperties, 'createOrder', fetchedOrder, symbol, Date.now ());
+    }
+    return fetchedOrder;
+}
+
+function confirmOrderState (exchange, order, statusSlug) {
+    const filled_amount = exchange.safeString (order, 'filled');
+    const whole_amount = exchange.safeString (order, 'amount');
+    if (statusSlug === 'open') {
+        if (order['status'] === 'open' || (order['status'] === undefined && filled_amount !== undefined && whole_amount !== undefined && filled_amount < whole_amount)) {
+            return true;
+        }
+    } else if (statusSlug === 'closed') {
+        if (order['status'] === 'closed' || order['status'] === 'canceled' || (order['status'] === undefined && filled_amount !== undefined && whole_amount !== undefined && Precise.stringEq (filled_amount, whole_amount))) {
+            return true;
+        }
+    }
+    // if above is not obvious, we can't say that it answer should be 'false', because we don't have enough indications to be sure
+    return undefined;
+}
+
 export default {
     logTemplate,
     assertTimestamp,
@@ -338,6 +443,9 @@ export default {
     assertNonEqual,
     assertInteger,
     checkPrecisionAccuracy,
+    tryFetchBestBidAsk,
+    tryFetchOrder,
+    confirmOrderState,
     assertValidCurrencyIdAndCode,
     assertType,
 };

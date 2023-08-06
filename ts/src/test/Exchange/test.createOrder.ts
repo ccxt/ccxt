@@ -19,22 +19,14 @@ function verboseOutput (exchange, symbol, ...args) {
 // ----------------------------------------------------------------------------
 
 async function testCreateOrder (exchange, skippedProperties, symbol) {
+    const logPrefix = testSharedMethods.logTemplate (exchange, 'createOrder', [ symbol ]);
     const method = 'createOrder';
     if (!exchange.has[method]) {
-        console.log (warningPrefix, exchange.id, 'does not have method ', method, ' yet, skipping test...');
-        return;
-    }
-    // skip some exchanges
-    const skippedExchanges = [];
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (warningPrefix, exchange.id, 'found in ignored exchanges, skipping ' + method + ' test...');
+        console.log (logPrefix, 'does not have method ', method, ' yet, skipping test...');
         return;
     }
     // ensure it has cancel (any) method, otherwise we should refrain from automatic test.
-    if (!exchange.has['cancelOrder'] && !exchange.has['cancelOrders'] && !exchange.has['cancelAllOrders']) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
-        return;
-    }
+    assert (exchange.has['cancelOrder'] || exchange.has['cancelOrders'] || exchange.has['cancelAllOrders'], logPrefix + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
 
     // pre-define some coefficients, which will be used down below
     const limitPriceSafetyMultiplierFromMedian = 1.2;
@@ -42,51 +34,49 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
 
     // we need fetchBalance method to test out orders correctly
     if (!exchange.has['fetchBalance']) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
+        assert (false, logPrefix + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
     }
     // ensure there is enough balance of 'quote' asset, because at first we need to 'buy' the base asset
     const balance = await exchange.fetchBalance ();
     const initialBaseBalance = balance[market['base']]['free'];
     const initialQuoteBalance = balance[market['quote']]['free'];
     if (initialQuoteBalance === undefined) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' does not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
+        assert (false, logPrefix + ' - testing account not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
     }
     verboseOutput (exchange, symbol, 'fetched balance for', symbol, ':', initialBaseBalance, market['base'], '/', initialQuoteBalance, market['quote']);
     // get best bid & ask
-    const [ bestBid, bestAsk ] = await testCreateOrder_getBestBidAsk (exchange, symbol);
+    const [ bestBid, bestAsk ] = await testSharedMethods.tryFetchBestBidAsk (exchange, 'createOrder', symbol);
     // get minimum order amount & cost
     const [ minimumAmountForBuy, minimumCostForBuy ] = getMinimumMarketCostAndAmountForBuy (exchange, market, bestAsk);
-    if (minimumAmountForBuy === undefined && minimumCostForBuy === undefined) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' can not determine minimum amount/cost of order for ' + symbol + ' market');
-    }
-    verboseOutput (exchange, symbol, 'minimum amount should be:', minimumAmountForBuy, ', minimum cost should be:', minimumCostForBuy);
+    assert (minimumAmountForBuy !== undefined || minimumCostForBuy !== undefined, logPrefix + ' can not determine minimum amount/cost of order for ' + symbol + ' market');
+    verboseOutput (exchange, symbol, 'found minimums - amount:', minimumAmountForBuy, ',  cost :', minimumCostForBuy);
 
-    // ************************************ //
-    // *********** [Scenario 1] *********** //
-    // ************************************ //
+    // ****************************************** //
+    // ************** [Scenario 1] ************** //
+    // ****************************************** //
     try {
-        // create limit order which IS GUARANTEED not to be filled (far from the best bid|ask price)
+        // create a "limit order" which must be guaranteed not to get filled (i.e. being much far from the best bid|ask price)
         const limitBuyPrice_nonFillable = bestBid / limitPriceSafetyMultiplierFromMedian;
         const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, minimumAmountForBuy, minimumCostForBuy, limitBuyPrice_nonFillable);
         const buyOrder_nonFillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_nonFillable, {}, skippedProperties);
-        const buyOrder_nonFillable_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_nonFillable['id'], skippedProperties);
+        const buyOrder_nonFillable_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, buyOrder_nonFillable['id'], skippedProperties);
         // ensure that order is not filled
-        const isClosed = testCreateOrder_orderIs (exchange, buyOrder_nonFillable, 'closed');
-        const isClosedFetched = testCreateOrder_orderIs (exchange, buyOrder_nonFillable_fetched, 'closed');
-        assert (!isClosed, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable));
-        assert (!isClosedFetched, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable_fetched));
+        const isClosed = testSharedMethods.confirmOrderState (exchange, buyOrder_nonFillable, 'closed');
+        const isClosedFetched = testSharedMethods.confirmOrderState (exchange, buyOrder_nonFillable_fetched, 'closed');
+        assert (!isClosed, logPrefix + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable));
+        assert (!isClosedFetched, logPrefix + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable_fetched));
         // cancel the order
         await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonFillable['id']);
         verboseOutput (exchange, symbol, 'SCENARIO 1 PASSED !!!');
     } catch (e) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 1: ' + e.toString ());
+        throw new Error (logPrefix + ' ' + method + ' failed for Scenario 1: ' + e.toString ());
     }
     // *********** [Scenario 1 - END ] *********** //
 
 
-    // ************************************ //
-    // *********** [Scenario 2] *********** //
-    // ************************************ //
+    // ******************************************* //
+    // ************** [Scenario 2] *************** //
+    // ******************************************* //
     try {
         // create limit/market order which IS GUARANTEED to have a fill (full or partial), then sell the bought amount
         const limitBuyPrice_fillable = bestAsk * limitPriceSafetyMultiplierFromMedian;
@@ -95,7 +85,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         // try to cancel remnant (if any) of order
         testCreateOrder_tryCancelOrder (exchange, symbol, buyOrder_fillable, skippedProperties);
         // now, as order is closed/canceled, we can reliably fetch the order information
-        const buyOrder_filled_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_fillable['id'], skippedProperties);
+        const buyOrder_filled_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, buyOrder_fillable['id'], skippedProperties);
         // we need to find out the amount of base asset that was bought
         let amountToSell = undefined;
         if (buyOrder_filled_fetched['filled'] !== undefined) {
@@ -115,10 +105,10 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
             priceForMarketSellOrder = (minimumCostForBuy / amountToSell) * limitPriceSafetyMultiplierFromMedian;
         }
         const sellOrder = await testCreateOrder_submitSafeOrder (exchange, symbol, 'market', 'sell', amountToSell, priceForMarketSellOrder, params, skippedProperties);
-        const sellOrder_fetched = await testCreateOrder_fetchOrder (exchange, symbol, sellOrder['id'], skippedProperties);
+        const sellOrder_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, sellOrder['id'], skippedProperties);
         // try to test that order was fully filled
-        const isClosedFetched = testCreateOrder_orderIs (exchange, sellOrder_fetched, 'closed');
-        const isOpenFetched = testCreateOrder_orderIs (exchange, sellOrder_fetched, 'open');
+        const isClosedFetched = testSharedMethods.confirmOrderState (exchange, sellOrder_fetched, 'closed');
+        const isOpenFetched = testSharedMethods.confirmOrderState (exchange, sellOrder_fetched, 'open');
         assert (isClosedFetched || isOpenFetched === undefined, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should be filled, but it is not. ' + exchange.json (sellOrder_fetched));
         verboseOutput (exchange, symbol, 'SCENARIO 2 PASSED !!!');
     } catch (e) {
@@ -130,105 +120,6 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     // ***********
     // above, we already tested 'limit' and 'market' orders. next, 'todo' is to create tests for other unified scenarios (spot, swap, trigger, positions, stoploss, takeprofit, etc)
     // ***********
-}
-
-// ----------------------------------------------------------------------------
-
-async function testCreateOrder_getBestBidAsk (exchange, symbol) {
-    // find out best bid/ask price to determine the entry prices
-    let bestBid = undefined;
-    let bestAsk = undefined;
-
-    let usedMethod = undefined;
-    if (exchange.has['fetchOrderBook']) {
-        usedMethod = 'fetchOrderBook';
-        const orderbook = await exchange.fetchOrderBook (symbol);
-        bestBid = orderbook.bids[0][0];
-        bestAsk = orderbook.asks[0][0];
-    } else if (exchange.has['fetchTicker']) {
-        usedMethod = 'fetchTicker';
-        const ticker = await exchange.fetchTicker (symbol);
-        bestBid = ticker.bid;
-        bestAsk = ticker.ask;
-    } else if (exchange.has['fetchTickers']) {
-        usedMethod = 'fetchTickers';
-        const tickers = await exchange.fetchTickers ([ symbol ]);
-        bestBid = tickers[symbol].bid;
-        bestAsk = tickers[symbol].ask;
-    } else if (exchange.has['fetchL1OrderBooks']) {
-        usedMethod = 'fetchL1OrderBooks';
-        const tickers = await exchange.fetchL1OrderBooks ([ symbol ]);
-        bestBid = tickers[symbol].bid;
-        bestAsk = tickers[symbol].ask;
-    } else if (exchange.has['fetchBidsAsks']) {
-        usedMethod = 'fetchBidsAsks';
-        const tickers = await exchange.fetchBidsAsks ([ symbol ]);
-        bestBid = tickers[symbol].bid;
-        bestAsk = tickers[symbol].ask;
-    }
-    //
-    if (bestBid === undefined || bestAsk === undefined) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' could not get best bid/ask, skipping createOrder test...');
-    }
-    // ensure values are correct
-    assert ((bestBid !== undefined) && (bestAsk !== undefined) && (bestBid > 0) || (bestAsk > 0) && (bestBid >= bestAsk), warningPrefix + ' ' +  exchange.id + ' best bid/ask seem incorrect. Bid:' + bestBid + ' Ask:' + bestAsk);
-    verboseOutput (exchange, symbol, 'fetched best bid/ask using', usedMethod, '- Bid:', bestBid, ' Ask:', bestAsk);
-    return [ bestBid, bestAsk ];
-}
-
-// ----------------------------------------------------------------------------
-
-async function testCreateOrder_fetchOrder (exchange, symbol, orderId, skippedProperties) {
-    let fetchedOrder = undefined;
-    let usedMethod = undefined;
-    const originalId = orderId;
-    // set 'since' to 5 minute ago for optimal results
-    const sinceTime = Date.now () - 1000 * 60 * 5;
-    //
-    // search through singular methods
-    // eslint-disable-next-line no-restricted-syntax
-    for (const singularFetchName of [ 'fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder' ]) {
-        if (exchange.has[singularFetchName]) {
-            usedMethod = singularFetchName;
-            const currentOrder = await exchange[singularFetchName] (originalId, symbol);
-            // if there is an id inside the order, it means the order was fetched successfully
-            if (currentOrder.id === originalId) {
-                fetchedOrder = currentOrder;
-                break;
-            }
-        }
-    }
-    //
-    // search through plural methods
-    if (fetchedOrder === undefined) {
-        // eslint-disable-next-line no-restricted-syntax
-        for (const pluralFetchName of [ 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders' ]) {
-            if (exchange.has[pluralFetchName]) {
-                usedMethod = pluralFetchName;
-                const orders = await exchange[pluralFetchName] (symbol, sinceTime);
-                let found = false;
-                for (let i = 0; i < orders.length; i++) {
-                    const currentOrder = orders[i];
-                    if (currentOrder.id === originalId) {
-                        fetchedOrder = currentOrder;
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) {
-                    break;
-                }
-            }
-        }
-    }
-    // test fetched order object
-    if (fetchedOrder !== undefined) {
-        testOrder (exchange, skippedProperties, 'createOrder', fetchedOrder, symbol, Date.now ());
-    }
-    if (usedMethod !== undefined) {
-        verboseOutput (exchange, symbol, 'fetched order using', usedMethod);
-    }
-    return fetchedOrder;
 }
 
 // ----------------------------------------------------------------------------
@@ -256,21 +147,6 @@ async function testCreateOrder_cancelOrder (exchange, symbol, orderId = undefine
 
 // ----------------------------------------------------------------------------
 
-function testCreateOrder_orderIs (exchange, order, statusSlug) {
-    const filled_amount = exchange.safeString (order, 'filled');
-    const whole_amount = exchange.safeString (order, 'amount');
-    if (statusSlug === 'open') {
-        if (order['status'] === 'open' || (order['status'] === undefined && filled_amount !== undefined && whole_amount !== undefined && filled_amount < whole_amount)) {
-            return true;
-        }
-    } else if (statusSlug === 'closed') {
-        if (order['status'] === 'closed' || order['status'] === 'canceled' || (order['status'] === undefined && filled_amount !== undefined && whole_amount !== undefined && Precise.stringEq (filled_amount, whole_amount))) {
-            return true;
-        }
-    }
-    // if above is not obvious, we can't say that it answer should be 'false', because we don't have enough indications to be sure
-    return undefined;
-}
 
 // ----------------------------------------------------------------------------
 
@@ -325,10 +201,10 @@ function getMinimumAmountForLimitPrice (exchange, market, amount, cost, price) {
 
 async function testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedProperties) {
     // fetch order for maximum accuracy
-    const orderFetched = await testCreateOrder_fetchOrder (exchange, symbol, order['id'], skippedProperties);
+    const orderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, order['id'], skippedProperties);
     // check their status
-    const isClosedFetched = testCreateOrder_orderIs (exchange, orderFetched, 'closed');
-    const isOpenFetched = testCreateOrder_orderIs (exchange, orderFetched, 'open');
+    const isClosedFetched = testSharedMethods.confirmOrderState (exchange, orderFetched, 'closed');
+    const isOpenFetched = testSharedMethods.confirmOrderState (exchange, orderFetched, 'open');
     // if it was not reported as closed/filled, then try to cancel it
     if (isClosedFetched === undefined || isOpenFetched) {
         verboseOutput (exchange, symbol, 'trying to cancel the remaining amount of partially filled order...');
