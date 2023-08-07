@@ -7,6 +7,7 @@ from .functions import milliseconds, iso8601, is_json_encoded_object
 from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.functions import gunzip, inflate
 from ccxt import NetworkError, RequestTimeout
+import gzip
 
 
 class AiohttpClient(Client):
@@ -22,7 +23,10 @@ class AiohttpClient(Client):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'message', data)
         if isinstance(data, bytes):
-            data = data.decode()
+            if data[0:2] == b"\x1f\x8b":
+                data = gzip.decompress(data).decode()
+            else:
+                data = data.decode()
         decoded = json.loads(data) if is_json_encoded_object(data) else data
         self.on_message_callback(self, decoded)
 
