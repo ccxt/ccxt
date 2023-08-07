@@ -384,9 +384,10 @@
         }
     },
     "bkex": {
-        "skip": "system buy",
+        "skip": "system busy",
         "until": "2023-08-05T23:56:12.257Z",
         "skipMethods": {
+            "fetchOrderBook": "system busy",
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
                 "contractSize": "broken for some markets"
