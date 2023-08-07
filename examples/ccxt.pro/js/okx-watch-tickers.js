@@ -3,7 +3,7 @@ import ccxt from '../../../js/ccxt.js';
 async function main() {
     const exchange = new ccxt.pro.okx()
     await exchange.loadMarkets()
-    exchange.verbose = true
+    // exchange.verbose = true
     while (true) {
         try {
 

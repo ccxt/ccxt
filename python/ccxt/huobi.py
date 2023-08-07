@@ -2223,8 +2223,7 @@ class huobi(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        tradeId = self.safe_string_2(trade, 'trade-id', 'tradeId')
-        id = self.safe_string_2(trade, 'trade_id', 'id', tradeId)
+        id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
         return self.safe_trade({
             'id': id,
             'info': trade,

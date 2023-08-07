@@ -1104,20 +1104,6 @@ export default class Exchange {
         }
     }
 
-    // method to override
-
-    findTimeframe (timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
-        const keys = Object.keys (timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
-
     spawn (method, ... args): Future {
         const future = createFuture ()
         method.apply (this, args).then (future.resolve).catch (future.reject)
@@ -1280,10 +1266,6 @@ export default class Exchange {
         }
     }
 
-    handleDelta(bookside, delta, nonce = undefined) {
-        //stub
-    }
-
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
@@ -1312,18 +1294,6 @@ export default class Exchange {
             client.reject (e, messageHash);
             await this.loadOrderBook (client, messageHash, symbol, limit, params);
         }
-    }
-
-    handleDeltas (orderbook, deltas, nonce = undefined) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
-        }
-    }
-
-    // eslint-disable-next-line no-unused-vars
-    getCacheIndex (orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        return -1;
     }
 
     convertToBigInt(value: string) {
@@ -1387,6 +1357,36 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    handleDeltas (orderbook, deltas, nonce = undefined) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (orderbook, deltas[i]);
+        }
+    }
+
+    handleDelta (bookside, delta, nonce = undefined) {
+        throw new NotSupported (this.id + ' handleDelta not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    getCacheIndex (orderbook, deltas) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
+    }
+
+    findTimeframe (timeframe, timeframes = undefined) {
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
+        const keys = Object.keys (timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
 
     checkProxySettings (url, method, headers, body) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;

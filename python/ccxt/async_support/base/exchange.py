@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.49'
+__version__ = '4.0.50'
 
 # -----------------------------------------------------------------------------
 
@@ -463,20 +463,6 @@ class Exchange(BaseExchange):
         except BaseError as e:
             client.reject(e, messageHash)
             await self.load_order_book(client, messageHash, symbol, limit, params)
-
-    def handle_deltas(self, orderbook, deltas):
-        for delta in deltas:
-            self.handle_delta(orderbook, delta)
-
-    def handle_delta(self, orderbook, delta):
-        raise NotSupported(self.id + ' handleDelta() is not supported')
-
-    def find_timeframe(self, timeframe, timeframes=None):
-        timeframes = timeframes if timeframes else self.timeframes
-        for key, value in timeframes.items():
-            if value == timeframe:
-                return key
-        return None
 
     def format_scientific_notation_ftx(self, n):
         if n == 0:
