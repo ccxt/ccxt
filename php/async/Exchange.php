@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.50';
+$version = '4.0.52';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.50';
+    const VERSION = '4.0.52';
 
     public $browser;
     public $marketsLoading = null;
@@ -291,6 +291,35 @@ class Exchange extends \ccxt\Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function handle_deltas($orderbook, $deltas) {
+        for ($i = 0; $i < count($deltas); $i++) {
+            $this->handle_delta($orderbook, $deltas[$i]);
+        }
+    }
+
+    public function handle_delta($bookside, $delta) {
+        throw new NotSupported($this->id . ' handleDelta not supported yet');
+    }
+
+    public function get_cache_index($orderbook, $deltas) {
+        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
+        return -1;
+    }
+
+    public function find_timeframe($timeframe, $timeframes = null) {
+        if ($timeframes === null) {
+            $timeframes = $this->timeframes;
+        }
+        $keys = is_array($timeframes) ? array_keys($timeframes) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
+    }
 
     public function check_proxy_settings($url, $method, $headers, $body) {
         $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;

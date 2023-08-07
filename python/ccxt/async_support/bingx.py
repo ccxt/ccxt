@@ -1600,6 +1600,7 @@ class bingx(Exchange, ImplicitAPI):
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'CANCELLED': 'canceled',
             'FAILED': 'failed',
         }
         return self.safe_string(statuses, status, status)

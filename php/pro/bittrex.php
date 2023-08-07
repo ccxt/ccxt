@@ -639,10 +639,10 @@ class bittrex extends \ccxt\async\bittrex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $limit = ($limit === null) ? 25 : $limit; // 25 by default
             if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
@@ -661,25 +661,18 @@ class bittrex extends \ccxt\async\bittrex {
             //     7. Continue to apply messages are received from the socket number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
             //     8. If a message is received that is not the next in order, return to step property_exists($this, 2) process
             //
-            $orderbook = Async\await($this->subscribe_to_order_book($negotiation, $symbol, $limit, $params));
-            return $orderbook->limit ();
-        }) ();
-    }
-
-    public function subscribe_to_order_book($negotiation, $symbol, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($negotiation, $symbol, $limit, $params) {
-            Async\await($this->load_markets());
             $market = $this->market($symbol);
             $name = 'orderbook';
             $messageHash = $name . '_' . $market['id'] . '_' . (string) $limit;
             $subscription = array(
                 'symbol' => $symbol,
                 'messageHash' => $messageHash,
-                'method' => array($this, 'handle_subscribe_to_order_book'),
+                'method' => array($this, 'handle_order_book_subscription'),
                 'limit' => $limit,
                 'params' => $params,
             );
-            return Async\await($this->send_request_to_subscribe($negotiation, $messageHash, $subscription));
+            $orderbook = Async\await($this->send_request_to_subscribe($negotiation, $messageHash, $subscription));
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -738,7 +731,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_subscribe_to_order_book(Client $client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {

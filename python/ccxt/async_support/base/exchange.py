@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.50'
+__version__ = '4.0.52'
 
 # -----------------------------------------------------------------------------
 
@@ -507,6 +507,27 @@ class Exchange(BaseExchange):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def handle_deltas(self, orderbook, deltas):
+        for i in range(0, len(deltas)):
+            self.handle_delta(orderbook, deltas[i])
+
+    def handle_delta(self, bookside, delta):
+        raise NotSupported(self.id + ' handleDelta not supported yet')
+
+    def get_cache_index(self, orderbook, deltas):
+        # return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1
+
+    def find_timeframe(self, timeframe, timeframes=None):
+        if timeframes is None:
+            timeframes = self.timeframes
+        keys = list(timeframes.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if timeframes[key] == timeframe:
+                return key
+        return None
 
     def check_proxy_settings(self, url, method, headers, body):
         proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url

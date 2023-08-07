@@ -1669,6 +1669,7 @@ export default class bingx extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'CANCELLED': 'canceled',
             'FAILED': 'failed',
         };
         return this.safeString(statuses, status, status);
