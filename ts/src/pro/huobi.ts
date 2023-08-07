@@ -2167,7 +2167,7 @@ export default class huobi extends huobiRest {
                     'Signature': signature,
                 };
             }
-            await this.watch (url, messageHash, request, messageHash, future);
+            await this.watch (url, messageHash, request, messageHash, {});
         }
         return await future;
     }
