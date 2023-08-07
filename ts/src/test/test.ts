@@ -295,7 +295,7 @@ export default class testMainClass extends baseMainTestClass {
                     await exchange.sleep (i * 1000); // increase wait seconds on every retry
                     continue;
                 } else if (e instanceof OnMaintenance) {
-                    // in case of maintenance, throw an exception and stop tests
+                    // in case of maintenance, throw an exception (which will lead to stop of test for the current exchange)
                     throw e;
                 } else {
                     // if not temp failure, then dump exception without retrying
@@ -365,13 +365,13 @@ export default class testMainClass extends baseMainTestClass {
 
     async loadExchange (exchange) {
         try {
-            this.testSafe ('loadMarkets', exchange, [], true);
+            await this.testSafe ('loadMarkets', exchange, [], true);
         } catch (e) {
             if (e instanceof OnMaintenance) {
                 dump ('[SKIPPED] Exchange is on maintenance', exchange.id);
                 exitScript ();
             }
-            // if it's not maintenance and neither temporary connection problem, then throw exception
+            // if excepion is not maintenance (and therefore, neither temporary connection exceptiions, defined in `testSafe`) then throw exception as is, and the caller method will handle that
             throw e;
         }
         const symbols = [
