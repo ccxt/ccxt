@@ -897,14 +897,14 @@ export default class cex extends Exchange {
         if (typeof timestamp === 'string' && timestamp.indexOf ('T') >= 0) {
             // ISO8601 string
             timestamp = this.parse8601 (timestamp);
-        } else {
+        } else if (timestamp !== undefined) {
             // either integer or string integer
             timestamp = parseInt (timestamp);
         }
         let symbol = undefined;
-        if (market === undefined) {
-            const baseId = this.safeString (order, 'symbol1');
-            const quoteId = this.safeString (order, 'symbol2');
+        const baseId = this.safeString (order, 'symbol1');
+        const quoteId = this.safeString (order, 'symbol2');
+        if (market === undefined && baseId !== undefined && quoteId !== undefined) {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             symbol = base + '/' + quote;
@@ -921,7 +921,10 @@ export default class cex extends Exchange {
             amount = Math.abs (amount);
         }
         const remaining = this.safeNumber2 (order, 'pending', 'remains');
-        const filled = amount - remaining;
+        let filled = undefined;
+        if (amount !== undefined && remaining !== undefined) {
+            filled = amount - remaining;
+        }
         let fee = undefined;
         let cost = undefined;
         if (market !== undefined) {
@@ -956,12 +959,12 @@ export default class cex extends Exchange {
                 };
             }
         }
-        if (!cost) {
+        if (!cost && price !== undefined && filled !== undefined) {
             cost = price * filled;
         }
-        const side = order['type'];
+        const side = this.safeString (order, 'type');
         let trades = undefined;
-        const orderId = order['id'];
+        const orderId = this.safeString2 (order, 'id', 'order_id');
         if ('vtx' in order) {
             trades = [];
             for (let i = 0; i < order['vtx'].length; i++) {

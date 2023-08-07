@@ -51,7 +51,7 @@ export default class cex extends cexRest {
     requestId () {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
-        return requestId;
+        return requestId.toString ();
     }
 
     async watchBalance (params = {}) {
@@ -420,6 +420,26 @@ export default class cex extends cexRest {
         }, market);
     }
 
+    async fetchBalanceWs (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchBalanceWs
+         * @see https://docs.cex.io/#ws-api-get-balance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const request = this.extend ({
+            'e': 'get-balance',
+            'oid': messageHash,
+        }, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -713,7 +733,8 @@ export default class cex extends cexRest {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const ordersBySymbol = this.safeValue (this.orders['hashmap'], symbol, {});
+        const storedOrders = this.orders;
+        const ordersBySymbol = this.safeValue (storedOrders.hashmap, symbol, {});
         let order = this.safeValue (ordersBySymbol, orderId);
         if (order === undefined) {
             order = this.parseWsOrderUpdate (data, market);
@@ -738,7 +759,6 @@ export default class cex extends cexRest {
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601 (timestamp);
         order = this.safeOrder (order);
-        const storedOrders = this.orders;
         storedOrders.append (order);
         const messageHash = 'orders:' + symbol;
         client.resolve (storedOrders, messageHash);
@@ -800,7 +820,10 @@ export default class cex extends cexRest {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
+        let symbol = undefined;
+        if (base !== undefined && quote !== undefined) {
+            symbol = base + '/' + quote;
+        }
         market = this.safeMarket (symbol, market);
         const time = this.safeInteger (order, 'time', this.milliseconds ());
         let timestamp = time;
@@ -1196,7 +1219,7 @@ export default class cex extends cexRest {
             market = this.market (symbol);
         }
         const data = this.extend ({
-            'id': id.toString (),
+            'order_id': id.toString (),
         }, params);
         const url = this.urls['api']['ws'];
         const messageHash = this.requestId ();
@@ -1304,7 +1327,7 @@ export default class cex extends cexRest {
         await this.authenticate ();
         const market = this.market (symbol);
         const data = this.extend ({
-            'pair': market['id'],
+            'pair': [ market['baseId'], market['quoteId'] ],
             'type': side,
             'amount': amount,
             'price': price,
@@ -1317,7 +1340,7 @@ export default class cex extends cexRest {
             'oid': messageHash,
             'data': data,
         };
-        const response = this.watch (url, messageHash, request, messageHash, messageHash);
+        const response = await this.watch (url, messageHash, request, messageHash, messageHash);
         return this.parseOrder (response, market);
     }
 
@@ -1342,12 +1365,13 @@ export default class cex extends cexRest {
             'order_id': id,
         }, params);
         const messageHash = this.requestId ();
+        const url = this.urls['api']['ws'];
         const request = {
             'e': 'cancel-order',
             'oid': messageHash,
             'data': data,
         };
-        const response = this.watch (messageHash, request, messageHash, messageHash);
+        const response = await this.watch (url, messageHash, request, messageHash, messageHash);
         return this.parseOrder (response, market);
     }
 
@@ -1371,29 +1395,21 @@ export default class cex extends cexRest {
         const data = this.extend ({
             'cancel-orders': ids,
         }, params);
+        const url = this.urls['api']['ws'];
         const request = {
-            'e': 'mass_cancel_place_orders',
+            'e': 'mass-cancel-place-orders',
             'oid': messageHash,
             'data': data,
         };
-        const response = this.watch (messageHash, request, messageHash, messageHash);
+        const response = await this.watch (url, messageHash, request, messageHash, messageHash);
         //
         //    {
-        //        "cancel-orders": [
-        //            "1987",
-        //            "1278"
-        //        ],
-        //        "place-orders": [{
-        //            "pair": [
-        //                "BTC",
-        //                "USD"
-        //            ],
-        //            "amount": 0.02,
-        //            "price": "4200",
-        //            "order_type": "limit",
-        //            "type": "buy"
+        //        "cancel-orders": [{
+        //            "order_id": 69202557979,
+        //            "fremains": "0.15000000"
         //        }],
-        //        "cancelPlacedOrdersIfPlaceFailed": false
+        //        "place-orders": [],
+        //        "placed-cancelled": []
         //    }
         //
         const canceledOrders = this.safeValue (response, 'cancel-orders');
@@ -1486,7 +1502,7 @@ export default class cex extends cexRest {
             'place-order': this.resolveData,
             'cancel-replace-order': this.resolveData,
             'cancel-order': this.resolveData,
-            'mass_cancel_place_orders': this.resolveData,
+            'mass-cancel-place-orders': this.resolveData,
             'get-order': this.resolveData,
         };
         const handler = this.safeValue (handlers, event);
