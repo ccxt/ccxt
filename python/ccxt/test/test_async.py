@@ -396,7 +396,7 @@ class testMainClass(baseMainTestClass):
             await exchange.load_markets()
         except Exception as e:
             if isinstance(e, OnMaintenance):
-                dump('[SKIPPED] Exchange is on maintenance', exchangeId)
+                dump('[SKIPPED] Exchange is on maintenance', exchange.id)
                 exit_script()
             raise e
         assert isinstance(exchange.markets, dict), '.markets is not an object'

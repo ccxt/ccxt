@@ -682,7 +682,7 @@ class coinex extends \ccxt\async\coinex {
         $symbol = $market['symbol'];
         $name = 'orderbook';
         $messageHash = $name . ':' . $symbol;
-        $timestamp = $this->safe_number($orderBook, 'time');
+        $timestamp = $this->safe_integer($orderBook, 'time');
         $currentOrderBook = $this->safe_value($this->orderbooks, $symbol);
         if ($fullOrderBook) {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp);

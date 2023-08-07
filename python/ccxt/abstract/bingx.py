@@ -5,6 +5,7 @@ class ImplicitAPI:
     spot_v1_public_get_common_symbols = spotV1PublicGetCommonSymbols = Entry('common/symbols', ['spot', 'v1', 'public'], 'GET', {'cost': 3})
     spot_v1_public_get_market_trades = spotV1PublicGetMarketTrades = Entry('market/trades', ['spot', 'v1', 'public'], 'GET', {'cost': 3})
     spot_v1_public_get_market_depth = spotV1PublicGetMarketDepth = Entry('market/depth', ['spot', 'v1', 'public'], 'GET', {'cost': 3})
+    spot_v1_public_get_market_kline = spotV1PublicGetMarketKline = Entry('market/kline', ['spot', 'v1', 'public'], 'GET', {'cost': 3})
     spot_v1_private_get_trade_query = spotV1PrivateGetTradeQuery = Entry('trade/query', ['spot', 'v1', 'private'], 'GET', {'cost': 3})
     spot_v1_private_get_trade_openorders = spotV1PrivateGetTradeOpenOrders = Entry('trade/openOrders', ['spot', 'v1', 'private'], 'GET', {'cost': 3})
     spot_v1_private_get_trade_historyorders = spotV1PrivateGetTradeHistoryOrders = Entry('trade/historyOrders', ['spot', 'v1', 'private'], 'GET', {'cost': 3})

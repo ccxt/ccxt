@@ -358,7 +358,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         catch (e) {
             if (e instanceof OnMaintenance) {
-                dump('[SKIPPED] Exchange is on maintenance', exchangeId);
+                dump('[SKIPPED] Exchange is on maintenance', exchange.id);
                 exitScript();
             }
             throw e;

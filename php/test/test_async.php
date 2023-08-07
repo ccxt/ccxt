@@ -406,7 +406,7 @@ class testMainClass extends baseMainTestClass {
                 Async\await($exchange->load_markets());
             } catch (Exception $e) {
                 if ($e instanceof OnMaintenance) {
-                    dump ('[SKIPPED] Exchange is on maintenance', exchangeId);
+                    dump ('[SKIPPED] Exchange is on maintenance', $exchange->id);
                     exit_script ();
                 }
                 throw $e;

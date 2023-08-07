@@ -388,7 +388,7 @@ class testMainClass extends baseMainTestClass {
             $exchange->load_markets();
         } catch (Exception $e) {
             if ($e instanceof OnMaintenance) {
-                dump ('[SKIPPED] Exchange is on maintenance', exchangeId);
+                dump ('[SKIPPED] Exchange is on maintenance', $exchange->id);
                 exit_script ();
             }
             throw $e;
