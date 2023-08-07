@@ -1358,17 +1358,16 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    handleDeltas (orderbook, deltas, nonce = undefined) {
+    handleDeltas (orderbook, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);
         }
     }
 
-    handleDelta (bookside, delta, nonce = undefined) {
+    handleDelta (bookside, delta) {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 
-    // eslint-disable-next-line no-unused-vars
     getCacheIndex (orderbook, deltas) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1;
