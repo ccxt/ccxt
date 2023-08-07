@@ -24,22 +24,24 @@ export type NullableList = List | undefined;
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
 
+export type PreciseNumber = string | number;
+
 export interface MinMax {
-    min: Num;
-    max: Num;
+    min: PreciseNumber;
+    max: PreciseNumber;
 }
 
 export interface FeeInterface {
     currency: Str;
-    cost: Num;
-    rate?: Num;
+    cost: PreciseNumber;
+    rate?: PreciseNumber;
 }
 
 export interface TradingFeeInterface {
     info: any;
     symbol: Str;
-    maker: Num;
-    taker: Num;
+    maker: PreciseNumber;
+    taker: PreciseNumber;
     percentage: Bool;
     tierBased: Bool;
 }
@@ -48,7 +50,7 @@ export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
     id: string;
-    numericId?: Num;
+    numericId?: Int;
     uppercaseId?: string;
     lowercaseId?: string;
     symbol: string;
@@ -67,27 +69,27 @@ export interface MarketInterface {
     contract: boolean;
     settle: Str;
     settleId: Str;
-    contractSize: Num;
+    contractSize: PreciseNumber;
     linear: Bool;
     inverse: Bool;
     quanto?: boolean;
     expiry: Int;
     expiryDatetime: Str;
-    strike: Num;
+    strike: PreciseNumber;
     optionType: Str;
-    taker?: Num
-    maker?: Num
+    taker?: PreciseNumber
+    maker?: PreciseNumber
     percentage?: boolean | undefined;
     tierBased?: boolean | undefined;
     feeSide?: string | undefined;
     precision: {
-        amount: Num
-        price: Num
-        cost?: Num
+        amount: PreciseNumber,
+        price: PreciseNumber,
+        cost?: PreciseNumber,
     };
     marginMode?: {
-        isolated: boolean
-        cross: boolean
+        isolated: boolean,
+        cross: boolean,
     };
     limits: {
         amount?: MinMax,
@@ -101,17 +103,17 @@ export interface MarketInterface {
 
 export interface Trade {
     info: any;                        // the original decoded JSON as is
-    amount: Num;                  // amount of base currency
+    amount: PreciseNumber;                  // amount of base currency
     datetime: Str;                // ISO8601 datetime with milliseconds;
     id: Str;                      // string trade id
     order: Str;                  // string order id or undefined/None/null
-    price: number;                   // float price in quote currency
+    price: PreciseNumber;                   // float price in quote currency
     timestamp: Int;               // Unix timestamp in milliseconds
     type: Str;                   // order type, 'market', 'limit', ... or undefined/None/null
     side: 'buy' | 'sell' | Str;            // direction of the trade, 'buy' or 'sell'
     symbol: Str;                  // symbol in CCXT format
     takerOrMaker: 'taker' | 'maker' | Str; // string, 'taker' or 'maker'
-    cost: Num;                    // total cost (including fees), `price * amount`
+    cost: PreciseNumber;                    // total cost (including fees), `price * amount`
     fee: Fee;
 }
 
@@ -127,16 +129,16 @@ export interface Order {
     type: Str;
     timeInForce?: Str;
     side: 'buy' | 'sell' | Str;
-    price: number;
-    average?: number;
-    amount: number;
-    filled: number;
-    remaining: number;
-    stopPrice?: number;
-    triggerPrice?: number;
-    takeProfitPrice?: number;
-    stopLossPrice?: number;
-    cost: number;
+    price: PreciseNumber;
+    average?: PreciseNumber;
+    amount: PreciseNumber;
+    filled: PreciseNumber;
+    remaining: PreciseNumber;
+    stopPrice?: PreciseNumber;
+    triggerPrice?: PreciseNumber;
+    takeProfitPrice?: PreciseNumber;
+    stopLossPrice?: PreciseNumber;
+    cost: PreciseNumber;
     trades: Trade[];
     fee: Fee;
     reduceOnly: Bool;
@@ -145,8 +147,8 @@ export interface Order {
 }
 
 export interface OrderBook {
-    asks: [Num, Num][];
-    bids: [Num, Num][];
+    asks: [PreciseNumber, PreciseNumber][];
+    bids: [PreciseNumber, PreciseNumber][];
     datetime: Str;
     timestamp: Int;
     nonce: Int;
@@ -158,22 +160,22 @@ export interface Ticker {
     info: any;
     timestamp: Int;
     datetime: Str;
-    high: Int;
-    low: Int;
-    bid: Int;
-    bidVolume: Int;
-    ask: Int;
-    askVolume: Int;
-    vwap: Int;
-    open: Int;
-    close: Int;
-    last: Int;
-    previousClose: Int;
-    change: Int;
-    percentage: Int;
-    average: Int;
-    quoteVolume: Int;
-    baseVolume: Int;
+    high: PreciseNumber;
+    low: PreciseNumber;
+    bid: PreciseNumber;
+    bidVolume: PreciseNumber;
+    ask: PreciseNumber;
+    askVolume: PreciseNumber;
+    vwap: PreciseNumber;
+    open: PreciseNumber;
+    close: PreciseNumber;
+    last: PreciseNumber;
+    previousClose: PreciseNumber;
+    change: PreciseNumber;
+    percentage: PreciseNumber;
+    average: PreciseNumber;
+    quoteVolume: PreciseNumber;
+    baseVolume: PreciseNumber;
 }
 
 export interface Transaction {
@@ -189,10 +191,10 @@ export interface Transaction {
     tagFrom: Str;
     tagTo: Str;
     type: 'deposit' | 'withdrawal' | Str;
-    amount: Num;
+    amount: PreciseNumber;
     currency: Str;
     status: 'pending' | 'ok' | Str;
-    updated: Int;
+    updated: PreciseNumber;
     fee: Fee;
     network: Str;
     comment: Str;
@@ -213,15 +215,15 @@ export interface CurrencyInterface {
     active?: Bool;
     deposit?: Bool;
     withdraw?: Bool;
-    fee?: Num;
+    fee?: PreciseNumber;
     limits: {
         amount: {
-            min?: Num;
-            max?: Num;
+            min?: PreciseNumber;
+            max?: PreciseNumber;
         },
         withdraw: {
-            min?: Num;
-            max?: Num;
+            min?: PreciseNumber;
+            max?: PreciseNumber;
         },
     },
     networks: {
@@ -282,20 +284,20 @@ export interface FundingRate {
     symbol: string;
     info: any;
     timestamp?: number;
-    fundingRate?: number;
+    fundingRate?: PreciseNumber;
     datetime?: string;
-    markPrice?: number;
-    indexPrice?: number;
-    interestRate?: number;
-    estimatedSettlePrice?: number;
+    markPrice?: PreciseNumber;
+    indexPrice?: PreciseNumber;
+    interestRate?: PreciseNumber;
+    estimatedSettlePrice?: PreciseNumber;
     fundingTimestamp?: number;
     fundingDatetime?: string;
     nextFundingTimestamp?: number;
     nextFundingDatetime?: string;
-    nextFundingRate?: number;
+    nextFundingRate?: PreciseNumber;
     previousFundingTimestamp?: number;
     previousFundingDatetime?: string;
-    previousFundingRate?: number;
+    previousFundingRate?: PreciseNumber;
 }
 
 export interface FundingRates extends Dictionary<FundingRate> {
@@ -307,37 +309,37 @@ export interface Position {
     info: any;
     timestamp?: number;
     datetime?: string;
-    contracts?: number;
-    contractSize?: number;
+    contracts?: PreciseNumber;
+    contractSize?: PreciseNumber;
     side: Str;
-    notional?: number;
-    leverage?: number;
-    unrealizedPnl?: number;
-    realizedPnl?: number;
-    collateral?: number;
-    entryPrice?: number;
-    markPrice?: number;
-    liquidationPrice?: number;
+    notional?: PreciseNumber;
+    leverage?: PreciseNumber;
+    unrealizedPnl?: PreciseNumber;
+    realizedPnl?: PreciseNumber;
+    collateral?: PreciseNumber;
+    entryPrice?: PreciseNumber;
+    markPrice?: PreciseNumber;
+    liquidationPrice?: PreciseNumber;
     marginMode?: Str;
     hedged?: boolean;
-    maintenanceMargin?: number;
-    maintenanceMarginPercentage?: number;
-    initialMargin?: number;
-    initialMarginPercentage?: number;
-    marginRatio?: number;
+    maintenanceMargin?: PreciseNumber;
+    maintenanceMarginPercentage?: PreciseNumber;
+    initialMargin?: PreciseNumber;
+    initialMarginPercentage?: PreciseNumber;
+    marginRatio?: PreciseNumber;
     lastUpdateTimestamp?: number;
-    lastPrice?: number;
-    stopLossPrice?: number;
-    takeProfitPrice?: number;
-    percentage?: number;
+    lastPrice?: PreciseNumber;
+    stopLossPrice?: PreciseNumber;
+    takeProfitPrice?: PreciseNumber;
+    percentage?: PreciseNumber;
 }
 
 export interface BorrowInterest {
     account?: Str;
     currency?: Str;
-    interest?: number;
-    interestRate?: number;
-    amountBorrowed?: number;
+    interest?: PreciseNumber;
+    interestRate?: PreciseNumber;
+    amountBorrowed?: PreciseNumber;
     marginMode?: Str;
     timestamp?: number;
     datetime?: Str;
@@ -347,10 +349,10 @@ export interface BorrowInterest {
 export interface LeverageTier {
     tier?: number;
     currency?: Str;
-    minNotional?: number;
-    maxNotional?: number;
-    maintenanceMarginRate?: number;
-    maxLeverage?: number;
+    minNotional?: PreciseNumber;
+    maxNotional?: PreciseNumber;
+    maintenanceMarginRate?: PreciseNumber;
+    maxLeverage?: PreciseNumber;
     info: any;
 }
 
@@ -365,15 +367,15 @@ export interface LedgerEntry {
     referenceAccount?: Str;
     type?: Str;
     currency?: Str;
-    amount?: number;
-    before?: number;
-    after?: number;
+    amount?: PreciseNumber;
+    before?: PreciseNumber;
+    after?: PreciseNumber;
     status?: Str;
     fee?: Fee;
 }
 
 export interface DepositWithdrawFeeNetwork {
-    fee?: number;
+    fee?: PreciseNumber;
     percentage?: boolean;
 }
 
@@ -390,7 +392,7 @@ export interface TransferEntry {
     timestamp?: number;
     datetime?: Str;
     currency?: Str;
-    amount?: number;
+    amount?: PreciseNumber;
     fromAccount?: Str;
     toAccount?: Str;
     status?: Str;
@@ -399,7 +401,7 @@ export interface TransferEntry {
 export interface CrossBorrowRate {
     info: any;
     currency?: Str;
-    rate: number;
+    rate: PreciseNumber;
     period?: number;
     timestamp?: number;
     datetime?: Str;
@@ -409,9 +411,9 @@ export interface IsolatedBorrowRate {
     info: any,
     symbol: string,
     base: string,
-    baseRate: number,
+    baseRate: PreciseNumber,
     quote: string,
-    quoteRate: number,
+    quoteRate: PreciseNumber,
     period?: Int,
     timestamp?: Int,
     datetime?: Str,
@@ -420,17 +422,17 @@ export interface IsolatedBorrowRate {
 export interface FundingRateHistory {
     info: any;
     symbol: string;
-    fundingRate: number;
+    fundingRate: PreciseNumber;
     timestamp?: number
     datetime?: Str;
 }
 
 export interface OpenInterest {
     symbol: string;
-    openInterestAmount?: number;
-    openInterestValue?: number;
-    baseVolume?: number;
-    quoteVolume?: number;
+    openInterestAmount?: PreciseNumber;
+    openInterestValue?: PreciseNumber;
+    baseVolume?: PreciseNumber;
+    quoteVolume?: PreciseNumber;
     timestamp?: number;
     datetime?: Str;
     info: any;
@@ -441,17 +443,17 @@ export interface Liquidation {
     symbol: string;
     timestamp?: number
     datetime?: Str;
-    price: number;
-    baseValue?: number;
-    quoteValue?: number;
+    price: PreciseNumber;
+    baseValue?: PreciseNumber;
+    quoteValue?: PreciseNumber;
 }
 
 export interface OrderRequest {
     symbol: string;
     type: OrderType;
     side: OrderSide;
-    amount?: number;
-    price?: number | undefined;
+    amount?: PreciseNumber;
+    price?: PreciseNumber;
     params?: any;
 }
 
@@ -468,7 +470,7 @@ export interface FundingHistory {
     timestamp?: number
     datetime?: Str;
     id: string;
-    amount: number;
+    amount: PreciseNumber;
 }
 
 export interface MarginMode {
@@ -481,21 +483,21 @@ export interface Greeks {
     symbol: string;
     timestamp?: number
     datetime?: Str;
-    delta: number;
-    gamma: number;
-    theta: number;
-    vega: number;
-    rho: number;
-    bidSize: number;
-    askSize: number;
-    bidImpliedVolatility: number;
-    askImpliedVolatility: number;
-    markImpliedVolatility: number;
-    bidPrice: number;
-    askPrice: number;
-    markPrice: number;
-    lastPrice: number;
-    underlyingPrice: number;
+    delta: PreciseNumber;
+    gamma: PreciseNumber;
+    theta: PreciseNumber;
+    vega: PreciseNumber;
+    rho: PreciseNumber;
+    bidSize: PreciseNumber;
+    askSize: PreciseNumber;
+    bidImpliedVolatility: PreciseNumber;
+    askImpliedVolatility: PreciseNumber;
+    markImpliedVolatility: PreciseNumber;
+    bidPrice: PreciseNumber;
+    askPrice: PreciseNumber;
+    markPrice: PreciseNumber;
+    lastPrice: PreciseNumber;
+    underlyingPrice: PreciseNumber;
     info: any;
 }
 
@@ -505,11 +507,11 @@ export interface Conversion {
     datetime?: string;
     id: string;
     fromCurrency: string;
-    fromAmount: number;
+    fromAmount: PreciseNumber;
     toCurrency: string;
-    toAmount: number;
-    price: number;
-    fee: number;
+    toAmount: PreciseNumber;
+    price: PreciseNumber;
+    fee: PreciseNumber;
 }
 
 export interface Option {
@@ -518,25 +520,25 @@ export interface Option {
     symbol: string;
     timestamp?: number
     datetime?: Str;
-    impliedVolatility: number;
-    openInterest: number;
-    bidPrice: number;
-    askPrice: number;
-    midPrice: number;
-    markPrice: number;
-    lastPrice: number;
-    underlyingPrice: number;
-    change: number;
-    percentage: number;
-    baseVolume: number;
-    quoteVolume: number;
+    impliedVolatility: PreciseNumber;
+    openInterest: PreciseNumber;
+    bidPrice: PreciseNumber;
+    askPrice: PreciseNumber;
+    midPrice: PreciseNumber;
+    markPrice: PreciseNumber;
+    lastPrice: PreciseNumber;
+    underlyingPrice: PreciseNumber;
+    change: PreciseNumber;
+    percentage: PreciseNumber;
+    baseVolume: PreciseNumber;
+    quoteVolume: PreciseNumber;
 }
 
 export interface LastPrice {
     symbol: string,
     timestamp?: number,
     datetime?: string,
-    price: number,
+    price: PreciseNumber,
     side?: OrderSide,
     info: any,
 }
@@ -545,8 +547,8 @@ export interface Leverage {
     info: any;
     symbol: string;
     marginMode: 'isolated' | 'cross' | Str;
-    longLeverage: number;
-    shortLeverage: number;
+    longLeverage: PreciseNumber;
+    shortLeverage: PreciseNumber;
 }
 
 export interface MarginModification {
@@ -592,10 +594,10 @@ export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */
-export type OHLCV = [Num, Num, Num, Num, Num, Num];
+export type OHLCV = [Num, PreciseNumber, PreciseNumber, PreciseNumber, PreciseNumber, PreciseNumber];
 
 /** [ timestamp, open, high, low, close, volume, count ] */
-export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
+export type OHLCVC = [Num, PreciseNumber, PreciseNumber, PreciseNumber, PreciseNumber, PreciseNumber, PreciseNumber];
 
 export type implicitReturnType = any;
 

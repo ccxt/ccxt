@@ -149,7 +149,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, TransferEntries, FundingRates, LeverageTiers, Bool, int}  from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, TransferEntries, FundingRates, LeverageTiers, Bool, int, PreciseNumber}  from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js'
@@ -1375,7 +1375,7 @@ export default class Exchange {
         return
     }
 
-    parseNumber (value, d: Num = undefined): number | string {
+    parseNumber (value, d: Num = undefined): PreciseNumber {
         if (value === undefined) {
             return d
         } else {
@@ -3196,7 +3196,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (results, symbol, since, limit) as Order[];
     }
 
-    calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', params = {}) {
+    calculateFee (symbol: string, type: string, side: string, amount: PreciseNumber, price: PreciseNumber, takerOrMaker = 'taker', params = {}) {
         /**
          * @method
          * @description calculates the presumptive fee that would be charged for an order
@@ -5662,12 +5662,12 @@ export default class Exchange {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
-    safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): Num | Str {
+    safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): PreciseNumber {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
     }
 
-    safeNumberN (obj: object, arr: IndexType[], defaultNumber: Num = undefined): Num | Str {
+    safeNumberN (obj: object, arr: IndexType[], defaultNumber: Num = undefined): PreciseNumber {
         const value = this.safeStringN (obj, arr);
         return this.parseNumber (value, defaultNumber);
     }
