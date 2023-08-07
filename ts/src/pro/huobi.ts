@@ -654,6 +654,7 @@ export default class huobi extends huobiRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         let type = undefined;
         let marketId = '*'; // wildcard
         let market = undefined;
@@ -662,7 +663,6 @@ export default class huobi extends huobiRest {
         let trades = undefined;
         let subType = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets ();
             market = this.market (symbol);
             symbol = market['symbol'];
             type = market['type'];
