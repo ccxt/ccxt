@@ -824,14 +824,9 @@ export default class whitebit extends whitebitRest {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
-            try {
-                await this.watch (url, messageHash, request, messageHash, subscription);
-            } catch (e) {
-                delete client.subscriptions[messageHash];
-                future.reject (e);
-            }
+            this.watch (url, messageHash, request, messageHash, subscription);
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticate (client: Client, message) {

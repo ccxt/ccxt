@@ -221,6 +221,7 @@ export default class bittrex extends Exchange {
                     // 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                     'APISIGN_NOT_PROVIDED': AuthenticationError,
                     'APIKEY_INVALID': AuthenticationError,
+                    'INVALID_APIKEY': AuthenticationError,
                     'INVALID_SIGNATURE': AuthenticationError,
                     'INVALID_CURRENCY': ExchangeError,
                     'INVALID_PERMISSION': AuthenticationError,
@@ -2227,9 +2228,9 @@ export default class bittrex extends Exchange {
         //
         if (body[0] === '{') {
             const feedback = this.id + ' ' + body;
-            let success = this.safeValue (response, 'success');
+            let success = this.safeValue2 (response, 'success', 'Success');
             if (success === undefined) {
-                const codeInner = this.safeString (response, 'code');
+                const codeInner = this.safeString2 (response, 'code', 'ErrorCode');
                 if ((codeInner === 'NOT_FOUND') && (url.indexOf ('addresses') >= 0)) {
                     throw new InvalidAddress (feedback);
                 }
@@ -2245,7 +2246,7 @@ export default class bittrex extends Exchange {
                 success = (success === 'true');
             }
             if (!success) {
-                const message = this.safeString (response, 'message');
+                const message = this.safeString2 (response, 'message', 'ErrorCode');
                 if (message === 'APIKEY_INVALID') {
                     if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (feedback);

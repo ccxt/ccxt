@@ -79,8 +79,9 @@ export default class poloniex extends poloniexRest {
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const accessPath = '/ws';
             const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
             const signature = this.hmac (this.encode (requestString), this.encode (this.secret), sha256, 'base64');
@@ -96,7 +97,7 @@ export default class poloniex extends poloniexRest {
                 },
             };
             const message = this.extend (request, params);
-            future = await this.watch (url, messageHash, message);
+            this.watch (url, messageHash, message, messageHash);
             //
             //    {
             //        "data": {
@@ -117,7 +118,6 @@ export default class poloniex extends poloniexRest {
             //        "channel": "auth"
             //    }
             //
-            client.subscriptions[messageHash] = future;
         }
         return future;
     }

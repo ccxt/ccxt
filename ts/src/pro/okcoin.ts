@@ -471,18 +471,18 @@ export default class okcoin extends okcoinRest {
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const messageHash = 'login';
+        const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future ('authenticated');
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.seconds ().toString ();
             const method = 'GET';
             const path = '/users/self/verify';
             const auth = timestamp + method + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             const request = {
-                'op': messageHash,
+                'op': 'login',
                 'args': [
                     this.apiKey,
                     this.password,
@@ -490,9 +490,9 @@ export default class okcoin extends okcoinRest {
                     signature,
                 ],
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            this.watch (url, messageHash, request, messageHash);
         }
-        return await future;
+        return future;
     }
 
     async watchBalance (params = {}) {

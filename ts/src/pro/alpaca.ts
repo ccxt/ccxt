@@ -584,9 +584,9 @@ export default class alpaca extends alpacaRest {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future ('authenticated');
+        const future = client.future ('authenticated');
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             let request = {
                 'action': 'auth',
                 'key': this.apiKey,
@@ -602,9 +602,9 @@ export default class alpaca extends alpacaRest {
                     },
                 } as any;
             }
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            this.watch (url, messageHash, request, messageHash);
         }
-        return await future;
+        return future;
     }
 
     handleErrorMessage (client: Client, message) {
@@ -707,11 +707,17 @@ export default class alpaca extends alpacaRest {
         const T = this.safeString (message, 'T');
         const data = this.safeValue (message, 'data', {});
         const status = this.safeString (data, 'status');
+        const messageHash = 'authenticated';
         if (T === 'success' || status === 'authorized') {
-            client.resolve (message, 'authenticated');
+            client.resolve (message, messageHash);
             return;
         }
-        throw new AuthenticationError (this.id + ' failed to authenticate.');
+        const error = new AuthenticationError (this.id + ' failed to authenticate.');
+        client.reject (error, messageHash);
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        throw error;
     }
 
     handleSubscription (client: Client, message) {

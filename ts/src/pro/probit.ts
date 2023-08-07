@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 import probitRest from '../probit.js';
-import { NotSupported, ExchangeError } from '../base/errors.js';
+import { NotSupported, ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -522,12 +522,14 @@ export default class probit extends probitRest {
         //     { type: 'authorization', result: 'ok' }
         //
         const result = this.safeString (message, 'result');
-        const future = client.subscriptions['authenticated'];
+        const messageHash = 'authenticated';
         if (result === 'ok') {
-            future.resolve (true);
+            client.resolve (true, messageHash);
         } else {
-            future.reject (message);
+            const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (error, messageHash);
             delete client.subscriptions['authenticated'];
+            throw error;
         }
     }
 
@@ -585,8 +587,9 @@ export default class probit extends probitRest {
         const client = this.client (url);
         const messageHash = 'authenticated';
         const expires = this.safeInteger (this.options, 'expires', 0);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if ((future === undefined) || (this.milliseconds () > expires)) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if ((authenticated === undefined) || (this.milliseconds () > expires)) {
             const response = await this.signIn ();
             //
             //     {
@@ -600,9 +603,8 @@ export default class probit extends probitRest {
                 'type': 'authorization',
                 'token': accessToken,
             };
-            future = this.watch (url, messageHash, this.extend (request, params));
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
-        return await future;
+        return future;
     }
 }

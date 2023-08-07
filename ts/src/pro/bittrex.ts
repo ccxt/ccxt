@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bittrexRest from '../bittrex.js';
-import { InvalidNonce, BadRequest } from '../base/errors.js';
+import { InvalidNonce, BadRequest, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -112,10 +112,9 @@ export default class bittrex extends bittrexRest {
         const url = this.getSignalRUrl (negotiation);
         const client = this.client (url);
         const messageHash = 'authenticate';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if ((future === undefined) || expired) {
-            future = client.future (messageHash);
-            client.subscriptions[messageHash] = future;
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if ((authenticated === undefined) || expired) {
             const requestId = this.requestId ().toString ();
             const request = this.makeRequestToAuthenticate (requestId);
             const subscription = {
@@ -124,9 +123,9 @@ export default class bittrex extends bittrexRest {
                 'negotiation': negotiation,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.watch, url, messageHash, request, requestId, subscription);
+            this.watch (url, messageHash, request, requestId, subscription);
         }
-        return await future;
+        return future;
     }
 
     async sendAuthenticatedRequestToSubscribe (authentication, messageHash, params = {}) {
@@ -812,7 +811,35 @@ export default class bittrex extends bittrexRest {
         //         E: "There was an error invoking Hub method 'c3.Authenticate'."
         //     }
         //
+        // failure - authenticate
+        //    {
+        //        R: {
+        //            Success: false,
+        //            ErrorCode: 'INVALID_APIKEY'
+        //        },
+        //        I: '1691445014021'
+        //    }
+        // failure - subscribe
+        //    {
+        //        "R": [{
+        //            "Success": true,
+        //            "ErrorCode": null
+        //        }, {
+        //            "Success": true,
+        //            "ErrorCode": null
+        //        }],
+        //        "I": 1
+        //    }
+        //
         const I = this.safeString (message, 'I'); // noqa: E741
+        let response = this.safeValue (message, 'R', []);
+        if (!this.isArray (response)) {
+            response = [ response ];
+        }
+        for (let i = 0; i < response.length; i++) {
+            const msg = response[0];
+            this.handleErrors (undefined, undefined, undefined, undefined, undefined, this.json (msg), msg, undefined, undefined);
+        }
         let subscription = this.safeValue (client.subscriptions, I);
         if (subscription === undefined) {
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
