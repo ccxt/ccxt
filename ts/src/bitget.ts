@@ -2874,12 +2874,12 @@ export default class bitget extends Exchange {
                 method = 'privateMixPostPlanPlacePositionsTPSL';
             } else if (isStopLossOrTakeProfit) {
                 if (isStopLoss) {
-                    const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
-                    request['presetStopLossPrice'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                    const stopLossTriggerPriceInner = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
+                    request['presetStopLossPrice'] = this.priceToPrecision (symbol, stopLossTriggerPriceInner);
                 }
                 if (isTakeProfit) {
-                    const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
-                    request['presetTakeProfitPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                    const takeProfitTriggerPriceInner = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
+                    request['presetTakeProfitPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPriceInner);
                 }
             }
         }
