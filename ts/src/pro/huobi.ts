@@ -1495,21 +1495,16 @@ export default class huobi extends huobiRest {
         //     }
         //
         const id = this.safeString (message, 'id');
-        const values = Object.values (client.subscriptions);
-        for (let i = 0; i < values.length; i++) {
-            const subscription = values[i];
-            if ((subscription !== undefined) && (typeof subscription === 'object')) {
-                const idSub = this.safeString (subscription, 'id');
-                if (id === idSub) {
-                    const method = this.safeValue (subscription, 'method');
-                    if (method !== undefined) {
-                        return method.call (this, client, message, subscription);
-                    }
-                    // clean up
-                    if (id in client.subscriptions) {
-                        delete client.subscriptions[id];
-                    }
-                }
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id);
+        if (subscription !== undefined) {
+            const method = this.safeValue (subscription, 'method');
+            if (method !== undefined) {
+                return method.call (this, client, message, subscription);
+            }
+            // clean up
+            if (id in client.subscriptions) {
+                delete client.subscriptions[id];
             }
         }
         return message;
