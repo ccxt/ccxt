@@ -1495,16 +1495,21 @@ export default class huobi extends huobiRest {
         //     }
         //
         const id = this.safeString (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id);
-        if (subscription !== undefined) {
-            const method = this.safeValue (subscription, 'method');
-            if (method !== undefined) {
-                return method.call (this, client, message, subscription);
-            }
-            // clean up
-            if (id in client.subscriptions) {
-                delete client.subscriptions[id];
+        const values = Object.values (client.subscriptions);
+        for (let i = 0; i < values.length; i++) {
+            const subscription = values[i];
+            if ((subscription !== undefined) && (typeof subscription === 'object')) {
+                const idSub = this.safeString (subscription, 'id');
+                if (id === idSub) {
+                    const method = this.safeValue (subscription, 'method');
+                    if (method !== undefined) {
+                        return method.call (this, client, message, subscription);
+                    }
+                    // clean up
+                    if (id in client.subscriptions) {
+                        delete client.subscriptions[id];
+                    }
+                }
             }
         }
         return message;
@@ -2117,9 +2122,9 @@ export default class huobi extends huobiRest {
         const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future (messageHash);
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
             let signatureParams = undefined;
             if (type === 'spot') {
@@ -2167,7 +2172,7 @@ export default class huobi extends huobiRest {
                     'Signature': signature,
                 };
             }
-            await this.watch (url, messageHash, request, messageHash, {});
+            await this.watch (url, messageHash, request, messageHash);
         }
         return await future;
     }
