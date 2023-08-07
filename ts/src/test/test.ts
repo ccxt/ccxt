@@ -368,7 +368,7 @@ export default class testMainClass extends baseMainTestClass {
             await exchange.loadMarkets ();
         } catch (e) {
             if (e instanceof OnMaintenance) {
-                dump ('[SKIPPED] Exchange is on maintenance', exchangeId);
+                dump ('[SKIPPED] Exchange is on maintenance', exchange.id);
                 exitScript ();
             }
             throw e;
