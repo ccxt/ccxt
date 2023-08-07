@@ -6801,7 +6801,7 @@ class bybit extends Exchange {
         $timestamp = $this->safe_integer_2($transaction, 'createTime', 'successAt');
         $updated = $this->safe_integer($transaction, 'updateTime');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number_2($transaction, 'depositFee', 'withdrawFee', 0);
+        $feeCost = $this->safe_number_2($transaction, 'depositFee', 'withdrawFee');
         $type = (is_array($transaction) && array_key_exists('depositFee', $transaction)) ? 'deposit' : 'withdrawal';
         $fee = null;
         if ($feeCost !== null) {

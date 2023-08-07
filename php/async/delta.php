@@ -2571,6 +2571,8 @@ class delta extends Exchange {
         //
         $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.001);
         $marketId = $this->safe_string($contract, 'symbol');
+        $fundingRateString = $this->safe_string($contract, 'funding_rate');
+        $fundingRate = Precise::string_div($fundingRateString, '100');
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market),
@@ -2580,7 +2582,7 @@ class delta extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
+            'fundingRate' => $this->parse_number($fundingRate),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
             'nextFundingRate' => null,

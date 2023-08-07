@@ -6785,7 +6785,7 @@ class bybit extends bybit$1 {
         const timestamp = this.safeInteger2(transaction, 'createTime', 'successAt');
         const updated = this.safeInteger(transaction, 'updateTime');
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
-        const feeCost = this.safeNumber2(transaction, 'depositFee', 'withdrawFee', 0);
+        const feeCost = this.safeNumber2(transaction, 'depositFee', 'withdrawFee');
         const type = ('depositFee' in transaction) ? 'deposit' : 'withdrawal';
         let fee = undefined;
         if (feeCost !== undefined) {

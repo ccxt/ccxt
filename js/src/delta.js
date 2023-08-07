@@ -2534,6 +2534,8 @@ export default class delta extends Exchange {
         //
         const timestamp = this.safeIntegerProduct(contract, 'timestamp', 0.001);
         const marketId = this.safeString(contract, 'symbol');
+        const fundingRateString = this.safeString(contract, 'funding_rate');
+        const fundingRate = Precise.stringDiv(fundingRateString, '100');
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market),
@@ -2543,7 +2545,7 @@ export default class delta extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fundingRate': this.safeNumber(contract, 'funding_rate'),
+            'fundingRate': this.parseNumber(fundingRate),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
             'nextFundingRate': undefined,

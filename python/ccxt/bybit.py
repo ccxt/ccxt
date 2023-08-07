@@ -6293,7 +6293,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(transaction, 'createTime', 'successAt')
         updated = self.safe_integer(transaction, 'updateTime')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee', 0)
+        feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee')
         type = 'deposit' if ('depositFee' in transaction) else 'withdrawal'
         fee = None
         if feeCost is not None:
