@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, NotSupported, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -89,6 +89,7 @@ export default class bingx extends Exchange {
                                 'common/symbols': 3,
                                 'market/trades': 3,
                                 'market/depth': 3,
+                                'market/kline': 3,
                             },
                         },
                         'private': {
@@ -550,6 +551,7 @@ export default class bingx extends Exchange {
          * @name bingx#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
+         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -573,10 +575,12 @@ export default class bingx extends Exchange {
         } else {
             request['limit'] = 50;
         }
+        let response = undefined;
         if (market['spot']) {
-            throw new NotSupported (this.id + ' fetchOHLCV is not supported for spot markets');
+            response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
+        } else {
+            response = await this.swapV2PublicGetQuoteKlines (this.extend (request, params));
         }
-        const response = await this.swapV2PublicGetQuoteKlines (this.extend (request, params));
         //
         //    {
         //        "code": 0,
@@ -595,7 +599,7 @@ export default class bingx extends Exchange {
         //    }
         //
         let ohlcvs = this.safeValue (response, 'data', []);
-        if (typeof ohlcvs === 'object') {
+        if (!Array.isArray (ohlcvs)) {
             ohlcvs = [ ohlcvs ];
         }
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
@@ -611,7 +615,28 @@ export default class bingx extends Exchange {
         //        "volume": "167.44",
         //        "time": 1666584000000
         //    }
+        // spot
+        //    [
+        //        1691402580000,
+        //        29093.61,
+        //        29093.93,
+        //        29087.73,
+        //        29093.24,
+        //        0.59,
+        //        1691402639999,
+        //        17221.07
+        //    ]
         //
+        if (Array.isArray (ohlcv)) {
+            return [
+                this.safeInteger (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
+        }
         return [
             this.safeInteger (ohlcv, 'time'),
             this.safeNumber (ohlcv, 'open'),
