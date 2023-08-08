@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.9.8'
+__version__ = '4.0.53'
 
 # -----------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import OrderImmediatelyFillable                 # noqa: F401
 from ccxt.base.errors import OrderNotFillable                         # noqa: F401
 from ccxt.base.errors import DuplicateOrderId                         # noqa: F401
+from ccxt.base.errors import ContractUnavailable                      # noqa: F401
 from ccxt.base.errors import NotSupported                             # noqa: F401
 from ccxt.base.errors import NetworkError                             # noqa: F401
 from ccxt.base.errors import DDoSProtection                           # noqa: F401
@@ -62,6 +63,7 @@ from ccxt.async_support.binance import binance                                  
 from ccxt.async_support.binancecoinm import binancecoinm                        # noqa: F401
 from ccxt.async_support.binanceus import binanceus                              # noqa: F401
 from ccxt.async_support.binanceusdm import binanceusdm                          # noqa: F401
+from ccxt.async_support.bingx import bingx                                      # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                      # noqa: F401
 from ccxt.async_support.bitbank import bitbank                                  # noqa: F401
 from ccxt.async_support.bitbay import bitbay                                    # noqa: F401
@@ -88,11 +90,9 @@ from ccxt.async_support.bl3p import bl3p                                        
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                                # noqa: F401
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
-from ccxt.async_support.btcex import btcex                                      # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
 from ccxt.async_support.btctradeua import btctradeua                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
-from ccxt.async_support.buda import buda                                        # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
@@ -103,6 +103,7 @@ from ccxt.async_support.coinex import coinex                                    
 from ccxt.async_support.coinfalcon import coinfalcon                            # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
+from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
 from ccxt.async_support.currencycom import currencycom                          # noqa: F401
@@ -110,7 +111,6 @@ from ccxt.async_support.delta import delta                                      
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
-from ccxt.async_support.flowbtc import flowbtc                                  # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
@@ -124,7 +124,6 @@ from ccxt.async_support.huobipro import huobipro                                
 from ccxt.async_support.idex import idex                                        # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
-from ccxt.async_support.itbit import itbit                                      # noqa: F401
 from ccxt.async_support.kraken import kraken                                    # noqa: F401
 from ccxt.async_support.krakenfutures import krakenfutures                      # noqa: F401
 from ccxt.async_support.kucoin import kucoin                                    # noqa: F401
@@ -150,8 +149,6 @@ from ccxt.async_support.phemex import phemex                                    
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
 from ccxt.async_support.poloniexfutures import poloniexfutures                  # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
-from ccxt.async_support.ripio import ripio                                      # noqa: F401
-from ccxt.async_support.stex import stex                                        # noqa: F401
 from ccxt.async_support.tidex import tidex                                      # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -162,7 +159,6 @@ from ccxt.async_support.whitebit import whitebit                                
 from ccxt.async_support.woo import woo                                          # noqa: F401
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
-from ccxt.async_support.zb import zb                                            # noqa: F401
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
@@ -175,6 +171,7 @@ exchanges = [
     'binancecoinm',
     'binanceus',
     'binanceusdm',
+    'bingx',
     'bit2c',
     'bitbank',
     'bitbay',
@@ -201,11 +198,9 @@ exchanges = [
     'blockchaincom',
     'btcalpha',
     'btcbox',
-    'btcex',
     'btcmarkets',
     'btctradeua',
     'btcturk',
-    'buda',
     'bybit',
     'cex',
     'coinbase',
@@ -216,6 +211,7 @@ exchanges = [
     'coinfalcon',
     'coinmate',
     'coinone',
+    'coinsph',
     'coinspot',
     'cryptocom',
     'currencycom',
@@ -223,7 +219,6 @@ exchanges = [
     'deribit',
     'digifinex',
     'exmo',
-    'flowbtc',
     'fmfwio',
     'gate',
     'gateio',
@@ -237,7 +232,6 @@ exchanges = [
     'idex',
     'independentreserve',
     'indodax',
-    'itbit',
     'kraken',
     'krakenfutures',
     'kucoin',
@@ -263,8 +257,6 @@ exchanges = [
     'poloniex',
     'poloniexfutures',
     'probit',
-    'ripio',
-    'stex',
     'tidex',
     'timex',
     'tokocrypto',
@@ -275,7 +267,6 @@ exchanges = [
     'woo',
     'yobit',
     'zaif',
-    'zb',
     'zonda',
 ]
 

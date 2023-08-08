@@ -4,9 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,6 +23,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -26,7 +31,7 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.precise import Precise
 
 
-class bitfinex2(Exchange):
+class bitfinex2(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitfinex2, self).describe(), {
@@ -59,6 +64,10 @@ class bitfinex2(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositsWithdrawals': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchMarginMode': False,
@@ -76,7 +85,7 @@ class bitfinex2(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'withdraw': True,
             },
             'timeframes': {
@@ -167,6 +176,7 @@ class bitfinex2(Exchange):
                         'candles/trade:{timeframe}:{symbol}/hist': 2.66,
                         'status/{type}': 2.66,
                         'status/deriv': 2.66,
+                        'status/deriv/{symbol}/hist': 2.66,
                         'liquidations/hist': 80,  # 3 requests a minute = 0.05 requests a second =>( 1000ms / rateLimit ) / 0.05 = 80
                         'rankings/{key}:{timeframe}:{symbol}/{section}': 2.66,
                         'rankings/{key}:{timeframe}:{symbol}/hist': 2.66,
@@ -322,7 +332,7 @@ class bitfinex2(Exchange):
                 },
                 # convert 'market' to 'EXCHANGE MARKET'
                 # convert 'limit' 'EXCHANGE LIMIT'
-                # everything else remains as is
+                # everything else remains
                 'orderTypes': {
                     'market': 'EXCHANGE MARKET',
                     'limit': 'EXCHANGE LIMIT',
@@ -343,6 +353,9 @@ class bitfinex2(Exchange):
                     'margin': 'margin',
                     'derivatives': 'margin',
                     'future': 'margin',
+                },
+                'withdraw': {
+                    'includeFee': False,
                 },
             },
             'exceptions': {
@@ -435,8 +448,8 @@ class bitfinex2(Exchange):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         #
         #    [1]  # operative
@@ -455,8 +468,8 @@ class bitfinex2(Exchange):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bitfinex2
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         spotMarketsInfo = self.publicGetConfPubInfoPair(params)
         futuresMarketsInfo = self.publicGetConfPubInfoPairFutures(params)
@@ -512,13 +525,15 @@ class bitfinex2(Exchange):
             baseId = self.get_currency_id(baseId)
             quoteId = self.get_currency_id(quoteId)
             settle = None
+            settleId = None
             if swap:
                 settle = quote
+                settleId = quote
                 symbol = symbol + ':' + settle
             minOrderSizeString = self.safe_string(market, 3)
             maxOrderSizeString = self.safe_string(market, 4)
             margin = False
-            if self.in_array(id, marginIds):
+            if spot and self.in_array(id, marginIds):
                 margin = True
             result.append({
                 'id': 't' + id,
@@ -528,7 +543,7 @@ class bitfinex2(Exchange):
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': 'spot' if spot else 'swap',
                 'spot': spot,
                 'margin': margin,
@@ -573,7 +588,7 @@ class bitfinex2(Exchange):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
         :returns dict: an associative dictionary of currencies
         """
         labels = [
@@ -719,6 +734,7 @@ class bitfinex2(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
             networks = {}
             currencyNetworks = self.safe_value(response, 8, [])
@@ -774,7 +790,7 @@ class bitfinex2(Exchange):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
@@ -806,15 +822,15 @@ class bitfinex2(Exchange):
                 result[code] = account
         return self.safe_balance(result)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         # transferring between derivatives wallet and regular wallet is not documented in their API
         # however we support it in CCXT(from just looking at web inspector)
@@ -865,7 +881,7 @@ class bitfinex2(Exchange):
         error = self.safe_string(response, 0)
         if error == 'error':
             message = self.safe_string(response, 2, '')
-            # same message as in v1
+            # same message v1
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + message)
         return self.parse_transfer(response, currency)
@@ -942,22 +958,13 @@ class bitfinex2(Exchange):
             currencyId = transferId
         return currencyId
 
-    def fetch_order(self, id, symbol=None, params={}):
-        """
-        fetches information on an order made by the user
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
-        """
-        raise NotSupported(self.id + ' fetchOrder() is not supported yet. Consider using fetchOpenOrder() or fetchClosedOrder() instead.')
-
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         precision = self.safe_value(self.options, 'precision', 'R0')
@@ -1059,12 +1066,12 @@ class bitfinex2(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1123,12 +1130,12 @@ class bitfinex2(Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1218,14 +1225,14 @@ class bitfinex2(Exchange):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1253,15 +1260,15 @@ class bitfinex2(Exchange):
         trades = self.sort_by(response, 1)
         return self.parse_trades(trades, market, None, limit)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit=100, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1373,7 +1380,7 @@ class bitfinex2(Exchange):
         stopPrice = None
         if (orderType == 'EXCHANGE STOP') or (orderType == 'EXCHANGE STOP LIMIT'):
             price = None
-            stopPrice = self.safe_number(order, 16)
+            stopPrice = self.safe_string(order, 16)
             if orderType == 'EXCHANGE STOP LIMIT':
                 price = self.safe_string(order, 19)
         status = None
@@ -1408,7 +1415,7 @@ class bitfinex2(Exchange):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
@@ -1416,17 +1423,17 @@ class bitfinex2(Exchange):
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
         :param float price: price of order
-        :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
-        :param str params['timeInForce']: "GTC", "IOC", "FOK", or "PO"
+        :param dict [params]:  Extra parameters specific to the exchange API endpoint
+        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool params.postOnly:
-        :param bool params['reduceOnly']: Ensures that the executed order does not flip the opened position.
-        :param int params['flags']: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
-        :param int params['lev']: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
-        :param str params['price_traling']: The trailing price for a trailing stop order
-        :param str params['price_aux_limit']: Order price for stop limit orders
-        :param str params['price_oco_stop']: OCO stop price
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param int [params.flags]: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
+        :param int [params.lev]: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+        :param str [params.price_traling]: The trailing price for a trailing stop order
+        :param str [params.price_aux_limit]: Order price for stop limit orders
+        :param str [params.price_oco_stop]: OCO stop price
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1477,7 +1484,7 @@ class bitfinex2(Exchange):
         if (orderType != 'MARKET') and (not exchangeMarket) and (not exchangeStop):
             request['price'] = self.price_to_precision(symbol, price)
         if stopLimit or stopMarket:
-            # request['price'] is taken as stopPrice for stop orders
+            # request['price'] is taken for stop orders
             request['price'] = self.price_to_precision(symbol, stopPrice)
             if stopMarket:
                 request['type'] = 'EXCHANGE STOP'
@@ -1556,12 +1563,12 @@ class bitfinex2(Exchange):
         order = self.safe_value(orders, 0)
         return self.parse_order(order, market)
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
-        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'all': 1,
@@ -1570,13 +1577,13 @@ class bitfinex2(Exchange):
         orders = self.safe_value(response, 4, [])
         return self.parse_orders(orders)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: Not used by bitfinex2 cancelOrder()
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: Not used by bitfinex2 cancelOrder()
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
         request = None
@@ -1597,13 +1604,13 @@ class bitfinex2(Exchange):
         order = self.safe_value(response, 4)
         return self.parse_order(order)
 
-    def fetch_open_order(self, id, symbol=None, params={}):
+    def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
-        :param str|None symbol: unified market symbol, default is None
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol, default is None
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'id': [int(id)],
@@ -1614,13 +1621,13 @@ class bitfinex2(Exchange):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    def fetch_closed_order(self, id, symbol=None, params={}):
+    def fetch_closed_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
-        :param str|None symbol: unified market symbol, default is None
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol, default is None
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'id': [int(id)],
@@ -1631,14 +1638,14 @@ class bitfinex2(Exchange):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1690,14 +1697,14 @@ class bitfinex2(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
         self.load_markets()
@@ -1754,15 +1761,15 @@ class bitfinex2(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades to retrieve
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
@@ -1777,14 +1784,14 @@ class bitfinex2(Exchange):
         response = self.privatePostAuthROrderSymbolIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -1803,12 +1810,12 @@ class bitfinex2(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         request = {
@@ -1816,12 +1823,12 @@ class bitfinex2(Exchange):
         }
         return self.fetch_deposit_address(code, self.extend(request, params))
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1875,10 +1882,16 @@ class bitfinex2(Exchange):
     def parse_transaction_status(self, status):
         statuses = {
             'SUCCESS': 'ok',
+            'COMPLETED': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
-            'COMPLETED': 'ok',
+            'PENDING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'PENDING REVIEW': 'pending',
+            'PENDING CANCELLATION': 'pending',
+            'SENDING': 'pending',
+            'USER APPROVED': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1907,7 +1920,7 @@ class bitfinex2(Exchange):
         #         "Invalid bitcoin address(abcdef)",  # TEXT Text of the notification
         #     ]
         #
-        # fetchTransactions
+        # fetchDepositsWithdrawals
         #
         #     [
         #         13293039,  # ID
@@ -1957,7 +1970,7 @@ class bitfinex2(Exchange):
             if feeCost is not None:
                 feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
-            id = self.safe_value(data, 0)
+            id = self.safe_string(data, 0)
             status = 'ok'
             if id == 0:
                 id = None
@@ -2015,8 +2028,8 @@ class bitfinex2(Exchange):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.privatePostAuthRSummary(params)
@@ -2119,14 +2132,14 @@ class bitfinex2(Exchange):
             result[symbol] = fee
         return result
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
-        :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|None limit: max number of transactions to return, default is None
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -2171,15 +2184,15 @@ class bitfinex2(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str tag:
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.check_address(address)
         self.load_markets()
@@ -2191,7 +2204,7 @@ class bitfinex2(Exchange):
         currencyNetwork = self.safe_value(currencyNetworks, network)
         networkId = self.safe_string(currencyNetwork, 'id')
         if networkId is None:
-            raise ArgumentsRequired(self.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
+            raise ArgumentsRequired(self.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
         wallet = self.safe_string(params, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = self.omit(params, 'network', 'wallet')
         request = {
@@ -2202,6 +2215,10 @@ class bitfinex2(Exchange):
         }
         if tag is not None:
             request['payment_id'] = tag
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        if includeFee:
+            request['fee_deduct'] = 1
         response = self.privatePostAuthWWithdraw(self.extend(request, params))
         #
         #     [
@@ -2237,7 +2254,7 @@ class bitfinex2(Exchange):
         if statusMessage == 'error':
             feedback = self.id + ' ' + response
             message = self.safe_string(response, 2, '')
-            # same message as in v1
+            # same message v1
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
@@ -2249,12 +2266,12 @@ class bitfinex2(Exchange):
             'address': address,
         })
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        :param [str]|None symbols: list of unified market symbols
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         response = self.privatePostAuthRPositions(params)
@@ -2335,8 +2352,8 @@ class bitfinex2(Exchange):
             raise ExchangeError(self.id + ' returned empty response')
         if statusCode == 500:
             # See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            errorCode = self.number_to_string(response[1])
-            errorText = response[2]
+            errorCode = self.safe_string(response, 1, '')
+            errorText = self.safe_string(response, 2, '')
             feedback = self.id + ' ' + errorText
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
@@ -2408,14 +2425,14 @@ class bitfinex2(Exchange):
             'info': item,
         }
 
-    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str|None code: unified currency code, default is None
-        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
-        :param int|None limit: max number of ledger entrys to return, default is None
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        :param str code: unified currency code, default is None
+        :param int [since]: timestamp in ms of the earliest ledger entry, default is None
+        :param int [limit]: max number of ledger entrys to return, default is None
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
         self.load_markets()
@@ -2447,3 +2464,215 @@ class bitfinex2(Exchange):
         #     ]
         #
         return self.parse_ledger(response, currency, since, limit)
+
+    def fetch_funding_rate(self, symbol: str, params={}):
+        """
+        fetch the current funding rate
+        see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rates([symbol], params)
+
+    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetch the current funding rate
+        see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+        :param str[] symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRates() requires a symbols argument')
+        self.load_markets()
+        marketIds = self.market_ids(symbols)
+        request = {
+            'keys': ','.join(marketIds),
+        }
+        response = self.publicGetStatusDeriv(self.extend(request, params))
+        #
+        #   [
+        #       [
+        #          "tBTCF0:USTF0",
+        #          1691165059000,
+        #          null,
+        #          29297.851276225,
+        #          29277.5,
+        #          null,
+        #          36950860.76010306,
+        #          null,
+        #          1691193600000,
+        #          0.00000527,
+        #          82,
+        #          null,
+        #          0.00014548,
+        #          null,
+        #          null,
+        #          29278.8925,
+        #          null,
+        #          null,
+        #          9636.07644994,
+        #          null,
+        #          null,
+        #          null,
+        #          0.0005,
+        #          0.0025
+        #       ]
+        #   ]
+        #
+        return self.parse_funding_rates(response)
+
+    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical funding rate prices
+        see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetStatusDerivSymbolHist(self.extend(request, params))
+        #
+        #   [
+        #       [
+        #          "tBTCF0:USTF0",
+        #          1691165059000,
+        #          null,
+        #          29297.851276225,
+        #          29277.5,
+        #          null,
+        #          36950860.76010306,
+        #          null,
+        #          1691193600000,
+        #          0.00000527,
+        #          82,
+        #          null,
+        #          0.00014548,
+        #          null,
+        #          null,
+        #          29278.8925,
+        #          null,
+        #          null,
+        #          9636.07644994,
+        #          null,
+        #          null,
+        #          null,
+        #          0.0005,
+        #          0.0025
+        #       ]
+        #   ]
+        #
+        rates = []
+        for i in range(0, len(response)):
+            fr = response[i]
+            rate = self.parse_funding_rate_history(fr, market)
+            rates.append(rate)
+        return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #       [
+        #          "tBTCF0:USTF0",
+        #          1691165059000,
+        #          null,
+        #          29297.851276225,
+        #          29277.5,
+        #          null,
+        #          36950860.76010306,
+        #          null,
+        #          1691193600000,
+        #          0.00000527,
+        #          82,
+        #          null,
+        #          0.00014548,
+        #          null,
+        #          null,
+        #          29278.8925,
+        #          null,
+        #          null,
+        #          9636.07644994,
+        #          null,
+        #          null,
+        #          null,
+        #          0.0005,
+        #          0.0025
+        #       ]
+        #
+        marketId = self.safe_string(contract, 0)
+        timestamp = self.safe_integer(contract, 1)
+        nextFundingTimestamp = self.safe_integer(contract, 8)
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market),
+            'markPrice': self.safe_number(contract, 15),
+            'indexPrice': self.safe_number(contract, 3),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 12),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 9),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    def parse_funding_rate_history(self, contract, market=None):
+        #
+        # [
+        #     1691165494000,
+        #     null,
+        #     29278.95838065,
+        #     29260.5,
+        #     null,
+        #     36950860.76010305,
+        #     null,
+        #     1691193600000,
+        #     0.00001449,
+        #     222,
+        #     null,
+        #     0.00014548,
+        #     null,
+        #     null,
+        #     29260.005,
+        #     null,
+        #     null,
+        #     9635.86484562,
+        #     null,
+        #     null,
+        #     null,
+        #     0.0005,
+        #     0.0025
+        # ]
+        #
+        timestamp = self.safe_integer(contract, 0)
+        nextFundingTimestamp = self.safe_integer(contract, 7)
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': self.safe_number(contract, 14),
+            'indexPrice': self.safe_number(contract, 2),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 11),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 8),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }

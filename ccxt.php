@@ -79,6 +79,7 @@ require_once PATH_TO_CCXT . 'CancelPending.php';
 require_once PATH_TO_CCXT . 'OrderImmediatelyFillable.php';
 require_once PATH_TO_CCXT . 'OrderNotFillable.php';
 require_once PATH_TO_CCXT . 'DuplicateOrderId.php';
+require_once PATH_TO_CCXT . 'ContractUnavailable.php';
 require_once PATH_TO_CCXT . 'NotSupported.php';
 require_once PATH_TO_CCXT . 'NetworkError.php';
 require_once PATH_TO_CCXT . 'DDoSProtection.php';
@@ -89,6 +90,7 @@ require_once PATH_TO_CCXT . 'InvalidNonce.php';
 require_once PATH_TO_CCXT . 'RequestTimeout.php';
 
 
+require_once PATH_TO_WS_CCXT . 'ClientTrait.php';
 require_once PATH_TO_CCXT . 'Precise.php';
 require_once PATH_TO_CCXT . 'Exchange.php';
 require_once PATH_TO_CCXT_ASYNC . 'Exchange.php';
@@ -123,11 +125,10 @@ spl_autoload_register(function ($class_name) {
 
 // require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro.php';
 
-namespace ccxt\pro;
 
+namespace ccxt\pro;
 require_once PATH_TO_WS_CCXT . 'Future.php';
 require_once PATH_TO_WS_CCXT . 'Client.php';
-require_once PATH_TO_WS_CCXT . 'ClientTrait.php';
 require_once PATH_TO_WS_CCXT . 'OrderBook.php';
 require_once PATH_TO_WS_CCXT . 'OrderBookSide.php';
 require_once PATH_TO_WS_CCXT . 'BaseCache.php';
