@@ -1618,11 +1618,11 @@ export default class tokocrypto extends Exchange {
         //
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
-            if (this.options['createMarketBuyOrderRequiresPrice'] && side === 'buy') {
+            const quoteOrderQtyInner = this.safeValue2 (params, 'quoteOrderQty', 'cost');
+            if (this.options['createMarketBuyOrderRequiresPrice'] && (side === 'buy') && (price === undefined) && (quoteOrderQtyInner === undefined)) {
                 throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
             }
             if (quoteOrderQty) {
-                const quoteOrderQtyInner = this.safeValue2 (params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
                 if (quoteOrderQtyInner !== undefined) {
                     request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyInner, TRUNCATE, precision, this.precisionMode);
