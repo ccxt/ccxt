@@ -4175,7 +4175,7 @@ export default class bybit extends Exchange {
         }
         const timeInForce = this.safeStringLower (params, 'timeInForce'); // same as exchange specific param
         let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarket, timeInForce === 'PostOnly', params);
+        [ postOnly, params ] = this.handlePostOnly (isMarket, timeInForce === 'postonly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         } else if (timeInForce === 'gtc') {
