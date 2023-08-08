@@ -298,20 +298,27 @@ export default class testMainClass extends baseMainTestClass {
                 if (tempFailure) {
                     // wait and retry again
                     await exchange.sleep (i * 1000); // increase wait seconds on every retry
+                    // if last retry was gone with same `tempFailure` error, then let's eventually return false
+                    if (i === maxRetries - 1) {
+                        dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified);
+                        if (methodName === 'loadMarkets') {
+                            // in case of loadMarkets, we completely stop test for current exchange
+                            exitScript ();
+                        }
+                        return false;
+                    }
                     continue;
                 } else if (e instanceof OnMaintenance) {
-                    // in case of maintenance, throw an exception (which will lead to stop of test for the current exchange)
-                    throw e;
+                    // in case of maintenance, skip exchange (don't fail the test)
+                    dump ('[TEST_WARNING] Exchange is on maintenance', exchange.id);
+                    exitScript ();
                 } else {
-                    // if not temp failure, then dump exception without retrying
-                    dump ('[TEST_WARNING]', 'Method could not be tested', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                    // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
+                    dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
                     return false;
                 }
             }
         }
-        // if maxretries was gone with same `tempFailure` error, then let's eventually return false
-        dump ('[TEST_WARNING]', 'Method not tested due to a Network/Availability issue', exchange.id, methodName, argsStringified);
-        return false;
     }
 
     async runPublicTests (exchange, symbol) {
@@ -352,33 +359,24 @@ export default class testMainClass extends baseMainTestClass {
         // promises.push (testThrottle ());
         const results = await Promise.all (promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        const errors = [];
-        for (let i = 0; i < testNames.length; i++) {
-            if (!results[i]) {
-                errors.push (testNames[i]);
-            }
-        }
         if (this.info) {
+            const errors = [];
+            for (let i = 0; i < testNames.length; i++) {
+                if (!results[i]) {
+                    errors.push (testNames[i]);
+                }
+            }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
             let failedMsg = '';
             if (errors.length) {
                 failedMsg = ' | Failed methods: ' + errors.join (', ');
             }
-            dump (this.addPadding ('[INFO:PUBLIC_TESTS_DONE]' + market['type'] + failedMsg, 25), exchange.id);
+            dump (this.addPadding ('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id);
         }
     }
 
     async loadExchange (exchange) {
-        try {
-            await this.testSafe ('loadMarkets', exchange, [], true);
-        } catch (e) {
-            if (e instanceof OnMaintenance) {
-                dump ('[SKIPPED] Exchange is on maintenance', exchange.id);
-                exitScript ();
-            }
-            // if excepion is not maintenance (and therefore, neither temporary connection exceptiions, defined in `testSafe`) then throw exception as is, and the caller method will handle that
-            throw e;
-        }
+        await this.testSafe ('loadMarkets', exchange, [], true);
         const symbols = [
             'BTC/CNY',
             'BTC/USD',
