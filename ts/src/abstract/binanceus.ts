@@ -543,7 +543,10 @@ interface binance {
     privateGetMyTrades (params?: {}): Promise<implicitReturnType>;
     privateGetRateLimitOrder (params?: {}): Promise<implicitReturnType>;
     privateGetMyPreventedMatches (params?: {}): Promise<implicitReturnType>;
+    privateGetMyAllocations (params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco (params?: {}): Promise<implicitReturnType>;
+    privatePostSorOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostSorOrderTest (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOrderCancelReplace (params?: {}): Promise<implicitReturnType>;
     privatePostOrderTest (params?: {}): Promise<implicitReturnType>;

@@ -273,26 +273,30 @@ class testMainClass(baseMainTestClass):
         return message + res
 
     def test_method(self, methodName, exchange, args, isPublic):
+        isLoadMarkets = (methodName == 'loadMarkets')
         methodNameInTest = get_test_name(methodName)
         # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in base exchange)
         if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
             return
         skipMessage = None
         isFetchOhlcvEmulated = (methodName == 'fetchOHLCV' and exchange.has['fetchOHLCV'] == 'emulated')  # todo: remove emulation from base
-        if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
+        if not isLoadMarkets and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
             skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
         elif (methodName in self.skippedMethods) and (isinstance(self.skippedMethods[methodName], str)):
             skipMessage = '[INFO:SKIPPED_TEST]'
         elif not (methodNameInTest in self.testFiles):
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
-        if skipMessage:
-            if self.info:
-                dump(self.add_padding(skipMessage, 25), exchange.id, methodNameInTest)
-            return
         argsStringified = '(' + ','.join(args) + ')'
-        if self.info:
-            dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         try:
+            # exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" need it to be called anyway(but can skip "test.loadMarket" for it)
+            if isLoadMarkets:
+                exchange.load_markets()
+            if skipMessage:
+                if self.info:
+                    dump(self.add_padding(skipMessage, 25), exchange.id, methodNameInTest)
+                return
+            if self.info:
+                dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
             skippedProperties = exchange.safe_value(self.skippedMethods, methodName, {})
             call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
             if isPublic:
@@ -306,7 +310,7 @@ class testMainClass(baseMainTestClass):
             else:
                 raise e
 
-    def test_safe(self, methodName, exchange, args, isPublic):
+    def test_safe(self, methodName, exchange, args=[], isPublic=False):
         # `testSafe` method does not raise an exception, instead mutes it.
         # The reason we mute the thrown exceptions here is because if self test is part
         # of "runPublicTests", then we don't want to stop the whole test if any single
@@ -334,6 +338,9 @@ class testMainClass(baseMainTestClass):
                     # wait and retry again
                     exchange.sleep(i * 1000)  # increase wait seconds on every retry
                     continue
+                elif isinstance(e, OnMaintenance):
+                    # in case of maintenance, raise an exception(which will lead to stop of test for the current exchange)
+                    raise e
                 else:
                     # if not temp failure, then dump exception without retrying
                     dump('[TEST_WARNING]', 'Method could not be tested', exception_message(e), exchange.id, methodName, argsStringified)
@@ -344,7 +351,6 @@ class testMainClass(baseMainTestClass):
 
     def run_public_tests(self, exchange, symbol):
         tests = {
-            'loadMarkets': [],
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
@@ -392,20 +398,13 @@ class testMainClass(baseMainTestClass):
 
     def load_exchange(self, exchange):
         try:
-            exchange.load_markets()
+            self.test_safe('loadMarkets', exchange, [], True)
         except Exception as e:
             if isinstance(e, OnMaintenance):
                 dump('[SKIPPED] Exchange is on maintenance', exchange.id)
                 exit_script()
+            # if excepion is not maintenance(and therefore, neither temporary connection exceptiions, defined in `testSafe`) then raise exception, and the caller method will handle that
             raise e
-        assert isinstance(exchange.markets, dict), '.markets is not an object'
-        assert isinstance(exchange.symbols, list), '.symbols is not an array'
-        symbolsLength = len(exchange.symbols)
-        marketKeys = list(exchange.markets.keys())
-        marketKeysLength = len(marketKeys)
-        assert symbolsLength > 0, '.symbols count <= 0(less than or equal to zero)'
-        assert marketKeysLength > 0, '.markets objects keys length <= 0(less than or equal to zero)'
-        assert symbolsLength == marketKeysLength, 'number of .symbols is not equal to the number of .markets'
         symbols = [
             'BTC/CNY',
             'BTC/USD',
