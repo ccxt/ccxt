@@ -946,12 +946,13 @@ export default class ascendex extends ascendexRest {
         this.spawn (this.pong, client, message);
     }
 
-    authenticate (url, params = {}) {
+    async authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.milliseconds ().toString ();
             const urlParts = url.split ('/');
             const partsLength = urlParts.length;
@@ -967,8 +968,7 @@ export default class ascendex extends ascendexRest {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            future = this.watch (url, messageHash, this.extend (request, params));
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return future;
     }

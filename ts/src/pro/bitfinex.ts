@@ -416,7 +416,8 @@ export default class bitfinex extends bitfinexRest {
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
+        const messageHash = 'authenticated';
+        const future = client.future (messageHash);
         const method = 'auth';
         const authenticated = this.safeValue (client.subscriptions, method);
         if (authenticated === undefined) {
@@ -434,25 +435,27 @@ export default class bitfinex extends bitfinexRest {
                     'wallet',
                 ],
             };
-            this.spawn (this.watch, url, method, request, 1);
+            this.watch (url, method, request, messageHash);
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticationMessage (client: Client, message) {
         const status = this.safeString (message, 'status');
+        const messageHash = 'authenticated';
         if (status === 'OK') {
             // we resolve the future here permanently so authentication only happens once
-            const future = this.safeValue (client.futures, 'authenticated');
+            const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
-            client.reject (error, 'authenticated');
+            client.reject (error, messageHash);
             // allows further authentication attempts
             const method = this.safeString (message, 'event');
             if (method in client.subscriptions) {
                 delete client.subscriptions[method];
             }
+            throw error;
         }
     }
 
