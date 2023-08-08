@@ -20,8 +20,8 @@ const RateLimitExceeded = ccxt.RateLimitExceeded;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const NetworkError = ccxt.NetworkError;
 const DDoSProtection = ccxt.DDoSProtection;
-const RequestTimeout = ccxt.RequestTimeout;
 const OnMaintenance = ccxt.OnMaintenance;
+const RequestTimeout = ccxt.RequestTimeout;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
