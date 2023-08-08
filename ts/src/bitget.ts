@@ -408,6 +408,10 @@ export default class bitget extends Exchange {
                             'isolated/account/riskRate': 2, // 10 times/1s (UID) => 20/10 = 2
                             'cross/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
                             'isolated/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/flashRepay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/queryFlashRepayStatus': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/flashRepay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/queryFlashRepayStatus': 2, // 10 times/1s (UID) => 20/10 = 2
                             'isolated/order/placeOrder': 4, // 5 times/1s (UID) => 20/5 = 4
                             'isolated/order/batchPlaceOrder': 4, // 5 times/1s (UID) => 20/5 = 4
                             'isolated/order/cancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
