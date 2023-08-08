@@ -4328,13 +4328,10 @@ export default class binance extends Exchange {
             request['isIsolated'] = true;
         }
         if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker');
-            if (broker !== undefined) {
-                const brokerId = this.safeString (broker, marketType);
-                if (brokerId !== undefined) {
-                    request['newClientOrderId'] = brokerId + this.uuid22 ();
-                }
-            }
+            const broker = this.safeValue (this.options, 'broker', {});
+            const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+            const brokerId = this.safeString (broker, marketType, defaultId);
+            request['newClientOrderId'] = brokerId + this.uuid22 ();
         } else {
             request['newClientOrderId'] = clientOrderId;
         }
@@ -7892,8 +7889,9 @@ export default class binance extends Exchange {
                 if (newClientOrderId === undefined) {
                     const isSpotOrMargin = (api.indexOf ('sapi') > -1 || api === 'private');
                     const marketType = isSpotOrMargin ? 'spot' : 'future';
-                    const broker = this.safeValue (this.options, 'broker');
-                    const brokerId = this.safeString (broker, marketType);
+                    const defaultId = (!isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+                    const broker = this.safeValue (this.options, 'broker', {});
+                    const brokerId = this.safeString (broker, marketType, defaultId);
                     params['newClientOrderId'] = brokerId + this.uuid22 ();
                 }
             }
