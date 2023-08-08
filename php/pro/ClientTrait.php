@@ -160,18 +160,6 @@ trait ClientTrait {
         $this->close();
     }
 
-    public function find_timeframe($timeframe, $timeframes = null) {
-        $timeframes = $timeframes ? $timeframes : $this->timeframes;
-        $keys = array_keys($timeframes);
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
-    }
-
     public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {
         return Async\async(function () use ($client, $messageHash, $symbol, $limit, $params) {
             if (!array_key_exists($symbol, $this->orderbooks)) {
@@ -201,11 +189,5 @@ trait ClientTrait {
                 Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
             }
         }) ();
-    }
-
-    public function handle_deltas($orderbook, $deltas) {
-        foreach ($deltas as $delta) {
-            $this->handle_delta($orderbook, $delta);
-        }
     }
 }

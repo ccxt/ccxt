@@ -19,7 +19,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -265,7 +264,6 @@ class poloniex(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     # General
-                    '200': CancelPending,  # {"orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : ""}
                     '500': ExchangeNotAvailable,  # Internal System Error
                     '603': RequestTimeout,  # Internal Request Timeout
                     '601': BadRequest,  # Invalid Parameter
@@ -1046,7 +1044,7 @@ class poloniex(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         rawType = self.safe_string(order, 'type')
         type = self.parse_order_type(rawType)
-        id = self.safe_string_2(order, 'orderNumber', 'id')
+        id = self.safe_string_n(order, ['orderNumber', 'id', 'orderId'])
         fee = None
         feeCurrency = self.safe_string(order, 'tokenFeeCurrency')
         feeCost = None
@@ -1268,7 +1266,17 @@ class poloniex(Exchange, ImplicitAPI):
             id = clientOrderId
         request['id'] = id
         params = self.omit(params, 'clientOrderId')
-        return self.privateDeleteOrdersId(self.extend(request, params))
+        response = self.privateDeleteOrdersId(self.extend(request, params))
+        #
+        #   {
+        #       "orderId":"210832697138888704",
+        #       "clientOrderId":"",
+        #       "state":"PENDING_CANCEL",
+        #       "code":200,
+        #       "message":""
+        #   }
+        #
+        return self.parse_order(response)
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
@@ -2090,7 +2098,8 @@ class poloniex(Exchange, ImplicitAPI):
         #         "message" : "Low available balance"
         #     }
         #
-        if 'code' in response:
+        responseCode = self.safe_string(response, 'code')
+        if (responseCode is not None) and (responseCode != '200'):
             codeInner = response['code']
             message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + body

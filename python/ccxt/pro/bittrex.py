@@ -45,6 +45,7 @@ class bittrex(ccxt.async_support.bittrex):
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': self.milliseconds(),
             },
@@ -254,7 +255,7 @@ class bittrex(ccxt.async_support.bittrex):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bittrex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
@@ -495,11 +496,11 @@ class bittrex(ccxt.async_support.bittrex):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the bittrex api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -568,22 +569,18 @@ class bittrex(ccxt.async_support.bittrex):
         #     7. Continue to apply messages are received from the socket number on the stream is always increasing by 1 each message(Note: for private streams, the sequence number is scoped to a single account or subaccount).
         #     8. If a message is received that is not the next in order, return to step hasattr(self, 2) process
         #
-        orderbook = await self.subscribe_to_order_book(negotiation, symbol, limit, params)
-        return orderbook.limit()
-
-    async def subscribe_to_order_book(self, negotiation, symbol, limit: Optional[int] = None, params={}):
-        await self.load_markets()
         market = self.market(symbol)
         name = 'orderbook'
         messageHash = name + '_' + market['id'] + '_' + str(limit)
         subscription = {
             'symbol': symbol,
             'messageHash': messageHash,
-            'method': self.handle_subscribe_to_order_book,
+            'method': self.handle_order_book_subscription,
             'limit': limit,
             'params': params,
         }
-        return await self.send_request_to_subscribe(negotiation, messageHash, subscription)
+        orderbook = await self.send_request_to_subscribe(negotiation, messageHash, subscription)
+        return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -632,7 +629,7 @@ class bittrex(ccxt.async_support.bittrex):
         except Exception as e:
             client.reject(e, messageHash)
 
-    def handle_subscribe_to_order_book(self, client: Client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:

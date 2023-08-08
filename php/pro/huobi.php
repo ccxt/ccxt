@@ -653,13 +653,14 @@ class huobi extends \ccxt\async\huobi {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             $this->check_required_credentials();
+            Async\await($this->load_markets());
             $type = null;
             $marketId = '*'; // wildcard
             $market = null;
@@ -668,7 +669,6 @@ class huobi extends \ccxt\async\huobi {
             $trades = null;
             $subType = null;
             if ($symbol !== null) {
-                Async\await($this->load_markets());
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $type = $market['type'];
@@ -1197,7 +1197,7 @@ class huobi extends \ccxt\async\huobi {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
@@ -2131,9 +2131,9 @@ class huobi extends \ccxt\async\huobi {
             $messageHash = 'auth';
             $relativePath = str_replace('wss://' . $hostname, '', $url);
             $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ($messageHash);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
                 $timestamp = $this->ymdhms($this->milliseconds(), 'T');
                 $signatureParams = null;
                 if ($type === 'spot') {
@@ -2181,7 +2181,7 @@ class huobi extends \ccxt\async\huobi {
                         'Signature' => $signature,
                     );
                 }
-                Async\await($this->watch($url, $messageHash, $request, $messageHash, $future));
+                Async\await($this->watch($url, $messageHash, $request, $messageHash));
             }
             return Async\await($future);
         }) ();

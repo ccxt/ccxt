@@ -10,6 +10,7 @@ from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
 
 
@@ -55,7 +56,11 @@ class cryptocom(ccxt.async_support.cryptocom):
         #     "method": "public/heartbeat",
         #     "code": 0
         # }
-        await client.send({'id': self.safe_integer(message, 'id'), 'method': 'public/respond-heartbeat'})
+        try:
+            await client.send({'id': self.safe_integer(message, 'id'), 'method': 'public/respond-heartbeat'})
+        except Exception as e:
+            error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
+            client.reset(error)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -178,11 +183,11 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         watches information on multiple trades made by the user
         see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-trade-instrument_name
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
         market = None
@@ -365,7 +370,7 @@ class cryptocom(ccxt.async_support.cryptocom):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`

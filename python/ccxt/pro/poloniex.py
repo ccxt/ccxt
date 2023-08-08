@@ -151,7 +151,7 @@ class poloniex(ccxt.async_support.poloniex):
         if name != 'balances':
             subscribe['symbols'] = marketIds
         request = self.extend(subscribe, params)
-        return await self.watch(url, messageHash, request, name)
+        return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -282,13 +282,10 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def watch_balance(self, params={}):
         """
-        watches information on multiple orders made by the user
+        watch balance and get the amount of funds available for trading or funds locked in orders
         see https://docs.poloniex.com/#authenticated-channels-market-data-balances
-        :param str symbol: not used by poloniex watchBalance
-        :param int [since]: not used by poloniex watchBalance
-        :param int [limit]: not used by poloniex watchBalance
         :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
         name = 'balances'

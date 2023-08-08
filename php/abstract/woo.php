@@ -160,6 +160,12 @@ abstract class woo extends \ccxt\Exchange {
     public function v3_private_get_buypower($params = array()) {
         return $this->request('buypower', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v3_private_get_referrals($params = array()) {
+        return $this->request('referrals', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function v3_private_get_referral_rewards($params = array()) {
+        return $this->request('referral_rewards', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
     public function v3_private_post_algo_order($params = array()) {
         return $this->request('algo/order', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
@@ -339,6 +345,12 @@ abstract class woo extends \ccxt\Exchange {
     }
     public function v3PrivateGetBuypower($params = array()) {
         return $this->request('buypower', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v3PrivateGetReferrals($params = array()) {
+        return $this->request('referrals', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function v3PrivateGetReferralRewards($params = array()) {
+        return $this->request('referral_rewards', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
     }
     public function v3PrivatePostAlgoOrder($params = array()) {
         return $this->request('algo/order', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 5));

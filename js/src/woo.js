@@ -207,6 +207,8 @@ export default class woo extends Exchange {
                             'accountinfo': 60,
                             'positions': 3.33,
                             'buypower': 1,
+                            'referrals': 60,
+                            'referral_rewards': 60,
                         },
                         'post': {
                             'algo/order': 5,

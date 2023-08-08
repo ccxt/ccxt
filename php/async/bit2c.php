@@ -432,7 +432,9 @@ class bit2c extends Exchange {
                 $method .= 'MarketPrice' . $this->capitalize($side);
             } else {
                 $request['Price'] = $price;
-                $request['Total'] = $amount * $price;
+                $amountString = $this->number_to_string($amount);
+                $priceString = $this->number_to_string($price);
+                $request['Total'] = $this->parse_number(Precise::string_mul($amountString, $priceString));
                 $request['IsBid'] = ($side === 'buy');
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
