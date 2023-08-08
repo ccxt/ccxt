@@ -612,6 +612,7 @@ class huobi(ccxt.async_support.huobi):
         :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         self.check_required_credentials()
+        await self.load_markets()
         type = None
         marketId = '*'  # wildcard
         market = None
@@ -620,7 +621,6 @@ class huobi(ccxt.async_support.huobi):
         trades = None
         subType = None
         if symbol is not None:
-            await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
             type = market['type']
@@ -1961,9 +1961,9 @@ class huobi(ccxt.async_support.huobi):
         messageHash = 'auth'
         relativePath = url.replace('wss://' + hostname, '')
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
-            future = client.future(messageHash)
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             timestamp = self.ymdhms(self.milliseconds(), 'T')
             signatureParams = None
             if type == 'spot':
@@ -2009,5 +2009,5 @@ class huobi(ccxt.async_support.huobi):
                     'Timestamp': timestamp,
                     'Signature': signature,
                 }
-            await self.watch(url, messageHash, request, messageHash, future)
+            await self.watch(url, messageHash, request, messageHash)
         return await future

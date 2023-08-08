@@ -660,6 +660,7 @@ class huobi extends \ccxt\async\huobi {
              * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             $this->check_required_credentials();
+            Async\await($this->load_markets());
             $type = null;
             $marketId = '*'; // wildcard
             $market = null;
@@ -668,7 +669,6 @@ class huobi extends \ccxt\async\huobi {
             $trades = null;
             $subType = null;
             if ($symbol !== null) {
-                Async\await($this->load_markets());
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $type = $market['type'];
@@ -2131,9 +2131,9 @@ class huobi extends \ccxt\async\huobi {
             $messageHash = 'auth';
             $relativePath = str_replace('wss://' . $hostname, '', $url);
             $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ($messageHash);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
                 $timestamp = $this->ymdhms($this->milliseconds(), 'T');
                 $signatureParams = null;
                 if ($type === 'spot') {
@@ -2181,7 +2181,7 @@ class huobi extends \ccxt\async\huobi {
                         'Signature' => $signature,
                     );
                 }
-                Async\await($this->watch($url, $messageHash, $request, $messageHash, $future));
+                Async\await($this->watch($url, $messageHash, $request, $messageHash));
             }
             return Async\await($future);
         }) ();

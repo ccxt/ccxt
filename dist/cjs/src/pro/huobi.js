@@ -640,6 +640,7 @@ class huobi extends huobi$1 {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         this.checkRequiredCredentials();
+        await this.loadMarkets();
         let type = undefined;
         let marketId = '*'; // wildcard
         let market = undefined;
@@ -648,7 +649,6 @@ class huobi extends huobi$1 {
         let trades = undefined;
         let subType = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets();
             market = this.market(symbol);
             symbol = market['symbol'];
             type = market['type'];
@@ -2114,9 +2114,9 @@ class huobi extends huobi$1 {
         const messageHash = 'auth';
         const relativePath = url.replace('wss://' + hostname, '');
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future(messageHash);
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.ymdhms(this.milliseconds(), 'T');
             let signatureParams = undefined;
             if (type === 'spot') {
@@ -2166,7 +2166,7 @@ class huobi extends huobi$1 {
                     'Signature': signature,
                 };
             }
-            await this.watch(url, messageHash, request, messageHash, future);
+            await this.watch(url, messageHash, request, messageHash);
         }
         return await future;
     }
