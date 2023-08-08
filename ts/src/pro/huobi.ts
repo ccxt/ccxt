@@ -2117,9 +2117,10 @@ export default class huobi extends huobiRest {
         const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
         const client = this.client (url);
-        const future = client.future (messageHash);
+        let future = true;
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
+            future = client.future (messageHash);
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
             let signatureParams = undefined;
             if (type === 'spot') {
@@ -2167,8 +2168,8 @@ export default class huobi extends huobiRest {
                     'Signature': signature,
                 };
             }
-            await this.watch (url, messageHash, request, messageHash);
+            this.watch (url, messageHash, request, messageHash);
         }
-        return await future;
+        return future;
     }
 }
