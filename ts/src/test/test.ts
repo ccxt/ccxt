@@ -298,26 +298,27 @@ export default class testMainClass extends baseMainTestClass {
                 if (tempFailure) {
                     // wait and retry again
                     await exchange.sleep (i * 1000); // increase wait seconds on every retry
+                    // if last retry was gone with same `tempFailure` error, then let's eventually return false
+                    if (i === maxRetries - 1) {
+                        dump ('[SKIPPED]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified);
+                        if (methodName === 'loadMarkets') {
+                            // in case of loadMarkets, we completely stop test for current exchange
+                            exitScript ();
+                        }
+                        return false;
+                    }
                     continue;
                 } else if (e instanceof OnMaintenance) {
                     // in case of maintenance, skip exchange (don't fail the test)
                     dump ('[SKIPPED] Exchange is on maintenance', exchange.id);
                     exitScript ();
                 } else {
-                    // if not a temporary conectivity issue, then mark test as failed (no need to re-try)
+                    // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
                     dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
                     return false;
                 }
             }
         }
-        // if maxretries was gone with same `tempFailure` error, then let's eventually return false
-        const untestedMessage = 'Method could not be tested due to a repeated Network/Availability issues';
-        if (methodName === 'loadMarkets') {
-            // in case of loadMarkets, we don't just return, but we completely stop the test for the current exchange
-            throw new ExchangeNotAvailable ('[TEST_FAILURE] ' + untestedMessage + ' | ' + exchange.id + ' ' + methodName);
-        }
-        dump ('[TEST_FAILURE]', untestedMessage, ' | ', exchange.id, methodName, argsStringified);
-        return false;
     }
 
     async runPublicTests (exchange, symbol) {
