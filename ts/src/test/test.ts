@@ -238,6 +238,7 @@ export default class testMainClass extends baseMainTestClass {
         } else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
+        const argsStringified = '(' + args.join (',') + ')';
         try {
             // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
             if (isLoadMarkets) {
@@ -249,7 +250,6 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 return;
             }
-            const argsStringified = '(' + args.join (',') + ')';
             if (this.info) {
                 dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
             }
