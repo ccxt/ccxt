@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitso.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitso
+ * @extends Exchange
+ */
 export default class bitso extends Exchange {
     describe(): any;
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -72,7 +76,7 @@ export default class bitso extends Exchange {
         info: any;
     }>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;

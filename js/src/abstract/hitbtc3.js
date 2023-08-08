@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // -------------------------------------------------------------------------------
-import { Exchange as _Exchange } from '../base/Exchange.js';
-class Exchange extends _Exchange {
+import _hitbtc from '../hitbtc.js';
+class hitbtc extends _hitbtc {
 }
-export default Exchange;
+export default hitbtc;

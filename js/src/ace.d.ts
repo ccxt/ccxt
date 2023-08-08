@@ -1,5 +1,9 @@
 import Exchange from './abstract/ace.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class ace
+ * @extends Exchange
+ */
 export default class ace extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
