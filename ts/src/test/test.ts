@@ -20,8 +20,8 @@ const RateLimitExceeded = ccxt.RateLimitExceeded;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const NetworkError = ccxt.NetworkError;
 const DDoSProtection = ccxt.DDoSProtection;
-const OnMaintenance = ccxt.OnMaintenance;
 const RequestTimeout = ccxt.RequestTimeout;
+const OnMaintenance = ccxt.OnMaintenance;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
@@ -310,7 +310,12 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // if maxretries was gone with same `tempFailure` error, then let's eventually return false
-        dump ('[TEST_WARNING]', 'Method not tested due to a Network/Availability issue', exchange.id, methodName, argsStringified);
+        const untestedMessage = 'Method could not be tested due to a repeated Network/Availability issues';
+        if (methodName === 'loadMarkets') {
+            // in case of loadMarkets, we don't just return, but we completely stop the test for the current exchange
+            throw new ExchangeNotAvailable ('[TEST_FAILURE] ' + untestedMessage + ' | ' + exchange.id + ' ' + methodName);
+        }
+        dump ('[TEST_WARNING]', untestedMessage, ' | ', exchange.id, methodName, argsStringified);
         return false;
     }
 
