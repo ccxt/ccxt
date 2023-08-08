@@ -33,7 +33,6 @@ export default class bitstamp extends bitstampRest {
                 'watchOrderBook': {
                     'snapshotDelay': 6,
                     'maxRetries': 3,
-                    'fetchSnapshotMaxRetries': 3,
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,

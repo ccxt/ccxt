@@ -44,7 +44,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
                     'method': '/contractMarket/level2', // can also be '/contractMarket/level3v2'
                     'snapshotDelay': 5,
                     'maxRetries': 3,
-                    'fetchSnapshotMaxRetries': 3,
                 },
                 'streamLimit': 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash': {},

@@ -31,7 +31,6 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBook': {
                     'snapshotDelay': 5,
                     'maxRetries': 3,
-                    'fetchSnapshotMaxRetries': 3,
                 },
             },
             'streaming': {
