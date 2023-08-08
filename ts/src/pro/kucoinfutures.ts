@@ -37,7 +37,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchOrderBook': {
                     'snapshotDelay': 20,
                     'maxRetries': 3,
-                    'initialFetchOrderBookMaxRetries': 3,
+                    'fetchSnapshotMaxRetries': 3,
                 },
                 'watchTicker': {
                     'name': 'contractMarket/tickerV2', // market/ticker
