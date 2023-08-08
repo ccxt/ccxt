@@ -357,19 +357,19 @@ export default class testMainClass extends baseMainTestClass {
         // promises.push (testThrottle ());
         const results = await Promise.all (promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        const errors = [];
-        for (let i = 0; i < testNames.length; i++) {
-            if (!results[i]) {
-                errors.push (testNames[i]);
-            }
-        }
         if (this.info) {
+            const errors = [];
+            for (let i = 0; i < testNames.length; i++) {
+                if (!results[i]) {
+                    errors.push (testNames[i]);
+                }
+            }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
             let failedMsg = '';
             if (errors.length) {
                 failedMsg = ' | Failed methods: ' + errors.join (', ');
             }
-            dump (this.addPadding ('[INFO:PUBLIC_TESTS_DONE]' + market['type'] + failedMsg, 25), exchange.id);
+            dump (this.addPadding ('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id);
         }
     }
 
