@@ -223,6 +223,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testMethod (methodName, exchange, args, isPublic) {
+        const isLoadMarkets = (methodName === 'loadMarkets');
         const methodNameInTest = getTestName (methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
@@ -230,24 +231,28 @@ export default class testMainClass extends baseMainTestClass {
         }
         let skipMessage = undefined;
         const isFetchOhlcvEmulated = (methodName === 'fetchOHLCV' && exchange.has['fetchOHLCV'] === 'emulated'); // todo: remove emulation from base
-        if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
+        if (!isLoadMarkets && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
         } else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
-        if (skipMessage) {
-            if (this.info) {
-                dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
-            }
-            return;
-        }
         const argsStringified = '(' + args.join (',') + ')';
-        if (this.info) {
-            dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
-        }
         try {
+            // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
+            if (isLoadMarkets) {
+                await exchange.loadMarkets ();
+            }
+            if (skipMessage) {
+                if (this.info) {
+                    dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
+                }
+                return;
+            }
+            if (this.info) {
+                dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+            }
             const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
             await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
             if (isPublic) {
