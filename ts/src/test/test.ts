@@ -304,7 +304,7 @@ export default class testMainClass extends baseMainTestClass {
                     throw e;
                 } else {
                     // if not temp failure, then dump exception without retrying
-                    dump ('[TEST_WARNING]', 'Method could not be tested', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                    dump ('[TEST_FAILURE]', 'Method could not be tested', exceptionMessage (e), exchange.id, methodName, argsStringified);
                     return false;
                 }
             }
@@ -315,7 +315,7 @@ export default class testMainClass extends baseMainTestClass {
             // in case of loadMarkets, we don't just return, but we completely stop the test for the current exchange
             throw new ExchangeNotAvailable ('[TEST_FAILURE] ' + untestedMessage + ' | ' + exchange.id + ' ' + methodName);
         }
-        dump ('[TEST_WARNING]', untestedMessage, ' | ', exchange.id, methodName, argsStringified);
+        dump ('[TEST_FAILURE]', untestedMessage, ' | ', exchange.id, methodName, argsStringified);
         return false;
     }
 
