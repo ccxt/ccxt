@@ -300,11 +300,11 @@ export default class testMainClass extends baseMainTestClass {
                     await exchange.sleep (i * 1000); // increase wait seconds on every retry
                     continue;
                 } else if (e instanceof OnMaintenance) {
-                    // in case of maintenance, throw an exception (caller method will handle accordingly)
+                    // in case of maintenance, skip exchange (don't fail the test)
                     dump ('[SKIPPED] Exchange is on maintenance', exchange.id);
                     exitScript ();
                 } else {
-                    // if not temp failure, then dump exception without retrying
+                    // if not a temporary conectivity issue, then mark test as failed (no need to re-try)
                     dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
                     return false;
                 }
