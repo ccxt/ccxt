@@ -1,8 +1,6 @@
 // ----------------------------------------------------------------------------
 
 import fs from 'fs';
-import assert from 'assert';
-import { Agent } from 'https';
 import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
@@ -268,7 +266,7 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    async testSafe (methodName, exchange, args, isPublic) {
+    async testSafe (methodName, exchange, args = [], isPublic = false) {
         // `testSafe` method does not throw an exception, instead mutes it.
         // The reason we mute the thrown exceptions here is because if this test is part
         // of "runPublicTests", then we don't want to stop the whole test if any single
@@ -296,6 +294,9 @@ export default class testMainClass extends baseMainTestClass {
                     // wait and retry again
                     await exchange.sleep (i * 1000); // increase wait seconds on every retry
                     continue;
+                } else if (e instanceof OnMaintenance) {
+                    // in case of maintenance, throw an exception (which will lead to stop of test for the current exchange)
+                    throw e;
                 } else {
                     // if not temp failure, then dump exception without retrying
                     dump ('[TEST_WARNING]', 'Method could not be tested', exceptionMessage (e), exchange.id, methodName, argsStringified);
@@ -310,7 +311,6 @@ export default class testMainClass extends baseMainTestClass {
 
     async runPublicTests (exchange, symbol) {
         const tests = {
-            'loadMarkets': [],
             'fetchCurrencies': [],
             'fetchTicker': [ symbol ],
             'fetchTickers': [ symbol ],
@@ -365,22 +365,15 @@ export default class testMainClass extends baseMainTestClass {
 
     async loadExchange (exchange) {
         try {
-            await exchange.loadMarkets ();
+            await this.testSafe ('loadMarkets', exchange, [], true);
         } catch (e) {
             if (e instanceof OnMaintenance) {
                 dump ('[SKIPPED] Exchange is on maintenance', exchange.id);
                 exitScript ();
             }
+            // if excepion is not maintenance (and therefore, neither temporary connection exceptiions, defined in `testSafe`) then throw exception as is, and the caller method will handle that
             throw e;
         }
-        assert (typeof exchange.markets === 'object', '.markets is not an object');
-        assert (Array.isArray (exchange.symbols), '.symbols is not an array');
-        const symbolsLength = exchange.symbols.length;
-        const marketKeys = Object.keys (exchange.markets);
-        const marketKeysLength = marketKeys.length;
-        assert (symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
-        assert (marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
-        assert (symbolsLength === marketKeysLength, 'number of .symbols is not equal to the number of .markets');
         const symbols = [
             'BTC/CNY',
             'BTC/USD',
