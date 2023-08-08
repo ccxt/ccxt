@@ -8,129 +8,129 @@ namespace ccxt\async\abstract;
 
 abstract class novadax extends \ccxt\async\Exchange {
     public function public_get_common_symbol($params = array()) {
-        return $this->request('common/symbol', 'public', 'GET', $params);
+        return $this->request('common/symbol', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function public_get_common_symbols($params = array()) {
-        return $this->request('common/symbols', 'public', 'GET', $params);
+        return $this->request('common/symbols', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function public_get_common_timestamp($params = array()) {
-        return $this->request('common/timestamp', 'public', 'GET', $params);
+        return $this->request('common/timestamp', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function public_get_market_tickers($params = array()) {
-        return $this->request('market/tickers', 'public', 'GET', $params);
+        return $this->request('market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function public_get_market_ticker($params = array()) {
-        return $this->request('market/ticker', 'public', 'GET', $params);
+        return $this->request('market/ticker', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function public_get_market_depth($params = array()) {
-        return $this->request('market/depth', 'public', 'GET', $params);
+        return $this->request('market/depth', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function public_get_market_trades($params = array()) {
-        return $this->request('market/trades', 'public', 'GET', $params);
+        return $this->request('market/trades', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function public_get_market_kline_history($params = array()) {
-        return $this->request('market/kline/history', 'public', 'GET', $params);
+        return $this->request('market/kline/history', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function private_get_orders_get($params = array()) {
-        return $this->request('orders/get', 'private', 'GET', $params);
+        return $this->request('orders/get', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_get_orders_list($params = array()) {
-        return $this->request('orders/list', 'private', 'GET', $params);
+        return $this->request('orders/list', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_get_orders_fill($params = array()) {
-        return $this->request('orders/fill', 'private', 'GET', $params);
+        return $this->request('orders/fill', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_get_orders_fills($params = array()) {
-        return $this->request('orders/fills', 'private', 'GET', $params);
+        return $this->request('orders/fills', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_get_account_getbalance($params = array()) {
-        return $this->request('account/getBalance', 'private', 'GET', $params);
+        return $this->request('account/getBalance', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_get_account_subs($params = array()) {
-        return $this->request('account/subs', 'private', 'GET', $params);
+        return $this->request('account/subs', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_get_account_subs_balance($params = array()) {
-        return $this->request('account/subs/balance', 'private', 'GET', $params);
+        return $this->request('account/subs/balance', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_get_account_subs_transfer_record($params = array()) {
-        return $this->request('account/subs/transfer/record', 'private', 'GET', $params);
+        return $this->request('account/subs/transfer/record', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_get_wallet_query_deposit_withdraw($params = array()) {
-        return $this->request('wallet/query/deposit-withdraw', 'private', 'GET', $params);
+        return $this->request('wallet/query/deposit-withdraw', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_post_orders_create($params = array()) {
-        return $this->request('orders/create', 'private', 'POST', $params);
+        return $this->request('orders/create', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_orders_cancel($params = array()) {
-        return $this->request('orders/cancel', 'private', 'POST', $params);
+        return $this->request('orders/cancel', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_account_withdraw_coin($params = array()) {
-        return $this->request('account/withdraw/coin', 'private', 'POST', $params);
+        return $this->request('account/withdraw/coin', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_account_subs_transfer($params = array()) {
-        return $this->request('account/subs/transfer', 'private', 'POST', $params);
+        return $this->request('account/subs/transfer', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function publicGetCommonSymbol($params = array()) {
-        return $this->request('common/symbol', 'public', 'GET', $params);
+        return $this->request('common/symbol', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function publicGetCommonSymbols($params = array()) {
-        return $this->request('common/symbols', 'public', 'GET', $params);
+        return $this->request('common/symbols', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function publicGetCommonTimestamp($params = array()) {
-        return $this->request('common/timestamp', 'public', 'GET', $params);
+        return $this->request('common/timestamp', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function publicGetMarketTickers($params = array()) {
-        return $this->request('market/tickers', 'public', 'GET', $params);
+        return $this->request('market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function publicGetMarketTicker($params = array()) {
-        return $this->request('market/ticker', 'public', 'GET', $params);
+        return $this->request('market/ticker', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function publicGetMarketDepth($params = array()) {
-        return $this->request('market/depth', 'public', 'GET', $params);
+        return $this->request('market/depth', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function publicGetMarketTrades($params = array()) {
-        return $this->request('market/trades', 'public', 'GET', $params);
+        return $this->request('market/trades', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function publicGetMarketKlineHistory($params = array()) {
-        return $this->request('market/kline/history', 'public', 'GET', $params);
+        return $this->request('market/kline/history', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function privateGetOrdersGet($params = array()) {
-        return $this->request('orders/get', 'private', 'GET', $params);
+        return $this->request('orders/get', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetOrdersList($params = array()) {
-        return $this->request('orders/list', 'private', 'GET', $params);
+        return $this->request('orders/list', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetOrdersFill($params = array()) {
-        return $this->request('orders/fill', 'private', 'GET', $params);
+        return $this->request('orders/fill', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetOrdersFills($params = array()) {
-        return $this->request('orders/fills', 'private', 'GET', $params);
+        return $this->request('orders/fills', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetAccountGetBalance($params = array()) {
-        return $this->request('account/getBalance', 'private', 'GET', $params);
+        return $this->request('account/getBalance', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetAccountSubs($params = array()) {
-        return $this->request('account/subs', 'private', 'GET', $params);
+        return $this->request('account/subs', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetAccountSubsBalance($params = array()) {
-        return $this->request('account/subs/balance', 'private', 'GET', $params);
+        return $this->request('account/subs/balance', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetAccountSubsTransferRecord($params = array()) {
-        return $this->request('account/subs/transfer/record', 'private', 'GET', $params);
+        return $this->request('account/subs/transfer/record', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetWalletQueryDepositWithdraw($params = array()) {
-        return $this->request('wallet/query/deposit-withdraw', 'private', 'GET', $params);
+        return $this->request('wallet/query/deposit-withdraw', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privatePostOrdersCreate($params = array()) {
-        return $this->request('orders/create', 'private', 'POST', $params);
+        return $this->request('orders/create', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostOrdersCancel($params = array()) {
-        return $this->request('orders/cancel', 'private', 'POST', $params);
+        return $this->request('orders/cancel', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostAccountWithdrawCoin($params = array()) {
-        return $this->request('account/withdraw/coin', 'private', 'POST', $params);
+        return $this->request('account/withdraw/coin', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostAccountSubsTransfer($params = array()) {
-        return $this->request('account/subs/transfer', 'private', 'POST', $params);
+        return $this->request('account/subs/transfer', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
 }

@@ -13,6 +13,7 @@ export default async (exchange, symbol) => {
     // log (symbol.green, 'watching trades...')
 
     const method = 'watchTrades';
+    const skippedProperties = {};
 
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [
@@ -59,7 +60,7 @@ export default async (exchange, symbol) => {
             // log.noLocate (asTable (response))
 
             for (let i = 0; i < response.length; i++) {
-                testTrade (exchange, method, response[i], symbol, now);
+                testTrade (exchange, skippedProperties, method, response[i], symbol, now);
             }
         } catch (e) {
 

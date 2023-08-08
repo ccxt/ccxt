@@ -13,6 +13,7 @@ export default async (exchange, symbol) => {
     // log (symbol.green, 'watching order book...')
 
     const method = 'watchOrderBook';
+    const skippedProperties = {};
 
     // we have to skip some exchanges here due to the frequency of trading or to other factors
     const skippedExchanges = [
@@ -23,6 +24,8 @@ export default async (exchange, symbol) => {
         'gopax', // requires authentication for public orderbooks
         'woo',
         'alpaca', // requires auth
+        'coinbasepro', // requires auth
+        'coinbaseprime', // requires auth
     ];
 
     if (skippedExchanges.includes (exchange.id)) {
@@ -46,7 +49,7 @@ export default async (exchange, symbol) => {
 
             response = await exchange[method] (symbol);
 
-            testOrderBook (exchange, method, response, symbol);
+            testOrderBook (exchange, skippedProperties, method, response, symbol);
 
         } catch (e) {
 

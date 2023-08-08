@@ -75,14 +75,14 @@ export default class bitfinex2 extends bitfinex2Rest {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name biftfinex2#watchOHLCV
+         * @name bitfinex2#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the biftfinex2 api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the biftfinex2 api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -193,10 +193,10 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @name bitfinex2#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.subscribe('trades', symbol, params);
         if (this.newUpdates) {
@@ -209,11 +209,11 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @method
          * @name bitfinex2#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         let messageHash = 'myTrade';
@@ -233,7 +233,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @name bitfinex2#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
+         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.subscribe('ticker', symbol, params);
@@ -262,7 +262,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //
         const name = 'myTrade';
         const data = this.safeValue(message, 2);
-        const trade = this.parseWsTrade(data, false);
+        const trade = this.parseWsTrade(data);
         const symbol = trade['symbol'];
         const market = this.market(symbol);
         const messageHash = name + ':' + market['id'];
@@ -320,13 +320,12 @@ export default class bitfinex2 extends bitfinex2Rest {
             stored = new ArrayCache(tradesLimit);
             this.trades[symbol] = stored;
         }
-        const isPublicTrade = true;
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
             const trades = this.safeValue(message, 1, []);
             for (let i = 0; i < trades.length; i++) {
-                const parsed = this.parseWsTrade(trades[i], isPublicTrade, market);
+                const parsed = this.parseWsTrade(trades[i], market);
                 stored.append(parsed);
             }
         }
@@ -339,13 +338,13 @@ export default class bitfinex2 extends bitfinex2Rest {
                 return;
             }
             const trade = this.safeValue(message, 2, []);
-            const parsed = this.parseWsTrade(trade, isPublicTrade, market);
+            const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
         return message;
     }
-    parseWsTrade(trade, isPublic = false, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -388,6 +387,8 @@ export default class bitfinex2 extends bitfinex2Rest {
         //       1655110144596
         //    ]
         //
+        const numFields = trade.length;
+        const isPublic = numFields <= 8;
         let marketId = (!isPublic) ? this.safeString(trade, 1) : undefined;
         market = this.safeMarket(marketId, market);
         const createdKey = isPublic ? 1 : 2;
@@ -521,8 +522,8 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @name bitfinex2#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
@@ -621,22 +622,22 @@ export default class bitfinex2 extends bitfinex2Rest {
             const deltas = message[1];
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
-                const price = this.safeFloat(deltas, 1);
+                const price = this.safeString(deltas, 1);
                 const size = (deltas[2] < 0) ? -deltas[2] : deltas[2];
                 const side = (deltas[2] < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store(price, amount, id);
+                const amount = Precise.stringGt(price, '0') ? size : '0';
+                bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
             }
             else {
-                const amount = this.safeNumber(deltas, 2);
-                const counter = this.safeNumber(deltas, 1);
-                const price = this.safeNumber(deltas, 0);
-                const size = (amount < 0) ? -amount : amount;
-                const side = (amount < 0) ? 'asks' : 'bids';
+                const amount = this.safeString(deltas, 2);
+                const counter = this.safeString(deltas, 1);
+                const price = this.safeString(deltas, 0);
+                const size = Precise.stringLt(amount, '0') ? Precise.stringNeg(amount) : amount;
+                const side = Precise.stringLt(amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbook[side];
-                bookside.store(price, size, counter);
+                bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
             }
             client.resolve(orderbook, messageHash);
         }
@@ -659,10 +660,16 @@ export default class bitfinex2 extends bitfinex2Rest {
         const asks = book['asks'];
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            stringArray.push(this.numberToString(bids[i][0]));
-            stringArray.push(this.numberToString(bids[i][1]));
-            stringArray.push(this.numberToString(asks[i][0]));
-            stringArray.push(this.numberToString(-asks[i][1]));
+            const bid = this.safeValue(bids, i);
+            const ask = this.safeValue(asks, i);
+            if (bid !== undefined) {
+                stringArray.push(this.numberToString(bids[i][0]));
+                stringArray.push(this.numberToString(bids[i][1]));
+            }
+            if (ask !== undefined) {
+                stringArray.push(this.numberToString(asks[i][0]));
+                stringArray.push(this.numberToString(-asks[i][1]));
+            }
         }
         const payload = stringArray.join(':');
         const localChecksum = this.crc32(payload, true);
@@ -676,9 +683,9 @@ export default class bitfinex2 extends bitfinex2Rest {
         /**
          * @method
          * @name bitfinex2#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
-         * @param {str|undefined} params.type spot or contract if not provided this.options['defaultType'] is used
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
@@ -872,10 +879,10 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @name bitfinex2#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         let messageHash = 'orders';
@@ -972,7 +979,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1017,11 +1024,11 @@ export default class bitfinex2 extends bitfinex2Rest {
         const clientOrderId = this.safeString(order, 1);
         const marketId = this.safeString(order, 3);
         const symbol = this.safeSymbol(marketId);
-        market = this.safeMarket(marketId);
-        let amount = this.safeNumber(order, 7);
+        market = this.safeMarket(symbol);
+        let amount = this.safeString(order, 7);
         let side = 'buy';
-        if (amount < 0) {
-            amount = Math.abs(amount);
+        if (Precise.stringLt(amount, '0')) {
+            amount = Precise.stringAbs(amount);
             side = 'sell';
         }
         const remaining = Precise.stringAbs(this.safeString(order, 6));
@@ -1037,7 +1044,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const trimmedStatus = this.safeString(stateParts, 0);
         const status = this.parseWsOrderStatus(trimmedStatus);
         const price = this.safeString(order, 16);
-        const timestamp = this.safeInteger(order, 4);
+        const timestamp = this.safeInteger2(order, 5, 4);
         const average = this.safeString(order, 17);
         const stopPrice = this.omitZero(this.safeString(order, 18));
         return this.safeOrder({

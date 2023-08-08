@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import testSharedMethods from './test.sharedMethods.js';
-function testOpenInterest(exchange, method, entry) {
+function testOpenInterest(exchange, skippedProperties, method, entry) {
     const format = {
         'symbol': 'BTC/USDT',
         'baseVolume': exchange.parseNumber('81094.084'),
@@ -14,12 +14,12 @@ function testOpenInterest(exchange, method, entry) {
         'datetime': '2022-04-07T23:20:00.000Z',
         'info': {},
     };
-    const emptyNotAllowedFor = ['baseVolume'];
-    testSharedMethods.assertStructure(exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertSymbol(exchange, method, entry, 'symbol');
-    testSharedMethods.assertTimestamp(exchange, method, entry);
+    const emptyAllowedFor = ['quoteVolume', 'symbol', 'timestamp'];
+    testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol');
+    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, entry);
     //
-    testSharedMethods.assertGreater(exchange, method, entry, 'quoteVolume', '0');
-    testSharedMethods.assertGreater(exchange, method, entry, 'baseVolume', '0');
+    testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'quoteVolume', '0');
+    testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'baseVolume', '0');
 }
 export default testOpenInterest;

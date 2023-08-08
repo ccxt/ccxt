@@ -79,6 +79,11 @@ interface kucoin {
     privateGetHfOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
     privateGetHfFills (params?: {}): Promise<implicitReturnType>;
+    privateGetMarginRepay (params?: {}): Promise<implicitReturnType>;
+    privateGetProjectList (params?: {}): Promise<implicitReturnType>;
+    privateGetProjectMarketInterestRate (params?: {}): Promise<implicitReturnType>;
+    privateGetRedeemOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetPurchaseOrders (params?: {}): Promise<implicitReturnType>;
     privatePostAccounts (params?: {}): Promise<implicitReturnType>;
     privatePostAccountsInnerTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostAccountsSubTransfer (params?: {}): Promise<implicitReturnType>;
@@ -105,6 +110,10 @@ interface kucoin {
     privatePostHfOrdersMulti (params?: {}): Promise<implicitReturnType>;
     privatePostHfOrdersMultiSync (params?: {}): Promise<implicitReturnType>;
     privatePostHfOrdersAlter (params?: {}): Promise<implicitReturnType>;
+    privatePostMarginRepay (params?: {}): Promise<implicitReturnType>;
+    privatePostPurchase (params?: {}): Promise<implicitReturnType>;
+    privatePostRedeem (params?: {}): Promise<implicitReturnType>;
+    privatePostLendPurchaseUpdate (params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrderClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
@@ -159,18 +168,25 @@ interface kucoin {
     futuresPrivateGetPosition (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetPositions (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetFundingHistory (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetSubApiKey (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferOut (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrders (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionMarginAutoDepositStatus (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionMarginDepositMargin (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostBulletPrivate (params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostTransferIn (params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostPositionRiskLimitLevelChange (params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostSubApiKey (params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostSubApiKeyUpdate (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteCancelTransferOut (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteStopOrders (params?: {}): Promise<implicitReturnType>;
-    webFrontGetContractSymbolFundingRates (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateDeleteSubApiKey (params?: {}): Promise<implicitReturnType>;
+    webExchangeGetCurrencyCurrencyChainInfo (params?: {}): Promise<implicitReturnType>;
+    webExchangeGetContractSymbolFundingRates (params?: {}): Promise<implicitReturnType>;
 }
 abstract class kucoin extends _kucoin {}
 

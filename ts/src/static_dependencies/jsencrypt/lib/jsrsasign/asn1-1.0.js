@@ -94,6 +94,7 @@ if (typeof KJUR.asn1 == "undefined" || !KJUR.asn1) KJUR.asn1 = {};
 
 /**
  * ASN1 utilities class
+ * @type Class
  * @name KJUR.asn1.ASN1Util
  * @class ASN1 utilities class
  * @since asn1 1.0.2

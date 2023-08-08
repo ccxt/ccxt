@@ -13,6 +13,7 @@ export default async (exchange, symbol) => {
     // log (symbol.green, 'watching orders...')
 
     const method = 'watchOrders';
+    const skippedProperties = {};
 
     if (!exchange.has[method]) {
         console.log (exchange.id, 'does not support', method + '() method');
@@ -40,7 +41,7 @@ export default async (exchange, symbol) => {
 
             for (let i = 0; i < response.length; i++) {
                 const order = response[i];
-                testOrder (exchange, method, order, symbol, now);
+                testOrder (exchange, skippedProperties, method, order, symbol, now);
             }
         } catch (e) {
 

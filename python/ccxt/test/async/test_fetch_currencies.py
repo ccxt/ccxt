@@ -16,11 +16,12 @@ sys.path.append(root)
 from ccxt.test.base import test_currency  # noqa E402
 
 
-async def test_fetch_currencies(exchange):
+async def test_fetch_currencies(exchange, skipped_properties):
     method = 'fetchCurrencies'
+    # const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     currencies = await exchange.fetch_currencies()
     # todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     if currencies is not None:
         values = list(currencies.values())
         for i in range(0, len(values)):
-            test_currency(exchange, method, values[i])
+            test_currency(exchange, skipped_properties, method, values[i])
