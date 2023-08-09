@@ -132,6 +132,10 @@ class phemex extends Exchange {
                         'md/v2/kline/list' => 5, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
                         'md/v2/kline' => 5, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                         'md/v2/kline/last' => 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/orderbook' => 5, // ?symbol=<symbol>
+                        'md/trade' => 5, // ?symbol=<symbol>
+                        'md/spot/ticker/24hr' => 5, // ?symbol=<symbol>
+                        'exchange/public/cfg/chain-settings' => 5, // ?currency=<currency>
                     ),
                 ),
                 'v1' => array(
@@ -196,6 +200,11 @@ class phemex extends Exchange {
                         'exchange/wallets/depositList' => 5, // ?currency=<currency>&offset=<offset>&limit=<limit>
                         'exchange/wallets/v2/depositAddress' => 5, // ?currency=<currency>
                         'api-data/spots/funds' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'api-data/spots/orders' => 5, // ?symbol=<symbol>
+                        'api-data/spots/orders/by-order-id' => 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'api-data/spots/pnls' => 5,
+                        'api-data/spots/trades' => 5, // ?symbol=<symbol>
+                        'api-data/spots/trades/by-order-id' => 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
                         'assets/convert' => 5, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
                         'assets/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
@@ -225,6 +234,7 @@ class phemex extends Exchange {
                     ),
                     'put' => array(
                         // spot
+                        'spot/orders/create' => 1, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
                         'spot/orders' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
                         'orders/replace' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>

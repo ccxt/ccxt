@@ -491,7 +491,6 @@ export default class Exchange {
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
     remove0xPrefix(hexData: any): any;
-    findTimeframe(timeframe: any, timeframes?: any): string;
     spawn(method: any, ...args: any[]): Future;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
@@ -504,14 +503,15 @@ export default class Exchange {
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
     close(): Promise<void>;
-    handleDelta(bookside: any, delta: any, nonce?: any): void;
     loadOrderBook(client: any, messageHash: any, symbol: any, limit?: any, params?: {}): Promise<void>;
-    handleDeltas(orderbook: any, deltas: any, nonce?: any): void;
-    getCacheIndex(orderbook: any, deltas: any): number;
     convertToBigInt(value: string): bigint;
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
+    handleDeltas(orderbook: any, deltas: any): void;
+    handleDelta(bookside: any, delta: any): void;
+    getCacheIndex(orderbook: any, deltas: any): number;
+    findTimeframe(timeframe: any, timeframes?: any): string;
     checkProxySettings(url: any, method: any, headers: any, body: any): string[];
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;

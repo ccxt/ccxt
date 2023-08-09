@@ -865,9 +865,12 @@ class binance extends Exchange {
                         'myTrades' => 10,
                         'rateLimit/order' => 20,
                         'myPreventedMatches' => 1,
+                        'myAllocations' => 10,
                     ),
                     'post' => array(
                         'order/oco' => 1,
+                        'sor/order' => 1,
+                        'sor/order/test' => 1,
                         'order' => 1,
                         'order/cancelReplace' => 1,
                         'order/test' => 1,
@@ -4327,13 +4330,10 @@ class binance extends Exchange {
             $request['isIsolated'] = true;
         }
         if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker');
-            if ($broker !== null) {
-                $brokerId = $this->safe_string($broker, $marketType);
-                if ($brokerId !== null) {
-                    $request['newClientOrderId'] = $brokerId . $this->uuid22();
-                }
-            }
+            $broker = $this->safe_value($this->options, 'broker', array());
+            $defaultId = ($market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+            $brokerId = $this->safe_string($broker, $marketType, $defaultId);
+            $request['newClientOrderId'] = $brokerId . $this->uuid22();
         } else {
             $request['newClientOrderId'] = $clientOrderId;
         }
@@ -7892,8 +7892,9 @@ class binance extends Exchange {
                 if ($newClientOrderId === null) {
                     $isSpotOrMargin = (mb_strpos($api, 'sapi') > -1 || $api === 'private');
                     $marketType = $isSpotOrMargin ? 'spot' : 'future';
-                    $broker = $this->safe_value($this->options, 'broker');
-                    $brokerId = $this->safe_string($broker, $marketType);
+                    $defaultId = (!$isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+                    $broker = $this->safe_value($this->options, 'broker', array());
+                    $brokerId = $this->safe_string($broker, $marketType, $defaultId);
                     $params['newClientOrderId'] = $brokerId . $this->uuid22();
                 }
             }

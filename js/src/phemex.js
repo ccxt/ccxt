@@ -137,7 +137,11 @@ export default class phemex extends Exchange {
                         'md/kline': 5,
                         'md/v2/kline/list': 5,
                         'md/v2/kline': 5,
-                        'md/v2/kline/last': 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/v2/kline/last': 5,
+                        'md/orderbook': 5,
+                        'md/trade': 5,
+                        'md/spot/ticker/24hr': 5,
+                        'exchange/public/cfg/chain-settings': 5, // ?currency=<currency>
                     },
                 },
                 'v1': {
@@ -202,6 +206,11 @@ export default class phemex extends Exchange {
                         'exchange/wallets/depositList': 5,
                         'exchange/wallets/v2/depositAddress': 5,
                         'api-data/spots/funds': 5,
+                        'api-data/spots/orders': 5,
+                        'api-data/spots/orders/by-order-id': 5,
+                        'api-data/spots/pnls': 5,
+                        'api-data/spots/trades': 5,
+                        'api-data/spots/trades/by-order-id': 5,
                         'assets/convert': 5,
                         // transfer
                         'assets/transfer': 5,
@@ -231,6 +240,7 @@ export default class phemex extends Exchange {
                     },
                     'put': {
                         // spot
+                        'spot/orders/create': 1,
                         'spot/orders': 1,
                         // swap
                         'orders/replace': 1,

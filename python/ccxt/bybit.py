@@ -3710,7 +3710,7 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same specific param
         postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3889,7 +3889,7 @@ class bybit(Exchange, ImplicitAPI):
         exchangeSpecificParam = self.safe_string(params, 'time_in_force')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'postonly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3981,7 +3981,7 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         timeInForce = self.safe_string_lower(params, 'timeInForce')  # same specific param
         postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -6293,7 +6293,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(transaction, 'createTime', 'successAt')
         updated = self.safe_integer(transaction, 'updateTime')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee', 0)
+        feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee')
         type = 'deposit' if ('depositFee' in transaction) else 'withdrawal'
         fee = None
         if feeCost is not None:
