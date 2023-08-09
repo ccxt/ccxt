@@ -1339,9 +1339,9 @@ export default class ndax extends Exchange {
         let orderType = this.safeInteger (this.options['orderTypes'], this.capitalize (type));
         const triggerPrice = this.safeString (params, 'triggerPrice');
         if (triggerPrice !== undefined) {
-            if (type === 'limit') {
+            if (type === 'market') {
                 orderType = 3;
-            } else if (type === 'market') {
+            } else if (type === 'limit') {
                 orderType = 4;
             }
         }
@@ -1365,7 +1365,6 @@ export default class ndax extends Exchange {
             'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
-            // TODO: how do you set the stop loss type?
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
@@ -1373,6 +1372,9 @@ export default class ndax extends Exchange {
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
+        }
+        if (triggerPrice !== undefined) {
+            request['StopPrice'] = triggerPrice;
         }
         const response = await this.privatePostSendOrder (this.extend (request, params));
         //
