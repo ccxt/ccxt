@@ -35,6 +35,8 @@ export default class ndax extends Exchange {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
