@@ -509,6 +509,23 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
     }
 
+    public function fetch_rest_order_book_safe($symbol, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $fetchSnapshotMaxRetries = $this->handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
+            for ($i = 0; $i < $fetchSnapshotMaxRetries; $i++) {
+                try {
+                    $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                    return $orderBook;
+                } catch (Exception $e) {
+                    if (($i + 1) === $fetchSnapshotMaxRetries) {
+                        throw $e;
+                    }
+                }
+            }
+            return null;
+        }) ();
+    }
+
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
     }

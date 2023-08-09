@@ -45,6 +45,9 @@ export default class bittrex extends bittrexRest {
                 'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds(),
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
             },
         });
     }
@@ -615,7 +618,7 @@ export default class bittrex extends bittrexRest {
         try {
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBook(symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe(symbol, limit);
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
             // make sure we have at least one delta before fetching the snapshot

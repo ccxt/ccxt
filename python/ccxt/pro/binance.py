@@ -94,6 +94,9 @@ class binance(ccxt.async_support.binance):
                 'watchOHLCV': {
                     'name': 'kline',  # or indexPriceKline or markPriceKline(coin-m futures)
                 },
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
                 'watchBalance': {
                     'fetchBalanceSnapshot': False,  # or True
                     'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
@@ -217,9 +220,9 @@ class binance(ccxt.async_support.binance):
             limit = self.safe_integer(subscription, 'limit', defaultLimit)
             params = self.safe_value(subscription, 'params')
             # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-            # todo: self is a synch blocking call in ccxt.php - make it async
+            # todo: self is a synch blocking call - make it async
             # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            snapshot = await self.fetch_order_book(symbol, limit, params)
+            snapshot = await self.fetch_rest_order_book_safe(symbol, limit, params)
             orderbook = self.safe_value(self.orderbooks, symbol)
             if orderbook is None:
                 # if the orderbook is dropped before the snapshot is received

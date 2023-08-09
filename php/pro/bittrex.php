@@ -45,6 +45,9 @@ class bittrex extends \ccxt\async\bittrex {
                 'OHLCVLimit' => 1000,
                 'hub' => 'c3',
                 'I' => $this->milliseconds(),
+                'watchOrderBook' => array(
+                    'snapshotMaxRetries' => 3,
+                ),
             ),
         ));
     }
@@ -684,7 +687,7 @@ class bittrex extends \ccxt\async\bittrex {
             try {
                 // 2. Initiate a REST request to get the $snapshot data of Level 2 order book.
                 // todo => this is a synch blocking call in ccxt.php - make it async
-                $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit));
                 $orderbook = $this->orderbooks[$symbol];
                 $messages = $orderbook->cache;
                 // make sure we have at least one delta before fetching the $snapshot

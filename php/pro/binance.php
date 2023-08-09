@@ -89,6 +89,9 @@ class binance extends \ccxt\async\binance {
                 'watchOHLCV' => array(
                     'name' => 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
                 ),
+                'watchOrderBook' => array(
+                    'snapshotMaxRetries' => 3,
+                ),
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => false, // or true
                     'awaitBalanceSnapshot' => true, // whether to wait for the balance snapshot before providing updates
@@ -223,9 +226,9 @@ class binance extends \ccxt\async\binance {
                 $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
                 $params = $this->safe_value($subscription, 'params');
                 // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
-                // todo => this is a synch blocking call in ccxt.php - make it async
+                // todo => this is a synch blocking call - make it async
                 // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-                $snapshot = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
                 $orderbook = $this->safe_value($this->orderbooks, $symbol);
                 if ($orderbook === null) {
                     // if the $orderbook is dropped before the $snapshot is received
