@@ -56,6 +56,7 @@ class ImplicitAPI:
     public_get_candles_trade_timeframe_symbol_hist = publicGetCandlesTradeTimeframeSymbolHist = Entry('candles/trade:{timeframe}:{symbol}/hist', 'public', 'GET', {'cost': 2.66})
     public_get_status_type = publicGetStatusType = Entry('status/{type}', 'public', 'GET', {'cost': 2.66})
     public_get_status_deriv = publicGetStatusDeriv = Entry('status/deriv', 'public', 'GET', {'cost': 2.66})
+    public_get_status_deriv_symbol_hist = publicGetStatusDerivSymbolHist = Entry('status/deriv/{symbol}/hist', 'public', 'GET', {'cost': 2.66})
     public_get_liquidations_hist = publicGetLiquidationsHist = Entry('liquidations/hist', 'public', 'GET', {'cost': 80})
     public_get_rankings_key_timeframe_symbol_section = publicGetRankingsKeyTimeframeSymbolSection = Entry('rankings/{key}:{timeframe}:{symbol}/{section}', 'public', 'GET', {'cost': 2.66})
     public_get_rankings_key_timeframe_symbol_hist = publicGetRankingsKeyTimeframeSymbolHist = Entry('rankings/{key}:{timeframe}:{symbol}/hist', 'public', 'GET', {'cost': 2.66})

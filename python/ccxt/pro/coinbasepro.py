@@ -33,6 +33,9 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                 'api': {
                     'ws': 'wss://ws-feed.pro.coinbase.com',
                 },
+                'test': {
+                    'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
+                },
             },
             'options': {
                 'tradesLimit': 1000,
@@ -173,7 +176,8 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             'marketId': market['id'],
             'limit': limit,
         }
-        orderbook = await self.watch(url, messageHash, request, messageHash, subscription)
+        authentication = self.authenticate()
+        orderbook = await self.watch(url, messageHash, self.extend(request, authentication), messageHash, subscription)
         return orderbook.limit()
 
     def handle_trade(self, client: Client, message):

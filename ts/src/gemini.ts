@@ -596,7 +596,7 @@ export default class gemini extends Exchange {
         let quoteId = this.safeString (response, 'quote_currency');
         if (baseId === undefined) {
             const idLength = marketId.length - 0;
-            const isUSDT = marketId.indexOf ('usdt') !== -1;
+            const isUSDT = marketId.indexOf ('usdt') >= 0;
             const quoteSize = isUSDT ? 4 : 3;
             baseId = marketId.slice (0, idLength - quoteSize); // Not true for all markets
             quoteId = marketId.slice (idLength - quoteSize, idLength);

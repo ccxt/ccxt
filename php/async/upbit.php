@@ -1394,10 +1394,10 @@ class upbit extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $lastTradeTimestamp = null;
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'volume');
-        $remaining = $this->safe_number($order, 'remaining_volume');
-        $filled = $this->safe_number($order, 'executed_volume');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'volume');
+        $remaining = $this->safe_string($order, 'remaining_volume');
+        $filled = $this->safe_string($order, 'executed_volume');
         $cost = null;
         if ($type === 'price') {
             $type = 'market';
@@ -1406,7 +1406,7 @@ class upbit extends Exchange {
         }
         $average = null;
         $fee = null;
-        $feeCost = $this->safe_number($order, 'paid_fee');
+        $feeCost = $this->safe_string($order, 'paid_fee');
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
         $trades = $this->safe_value($order, 'trades', array());
@@ -1421,21 +1421,21 @@ class upbit extends Exchange {
             $getFeesFromTrades = false;
             if ($feeCost === null) {
                 $getFeesFromTrades = true;
-                $feeCost = 0;
+                $feeCost = '0';
             }
-            $cost = 0;
+            $cost = '0';
             for ($i = 0; $i < $numTrades; $i++) {
                 $trade = $trades[$i];
-                $cost = $this->sum($cost, $trade['cost']);
+                $cost = Precise::string_add($cost, $this->safe_string($trade, 'cost'));
                 if ($getFeesFromTrades) {
                     $tradeFee = $this->safe_value($trades[$i], 'fee', array());
-                    $tradeFeeCost = $this->safe_number($tradeFee, 'cost');
+                    $tradeFeeCost = $this->safe_string($tradeFee, 'cost');
                     if ($tradeFeeCost !== null) {
-                        $feeCost = $this->sum($feeCost, $tradeFeeCost);
+                        $feeCost = Precise::string_add($feeCost, $tradeFeeCost);
                     }
                 }
             }
-            $average = $cost / $filled;
+            $average = Precise::string_div($cost, $filled);
         }
         if ($feeCost !== null) {
             $fee = array(
@@ -1443,7 +1443,7 @@ class upbit extends Exchange {
                 'cost' => $feeCost,
             );
         }
-        $result = array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1458,16 +1458,15 @@ class upbit extends Exchange {
             'price' => $price,
             'stopPrice' => null,
             'triggerPrice' => null,
-            'cost' => $cost,
-            'average' => $average,
+            'cost' => $this->parse_number($cost),
+            'average' => $this->parse_number($average),
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
-        return $result;
+        ));
     }
 
     public function fetch_orders_by_state($state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

@@ -87,6 +87,9 @@ export default class binance extends binanceRest {
                 'watchOHLCV': {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
                 },
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
@@ -220,9 +223,9 @@ export default class binance extends binanceRest {
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             const params = this.safeValue (subscription, 'params');
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-            // todo: this is a synch blocking call in ccxt.php - make it async
+            // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            const snapshot = await this.fetchOrderBook (symbol, limit, params);
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             const orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook === undefined) {
                 // if the orderbook is dropped before the snapshot is received
@@ -1833,7 +1836,6 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('fetchOpenOrdersWs', symbol);
         await this.loadMarkets ();
         this.checkIsSpot ('fetchOpenOrdersWs', symbol);
         const url = this.urls['api']['ws']['ws'];
@@ -1842,9 +1844,11 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
         const payload = {
-            'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
+        if (symbol !== undefined) {
+            payload['symbol'] = this.marketId (symbol);
+        }
         const message = {
             'id': messageHash,
             'method': 'openOrders.status',

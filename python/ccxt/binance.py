@@ -130,6 +130,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchTransactionFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
@@ -881,9 +882,12 @@ class binance(Exchange, ImplicitAPI):
                         'myTrades': 10,
                         'rateLimit/order': 20,
                         'myPreventedMatches': 1,
+                        'myAllocations': 10,
                     },
                     'post': {
                         'order/oco': 1,
+                        'sor/order': 1,
+                        'sor/order/test': 1,
                         'order': 1,
                         'order/cancelReplace': 1,
                         'order/test': 1,
@@ -950,6 +954,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/repay-futures-switch': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1,  # 1
+                        'asset-collection': 3,
                     },
                     'put': {
                         'listenKey': 1,  # 1
@@ -4141,11 +4146,10 @@ class binance(Exchange, ImplicitAPI):
         if marginMode == 'isolated':
             request['isIsolated'] = True
         if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, marketType)
-                if brokerId is not None:
-                    request['newClientOrderId'] = brokerId + self.uuid22()
+            broker = self.safe_value(self.options, 'broker', {})
+            defaultId = 'x-xcKtGhcu' if (market['contract']) else 'x-R4BD3S82'
+            brokerId = self.safe_string(broker, marketType, defaultId)
+            request['newClientOrderId'] = brokerId + self.uuid22()
         else:
             request['newClientOrderId'] = clientOrderId
         if (marketType == 'spot') or (marketType == 'margin'):
@@ -6756,7 +6760,7 @@ class binance(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(response)):
             result.append(self.parse_position(response[i], market))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -6858,7 +6862,7 @@ class binance(Exchange, ImplicitAPI):
         account = getattr(self, method)(query)
         result = self.parse_account_positions(account)
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def fetch_positions_risk(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -6947,7 +6951,7 @@ class binance(Exchange, ImplicitAPI):
             parsed = self.parse_position_risk(response[i])
             result.append(parsed)
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -7358,8 +7362,9 @@ class binance(Exchange, ImplicitAPI):
                 if newClientOrderId is None:
                     isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
                     marketType = 'spot' if isSpotOrMargin else 'future'
-                    broker = self.safe_value(self.options, 'broker')
-                    brokerId = self.safe_string(broker, marketType)
+                    defaultId = 'x-xcKtGhcu' if (not isSpotOrMargin) else 'x-R4BD3S82'
+                    broker = self.safe_value(self.options, 'broker', {})
+                    brokerId = self.safe_string(broker, marketType, defaultId)
                     params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')

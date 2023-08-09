@@ -65,6 +65,9 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositsWithdrawals': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchMarginMode': False,
@@ -173,6 +176,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                         'candles/trade:{timeframe}:{symbol}/hist': 2.66,
                         'status/{type}': 2.66,
                         'status/deriv': 2.66,
+                        'status/deriv/{symbol}/hist': 2.66,
                         'liquidations/hist': 80,  # 3 requests a minute = 0.05 requests a second =>( 1000ms / rateLimit ) / 0.05 = 80
                         'rankings/{key}:{timeframe}:{symbol}/{section}': 2.66,
                         'rankings/{key}:{timeframe}:{symbol}/hist': 2.66,
@@ -2460,3 +2464,215 @@ class bitfinex2(Exchange, ImplicitAPI):
         #     ]
         #
         return self.parse_ledger(response, currency, since, limit)
+
+    async def fetch_funding_rate(self, symbol: str, params={}):
+        """
+        fetch the current funding rate
+        see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rates([symbol], params)
+
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetch the current funding rate
+        see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+        :param str[] symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRates() requires a symbols argument')
+        await self.load_markets()
+        marketIds = self.market_ids(symbols)
+        request = {
+            'keys': ','.join(marketIds),
+        }
+        response = await self.publicGetStatusDeriv(self.extend(request, params))
+        #
+        #   [
+        #       [
+        #          "tBTCF0:USTF0",
+        #          1691165059000,
+        #          null,
+        #          29297.851276225,
+        #          29277.5,
+        #          null,
+        #          36950860.76010306,
+        #          null,
+        #          1691193600000,
+        #          0.00000527,
+        #          82,
+        #          null,
+        #          0.00014548,
+        #          null,
+        #          null,
+        #          29278.8925,
+        #          null,
+        #          null,
+        #          9636.07644994,
+        #          null,
+        #          null,
+        #          null,
+        #          0.0005,
+        #          0.0025
+        #       ]
+        #   ]
+        #
+        return self.parse_funding_rates(response)
+
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical funding rate prices
+        see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetStatusDerivSymbolHist(self.extend(request, params))
+        #
+        #   [
+        #       [
+        #          "tBTCF0:USTF0",
+        #          1691165059000,
+        #          null,
+        #          29297.851276225,
+        #          29277.5,
+        #          null,
+        #          36950860.76010306,
+        #          null,
+        #          1691193600000,
+        #          0.00000527,
+        #          82,
+        #          null,
+        #          0.00014548,
+        #          null,
+        #          null,
+        #          29278.8925,
+        #          null,
+        #          null,
+        #          9636.07644994,
+        #          null,
+        #          null,
+        #          null,
+        #          0.0005,
+        #          0.0025
+        #       ]
+        #   ]
+        #
+        rates = []
+        for i in range(0, len(response)):
+            fr = response[i]
+            rate = self.parse_funding_rate_history(fr, market)
+            rates.append(rate)
+        return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #       [
+        #          "tBTCF0:USTF0",
+        #          1691165059000,
+        #          null,
+        #          29297.851276225,
+        #          29277.5,
+        #          null,
+        #          36950860.76010306,
+        #          null,
+        #          1691193600000,
+        #          0.00000527,
+        #          82,
+        #          null,
+        #          0.00014548,
+        #          null,
+        #          null,
+        #          29278.8925,
+        #          null,
+        #          null,
+        #          9636.07644994,
+        #          null,
+        #          null,
+        #          null,
+        #          0.0005,
+        #          0.0025
+        #       ]
+        #
+        marketId = self.safe_string(contract, 0)
+        timestamp = self.safe_integer(contract, 1)
+        nextFundingTimestamp = self.safe_integer(contract, 8)
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market),
+            'markPrice': self.safe_number(contract, 15),
+            'indexPrice': self.safe_number(contract, 3),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 12),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 9),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    def parse_funding_rate_history(self, contract, market=None):
+        #
+        # [
+        #     1691165494000,
+        #     null,
+        #     29278.95838065,
+        #     29260.5,
+        #     null,
+        #     36950860.76010305,
+        #     null,
+        #     1691193600000,
+        #     0.00001449,
+        #     222,
+        #     null,
+        #     0.00014548,
+        #     null,
+        #     null,
+        #     29260.005,
+        #     null,
+        #     null,
+        #     9635.86484562,
+        #     null,
+        #     null,
+        #     null,
+        #     0.0005,
+        #     0.0025
+        # ]
+        #
+        timestamp = self.safe_integer(contract, 0)
+        nextFundingTimestamp = self.safe_integer(contract, 7)
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': self.safe_number(contract, 14),
+            'indexPrice': self.safe_number(contract, 2),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 11),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 8),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }

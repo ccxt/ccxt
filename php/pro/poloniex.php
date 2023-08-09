@@ -156,7 +156,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $subscribe['symbols'] = $marketIds;
             }
             $request = array_merge($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $name));
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
 

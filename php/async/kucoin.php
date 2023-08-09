@@ -38,12 +38,13 @@ class kucoin extends Exchange {
                 'margin' => true,
                 'swap' => false,
                 'future' => false,
-                'option' => null,
+                'option' => false,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
@@ -69,15 +70,19 @@ class kucoin extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
+                'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrderBooks' => false,
                 'fetchOrdersByStatus' => true,
                 'fetchOrderTrades' => true,
                 'fetchPositionMode' => false,
@@ -90,9 +95,13 @@ class kucoin extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactionFee' => true,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
                 'repayMargin' => true,
+                'setLeverage' => false,
                 'setMarginMode' => false,
+                'setPositionMode' => false,
+                'signIn' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -473,7 +482,7 @@ class kucoin extends Exchange {
                 'fetchMyTradesMethod' => 'private_get_fills',
                 'fetchCurrencies' => array(
                     'webApiEnable' => true, // fetches from WEB
-                    'webApiRetries' => 5,
+                    'webApiRetries' => 1,
                     'webApiMuteFailure' => true,
                 ),
                 'fetchMarkets' => array(
@@ -1762,6 +1771,18 @@ class kucoin extends Exchange {
         }) ();
     }
 
+    public function handle_trigger_prices($params) {
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
+        if (($isStopLoss && $isTakeProfit) || ($triggerPrice && $stopLossPrice) || ($triggerPrice && $isTakeProfit)) {
+            throw new ExchangeError($this->id . ' createOrder() - you should use either $triggerPrice or $stopLossPrice or takeProfitPrice');
+        }
+        return array( $triggerPrice, $stopLossPrice, $takeProfitPrice );
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1776,13 +1797,17 @@ class kucoin extends Exchange {
              * @param {float} $amount the $amount of currency to trade
              * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
              * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @param {string} [$params->marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+             * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+             * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
              * @param {string} [$params->remark] remark for the order, length cannot exceed 100 utf8 characters
              * @param {string} [$params->tradeType] 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
              * limit orders ---------------------------------------------------
-             * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
              * @param {float} [$params->cancelAfter] long, // cancel after n seconds, requires timeInForce to be GTT
-             * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
              * @param {bool} [$params->hidden] false, // Order will not be displayed in the order book
              * @param {bool} [$params->iceberg] false, // Only a portion of the order is displayed in the order book
              * @param {string} [$params->visibleSize] $this->amount_to_precision($symbol, visibleSize), // The maximum visible size of an iceberg order
@@ -1790,11 +1815,9 @@ class kucoin extends Exchange {
              * @param {string} [$params->funds] // Amount of quote currency to use
              * stop orders ----------------------------------------------------
              * @param {string} [$params->stop]  Either loss or entry, the default is loss. Requires stopPrice to be defined
-             * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
              * margin orders --------------------------------------------------
              * @param {float} [$params->leverage] Leverage size of the order
              * @param {string} [$params->stp] '', // self trade prevention, CN, CO, CB or DC
-             * @param {string} [$params->marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
              * @param {bool} [$params->autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
              * @param {bool} [$params->hf] false, // true for hf order
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1830,24 +1853,25 @@ class kucoin extends Exchange {
                 $request['size'] = $amountString;
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-            // default is take profit
-            $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'stopPrice');
-            $isStopLoss = $stopLossPrice !== null;
-            $isTakeProfit = $takeProfitPrice !== null;
-            if ($isStopLoss && $isTakeProfit) {
-                throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
-            }
-            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ));
+            list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
+            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
             $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
             $method = 'privatePostOrders';
             $isHf = $this->safe_value($params, 'hf', false);
             if ($isHf) {
                 $method = 'privatePostHfOrders';
-            } elseif ($isStopLoss || $isTakeProfit) {
-                $request['stop'] = $isStopLoss ? 'entry' : 'loss';
-                $triggerPrice = $isStopLoss ? $stopLossPrice : $takeProfitPrice;
-                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            } elseif ($triggerPrice || $stopLossPrice || $takeProfitPrice) {
+                if ($triggerPrice) {
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                } elseif ($stopLossPrice || $takeProfitPrice) {
+                    if ($stopLossPrice) {
+                        $request['stop'] = ($side === 'buy') ? 'entry' : 'loss';
+                        $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                    } else {
+                        $request['stop'] = ($side === 'buy') ? 'loss' : 'entry';
+                        $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                    }
+                }
                 $method = 'privatePostStopOrder';
                 if ($marginMode === 'isolated') {
                     throw new BadRequest($this->id . ' createOrder does not support isolated margin for stop orders');
@@ -2397,9 +2421,6 @@ class kucoin extends Exchange {
         }
         if ($cancelExist) {
             $status = 'canceled';
-        }
-        if ($status === null) {
-            $status = 'closed';
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
