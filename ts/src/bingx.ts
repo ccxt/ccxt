@@ -760,9 +760,9 @@ export default class bingx extends Exchange {
         }
         const isBuyerMaker = this.safeValue2 (trade, 'buyerMaker', 'isBuyerMaker');
         let takeOrMaker = undefined;
-        if (isBuyerMaker === true) {
+        if (isBuyerMaker) {
             takeOrMaker = 'maker';
-        } else if (isBuyerMaker === false) {
+        } else if (isBuyerMaker !== undefined) {
             takeOrMaker = 'taker';
         }
         const cost = this.safeString (trade, 'quoteQty');
