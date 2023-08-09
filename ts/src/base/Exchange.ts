@@ -1271,7 +1271,7 @@ export default class Exchange {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
-        const maxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        const maxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
         try {
             const stored = this.orderbooks[symbol];
