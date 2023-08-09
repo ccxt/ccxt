@@ -31,6 +31,10 @@ export default class bingx extends bingxRest {
                     'gunzip': true,
                 },
             },
+            'streaming': {
+                'ping': this.ping,
+                'keepAlive': 20000,
+            },
         });
     }
 
@@ -421,8 +425,54 @@ export default class bingx extends bingxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const name = 'order';
+        const subscriptionHash = name;
+        let messageHash = name;
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += ':' + symbol;
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                subscriptionHash,
+            ],
+        };
+        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleErrorMessage (client: Client, message) {
+
+    }
+
+    async authenticate (params = {}) {
+        const response = await this.userAuthUserDataStream ();
+        this.options['listenKey'] = this.safeString (response, 'listenKey');
+    }
+
+    ping (client) {
+        return 'Pong';
+    }
+
     handleMessage (client: Client, message) {
-        // TODO: Handle ping-pong -> see bybit as example
         let table = this.safeString (message, 'e');
         const dataType = this.safeString (message, 'dataType');
         if (table === undefined && dataType !== undefined) {
@@ -430,15 +480,15 @@ export default class bingx extends bingxRest {
         }
         const methods = {
             'trade': this.handleTrades,
-            'depth': this.handleOrderBook,
-            'kline': this.handleOHLCV,
+            // 'depth': this.handleOrderBook,
+            // 'kline': this.handleOHLCV,
         };
         const method = this.safeValue (methods, table);
         if (method !== undefined) {
             return method.call (this, client, message);
         } else {
             console.log (message);
-            console.log (message['data']);
+            // console.log (message['data']);
             // process.exit ();
         }
     }
