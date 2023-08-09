@@ -362,7 +362,7 @@ export default class idex extends idexRest {
         try {
             const limit = this.safeInteger (subscription, 'limit', 0);
             // 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
-            const snapshot = await this.fetchOrderBookSnapshot (symbol, limit);
+            const snapshot = await this.fetchOrderBookSnapshotSafe (symbol, limit);
             const firstBuffered = this.safeValue (orderbook.cache, 0);
             const firstData = this.safeValue (firstBuffered, 'data');
             const firstNonce = this.safeInteger (firstData, 'u');
