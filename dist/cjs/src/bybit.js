@@ -3892,7 +3892,7 @@ class bybit extends bybit$1 {
         }
         const timeInForce = this.safeStringLower(params, 'timeInForce'); // this is same as exchange specific param
         let postOnly = undefined;
-        [postOnly, params] = this.handlePostOnly(isMarket, timeInForce === 'PostOnly', params);
+        [postOnly, params] = this.handlePostOnly(isMarket, timeInForce === 'postonly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         }
@@ -4102,7 +4102,7 @@ class bybit extends bybit$1 {
         const exchangeSpecificParam = this.safeString(params, 'time_in_force');
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         let postOnly = undefined;
-        [postOnly, params] = this.handlePostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
+        [postOnly, params] = this.handlePostOnly(isMarket, exchangeSpecificParam === 'postonly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         }
@@ -4207,7 +4207,7 @@ class bybit extends bybit$1 {
         }
         const timeInForce = this.safeStringLower(params, 'timeInForce'); // same as exchange specific param
         let postOnly = undefined;
-        [postOnly, params] = this.handlePostOnly(isMarket, timeInForce === 'PostOnly', params);
+        [postOnly, params] = this.handlePostOnly(isMarket, timeInForce === 'postonly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         }

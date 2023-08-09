@@ -1374,10 +1374,10 @@ class upbit extends upbit$1 {
         const timestamp = this.parse8601(this.safeString(order, 'created_at'));
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         let lastTradeTimestamp = undefined;
-        let price = this.safeNumber(order, 'price');
-        const amount = this.safeNumber(order, 'volume');
-        const remaining = this.safeNumber(order, 'remaining_volume');
-        const filled = this.safeNumber(order, 'executed_volume');
+        let price = this.safeString(order, 'price');
+        const amount = this.safeString(order, 'volume');
+        const remaining = this.safeString(order, 'remaining_volume');
+        const filled = this.safeString(order, 'executed_volume');
         let cost = undefined;
         if (type === 'price') {
             type = 'market';
@@ -1386,7 +1386,7 @@ class upbit extends upbit$1 {
         }
         let average = undefined;
         let fee = undefined;
-        let feeCost = this.safeNumber(order, 'paid_fee');
+        let feeCost = this.safeString(order, 'paid_fee');
         const marketId = this.safeString(order, 'market');
         market = this.safeMarket(marketId, market);
         let trades = this.safeValue(order, 'trades', []);
@@ -1401,21 +1401,21 @@ class upbit extends upbit$1 {
             let getFeesFromTrades = false;
             if (feeCost === undefined) {
                 getFeesFromTrades = true;
-                feeCost = 0;
+                feeCost = '0';
             }
-            cost = 0;
+            cost = '0';
             for (let i = 0; i < numTrades; i++) {
                 const trade = trades[i];
-                cost = this.sum(cost, trade['cost']);
+                cost = Precise["default"].stringAdd(cost, this.safeString(trade, 'cost'));
                 if (getFeesFromTrades) {
                     const tradeFee = this.safeValue(trades[i], 'fee', {});
-                    const tradeFeeCost = this.safeNumber(tradeFee, 'cost');
+                    const tradeFeeCost = this.safeString(tradeFee, 'cost');
                     if (tradeFeeCost !== undefined) {
-                        feeCost = this.sum(feeCost, tradeFeeCost);
+                        feeCost = Precise["default"].stringAdd(feeCost, tradeFeeCost);
                     }
                 }
             }
-            average = cost / filled;
+            average = Precise["default"].stringDiv(cost, filled);
         }
         if (feeCost !== undefined) {
             fee = {
@@ -1423,7 +1423,7 @@ class upbit extends upbit$1 {
                 'cost': feeCost,
             };
         }
-        const result = {
+        return this.safeOrder({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1438,16 +1438,15 @@ class upbit extends upbit$1 {
             'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'cost': cost,
-            'average': average,
+            'cost': this.parseNumber(cost),
+            'average': this.parseNumber(average),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
-        return result;
+        });
     }
     async fetchOrdersByState(state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

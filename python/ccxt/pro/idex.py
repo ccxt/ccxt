@@ -38,6 +38,9 @@ class idex(ccxt.async_support.idex):
                 'watchOrderBookLimit': 1000,  # default limit
                 'orderBookSubscriptions': {},
                 'token': None,
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
                 'fetchOrderBookSnapshotMaxAttempts': 10,
                 'fetchOrderBookSnapshotMaxDelay': 10000,  # raise if there are no orders in 10 seconds
             },
@@ -333,7 +336,7 @@ class idex(ccxt.async_support.idex):
         try:
             limit = self.safe_integer(subscription, 'limit', 0)
             # 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
-            snapshot = await self.fetch_order_book(symbol, limit)
+            snapshot = await self.fetch_rest_order_book_safe(symbol, limit)
             firstBuffered = self.safe_value(orderbook.cache, 0)
             firstData = self.safe_value(firstBuffered, 'data')
             firstNonce = self.safe_integer(firstData, 'u')

@@ -3841,7 +3841,7 @@ class bybit extends Exchange {
         }
         $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
         if ($postOnly) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'gtc') {
@@ -4042,7 +4042,7 @@ class bybit extends Exchange {
         $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'postonly', $params);
         if ($postOnly) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'gtc') {
@@ -4143,7 +4143,7 @@ class bybit extends Exchange {
         }
         $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // same specific param
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
         if ($postOnly) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'gtc') {

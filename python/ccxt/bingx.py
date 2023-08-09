@@ -117,6 +117,7 @@ class bingx(Exchange, ImplicitAPI):
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
+                                'trade/batchOrders': 3,
                             },
                         },
                     },
@@ -736,6 +737,11 @@ class bingx(Exchange, ImplicitAPI):
         if datetimeId is not None:
             time = self.parse8601(datetimeId)
         isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
+        takeOrMaker = None
+        if isBuyerMaker:
+            takeOrMaker = 'maker'
+        elif isBuyerMaker is not None:
+            takeOrMaker = 'taker'
         cost = self.safe_string(trade, 'quoteQty')
         type = 'spot' if (cost is None) else 'swap'
         currencyId = self.safe_string(trade, 'currency')
@@ -749,7 +755,7 @@ class bingx(Exchange, ImplicitAPI):
             'order': None,
             'type': None,
             'side': None,
-            'takerOrMaker': 'maker' if (isBuyerMaker is True) else 'taker',
+            'takerOrMaker': takeOrMaker,
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string_2(trade, 'qty', 'amount'),
             'cost': cost,
@@ -1590,10 +1596,11 @@ class bingx(Exchange, ImplicitAPI):
             'currency': self.safe_string(order, 'feeAsset'),
             'rate': self.safe_string_2(order, 'fee', 'commission'),
         }
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return self.safe_order({
             'info': order,
             'id': orderId,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

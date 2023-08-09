@@ -282,6 +282,7 @@ class Transpiler {
             [ /\.filterByLimit\s/g, '.filter_by_limit'],
             [ /\.fetchTime\s/g, '.fetch_time'],
             [ /\.handleOptionAndParams\s/g, '.handle_option_and_params'],
+            [ /\.fetchRestOrderBookSafe\s/g, '.fetch_rest_order_book_safe'],
             [ /\.customParseBidAsk\s/g, '.custom_parse_bid_ask'],
             [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this

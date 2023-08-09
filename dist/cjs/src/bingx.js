@@ -100,6 +100,7 @@ class bingx extends bingx$1 {
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
+                                'trade/batchOrders': 3,
                             },
                         },
                     },
@@ -747,6 +748,13 @@ class bingx extends bingx$1 {
             time = this.parse8601(datetimeId);
         }
         const isBuyerMaker = this.safeValue2(trade, 'buyerMaker', 'isBuyerMaker');
+        let takeOrMaker = undefined;
+        if (isBuyerMaker) {
+            takeOrMaker = 'maker';
+        }
+        else if (isBuyerMaker !== undefined) {
+            takeOrMaker = 'taker';
+        }
         const cost = this.safeString(trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
         const currencyId = this.safeString(trade, 'currency');
@@ -760,7 +768,7 @@ class bingx extends bingx$1 {
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'takerOrMaker': (isBuyerMaker === true) ? 'maker' : 'taker',
+            'takerOrMaker': takeOrMaker,
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString2(trade, 'qty', 'amount'),
             'cost': cost,
@@ -1660,10 +1668,11 @@ class bingx extends bingx$1 {
             'currency': this.safeString(order, 'feeAsset'),
             'rate': this.safeString2(order, 'fee', 'commission'),
         };
+        const clientOrderId = this.safeString(order, 'clientOrderId');
         return this.safeOrder({
             'info': order,
             'id': orderId,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

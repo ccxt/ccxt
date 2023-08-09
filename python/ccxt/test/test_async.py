@@ -338,17 +338,22 @@ class testMainClass(baseMainTestClass):
                 if tempFailure:
                     # wait and retry again
                     await exchange.sleep(i * 1000)  # increase wait seconds on every retry
+                    # if last retry was gone with same `tempFailure` error, then let's eventually return False
+                    if i == maxRetries - 1:
+                        dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified)
+                        if methodName == 'loadMarkets':
+                            # in case of loadMarkets, we completely stop test for current exchange
+                            exit_script()
+                        return False
                     continue
                 elif isinstance(e, OnMaintenance):
-                    # in case of maintenance, raise an exception(which will lead to stop of test for the current exchange)
-                    raise e
+                    # in case of maintenance, skip exchange(don't fail the test)
+                    dump('[TEST_WARNING] Exchange is on maintenance', exchange.id)
+                    exit_script()
                 else:
-                    # if not temp failure, then dump exception without retrying
-                    dump('[TEST_WARNING]', 'Method could not be tested', exception_message(e), exchange.id, methodName, argsStringified)
+                    # if not a temporary connectivity issue, then mark test(no need to re-try)
+                    dump('[TEST_FAILURE]', exception_message(e), exchange.id, methodName, argsStringified)
                     return False
-        # if maxretries was gone with same `tempFailure` error, then let's eventually return False
-        dump('[TEST_WARNING]', 'Method not tested due to a Network/Availability issue', exchange.id, methodName, argsStringified)
-        return False
 
     async def run_public_tests(self, exchange, symbol):
         tests = {
@@ -386,26 +391,19 @@ class testMainClass(baseMainTestClass):
         # promises.append(testThrottle())
         results = await asyncio.gather(*promises)
         # now count which test-methods retuned `false` from "testSafe" and dump that info below
-        errors = []
-        for i in range(0, len(testNames)):
-            if not results[i]:
-                errors.append(testNames[i])
         if self.info:
+            errors = []
+            for i in range(0, len(testNames)):
+                if not results[i]:
+                    errors.append(testNames[i])
             # we don't raise exception for public-tests, see comments under 'testSafe' method
             failedMsg = ''
             if len(errors):
                 failedMsg = ' | Failed methods: ' + ', '.join(errors)
-            dump(self.add_padding('[INFO:PUBLIC_TESTS_DONE]' + market['type'] + failedMsg, 25), exchange.id)
+            dump(self.add_padding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id)
 
     async def load_exchange(self, exchange):
-        try:
-            await self.test_safe('loadMarkets', exchange, [], True)
-        except Exception as e:
-            if isinstance(e, OnMaintenance):
-                dump('[SKIPPED] Exchange is on maintenance', exchange.id)
-                exit_script()
-            # if excepion is not maintenance(and therefore, neither temporary connection exceptiions, defined in `testSafe`) then raise exception, and the caller method will handle that
-            raise e
+        await self.test_safe('loadMarkets', exchange, [], True)
         symbols = [
             'BTC/CNY',
             'BTC/USD',
