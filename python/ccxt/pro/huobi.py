@@ -1530,7 +1530,7 @@ class huobi(ccxt.async_support.huobi):
         if privateType == 'trade.clearing':
             self.handle_my_trade(client, message)
             return
-        if privateType.find('accounts.update') != -1:
+        if privateType.find('accounts.update') >= 0:
             self.handle_balance(client, message)
             return
         if privateType == 'orders':
@@ -1540,9 +1540,9 @@ class huobi(ccxt.async_support.huobi):
         op = self.safe_string(message, 'op')
         if op == 'notify':
             topic = self.safe_string(message, 'topic', '')
-            if topic.find('orders') != -1:
+            if topic.find('orders') >= 0:
                 self.handle_order(client, message)
-            if topic.find('account') != -1:
+            if topic.find('account') >= 0:
                 self.handle_balance(client, message)
 
     async def pong(self, client, message):
@@ -1594,8 +1594,8 @@ class huobi(ccxt.async_support.huobi):
         #        data: {'user-id': '35930539'}
         #    }
         #
-        client.resolve(message, 'auth')
-        return message
+        promise = client.futures['authenticated']
+        promise.resolve(message)
 
     def handle_error_message(self, client: Client, message):
         #
@@ -1919,7 +1919,7 @@ class huobi(ccxt.async_support.huobi):
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
     async def subscribe_private(self, channel, messageHash, type, subtype, params={}, subscriptionParams={}):
-        requestId = self.nonce()
+        requestId = self.request_id()
         subscription = {
             'id': requestId,
             'messageHash': messageHash,
@@ -1958,7 +1958,7 @@ class huobi(ccxt.async_support.huobi):
         if url is None or hostname is None or type is None:
             raise ArgumentsRequired(self.id + ' authenticate requires a url, hostname and type argument')
         self.check_required_credentials()
-        messageHash = 'auth'
+        messageHash = 'authenticated'
         relativePath = url.replace('wss://' + hostname, '')
         client = self.client(url)
         future = client.future(messageHash)
@@ -1997,11 +1997,11 @@ class huobi(ccxt.async_support.huobi):
                 request = {
                     'params': params,
                     'action': 'req',
-                    'ch': messageHash,
+                    'ch': 'auth',
                 }
             else:
                 request = {
-                    'op': messageHash,
+                    'op': 'auth',
                     'type': 'api',
                     'AccessKeyId': self.apiKey,
                     'SignatureMethod': 'HmacSHA256',
@@ -2009,5 +2009,11 @@ class huobi(ccxt.async_support.huobi):
                     'Timestamp': timestamp,
                     'Signature': signature,
                 }
-            await self.watch(url, messageHash, request, messageHash)
-        return await future
+            requestId = self.request_id()
+            subscription = {
+                'id': requestId,
+                'messageHash': messageHash,
+                'params': params,
+            }
+            self.watch(url, messageHash, request, messageHash, subscription)
+        return future

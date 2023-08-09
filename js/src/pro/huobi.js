@@ -1633,7 +1633,7 @@ export default class huobi extends huobiRest {
             this.handleMyTrade(client, message);
             return;
         }
-        if (privateType.indexOf('accounts.update') !== -1) {
+        if (privateType.indexOf('accounts.update') >= 0) {
             this.handleBalance(client, message);
             return;
         }
@@ -1645,10 +1645,10 @@ export default class huobi extends huobiRest {
         const op = this.safeString(message, 'op');
         if (op === 'notify') {
             const topic = this.safeString(message, 'topic', '');
-            if (topic.indexOf('orders') !== -1) {
+            if (topic.indexOf('orders') >= 0) {
                 this.handleOrder(client, message);
             }
-            if (topic.indexOf('account') !== -1) {
+            if (topic.indexOf('account') >= 0) {
                 this.handleBalance(client, message);
             }
         }
@@ -1707,8 +1707,8 @@ export default class huobi extends huobiRest {
         //        data: { 'user-id': '35930539' }
         //    }
         //
-        client.resolve(message, 'auth');
-        return message;
+        const promise = client.futures['authenticated'];
+        promise.resolve(message);
     }
     handleErrorMessage(client, message) {
         //
@@ -2071,7 +2071,7 @@ export default class huobi extends huobiRest {
         return await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
     }
     async subscribePrivate(channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
-        const requestId = this.nonce();
+        const requestId = this.requestId();
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
@@ -2114,7 +2114,7 @@ export default class huobi extends huobiRest {
             throw new ArgumentsRequired(this.id + ' authenticate requires a url, hostname and type argument');
         }
         this.checkRequiredCredentials();
-        const messageHash = 'auth';
+        const messageHash = 'authenticated';
         const relativePath = url.replace('wss://' + hostname, '');
         const client = this.client(url);
         const future = client.future(messageHash);
@@ -2155,12 +2155,12 @@ export default class huobi extends huobiRest {
                 request = {
                     'params': params,
                     'action': 'req',
-                    'ch': messageHash,
+                    'ch': 'auth',
                 };
             }
             else {
                 request = {
-                    'op': messageHash,
+                    'op': 'auth',
                     'type': 'api',
                     'AccessKeyId': this.apiKey,
                     'SignatureMethod': 'HmacSHA256',
@@ -2169,8 +2169,14 @@ export default class huobi extends huobiRest {
                     'Signature': signature,
                 };
             }
-            await this.watch(url, messageHash, request, messageHash);
+            const requestId = this.requestId();
+            const subscription = {
+                'id': requestId,
+                'messageHash': messageHash,
+                'params': params,
+            };
+            this.watch(url, messageHash, request, messageHash, subscription);
         }
-        return await future;
+        return future;
     }
 }
