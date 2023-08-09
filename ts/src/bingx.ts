@@ -759,6 +759,12 @@ export default class bingx extends Exchange {
             time = this.parse8601 (datetimeId);
         }
         const isBuyerMaker = this.safeValue2 (trade, 'buyerMaker', 'isBuyerMaker');
+        let takeOrMaker = undefined;
+        if (isBuyerMaker === true) {
+            takeOrMaker = 'maker';
+        } else if (isBuyerMaker === false) {
+            takeOrMaker = 'taker';
+        }
         const cost = this.safeString (trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
         const currencyId = this.safeString (trade, 'currency');
@@ -772,7 +778,7 @@ export default class bingx extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'takerOrMaker': (isBuyerMaker === true) ? 'maker' : 'taker',
+            'takerOrMaker': takeOrMaker,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString2 (trade, 'qty', 'amount'),
             'cost': cost,
