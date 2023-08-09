@@ -139,7 +139,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position } from './types.js';
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, BorrowInterest, BorrowRate, LeverageTier, TransferEntry, FundingRate, OpenInterest, DepositWithdrawFeeNetwork, LedgerEntry } from './types.js';
 export {Market, Trade, Fee, Ticker} from './types.js'
 
 // ----------------------------------------------------------------------------
