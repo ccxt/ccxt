@@ -102,6 +102,7 @@ export default class bingx extends Exchange {
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
+                                'trade/batchOrders': 3,
                             },
                         },
                     },
@@ -1675,10 +1676,11 @@ export default class bingx extends Exchange {
             'currency': this.safeString (order, 'feeAsset'),
             'rate': this.safeString2 (order, 'fee', 'commission'),
         };
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         return this.safeOrder ({
             'info': order,
             'id': orderId,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
