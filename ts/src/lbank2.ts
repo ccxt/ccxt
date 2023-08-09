@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/lbank2.js';
-import { ExchangeError, InvalidAddress, DuplicateOrderId, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol } from './base/errors.js';
+import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
@@ -30,7 +30,7 @@ export default class lbank2 extends Exchange {
                 'CORS': false,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': undefined,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -103,79 +103,92 @@ export default class lbank2 extends Exchange {
                     'rest': 'https://api.lbank.info',
                 },
                 'api2': 'https://api.lbkex.com',
+                'contract': 'https://lbkperp.lbank.com',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://www.lbank.info/en-US/docs/index.html',
                 'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
                 'referral': 'https://www.lbank.info/invitevip?icode=7QCY',
             },
             'api': {
-                'public': {
-                    'get': {
-                        'currencyPairs': 2.5,
-                        'accuracy': 2.5,
-                        'usdToCny': 2.5,
-                        'withdrawConfigs': 2.5,
-                        'timestamp': 2.5,
-                        'ticker/24hr': 2.5,
-                        'ticker': 2.5,
-                        'depth': 2.5,
-                        'incrDepth': 2.5,
-                        'trades': 2.5,
-                        'kline': 2.5,
-                        // new quote endpoints
-                        'supplement/system_ping': 2.5,
-                        'supplement/incrDepth': 2.5,
-                        'supplement/trades': 2.5,
-                        'supplement/ticker/price': 2.5,
-                        'supplement/ticker/bookTicker': 2.5,
+                'spot': {
+                    'public': {
+                        'get': {
+                            'currencyPairs': 2.5,
+                            'accuracy': 2.5,
+                            'usdToCny': 2.5,
+                            'withdrawConfigs': 2.5,
+                            'timestamp': 2.5,
+                            'ticker/24hr': 2.5,
+                            'ticker': 2.5,
+                            'depth': 2.5,
+                            'incrDepth': 2.5,
+                            'trades': 2.5,
+                            'kline': 2.5,
+                            // new quote endpoints
+                            'supplement/system_ping': 2.5,
+                            'supplement/incrDepth': 2.5,
+                            'supplement/trades': 2.5,
+                            'supplement/ticker/price': 2.5,
+                            'supplement/ticker/bookTicker': 2.5,
+                        },
+                        'post': {
+                            'supplement/system_status': 2.5,
+                        },
                     },
-                    'post': {
-                        'supplement/system_status': 2.5,
+                    'private': {
+                        'post': {
+                            // account
+                            'user_info': 2.5,
+                            'subscribe/get_key': 2.5,
+                            'subscribe/refresh_key': 2.5,
+                            'subscribe/destroy_key': 2.5,
+                            'get_deposit_address': 2.5,
+                            'deposit_history': 2.5,
+                            // order
+                            'create_order': 1,
+                            'batch_create_order': 1,
+                            'cancel_order': 1,
+                            'cancel_clientOrders': 1,
+                            'orders_info': 2.5,
+                            'orders_info_history': 2.5,
+                            'order_transaction_detail': 2.5,
+                            'transaction_history': 2.5,
+                            'orders_info_no_deal': 2.5,
+                            // withdraw
+                            'withdraw': 2.5,
+                            'withdrawCancel': 2.5,
+                            'withdraws': 2.5,
+                            'supplement/user_info': 2.5,
+                            'supplement/withdraw': 2.5,
+                            'supplement/deposit_history': 2.5,
+                            'supplement/withdraws': 2.5,
+                            'supplement/get_deposit_address': 2.5,
+                            'supplement/asset_detail': 2.5,
+                            'supplement/customer_trade_fee': 2.5,
+                            'supplement/api_Restrictions': 2.5,
+                            // new quote endpoints
+                            'supplement/system_ping': 2.5,
+                            // new order endpoints
+                            'supplement/create_order_test': 1,
+                            'supplement/create_order': 1,
+                            'supplement/cancel_order': 1,
+                            'supplement/cancel_order_by_symbol': 1,
+                            'supplement/orders_info': 2.5,
+                            'supplement/orders_info_no_deal': 2.5,
+                            'supplement/orders_info_history': 2.5,
+                            'supplement/user_info_account': 2.5,
+                            'supplement/transaction_history': 2.5,
+                        },
                     },
                 },
-                'private': {
-                    'post': {
-                        // account
-                        'user_info': 2.5,
-                        'subscribe/get_key': 2.5,
-                        'subscribe/refresh_key': 2.5,
-                        'subscribe/destroy_key': 2.5,
-                        'get_deposit_address': 2.5,
-                        'deposit_history': 2.5,
-                        // order
-                        'create_order': 1,
-                        'batch_create_order': 1,
-                        'cancel_order': 1,
-                        'cancel_clientOrders': 1,
-                        'orders_info': 2.5,
-                        'orders_info_history': 2.5,
-                        'order_transaction_detail': 2.5,
-                        'transaction_history': 2.5,
-                        'orders_info_no_deal': 2.5,
-                        // withdraw
-                        'withdraw': 2.5,
-                        'withdrawCancel': 2.5,
-                        'withdraws': 2.5,
-                        'supplement/user_info': 2.5,
-                        'supplement/withdraw': 2.5,
-                        'supplement/deposit_history': 2.5,
-                        'supplement/withdraws': 2.5,
-                        'supplement/get_deposit_address': 2.5,
-                        'supplement/asset_detail': 2.5,
-                        'supplement/customer_trade_fee': 2.5,
-                        'supplement/api_Restrictions': 2.5,
-                        // new quote endpoints
-                        'supplement/system_ping': 2.5,
-                        // new order endpoints
-                        'supplement/create_order_test': 1,
-                        'supplement/create_order': 1,
-                        'supplement/cancel_order': 1,
-                        'supplement/cancel_order_by_symbol': 1,
-                        'supplement/orders_info': 2.5,
-                        'supplement/orders_info_no_deal': 2.5,
-                        'supplement/orders_info_history': 2.5,
-                        'supplement/user_info_account': 2.5,
-                        'supplement/transaction_history': 2.5,
+                'contract': {
+                    'public': {
+                        'get': {
+                            'cfd/openApi/v1/pub/getTime': 2.5,
+                            'cfd/openApi/v1/pub/instrument': 2.5,
+                            'cfd/openApi/v1/pub/marketData': 2.5,
+                            'cfd/openApi/v1/pub/marketOrder': 2.5,
+                        },
                     },
                 },
             },
@@ -197,7 +210,7 @@ export default class lbank2 extends Exchange {
                 'cacheSecretAsPem': true,
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchTrades': {
-                    'method': 'publicGetTrades', // or 'publicGetTradesSupplement'
+                    'method': 'spotPublicGetTrades', // or 'spotPublicGetTradesSupplement'
                 },
                 'fetchTransactionFees': {   // DEPRECATED, please use fetchDepositWithdrawFees
                     'method': 'fetchPrivateTransactionFees', // or 'fetchPublicTransactionFees'
@@ -209,13 +222,13 @@ export default class lbank2 extends Exchange {
                     'method': 'fetchDepositAddressDefault', // or fetchDepositAddressSupplement
                 },
                 'createOrder': {
-                    'method': 'privatePostSupplementCreateOrder', // or privatePostCreateOrder
+                    'method': 'spotPrivatePostSupplementCreateOrder', // or spotPrivatePostCreateOrder
                 },
                 'fetchOrder': {
                     'method': 'fetchOrderSupplement', // or fetchOrderDefault
                 },
                 'fetchBalance': {
-                    'method': 'privatePostSupplementUserInfo', // or privatePostSupplementUserInfoAccount or privatePostUserInfo
+                    'method': 'spotPrivatePostSupplementUserInfo', // or spotPrivatePostSupplementUserInfoAccount or spotPrivatePostUserInfo
                 },
                 'networks': {
                     'ERC20': 'erc20',
@@ -288,7 +301,7 @@ export default class lbank2 extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         // needs to return a list of unified market structures
-        const response = await this.publicGetAccuracy ();
+        const response = await this.spotPublicGetAccuracy ();
         const data = this.safeValue (response, 'data');
         //      [
         //          {
@@ -409,6 +422,7 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -418,7 +432,7 @@ export default class lbank2 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const response = await this.spotPublicGetTicker24hr (this.extend (request, params));
         //
         //      {
         //          "result":"true",
@@ -449,6 +463,7 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the lbank api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -457,7 +472,7 @@ export default class lbank2 extends Exchange {
         const request = {
             'symbol': 'all',
         };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const response = await this.spotPublicGetTicker24hr (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
@@ -467,6 +482,7 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.lbank.info/en-US/docs/index.html#query-market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
@@ -481,7 +497,7 @@ export default class lbank2 extends Exchange {
             'symbol': market['id'],
             'size': limit,
         };
-        const response = await this.publicGetDepth (this.extend (request, params));
+        const response = await this.spotPublicGetDepth (this.extend (request, params));
         const orderbook = response['data'];
         const timestamp = this.milliseconds ();
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
@@ -489,7 +505,7 @@ export default class lbank2 extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (old) publicGetTrades
+        // fetchTrades (old) spotPublicGetTrades
         //
         //      {
         //          "date_ms":1647021989789,
@@ -500,7 +516,7 @@ export default class lbank2 extends Exchange {
         //      }
         //
         //
-        // fetchTrades (new) publicGetTradesSupplement
+        // fetchTrades (new) spotPublicGetTradesSupplement
         //
         //      {
         //          "quoteQty":1675.048485,
@@ -595,6 +611,8 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.lbank.info/en-US/docs/index.html#query-historical-transactions
+         * @see https://www.lbank.info/en-US/docs/index.html#recent-transactions-list
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -618,7 +636,7 @@ export default class lbank2 extends Exchange {
         params = this.omit (params, 'method');
         if (method === undefined) {
             const options = this.safeValue (this.options, 'fetchTrades', {});
-            method = this.safeString (options, 'method', 'publicGetTrades');
+            method = this.safeString (options, 'method', 'spotPublicGetTrades');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -636,6 +654,7 @@ export default class lbank2 extends Exchange {
         //           "error_code":0,
         //           "ts":1647021999308
         //      }
+        //
         const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -666,6 +685,7 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://www.lbank.info/en-US/docs/index.html#query-k-bar-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -689,7 +709,7 @@ export default class lbank2 extends Exchange {
             'time': this.parseToInt (since / 1000),
             'size': limit, // max 2000
         };
-        const response = await this.publicGetKline (this.extend (request, params));
+        const response = await this.spotPublicGetKline (this.extend (request, params));
         const ohlcvs = this.safeValue (response, 'data', []);
         //
         //
@@ -717,7 +737,7 @@ export default class lbank2 extends Exchange {
 
     parseBalance (response) {
         //
-        // privatePostUserInfo
+        // spotPrivatePostUserInfo
         //
         //      {
         //          "toBtc": {
@@ -742,7 +762,7 @@ export default class lbank2 extends Exchange {
         //              }
         //      }
         //
-        // privatePostSupplementUserInfoAccount
+        // spotPrivatePostSupplementUserInfoAccount
         //
         //      {
         //          "balances":[
@@ -754,7 +774,7 @@ export default class lbank2 extends Exchange {
         //          ]
         //      }
         //
-        // privatePostSupplementUserInfo
+        // spotPrivatePostSupplementUserInfo
         //
         //      [
         //          {
@@ -800,7 +820,7 @@ export default class lbank2 extends Exchange {
             'datetime': this.iso8601 (timestamp),
         };
         const data = this.safeValue (response, 'data');
-        // from privatePostUserInfo
+        // from spotPrivatePostUserInfo
         const toBtc = this.safeValue (data, 'toBtc');
         if (toBtc !== undefined) {
             const used = this.safeValue (data, 'freeze', {});
@@ -816,7 +836,7 @@ export default class lbank2 extends Exchange {
             }
             return this.safeBalance (result);
         }
-        // from privatePostSupplementUserInfoAccount
+        // from spotPrivatePostSupplementUserInfoAccount
         const balances = this.safeValue (data, 'balances');
         if (balances !== undefined) {
             for (let i = 0; i < balances.length; i++) {
@@ -830,7 +850,7 @@ export default class lbank2 extends Exchange {
             }
             return this.safeBalance (result);
         }
-        // from privatePostSupplementUserInfo
+        // from spotPrivatePostSupplementUserInfo
         const isArray = Array.isArray (data);
         if (isArray === true) {
             for (let i = 0; i < data.length; i++) {
@@ -852,6 +872,9 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.lbank.info/en-US/docs/index.html#asset-information
+         * @see https://www.lbank.info/en-US/docs/index.html#account-information
+         * @see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -859,7 +882,7 @@ export default class lbank2 extends Exchange {
         let method = this.safeString (params, 'method');
         if (method === undefined) {
             const options = this.safeValue (this.options, 'fetchBalance', {});
-            method = this.safeString (options, 'method', 'privatePostSupplementUserInfo');
+            method = this.safeString (options, 'method', 'spotPrivatePostSupplementUserInfo');
         }
         const response = await this[method] ();
         //
@@ -918,6 +941,7 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -932,12 +956,13 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privatePostSupplementCustomerTradeFee (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementCustomerTradeFee (this.extend (request, params));
         const fees = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
@@ -953,6 +978,8 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#createOrder
          * @description create a trade order
+         * @see https://www.lbank.info/en-US/docs/index.html#place-order
+         * @see https://www.lbank.info/en-US/docs/index.html#place-an-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1016,7 +1043,7 @@ export default class lbank2 extends Exchange {
         params = this.omit (params, 'method');
         if (method === undefined) {
             const options = this.safeValue (this.options, 'createOrder', {});
-            method = this.safeString (options, 'method', 'privatePostSupplementCreateOrder');
+            method = this.safeString (options, 'method', 'spotPrivatePostSupplementCreateOrder');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1180,6 +1207,8 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://www.lbank.info/en-US/docs/index.html#query-order
+         * @see https://www.lbank.info/en-US/docs/index.html#query-order-new
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1195,16 +1224,14 @@ export default class lbank2 extends Exchange {
     }
 
     async fetchOrderSupplement (id: string, symbol: string = undefined, params = {}) {
+        this.checkRequiredSymbol ('fetchOrder', symbol);
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
-        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response = await this.privatePostSupplementOrdersInfo (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementOrdersInfo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1232,16 +1259,14 @@ export default class lbank2 extends Exchange {
 
     async fetchOrderDefault (id: string, symbol: string = undefined, params = {}) {
         // Id can be a list of ids delimited by a comma
+        this.checkRequiredSymbol ('fetchOrder', symbol);
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
-        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'order_id': id,
         };
-        const response = await this.privatePostOrdersInfo (this.extend (request, params));
+        const response = await this.spotPrivatePostOrdersInfo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1281,15 +1306,14 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://www.lbank.info/en-US/docs/index.html#past-transaction-details
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades () requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         since = this.safeValue (params, 'start_date', since);
@@ -1310,7 +1334,7 @@ export default class lbank2 extends Exchange {
             request['start_date'] = this.ymd (since, '-'); // max query 2 days ago
             request['end_date'] = this.ymd (since + 86400000, '-'); // will cover 2 days
         }
-        const response = await this.privatePostTransactionHistory (this.extend (request, params));
+        const response = await this.spotPrivatePostTransactionHistory (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1340,17 +1364,16 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://www.lbank.info/en-US/docs/index.html#query-all-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // default query is for canceled and completely filled orders
         // does not return open orders unless specified explicitly
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -1362,7 +1385,7 @@ export default class lbank2 extends Exchange {
             'page_length': limit,
             // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         };
-        const response = await this.privatePostSupplementOrdersInfoHistory (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementOrdersInfoHistory (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1400,15 +1423,14 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://www.lbank.info/en-US/docs/index.html#current-pending-order
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOpenOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -1419,7 +1441,7 @@ export default class lbank2 extends Exchange {
             'current_page': 1,
             'page_length': limit,
         };
-        const response = await this.privatePostSupplementOrdersInfoNoDeal (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementOrdersInfoNoDeal (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1457,26 +1479,25 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#cancelOrder
          * @description cancels an open order
+         * @see https://www.lbank.info/en-US/docs/index.html#cancel-order-new
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'orderId': id,
         };
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }
-        request['orderId'] = id;
-        const response = await this.privatePostSupplementCancelOrder (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementCancelOrder (this.extend (request, params));
         //
         //   {
         //      "result":true,
@@ -1499,19 +1520,18 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://www.lbank.info/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelAllOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privatePostSupplementCancelOrderBySymbol (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementCancelOrderBySymbol (this.extend (request, params));
         //
         //      {
         //          "result":"true",
@@ -1547,6 +1567,8 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.lbank.info/en-US/docs/index.html#get-deposit-address
+         * @see https://www.lbank.info/en-US/docs/index.html#the-user-obtains-the-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1556,7 +1578,7 @@ export default class lbank2 extends Exchange {
         params = this.omit (params, 'method');
         if (method === undefined) {
             const options = this.safeValue (this.options, 'fetchDepositAddress', {});
-            method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
+            method = this.safeString (options, 'method', 'fetchDepositAddressDefault');
         }
         return await this[method] (code, params);
     }
@@ -1572,7 +1594,7 @@ export default class lbank2 extends Exchange {
             request['netWork'] = network; // ... yes, really lol
             params = this.omit (params, 'network');
         }
-        const response = await this.privatePostGetDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivatePostGetDepositAddress (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1615,7 +1637,7 @@ export default class lbank2 extends Exchange {
             request['networkName'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privatePostSupplementGetDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementGetDepositAddress (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1647,6 +1669,7 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#withdraw
          * @description make a withdrawal
+         * @see https://www.lbank.info/en-US/docs/index.html#withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1659,9 +1682,8 @@ export default class lbank2 extends Exchange {
         await this.loadMarkets ();
         const fee = this.safeString (params, 'fee');
         params = this.omit (params, 'fee');
-        if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw () requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ()');
-        }
+        // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
+        this.checkRequiredArgument ('withdraw', fee, 'fee');
         const currency = this.currency (code);
         const request = {
             'address': address,
@@ -1685,7 +1707,7 @@ export default class lbank2 extends Exchange {
         if (networkId !== undefined) {
             request['networkName'] = networkId;
         }
-        const response = await this.privatePostSupplementWithdraw (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementWithdraw (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1814,6 +1836,7 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://www.lbank.info/en-US/docs/index.html#get-recharge-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1833,7 +1856,7 @@ export default class lbank2 extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.privatePostSupplementDepositHistory (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementDepositHistory (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1867,6 +1890,7 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://www.lbank.info/en-US/docs/index.html#get-withdrawal-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1887,7 +1911,7 @@ export default class lbank2 extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.privatePostSupplementWithdraws (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementWithdraws (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1951,7 +1975,7 @@ export default class lbank2 extends Exchange {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
-        const response = await this.privatePostSupplementUserInfo ();
+        const response = await this.spotPrivatePostSupplementUserInfo ();
         //
         //    {
         //        "result": "true",
@@ -2018,7 +2042,7 @@ export default class lbank2 extends Exchange {
             const currency = this.currency (code);
             request['assetCode'] = currency['id'];
         }
-        const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
+        const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
         //        result: 'true',
@@ -2072,6 +2096,8 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchDepositWithdrawFees
          * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
+         * @see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
+         * @see https://www.lbank.info/en-US/docs/index.html#withdrawal-configurations
          * @param {string[]|undefined} codes array of unified currency codes
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -2096,7 +2122,7 @@ export default class lbank2 extends Exchange {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
-        const response = await this.privatePostSupplementUserInfo (params);
+        const response = await this.spotPrivatePostSupplementUserInfo (params);
         //
         //    {
         //        "result": "true",
@@ -2136,7 +2162,7 @@ export default class lbank2 extends Exchange {
         // vast majority fees undefined
         await this.loadMarkets ();
         const request = {};
-        const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
+        const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
         //        result: 'true',
@@ -2281,9 +2307,13 @@ export default class lbank2 extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        // Every endpoint ends with ".do"
-        url += '.do';
-        if (api === 'public') {
+        // Every spot endpoint ends with ".do"
+        if (api[0] === 'spot') {
+            url += '.do';
+        } else {
+            url = this.urls['contract'] + '/' + this.implodeParams (path, params);
+        }
+        if (api[1] === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (this.keysort (query));
             }
