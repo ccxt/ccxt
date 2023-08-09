@@ -661,7 +661,7 @@ export default class bittrex extends bittrexRest {
         try {
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBookSnapshotSafe (symbol, limit);
+            const snapshot = await this.fetchOrderBookSnapshot (symbol, limit);
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
             // make sure we have at least one delta before fetching the snapshot

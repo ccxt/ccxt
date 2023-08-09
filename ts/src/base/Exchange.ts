@@ -1295,7 +1295,7 @@ export default class Exchange {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
                 const cache = stored.cache;
-                const orderBook = await this.fetchOrderBookSnapshotSafe (symbol, limit, params);
+                const orderBook = await this.fetchOrderBookSnapshot (symbol, limit, params);
                 const index = this.getCacheIndex (orderBook, cache);
                 if (index >= 0) {
                     stored.reset (orderBook);
@@ -1576,7 +1576,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
-    async fetchOrderBookSnapshotSafe (symbol, limit = undefined, params = {}) {
+    async fetchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
         let orderBook = undefined;
         const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'fetchSnapshotMaxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
