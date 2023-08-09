@@ -11,6 +11,7 @@ interface Exchange {
     spotV1PrivateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeOrder(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancel(params?: {}): Promise<implicitReturnType>;
+    spotV1PrivatePostTradeBatchOrders(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetGetAssetTransfer(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetAssetTransfer(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalDepositHisrec(params?: {}): Promise<implicitReturnType>;

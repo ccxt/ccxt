@@ -101,6 +101,7 @@ class bingx extends Exchange {
                             'post' => array(
                                 'trade/order' => 3,
                                 'trade/cancel' => 3,
+                                'trade/batchOrders' => 3,
                             ),
                         ),
                     ),
@@ -747,6 +748,12 @@ class bingx extends Exchange {
             $time = $this->parse8601($datetimeId);
         }
         $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
+        $takeOrMaker = null;
+        if ($isBuyerMaker) {
+            $takeOrMaker = 'maker';
+        } elseif ($isBuyerMaker !== null) {
+            $takeOrMaker = 'taker';
+        }
         $cost = $this->safe_string($trade, 'quoteQty');
         $type = ($cost === null) ? 'spot' : 'swap';
         $currencyId = $this->safe_string($trade, 'currency');
@@ -760,7 +767,7 @@ class bingx extends Exchange {
             'order' => null,
             'type' => null,
             'side' => null,
-            'takerOrMaker' => ($isBuyerMaker === true) ? 'maker' : 'taker',
+            'takerOrMaker' => $takeOrMaker,
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string_2($trade, 'qty', 'amount'),
             'cost' => $cost,
@@ -1646,10 +1653,11 @@ class bingx extends Exchange {
             'currency' => $this->safe_string($order, 'feeAsset'),
             'rate' => $this->safe_string_2($order, 'fee', 'commission'),
         );
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $orderId,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
