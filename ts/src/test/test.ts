@@ -253,7 +253,7 @@ export default class testMainClass extends baseMainTestClass {
                 if (this.info) {
                     dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
                 }
-                return;
+                return undefined;
             }
             if (this.info) {
                 dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
@@ -325,6 +325,7 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
         }
+        return true;
     }
 
     async runPublicTests (exchange, symbol) {
