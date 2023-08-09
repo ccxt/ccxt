@@ -1355,7 +1355,10 @@
     },
     "bingx": {
         "skipMethods": {
-            "loadMarkets": "some coins not detected",
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            },
             "fetchTrades": {
                 "side": "undefined"
             },
