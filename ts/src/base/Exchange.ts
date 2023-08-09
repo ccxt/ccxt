@@ -1577,12 +1577,11 @@ export default class Exchange {
     }
 
     async fetchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
-        let orderBook = undefined;
         const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {
-                orderBook = await this.fetchOrderBook (symbol, limit, params);
-                break;
+                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                return orderBook;
             } catch (e) {
                 if (i < fetchSnapshotMaxRetries - 1) {
                     continue;
@@ -1590,7 +1589,7 @@ export default class Exchange {
                 throw e;
             }
         }
-        return orderBook;
+        return undefined;
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
