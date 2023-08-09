@@ -88,7 +88,7 @@ export default class binance extends binanceRest {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
                 },
                 'watchOrderBook': {
-                    'fetchSnapshotMaxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true

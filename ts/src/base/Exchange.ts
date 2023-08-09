@@ -1578,7 +1578,7 @@ export default class Exchange {
 
     async fetchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
         let orderBook = undefined;
-        const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'fetchSnapshotMaxRetries', 3);
+        const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {
                 orderBook = await this.fetchOrderBook (symbol, limit, params);
