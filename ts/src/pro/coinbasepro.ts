@@ -29,6 +29,9 @@ export default class coinbasepro extends coinbaseproRest {
                 'api': {
                     'ws': 'wss://ws-feed.pro.coinbase.com',
                 },
+                'test': {
+                    'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
+                },
             },
             'options': {
                 'tradesLimit': 1000,
@@ -192,7 +195,8 @@ export default class coinbasepro extends coinbaseproRest {
             'marketId': market['id'],
             'limit': limit,
         };
-        const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
+        const authentication = this.authenticate ();
+        const orderbook = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
         return orderbook.limit ();
     }
 

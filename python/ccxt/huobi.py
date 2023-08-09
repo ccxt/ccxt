@@ -192,6 +192,7 @@ class huobi(Exchange, ImplicitAPI):
                     'https://huobiapi.github.io/docs/dm/v1/en/',
                     'https://huobiapi.github.io/docs/coin_margined_swap/v1/en/',
                     'https://huobiapi.github.io/docs/usdt_swap/v1/en/',
+                    'https://www.huobi.com/en-us/opend/newApiPages/',
                 ],
                 'fees': 'https://www.huobi.com/about/fee/',
             },
@@ -616,6 +617,8 @@ class huobi(Exchange, ImplicitAPI):
                             'swap-api/v1/swap_api_trading_status': 1,
                             # Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
+                            'linear-swap-api/v1/swap_cross_position_side': 1,
+                            'linear-swap-api/v1/swap_position_side': 1,
                             'linear-swap-api/v3/unified_account_info': 1,
                             'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
@@ -2223,8 +2226,7 @@ class huobi(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        tradeId = self.safe_string_2(trade, 'trade-id', 'tradeId')
-        id = self.safe_string_2(trade, 'trade_id', 'id', tradeId)
+        id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -6336,7 +6338,7 @@ class huobi(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             }))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def fetch_position(self, symbol: str, params={}):
         """

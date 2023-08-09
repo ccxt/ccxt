@@ -36,6 +36,9 @@ export default class idex extends idexRest {
                 'watchOrderBookLimit': 1000,
                 'orderBookSubscriptions': {},
                 'token': undefined,
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
                 'fetchOrderBookSnapshotMaxAttempts': 10,
                 'fetchOrderBookSnapshotMaxDelay': 10000, // throw if there are no orders in 10 seconds
             },
@@ -348,7 +351,7 @@ export default class idex extends idexRest {
         try {
             const limit = this.safeInteger(subscription, 'limit', 0);
             // 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
-            const snapshot = await this.fetchOrderBook(symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe(symbol, limit);
             const firstBuffered = this.safeValue(orderbook.cache, 0);
             const firstData = this.safeValue(firstBuffered, 'data');
             const firstNonce = this.safeInteger(firstData, 'u');

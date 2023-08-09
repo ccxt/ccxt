@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/poloniex.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, CancelPending } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -250,7 +250,6 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
-                    '200': CancelPending,
                     '500': ExchangeNotAvailable,
                     '603': RequestTimeout,
                     '601': BadRequest,
@@ -1061,7 +1060,7 @@ export default class poloniex extends Exchange {
         const side = this.safeStringLower(order, 'side');
         const rawType = this.safeString(order, 'type');
         const type = this.parseOrderType(rawType);
-        const id = this.safeString2(order, 'orderNumber', 'id');
+        const id = this.safeStringN(order, ['orderNumber', 'id', 'orderId']);
         let fee = undefined;
         const feeCurrency = this.safeString(order, 'tokenFeeCurrency');
         let feeCost = undefined;
@@ -1306,7 +1305,17 @@ export default class poloniex extends Exchange {
         }
         request['id'] = id;
         params = this.omit(params, 'clientOrderId');
-        return await this.privateDeleteOrdersId(this.extend(request, params));
+        const response = await this.privateDeleteOrdersId(this.extend(request, params));
+        //
+        //   {
+        //       "orderId":"210832697138888704",
+        //       "clientOrderId":"",
+        //       "state":"PENDING_CANCEL",
+        //       "code":200,
+        //       "message":""
+        //   }
+        //
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -2194,7 +2203,8 @@ export default class poloniex extends Exchange {
         //         "message" : "Low available balance"
         //     }
         //
-        if ('code' in response) {
+        const responseCode = this.safeString(response, 'code');
+        if ((responseCode !== undefined) && (responseCode !== '200')) {
             const codeInner = response['code'];
             const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + body;

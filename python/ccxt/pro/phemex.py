@@ -603,7 +603,7 @@ class phemex(ccxt.async_support.phemex):
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_delta(self, bookside, delta, market=None):
-        bidAsk = self.customParseBidAsk(delta, 0, 1, market)
+        bidAsk = self.custom_parse_bid_ask(delta, 0, 1, market)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas, market=None):
@@ -665,7 +665,7 @@ class phemex(ccxt.async_support.phemex):
         timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
         if type == 'snapshot':
             book = self.safe_value_2(message, 'book', 'orderbook_p', {})
-            snapshot = self.customParseOrderBook(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
+            snapshot = self.custom_parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
             snapshot['nonce'] = nonce
             orderbook = self.order_book(snapshot, depth)
             self.orderbooks[symbol] = orderbook

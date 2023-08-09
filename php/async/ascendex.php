@@ -2572,7 +2572,7 @@ class ascendex extends Exchange {
                 $result[] = $this->parse_position($position[$i]);
             }
             $symbols = $this->market_symbols($symbols);
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 

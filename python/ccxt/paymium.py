@@ -69,6 +69,7 @@ class paymium(Exchange, ImplicitAPI):
                 'public': {
                     'get': [
                         'countries',
+                        'currencies',
                         'data/{currency}/ticker',
                         'data/{currency}/trades',
                         'data/{currency}/depth',

@@ -4,6 +4,7 @@ var bitflyer$1 = require('./abstract/bitflyer.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -929,9 +930,9 @@ class bitflyer extends bitflyer$1 {
         if ('fee' in transaction) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus(rawStatus);
-            const feeCost = this.safeNumber(transaction, 'fee');
-            const additionalFee = this.safeNumber(transaction, 'additional_fee');
-            fee = { 'currency': code, 'cost': feeCost + additionalFee };
+            const feeCost = this.safeString(transaction, 'fee');
+            const additionalFee = this.safeString(transaction, 'additional_fee');
+            fee = { 'currency': code, 'cost': this.parseNumber(Precise["default"].stringAdd(feeCost, additionalFee)) };
         }
         else {
             type = 'deposit';

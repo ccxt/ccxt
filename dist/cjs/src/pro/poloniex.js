@@ -149,7 +149,7 @@ class poloniex extends poloniex$1 {
             subscribe['symbols'] = marketIds;
         }
         const request = this.extend(subscribe, params);
-        return await this.watch(url, messageHash, request, name);
+        return await this.watch(url, messageHash, request, messageHash);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**

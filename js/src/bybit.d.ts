@@ -11,6 +11,55 @@ export default class bybit extends Exchange {
     isUnifiedEnabled(params?: {}): Promise<any[]>;
     upgradeUnifiedAccount(params?: {}): Promise<any>;
     upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
+    convertExpireDate(date: any): string;
+    convertExpireDateToMarketIdDate(date: any): any;
+    convertMarketIdExpireDate(date: any): string;
+    createExpiredOptionMarket(symbol: any): {
+        id: string;
+        symbol: string;
+        base: any;
+        quote: string;
+        settle: string;
+        baseId: any;
+        quoteId: string;
+        settleId: string;
+        active: boolean;
+        type: string;
+        linear: any;
+        inverse: any;
+        spot: boolean;
+        swap: boolean;
+        future: boolean;
+        option: boolean;
+        margin: boolean;
+        contract: boolean;
+        contractSize: any;
+        expiry: number;
+        expiryDatetime: string;
+        optionType: string;
+        strike: number;
+        precision: {
+            amount: any;
+            price: any;
+        };
+        limits: {
+            amount: {
+                min: any;
+                max: any;
+            };
+            price: {
+                min: any;
+                max: any;
+            };
+            cost: {
+                min: any;
+                max: any;
+            };
+        };
+        info: any;
+    };
+    market(symbol: any): any;
+    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any>;
@@ -176,11 +225,11 @@ export default class bybit extends Exchange {
         fee: any;
     }>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
-    fetchUnifiedPositions(symbols?: string[], params?: {}): Promise<any>;
-    fetchUSDCPositions(symbols?: string[], params?: {}): Promise<any>;
-    fetchDerivativesPositions(symbols?: string[], params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchUnifiedPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchUSDCPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchDerivativesPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setUnifiedMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setDerivativesMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
@@ -295,6 +344,8 @@ export default class bybit extends Exchange {
         datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
+    fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
+    parseVolatilityHistory(volatility: any): any[];
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

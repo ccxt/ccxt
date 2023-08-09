@@ -1167,7 +1167,9 @@ class probit(Exchange, ImplicitAPI):
                 if createMarketBuyOrderRequiresPrice:
                     if price is not None:
                         if cost is None:
-                            cost = amount * price
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            cost = self.parse_number(Precise.string_mul(amountString, priceString))
                     elif cost is None:
                         raise InvalidOrder(self.id + " createOrder() requires the price argument for market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter(the exchange-specific behaviour)")
                 else:

@@ -54,12 +54,13 @@ class kucoin(Exchange, ImplicitAPI):
                 'margin': True,
                 'swap': False,
                 'future': False,
-                'option': None,
+                'option': False,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -85,15 +86,19 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
+                'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderBooks': False,
                 'fetchOrdersByStatus': True,
                 'fetchOrderTrades': True,
                 'fetchPositionMode': False,
@@ -106,9 +111,13 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactionFee': True,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
                 'repayMargin': True,
+                'setLeverage': False,
                 'setMarginMode': False,
+                'setPositionMode': False,
+                'signIn': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -489,7 +498,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchCurrencies': {
                     'webApiEnable': True,  # fetches from WEB
-                    'webApiRetries': 5,
+                    'webApiRetries': 1,
                     'webApiMuteFailure': True,
                 },
                 'fetchMarkets': {
@@ -1703,6 +1712,16 @@ class kucoin(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
+    def handle_trigger_prices(self, params):
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        if (isStopLoss and isTakeProfit) or (triggerPrice and stopLossPrice) or (triggerPrice and isTakeProfit):
+            raise ExchangeError(self.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice')
+        return [triggerPrice, stopLossPrice, takeProfitPrice]
+
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
@@ -1716,13 +1735,17 @@ class kucoin(Exchange, ImplicitAPI):
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict [params]:  Extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.marginMode]: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+        :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
         :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
         :param str [params.tradeType]: 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
          * limit orders ---------------------------------------------------
-        :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param float [params.cancelAfter]: long,  # cancel after n seconds, requires timeInForce to be GTT
-        :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
         :param bool [params.hidden]: False,  # Order will not be displayed in the order book
         :param bool [params.iceberg]: False,  # Only a portion of the order is displayed in the order book
         :param str [params.visibleSize]: self.amount_to_precision(symbol, visibleSize),  # The maximum visible size of an iceberg order
@@ -1730,11 +1753,9 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.funds]:  # Amount of quote currency to use
          * stop orders ----------------------------------------------------
         :param str [params.stop]:  Either loss or entry, the default is loss. Requires stopPrice to be defined
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
          * margin orders --------------------------------------------------
         :param float [params.leverage]: Leverage size of the order
         :param str [params.stp]: '',  # self trade prevention, CN, CO, CB or DC
-        :param str [params.marginMode]: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
         :param bool [params.autoBorrow]: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         :param bool [params.hf]: False,  # True for hf order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1768,23 +1789,23 @@ class kucoin(Exchange, ImplicitAPI):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        # default is take profit
-        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'stopPrice')
-        isStopLoss = stopLossPrice is not None
-        isTakeProfit = takeProfitPrice is not None
-        if isStopLoss and isTakeProfit:
-            raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
-        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'stopPrice'])
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
+        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
         tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
         method = 'privatePostOrders'
         isHf = self.safe_value(params, 'hf', False)
         if isHf:
             method = 'privatePostHfOrders'
-        elif isStopLoss or isTakeProfit:
-            request['stop'] = 'entry' if isStopLoss else 'loss'
-            triggerPrice = stopLossPrice if isStopLoss else takeProfitPrice
-            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+        elif triggerPrice or stopLossPrice or takeProfitPrice:
+            if triggerPrice:
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+            elif stopLossPrice or takeProfitPrice:
+                if stopLossPrice:
+                    request['stop'] = 'entry' if (side == 'buy') else 'loss'
+                    request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                else:
+                    request['stop'] = 'loss' if (side == 'buy') else 'entry'
+                    request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
             method = 'privatePostStopOrder'
             if marginMode == 'isolated':
                 raise BadRequest(self.id + ' createOrder does not support isolated margin for stop orders')
@@ -2274,8 +2295,6 @@ class kucoin(Exchange, ImplicitAPI):
                 status = 'cancelled'
         if cancelExist:
             status = 'canceled'
-        if status is None:
-            status = 'closed'
         stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,

@@ -14,6 +14,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bitflyer(Exchange, ImplicitAPI):
@@ -872,9 +873,9 @@ class bitflyer(Exchange, ImplicitAPI):
         if 'fee' in transaction:
             type = 'withdrawal'
             status = self.parse_withdrawal_status(rawStatus)
-            feeCost = self.safe_number(transaction, 'fee')
-            additionalFee = self.safe_number(transaction, 'additional_fee')
-            fee = {'currency': code, 'cost': feeCost + additionalFee}
+            feeCost = self.safe_string(transaction, 'fee')
+            additionalFee = self.safe_string(transaction, 'additional_fee')
+            fee = {'currency': code, 'cost': self.parse_number(Precise.string_add(feeCost, additionalFee))}
         else:
             type = 'deposit'
             status = self.parse_deposit_status(rawStatus)

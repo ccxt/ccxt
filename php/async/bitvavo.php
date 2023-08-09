@@ -450,7 +450,7 @@ class bitvavo extends Exchange {
                 $withdrawal = ($this->safe_value($currency, 'withdrawalStatus') === 'OK');
                 $active = $deposit && $withdrawal;
                 $withdrawFee = $this->safe_number($currency, 'withdrawalFee');
-                $precision = $this->safe_number($currency, 'decimals', 8);
+                $precision = $this->safe_integer($currency, 'decimals', 8);
                 $minWithdraw = $this->safe_number($currency, 'withdrawalMinAmount');
                 // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside $networks
                 if ($isOneNetwork) {

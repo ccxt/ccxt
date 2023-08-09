@@ -105,6 +105,7 @@ class binance extends binance$1 {
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -856,9 +857,12 @@ class binance extends binance$1 {
                         'myTrades': 10,
                         'rateLimit/order': 20,
                         'myPreventedMatches': 1,
+                        'myAllocations': 10,
                     },
                     'post': {
                         'order/oco': 1,
+                        'sor/order': 1,
+                        'sor/order/test': 1,
                         'order': 1,
                         'order/cancelReplace': 1,
                         'order/test': 1,
@@ -924,7 +928,8 @@ class binance extends binance$1 {
                         'bnb-transfer': 0.6667,
                         'portfolio/repay-futures-switch': 150,
                         'portfolio/repay-futures-negative-balance': 150,
-                        'listenKey': 1, // 1
+                        'listenKey': 1,
+                        'asset-collection': 3,
                     },
                     'put': {
                         'listenKey': 1, // 1
@@ -4360,13 +4365,10 @@ class binance extends binance$1 {
             request['isIsolated'] = true;
         }
         if (clientOrderId === undefined) {
-            const broker = this.safeValue(this.options, 'broker');
-            if (broker !== undefined) {
-                const brokerId = this.safeString(broker, marketType);
-                if (brokerId !== undefined) {
-                    request['newClientOrderId'] = brokerId + this.uuid22();
-                }
-            }
+            const broker = this.safeValue(this.options, 'broker', {});
+            const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+            const brokerId = this.safeString(broker, marketType, defaultId);
+            request['newClientOrderId'] = brokerId + this.uuid22();
         }
         else {
             request['newClientOrderId'] = clientOrderId;
@@ -7281,7 +7283,7 @@ class binance extends binance$1 {
         for (let i = 0; i < response.length; i++) {
             result.push(this.parsePosition(response[i], market));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -7397,7 +7399,7 @@ class binance extends binance$1 {
         const account = await this[method](query);
         const result = this.parseAccountPositions(account);
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPositionsRisk(symbols = undefined, params = {}) {
         /**
@@ -7494,7 +7496,7 @@ class binance extends binance$1 {
             result.push(parsed);
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -7967,8 +7969,9 @@ class binance extends binance$1 {
                 if (newClientOrderId === undefined) {
                     const isSpotOrMargin = (api.indexOf('sapi') > -1 || api === 'private');
                     const marketType = isSpotOrMargin ? 'spot' : 'future';
-                    const broker = this.safeValue(this.options, 'broker');
-                    const brokerId = this.safeString(broker, marketType);
+                    const defaultId = (!isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+                    const broker = this.safeValue(this.options, 'broker', {});
+                    const brokerId = this.safeString(broker, marketType, defaultId);
                     params['newClientOrderId'] = brokerId + this.uuid22();
                 }
             }

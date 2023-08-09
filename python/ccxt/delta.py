@@ -80,6 +80,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransfer': None,
                 'fetchTransfers': None,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': None,
                 'reduceMargin': True,
@@ -2446,6 +2447,8 @@ class delta(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer_product(contract, 'timestamp', 0.001)
         marketId = self.safe_string(contract, 'symbol')
+        fundingRateString = self.safe_string(contract, 'funding_rate')
+        fundingRate = Precise.string_div(fundingRateString, '100')
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market),
@@ -2455,7 +2458,7 @@ class delta(Exchange, ImplicitAPI):
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingRate': self.parse_number(fundingRate),
             'fundingTimestamp': None,
             'fundingDatetime': None,
             'nextFundingRate': None,

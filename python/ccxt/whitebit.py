@@ -65,9 +65,9 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -183,6 +183,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'time',
                             'ping',
                             'markets',
+                            'futures',
                         ],
                     },
                     'private': {
@@ -1943,6 +1944,137 @@ class whitebit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
+        }
+
+    def fetch_funding_rate(self, symbol: str, params={}):
+        """
+        see https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        symbol = self.symbol(symbol)
+        response = self.fetch_funding_rates([symbol], params)
+        return self.safe_value(response, symbol)
+
+    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        see https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
+        fetch the funding rate for multiple markets
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v4PublicGetFutures(params)
+        #
+        #    [
+        #        {
+        #            "name": "BTC_USDT",
+        #            "type": "direct",
+        #            "quanto_multiplier": "0.0001",
+        #            "ref_discount_rate": "0",
+        #            "order_price_deviate": "0.5",
+        #            "maintenance_rate": "0.005",
+        #            "mark_type": "index",
+        #            "last_price": "38026",
+        #            "mark_price": "37985.6",
+        #            "index_price": "37954.92",
+        #            "funding_rate_indicative": "0.000219",
+        #            "mark_price_round": "0.01",
+        #            "funding_offset": 0,
+        #            "in_delisting": False,
+        #            "risk_limit_base": "1000000",
+        #            "interest_rate": "0.0003",
+        #            "order_price_round": "0.1",
+        #            "order_size_min": 1,
+        #            "ref_rebate_rate": "0.2",
+        #            "funding_interval": 28800,
+        #            "risk_limit_step": "1000000",
+        #            "leverage_min": "1",
+        #            "leverage_max": "100",
+        #            "risk_limit_max": "8000000",
+        #            "maker_fee_rate": "-0.00025",
+        #            "taker_fee_rate": "0.00075",
+        #            "funding_rate": "0.002053",
+        #            "order_size_max": 1000000,
+        #            "funding_next_apply": 1610035200,
+        #            "short_users": 977,
+        #            "config_change_time": 1609899548,
+        #            "trade_size": 28530850594,
+        #            "position_size": 5223816,
+        #            "long_users": 455,
+        #            "funding_impact_value": "60000",
+        #            "orders_limit": 50,
+        #            "trade_id": 10851092,
+        #            "orderbook_id": 2129638396
+        #        }
+        #    ]
+        #
+        data = self.safe_value(response, 'result', [])
+        result = self.parse_funding_rates(data)
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        # {
+        #     "ticker_id":"ADA_PERP",
+        #     "stock_currency":"ADA",
+        #     "money_currency":"USDT",
+        #     "last_price":"0.296708",
+        #     "stock_volume":"7982130",
+        #     "money_volume":"2345758.29189",
+        #     "bid":"0.296608",
+        #     "ask":"0.296758",
+        #     "high":"0.298338",
+        #     "low":"0.290171",
+        #     "product_type":"Perpetual",
+        #     "open_interest":"46533000",
+        #     "index_price":"0.29659",
+        #     "index_name":"Cardano",
+        #     "index_currency":"ADA",
+        #     "funding_rate":"0.0001",
+        #     "next_funding_rate_timestamp":"1691193600000",
+        #     "brackets":{
+        #        "1":"0",
+        #        "2":"0",
+        #        "3":"0",
+        #        "5":"0",
+        #        "10":"0",
+        #        "20":"0",
+        #        "50":"-10000",
+        #        "100":"-5000"
+        #     },
+        #     "max_leverage":"100"
+        #  }
+        #
+        marketId = self.safe_string(contract, 'ticker_id')
+        symbol = self.safe_symbol(marketId, market)
+        markPrice = self.safe_number(contract, 'markPrice')
+        indexPrice = self.safe_number(contract, 'indexPrice')
+        interestRate = self.safe_number(contract, 'interestRate')
+        fundingRate = self.safe_number(contract, 'funding_rate')
+        nextFundingTime = self.safe_integer(contract, 'next_funding_rate_timestamp')
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': interestRate,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': None,
+            'fundingDatetime': self.iso8601(None),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': nextFundingTime,
+            'nextFundingDatetime': self.iso8601(nextFundingTime),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     def is_fiat(self, currency):

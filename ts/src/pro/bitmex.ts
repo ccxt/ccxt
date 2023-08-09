@@ -1180,7 +1180,7 @@ export default class bitmex extends bitmexRest {
             orderbook['symbol'] = symbol;
             for (let i = 0; i < data.length; i++) {
                 const price = this.safeFloat (data[i], 'price');
-                const size = this.safeFloat (data[i], 'size');
+                const size = this.convertFromRawQuantity (symbol, this.safeString (data[i], 'size'));
                 const id = this.safeString (data[i], 'id');
                 let side = this.safeString (data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
@@ -1203,8 +1203,8 @@ export default class bitmex extends bitmexRest {
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
-                const price = this.safeFloat (data[i], 'price');
-                const size = (action === 'delete') ? 0 : this.safeFloat (data[i], 'size', 0);
+                const price = this.safeNumber (data[i], 'price');
+                const size = (action === 'delete') ? 0 : this.convertFromRawQuantity (symbol, this.safeString (data[i], 'size', '0'));
                 const id = this.safeString (data[i], 'id');
                 let side = this.safeString (data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';

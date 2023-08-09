@@ -49,6 +49,9 @@ class bitfinex2 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositsWithdrawals' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
@@ -157,6 +160,7 @@ class bitfinex2 extends Exchange {
                         'candles/trade:{timeframe}:{symbol}/hist' => 2.66,
                         'status/{type}' => 2.66,
                         'status/deriv' => 2.66,
+                        'status/deriv/{symbol}/hist' => 2.66,
                         'liquidations/hist' => 80, // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
                         'rankings/{key}:{timeframe}:{symbol}/{section}' => 2.66,
                         'rankings/{key}:{timeframe}:{symbol}/hist' => 2.66,
@@ -2635,5 +2639,228 @@ class bitfinex2 extends Exchange {
             //
             return $this->parse_ledger($response, $currency, $since, $limit);
         }) ();
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the bingx api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        return $this->fetch_funding_rates(array( $symbol ), $params);
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+             * @param {string[]} $symbols list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRates() requires a $symbols argument');
+            }
+            Async\await($this->load_markets());
+            $marketIds = $this->market_ids($symbols);
+            $request = array(
+                'keys' => implode(',', $marketIds),
+            );
+            $response = Async\await($this->publicGetStatusDeriv (array_merge($request, $params)));
+            //
+            //   array(
+            //       array(
+            //          "tBTCF0:USTF0",
+            //          1691165059000,
+            //          null,
+            //          29297.851276225,
+            //          29277.5,
+            //          null,
+            //          36950860.76010306,
+            //          null,
+            //          1691193600000,
+            //          0.00000527,
+            //          82,
+            //          null,
+            //          0.00014548,
+            //          null,
+            //          null,
+            //          29278.8925,
+            //          null,
+            //          null,
+            //          9636.07644994,
+            //          null,
+            //          null,
+            //          null,
+            //          0.0005,
+            //          0.0025
+            //       )
+            //   )
+            //
+            return $this->parse_funding_rates($response);
+        }) ();
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical funding $rate prices
+             * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
+             */
+            Async\await($this->load_markets());
+            $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetStatusDerivSymbolHist (array_merge($request, $params)));
+            //
+            //   array(
+            //       array(
+            //          "tBTCF0:USTF0",
+            //          1691165059000,
+            //          null,
+            //          29297.851276225,
+            //          29277.5,
+            //          null,
+            //          36950860.76010306,
+            //          null,
+            //          1691193600000,
+            //          0.00000527,
+            //          82,
+            //          null,
+            //          0.00014548,
+            //          null,
+            //          null,
+            //          29278.8925,
+            //          null,
+            //          null,
+            //          9636.07644994,
+            //          null,
+            //          null,
+            //          null,
+            //          0.0005,
+            //          0.0025
+            //       )
+            //   )
+            //
+            $rates = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $fr = $response[$i];
+                $rate = $this->parse_funding_rate_history($fr, $market);
+                $rates[] = $rate;
+            }
+            return $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //       array(
+        //          "tBTCF0:USTF0",
+        //          1691165059000,
+        //          null,
+        //          29297.851276225,
+        //          29277.5,
+        //          null,
+        //          36950860.76010306,
+        //          null,
+        //          1691193600000,
+        //          0.00000527,
+        //          82,
+        //          null,
+        //          0.00014548,
+        //          null,
+        //          null,
+        //          29278.8925,
+        //          null,
+        //          null,
+        //          9636.07644994,
+        //          null,
+        //          null,
+        //          null,
+        //          0.0005,
+        //          0.0025
+        //       )
+        //
+        $marketId = $this->safe_string($contract, 0);
+        $timestamp = $this->safe_integer($contract, 1);
+        $nextFundingTimestamp = $this->safe_integer($contract, 8);
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => $this->safe_number($contract, 15),
+            'indexPrice' => $this->safe_number($contract, 3),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 12),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $this->safe_number($contract, 9),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
+    public function parse_funding_rate_history($contract, $market = null) {
+        //
+        // array(
+        //     1691165494000,
+        //     null,
+        //     29278.95838065,
+        //     29260.5,
+        //     null,
+        //     36950860.76010305,
+        //     null,
+        //     1691193600000,
+        //     0.00001449,
+        //     222,
+        //     null,
+        //     0.00014548,
+        //     null,
+        //     null,
+        //     29260.005,
+        //     null,
+        //     null,
+        //     9635.86484562,
+        //     null,
+        //     null,
+        //     null,
+        //     0.0005,
+        //     0.0025
+        // )
+        //
+        $timestamp = $this->safe_integer($contract, 0);
+        $nextFundingTimestamp = $this->safe_integer($contract, 7);
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => $this->safe_number($contract, 14),
+            'indexPrice' => $this->safe_number($contract, 2),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 11),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $this->safe_number($contract, 8),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
     }
 }

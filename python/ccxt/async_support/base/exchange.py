@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.42'
+__version__ = '4.0.55'
 
 # -----------------------------------------------------------------------------
 
@@ -464,20 +464,6 @@ class Exchange(BaseExchange):
             client.reject(e, messageHash)
             await self.load_order_book(client, messageHash, symbol, limit, params)
 
-    def handle_deltas(self, orderbook, deltas):
-        for delta in deltas:
-            self.handle_delta(orderbook, delta)
-
-    def handle_delta(self, orderbook, delta):
-        raise NotSupported(self.id + ' handleDelta() is not supported')
-
-    def find_timeframe(self, timeframe, timeframes=None):
-        timeframes = timeframes if timeframes else self.timeframes
-        for key, value in timeframes.items():
-            if value == timeframe:
-                return key
-        return None
-
     def format_scientific_notation_ftx(self, n):
         if n == 0:
             return '0e-00'
@@ -521,6 +507,27 @@ class Exchange(BaseExchange):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def handle_deltas(self, orderbook, deltas):
+        for i in range(0, len(deltas)):
+            self.handle_delta(orderbook, deltas[i])
+
+    def handle_delta(self, bookside, delta):
+        raise NotSupported(self.id + ' handleDelta not supported yet')
+
+    def get_cache_index(self, orderbook, deltas):
+        # return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1
+
+    def find_timeframe(self, timeframe, timeframes=None):
+        if timeframes is None:
+            timeframes = self.timeframes
+        keys = list(timeframes.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if timeframes[key] == timeframe:
+                return key
+        return None
 
     def check_proxy_settings(self, url, method, headers, body):
         proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
@@ -663,6 +670,17 @@ class Exchange(BaseExchange):
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
+
+    async def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
+        fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'snapshotMaxRetries', 3)
+        for i in range(0, fetchSnapshotMaxRetries):
+            try:
+                orderBook = await self.fetch_order_book(symbol, limit, params)
+                return orderBook
+            except Exception as e:
+                if (i + 1) == fetchSnapshotMaxRetries:
+                    raise e
+        return None
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
@@ -1722,7 +1740,7 @@ class Exchange(BaseExchange):
         for i in range(0, len(positions)):
             position = self.extend(self.parse_position(positions[i], None), params)
             result.append(position)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filterByArrayPositions(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts, params={}):
         accounts = self.to_array(accounts)
@@ -1901,6 +1919,15 @@ class Exchange(BaseExchange):
 
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def fetch_positions_by_symbol(self, symbol: str, params={}):
+        """
+        specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        """
+        raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
@@ -2954,3 +2981,10 @@ class Exchange(BaseExchange):
             return await self.fetchDepositsWithdrawals(code, since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
+
+    def filter_by_array_positions(self, objects, key: IndexType, values=None, indexed=True):
+        """
+         * @ignore
+        Typed wrapper for filterByArray that returns a list of positions
+        """
+        return self.filter_by_array(objects, key, values, indexed)
