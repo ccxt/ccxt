@@ -4202,39 +4202,69 @@ export default class bybit extends Exchange {
         }
     }
 
-    async cancelAllUnifiedAccountOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let market = undefined;
-        let settle = undefined;
-        let type = undefined;
-        let subType = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            settle = market['settle'];
             request['symbol'] = market['id'];
+            if (market['spot']) {
+                request['category'] = 'spot';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else if (market['option'] && isUnifiedAccount) {
+                request['category'] = 'option';
+            } else {
+                throw new NotSupported (this.id + ' cancelAllOrders() ' + symbol + ' market type not support');
+            }
         } else {
-            [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', 'USDT');
+            const type = this.safeString (params, 'type', 'linear');
+            request['category'] = type;
+            const baseCoin = this.safeString (params, 'baseCoin');
+            const settleCoin = this.safeString (params, 'settleCoin');
+            if (type === 'option') {
+                if (!isUnifiedAccount) {
+                    throw new NotSupported (this.id + ' cancelAllOrders() normal account not support ' + type + ' market');
+                }
+            }
+            if ((type === 'linear') || (type === 'inverse')) {
+                if (baseCoin === undefined && settleCoin === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cancelAllOrders() linear & inverse market need baseCoin or settleCoin params');
+                }
+            }
+            if (baseCoin !== undefined) {
+                if (type === 'spot' && !isUnifiedAccount) {
+                    throw new NotSupported (this.id + ' cancelAllOrders() baseCoin not support spot market');
+                }
+                request['baseCoin'] = baseCoin;
+            } else if (settleCoin !== undefined) {
+                if (type === 'spot') {
+                    throw new NotSupported (this.id + ' cancelAllOrders() settleCoin not support spot market');
+                }
+                request['settleCoin'] = settleCoin;
+            }
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params, 'linear');
-        if (type === 'spot') {
-            request['category'] = 'spot';
-        } else if (type === 'option') {
-            request['category'] = 'option';
-        } else if (subType === 'linear') {
-            request['category'] = 'linear';
-        } else {
-            throw new NotSupported (this.id + ' cancelAllOrders() does not allow inverse market orders for ' + type + ' markets');
-        }
-        request['settleCoin'] = settle;
         const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
+        params = this.omit (params, [ 'type', 'stop' ]);
         if (isStop) {
             request['orderFilter'] = 'tpslOrder';
         }
         const response = await this.privatePostV5OrderCancelAll (this.extend (request, params));
         //
+        // linear / inverse / option
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
@@ -4250,228 +4280,23 @@ export default class bybit extends Exchange {
         //         "time": 1672219780463
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
-        const orders = this.safeValue (result, 'list');
-        if (!Array.isArray (orders)) {
-            return response;
-        }
-        return this.parseOrders (orders, market);
-    }
-
-    async cancelAllSpotOrders (symbol: string = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllSpotOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.privateDeleteSpotOrderBatchCancel (this.extend (request, params));
-        //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
-        //        "result": {
-        //            "success": true
-        //        }
-        //    }
-        //
-        const result = this.safeValue (response, 'result', []);
-        if (!Array.isArray (result)) {
-            return response;
-        }
-        return this.parseOrders (result, market);
-    }
-
-    async cancelAllUnifiedMarginOrders (symbol: string = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let settle = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            settle = market['settle'];
-            request['symbol'] = market['id'];
-        }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params, 'linear');
-        request['category'] = subType;
-        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
-        if (settle !== undefined) {
-            request['settleCoin'] = settle;
-        }
-        const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
-        if (isStop) {
-            request['orderFilter'] = 'StopOrder';
-        }
-        const response = await this.privatePostUnifiedV3PrivateOrderCancelAll (this.extend (request, params));
-        //
+        // spot
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //             "list": [{
-        //                     "category": "option",
-        //                     "symbol": "BTC-24JUN22-45000-P",
-        //                     "orderId": "bd5f3b34-d64d-4b60-8188-438fbea4c552",
-        //                     "orderLinkId": "ac4e3b34-d64d-4b60-8188-438fbea4c552",
-        //                 }, {
-        //                     "category": "option",
-        //                     "symbol": "BTC-24JUN22-45000-P",
-        //                     "orderId": "4ddd727a-2af8-430e-a293-42895e594d18",
-        //                     "orderLinkId": "5cee727a-2af8-430e-a293-42895e594d18",
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {
-        //             "list": [{
-        //                 "code": 0,
-        //                 "msg": "OK"
-        //             }, {
-        //                 "code": 0,
-        //                 "msg": "OK"
-        //             }]
-        //         },
-        //         "time": 1657200736570
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        const orders = this.safeValue (result, 'list');
-        if (!Array.isArray (orders)) {
-            return response;
-        }
-        return this.parseOrders (orders, market);
-    }
-
-    async cancelAllUSDCOrders (symbol: string = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllUSDCOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        let method = undefined;
-        const request = {
-            'symbol': market['id'],
-        };
-        if (market['option']) {
-            method = 'privatePostOptionUsdcOpenapiPrivateV1CancelAll';
-        } else {
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelAll';
-            const isStop = this.safeValue (params, 'stop', false);
-            if (isStop) {
-                request['orderFilter'] = 'StopOrder';
-            } else {
-                request['orderFilter'] = 'Order';
-            }
-            params = this.omit (params, [ 'stop' ]);
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "retExtMap": {},
-        //         "result": [
-        //             {
-        //                 "outRequestId": "cancelAll-290119-1652176443114-0",
-        //                 "symbol": "BTC-13MAY22-40000-C",
-        //                 "orderId": "fa6cd740-56ed-477d-9385-90ccbfee49ca",
-        //                 "orderLinkId": "",
-        //                 "errorCode": 0,
-        //                 "errorDesc": ""
-        //             }
-        //         ]
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        if (!Array.isArray (result)) {
-            return response;
-        }
-        return this.parseOrders (result, market);
-    }
-
-    async cancelAllDerivativesOrders (symbol: string = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let settle = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            settle = market['settle'];
-            request['symbol'] = market['id'];
-        }
-        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
-        if (settle !== undefined) {
-            request['settleCoin'] = settle;
-        }
-        const response = await this.privatePostContractV3PrivateOrderCancelAll (this.extend (request, params));
-        //
-        // contract v3
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "orderId": "4030430d-1dba-4134-ac77-3d81c14aaa00",
-        //                     "orderLinkId": "x001"
-        //                 }
-        //             ]
+        //             "success": "1"
         //         },
         //         "retExtInfo": {},
-        //         "time": 1658901359225
+        //         "time": 1676962409398
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        const orders = this.safeValue (result, 'list', []);
+        const orders = this.safeValue (result, 'list');
+        if (!Array.isArray (orders)) {
+            return response;
+        }
         return this.parseOrders (orders, market);
-    }
-
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#cancelAllOrders
-         * @description cancel all open orders
-         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        let market = undefined;
-        let settle = this.safeString (params, 'settleCoin');
-        if (settle === undefined) {
-            [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
-        }
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            settle = market['settle'];
-        }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
-        const isUsdcSettled = settle === 'USDC';
-        const isInverse = subType === 'inverse';
-        const isLinearSettle = isUsdcSettled || (settle === 'USDT');
-        if (isInverse && isLinearSettle) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders with inverse subType requires settle to not be USDT or USDC');
-        }
-        const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount) {
-            return await this.cancelAllUnifiedAccountOrders (symbol, query);
-        } else if (type === 'spot') {
-            return await this.cancelAllSpotOrders (symbol, query);
-        } else if (enableUnifiedMargin && !isInverse) {
-            return await this.cancelAllUnifiedMarginOrders (symbol, query);
-        } else if (isUsdcSettled) {
-            return await this.cancelAllUSDCOrders (symbol, query);
-        } else {
-            return await this.cancelAllDerivativesOrders (symbol, query);
-        }
     }
 
     async fetchUnifiedAccountOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
