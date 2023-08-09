@@ -102,6 +102,7 @@ export default class bingx extends Exchange {
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
+                                'trade/batchOrders': 3,
                             },
                         },
                     },
