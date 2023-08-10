@@ -211,7 +211,7 @@ export default class binance extends binanceRest {
         return orderbook.limit ();
     }
 
-    async watchMultipleOrderBook (symbols: string[], limit: Int = undefined, params = {}) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOrderBook
@@ -235,7 +235,6 @@ export default class binance extends binanceRest {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const name = 'depth';
-        // const messageHash = market['lowercaseId'] + '@' + name;
         const messageHash = 'multipleOrderbook::' + symbols.join (',');
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOrderbook');
         const requestId = this.requestId (url);
@@ -313,18 +312,20 @@ export default class binance extends binanceRest {
                 }
             }
             this.orderbooks[symbol] = orderbook;
+            // if (!messageHash.startsWith ('multipleOrderbook')) {
             client.resolve (orderbook, messageHash);
+            // }
             // watchMultipleOrderbook part
-            const messageHashes = this.findMessageHashes (client, 'multipleOrderbook::');
-            for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = messageHashes[i];
-                const parts = messageHash.split ('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split (',');
-                if (this.inArray (symbol, symbols)) {
-                    client.resolve (orderbook, messageHash);
-                }
-            }
+            // const messageHashes = this.findMessageHashes (client, 'multipleOrderbook::');
+            // for (let i = 0; i < messageHashes.length; i++) {
+            //     const messageHash = messageHashes[i];
+            //     const parts = messageHash.split ('::');
+            //     const symbolsString = parts[1];
+            //     const symbols = symbolsString.split (',');
+            //     if (this.inArray (symbol, symbols)) {
+            //         client.resolve (orderbook, messageHash);
+            //     }
+            // }
         } catch (e) {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
@@ -975,8 +976,6 @@ export default class binance extends binanceRest {
             const symbolsString = parts[1];
             const symbols = symbolsString.split (',');
             if ((this.inArray (interval, intervals)) && this.inArray (symbol, symbols)) {
-                // const result = {};
-                // result[symbol][]
                 client.resolve ([ symbol, interval, stored ], messageHash);
             }
         }
