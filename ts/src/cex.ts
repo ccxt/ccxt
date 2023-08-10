@@ -871,11 +871,14 @@ export default class cex extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const price = this.safeString (order, 'price');
-        let amount = this.safeString (order, 'amount');
+        let amount = this.omitZero (this.safeString (order, 'amount'));
         // sell orders can have a negative amount
         // https://github.com/ccxt/ccxt/issues/5338
         if (amount !== undefined) {
             amount = Precise.stringAbs (amount);
+        } else if (market !== undefined) {
+            const amountKey = 'a:' + market['base'] + 'cds:';
+            amount = Precise.stringAbs (this.safeString (order, amountKey));
         }
         const remaining = this.safeString2 (order, 'pending', 'remains');
         const filled = Precise.stringSub (amount, remaining);
