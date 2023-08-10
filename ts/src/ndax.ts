@@ -262,6 +262,13 @@ export default class ndax extends Exchange {
                     'TrailingStopMarket': 5,
                     'TrailingStopLimit': 6,
                     'BlockTrade': 7,
+                    '1': 1,
+                    '2': 2,
+                    '3': 3,
+                    '4': 4,
+                    '5': 5,
+                    '6': 6,
+                    '7': 7,
                 },
             },
         });
