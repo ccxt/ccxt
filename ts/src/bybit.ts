@@ -3873,7 +3873,7 @@ export default class bybit extends Exchange {
         }
         const timeInForce = this.safeStringLower (params, 'timeInForce'); // this is same as exchange specific param
         let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarket, timeInForce === 'PostOnly', params);
+        [ postOnly, params ] = this.handlePostOnly (isMarket, timeInForce === 'postonly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         } else if (timeInForce === 'gtc') {
@@ -4074,7 +4074,7 @@ export default class bybit extends Exchange {
         const exchangeSpecificParam = this.safeString (params, 'time_in_force');
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
+        [ postOnly, params ] = this.handlePostOnly (isMarket, exchangeSpecificParam === 'postonly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         } else if (timeInForce === 'gtc') {
@@ -4175,7 +4175,7 @@ export default class bybit extends Exchange {
         }
         const timeInForce = this.safeStringLower (params, 'timeInForce'); // same as exchange specific param
         let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarket, timeInForce === 'PostOnly', params);
+        [ postOnly, params ] = this.handlePostOnly (isMarket, timeInForce === 'postonly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         } else if (timeInForce === 'gtc') {
@@ -6719,7 +6719,7 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger2 (transaction, 'createTime', 'successAt');
         const updated = this.safeInteger (transaction, 'updateTime');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const feeCost = this.safeNumber2 (transaction, 'depositFee', 'withdrawFee', 0);
+        const feeCost = this.safeNumber2 (transaction, 'depositFee', 'withdrawFee');
         const type = ('depositFee' in transaction) ? 'deposit' : 'withdrawal';
         let fee = undefined;
         if (feeCost !== undefined) {

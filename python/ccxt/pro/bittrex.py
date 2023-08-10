@@ -45,8 +45,12 @@ class bittrex(ccxt.async_support.bittrex):
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': self.milliseconds(),
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
             },
         })
 
@@ -568,22 +572,18 @@ class bittrex(ccxt.async_support.bittrex):
         #     7. Continue to apply messages are received from the socket number on the stream is always increasing by 1 each message(Note: for private streams, the sequence number is scoped to a single account or subaccount).
         #     8. If a message is received that is not the next in order, return to step hasattr(self, 2) process
         #
-        orderbook = await self.subscribe_to_order_book(negotiation, symbol, limit, params)
-        return orderbook.limit()
-
-    async def subscribe_to_order_book(self, negotiation, symbol, limit: Optional[int] = None, params={}):
-        await self.load_markets()
         market = self.market(symbol)
         name = 'orderbook'
         messageHash = name + '_' + market['id'] + '_' + str(limit)
         subscription = {
             'symbol': symbol,
             'messageHash': messageHash,
-            'method': self.handle_subscribe_to_order_book,
+            'method': self.handle_order_book_subscription,
             'limit': limit,
             'params': params,
         }
-        return await self.send_request_to_subscribe(negotiation, messageHash, subscription)
+        orderbook = await self.send_request_to_subscribe(negotiation, messageHash, subscription)
+        return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -592,7 +592,7 @@ class bittrex(ccxt.async_support.bittrex):
         try:
             # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             # todo: self is a synch blocking call in ccxt.php - make it async
-            snapshot = await self.fetch_order_book(symbol, limit)
+            snapshot = await self.fetch_rest_order_book_safe(symbol, limit)
             orderbook = self.orderbooks[symbol]
             messages = orderbook.cache
             # make sure we have at least one delta before fetching the snapshot
@@ -632,7 +632,7 @@ class bittrex(ccxt.async_support.bittrex):
         except Exception as e:
             client.reject(e, messageHash)
 
-    def handle_subscribe_to_order_book(self, client: Client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:

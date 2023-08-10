@@ -63,6 +63,7 @@ interface Exchange {
     publicGetCandlesTradeTimeframeSymbolHist (params?: {}): Promise<implicitReturnType>;
     publicGetStatusType (params?: {}): Promise<implicitReturnType>;
     publicGetStatusDeriv (params?: {}): Promise<implicitReturnType>;
+    publicGetStatusDerivSymbolHist (params?: {}): Promise<implicitReturnType>;
     publicGetLiquidationsHist (params?: {}): Promise<implicitReturnType>;
     publicGetRankingsKeyTimeframeSymbolSection (params?: {}): Promise<implicitReturnType>;
     publicGetRankingsKeyTimeframeSymbolHist (params?: {}): Promise<implicitReturnType>;

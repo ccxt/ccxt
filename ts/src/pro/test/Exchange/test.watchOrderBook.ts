@@ -24,6 +24,8 @@ export default async (exchange, symbol) => {
         'gopax', // requires authentication for public orderbooks
         'woo',
         'alpaca', // requires auth
+        'coinbasepro', // requires auth
+        'coinbaseprime', // requires auth
     ];
 
     if (skippedExchanges.includes (exchange.id)) {

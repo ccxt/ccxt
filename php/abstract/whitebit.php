@@ -100,6 +100,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4_public_get_markets($params = array()) {
         return $this->request('markets', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4_public_get_futures($params = array()) {
+        return $this->request('futures', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4_private_post_collateral_account_balance($params = array()) {
         return $this->request('collateral-account/balance', array('v4', 'private'), 'POST', $params, null, null, array());
     }
@@ -288,6 +291,9 @@ abstract class whitebit extends \ccxt\Exchange {
     }
     public function v4PublicGetMarkets($params = array()) {
         return $this->request('markets', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v4PublicGetFutures($params = array()) {
+        return $this->request('futures', array('v4', 'public'), 'GET', $params, null, null, array());
     }
     public function v4PrivatePostCollateralAccountBalance($params = array()) {
         return $this->request('collateral-account/balance', array('v4', 'private'), 'POST', $params, null, null, array());

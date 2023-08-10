@@ -56,6 +56,8 @@ class deribit extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -2806,6 +2808,132 @@ class deribit extends Exchange {
             $data = $this->safe_value($response, 'result', array());
             return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
         }) ();
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://docs.deribit.com/#public-get_funding_rate_value
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {int} [$params->start_timestamp] fetch funding rate starting from this timestamp
+             * @param {int} [$params->end_timestamp] fetch funding rate ending at this timestamp
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $time = $this->milliseconds();
+            $request = array(
+                'instrument_name' => $market['id'],
+                'start_timestamp' => $time - (8 * 60 * 60 * 1000), // 8h ago,
+                'end_timestamp' => $time,
+            );
+            $response = Async\await($this->publicGetGetFundingRateValue (array_merge($request, $params)));
+            //
+            //   {
+            //       "jsonrpc":"2.0",
+            //       "result":"0",
+            //       "usIn":"1691161645596519",
+            //       "usOut":"1691161645597149",
+            //       "usDiff":"630",
+            //       "testnet":false
+            //   }
+            //
+            return $this->parse_funding_rate($response, $market);
+        }) ();
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch the current funding $rate
+             * @see https://docs.deribit.com/#public-get_funding_rate_history
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @param {int} [$params->end_timestamp] fetch funding $rate ending at this timestamp
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $time = $this->milliseconds();
+            $month = 30 * 24 * 60 * 60 * 1000;
+            if ($since === null) {
+                $since = $time - $month;
+            }
+            $request = array(
+                'instrument_name' => $market['id'],
+                'start_timestamp' => $since,
+                'end_timestamp' => $time,
+            );
+            $response = Async\await($this->publicGetGetFundingRateHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        "jsonrpc" => "2.0",
+            //        "id" => 7617,
+            //        "result" => array(
+            //          {
+            //            "timestamp" => 1569891600000,
+            //            "index_price" => 8222.87,
+            //            "prev_index_price" => 8305.72,
+            //            "interest_8h" => -0.00009234260068476106,
+            //            "interest_1h" => -4.739622041017375e-7
+            //          }
+            //        )
+            //    }
+            //
+            $rates = array();
+            $result = $this->safe_value($response, 'result', array());
+            for ($i = 0; $i < count($result); $i++) {
+                $fr = $result[$i];
+                $rate = $this->parse_funding_rate($fr, $market);
+                $rates[] = $rate;
+            }
+            return $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //   {
+        //       "jsonrpc":"2.0",
+        //       "result":"0",
+        //       "usIn":"1691161645596519",
+        //       "usOut":"1691161645597149",
+        //       "usDiff":"630",
+        //       "testnet":false
+        //   }
+        // history
+        //   {
+        //     "timestamp" => 1569891600000,
+        //     "index_price" => 8222.87,
+        //     "prev_index_price" => 8305.72,
+        //     "interest_8h" => -0.00009234260068476106,
+        //     "interest_1h" => -4.739622041017375e-7
+        //   }
+        //
+        $timestamp = $this->safe_integer($contract, 'timestamp');
+        $datetime = $this->iso8601($timestamp);
+        $result = $this->safe_number_2($contract, 'result', 'interest_8h');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => null,
+            'indexPrice' => $this->safe_number($contract, 'index_price'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'fundingRate' => $result,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
     }
 
     public function nonce() {

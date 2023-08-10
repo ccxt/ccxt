@@ -172,6 +172,7 @@ class huobi extends huobi$1 {
                     'https://huobiapi.github.io/docs/dm/v1/en/',
                     'https://huobiapi.github.io/docs/coin_margined_swap/v1/en/',
                     'https://huobiapi.github.io/docs/usdt_swap/v1/en/',
+                    'https://www.huobi.com/en-us/opend/newApiPages/',
                 ],
                 'fees': 'https://www.huobi.com/about/fee/',
             },
@@ -596,6 +597,8 @@ class huobi extends huobi$1 {
                             'swap-api/v1/swap_api_trading_status': 1,
                             // Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
+                            'linear-swap-api/v1/swap_cross_position_side': 1,
+                            'linear-swap-api/v1/swap_position_side': 1,
                             'linear-swap-api/v3/unified_account_info': 1,
                             'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
@@ -2299,8 +2302,7 @@ class huobi extends huobi$1 {
                 'currency': feeCurrency,
             };
         }
-        const tradeId = this.safeString2(trade, 'trade-id', 'tradeId');
-        const id = this.safeString2(trade, 'trade_id', 'id', tradeId);
+        const id = this.safeStringN(trade, ['trade_id', 'trade-id', 'id']);
         return this.safeTrade({
             'id': id,
             'info': trade,
