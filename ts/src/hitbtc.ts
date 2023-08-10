@@ -20,7 +20,6 @@ export default class hitbtc extends Exchange {
             // 20 requests per second => ( 1000ms / rateLimit ) / 20 = cost = 15 (All Other)
             'rateLimit': 3.333, // TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
-            'pro': false,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -85,7 +84,6 @@ export default class hitbtc extends Exchange {
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
-                'ws': false,
             },
             'precisionMode': TICK_SIZE,
             'urls': {
