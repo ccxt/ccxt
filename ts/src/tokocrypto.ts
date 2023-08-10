@@ -1533,9 +1533,9 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#createOrder
-         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @description create a trade order
          * @see https://www.tokocrypto.com/apidocs/#new-order--signed
+         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1617,24 +1617,19 @@ export default class tokocrypto extends Exchange {
         //     LIMIT_MAKER          quantity, price
         //
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
             const quoteOrderQtyInner = this.safeValue2 (params, 'quoteOrderQty', 'cost');
             if (this.options['createMarketBuyOrderRequiresPrice'] && (side === 'buy') && (price === undefined) && (quoteOrderQtyInner === undefined)) {
                 throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
             }
-            if (quoteOrderQty) {
-                const precision = market['precision']['price'];
-                if (quoteOrderQtyInner !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyInner, TRUNCATE, precision, this.precisionMode);
-                    params = this.omit (params, [ 'quoteOrderQty', 'cost' ]);
-                } else if (price !== undefined) {
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    const quoteOrderQty = Precise.stringMul (amountString, priceString);
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
-                } else {
-                    quantityIsRequired = true;
-                }
+            const precision = market['precision']['price'];
+            if (quoteOrderQtyInner !== undefined) {
+                request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyInner, TRUNCATE, precision, this.precisionMode);
+                params = this.omit (params, [ 'quoteOrderQty', 'cost' ]);
+            } else if (price !== undefined) {
+                const amountString = this.numberToString (amount);
+                const priceString = this.numberToString (price);
+                const quoteOrderQty = Precise.stringMul (amountString, priceString);
+                request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
             } else {
                 quantityIsRequired = true;
             }
