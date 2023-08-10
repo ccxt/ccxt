@@ -297,20 +297,33 @@ export default class lbank2 extends Exchange {
          * @name lbank2#fetchMarkets
          * @description retrieves data on all markets for lbank2
          * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        // needs to return a list of unified market structures
-        const response = await this.spotPublicGetAccuracy ();
-        const data = this.safeValue (response, 'data');
-        //      [
-        //          {
-        //              symbol: 'snx3s_usdt',
-        //              quantityAccuracy: '2',
-        //              minTranQua: '0.01',
-        //              priceAccuracy: '6'
-        //          }
-        //     ]
+        const spotMarkets = await this.fetchSpotMarkets (params);
+        const swapMarkets = await this.fetchSwapMarkets (params);
+        return this.arrayConcat (spotMarkets, swapMarkets);
+    }
+
+    async fetchSpotMarkets (params = {}) {
+        const response = await this.spotPublicGetAccuracy (params);
+        //
+        //     {
+        //         "result": "true",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "quantityAccuracy": "4",
+        //                 "minTranQua": "0.0001",
+        //                 "priceAccuracy": "2"
+        //             },
+        //         ],
+        //         "error_code": 0,
+        //         "ts": 1691560288484
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -318,10 +331,9 @@ export default class lbank2 extends Exchange {
             const parts = marketId.split ('_');
             const baseId = parts[0];
             const quoteId = parts[1];
-            const base = baseId.toUpperCase ();
-            const quote = quoteId.toUpperCase ();
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityAccuracy')));
             result.push ({
                 'id': marketId,
                 'symbol': symbol,
@@ -347,7 +359,7 @@ export default class lbank2 extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityAccuracy'))),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceAccuracy'))),
                 },
                 'limits': {
@@ -365,6 +377,103 @@ export default class lbank2 extends Exchange {
                     },
                     'cost': {
                         'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchSwapMarkets (params = {}) {
+        const request = {
+            'productGroup': 'SwapU',
+        };
+        const response = await this.contractPublicGetCfdOpenApiV1PubInstrument (this.extend (request, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "priceLimitUpperValue": 0.2,
+        //                 "symbol": "BTCUSDT",
+        //                 "volumeTick": 0.0001,
+        //                 "indexPrice": "29707.70200000",
+        //                 "minOrderVolume": "0.0001",
+        //                 "priceTick": 0.1,
+        //                 "maxOrderVolume": "30.0",
+        //                 "baseCurrency": "BTC",
+        //                 "volumeMultiple": 1.0,
+        //                 "exchangeID": "Exchange",
+        //                 "priceCurrency": "USDT",
+        //                 "priceLimitLowerValue": 0.2,
+        //                 "clearCurrency": "USDT",
+        //                 "symbolName": "BTCUSDT",
+        //                 "defaultLeverage": 20.0,
+        //                 "minOrderCost": "5.0"
+        //             },
+        //         ],
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const marketId = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const settleId = this.safeString (market, 'clearCurrency');
+            const quoteId = settleId;
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const symbol = base + '/' + quote + ':' + settle;
+            result.push ({
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': true,
+                'linear': true,
+                'inverse': undefined,
+                'contractSize': this.safeNumber (market, 'volumeMultiple'),
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'volumeTick'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceTick'))),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minOrderVolume'),
+                        'max': this.safeNumber (market, 'maxOrderVolume'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'priceLimitLowerValue'),
+                        'max': this.safeNumber (market, 'priceLimitUpperValue'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minOrderCost'),
                         'max': undefined,
                     },
                 },
