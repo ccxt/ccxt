@@ -842,7 +842,7 @@ export default class cex extends Exchange {
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
         // 'true'
-        return this.extend (this.parseOrder ({}), { 'info': response, 'type': undefined });
+        return this.extend (this.parseOrder ({}), { 'info': response, 'type': undefined, 'id': id, 'status': 'canceled' });
     }
 
     parseOrder (order, market = undefined) {
