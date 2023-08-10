@@ -1,6 +1,5 @@
 {
     "ace": {
-        "skip": "30/05: 504 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -17,11 +16,9 @@
         }
     },
     "alpaca": {
-        "skip": true,
         "skipWs": true
     },
     "ascendex": {
-        "skip": "03/06: 502 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -37,7 +34,6 @@
         }
     },
     "bequant": {
-	"skip": "v3 migration complains about the currency code vs currencyId mismatch",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -126,7 +122,6 @@
         "skipWs": true
     },
     "bitbank": {
-        "skip": "temporary outage"
     },
     "bitbay": {
         "skipMethods": {
@@ -373,7 +368,6 @@
         }
     },
     "blockchaincom": {
-        "skip":"temporary outage",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"not provided",
@@ -384,8 +378,6 @@
         }
     },
     "bkex": {
-        "skip": "system busy",
-        "until": "2023-08-05T23:56:12.257Z",
         "skipMethods": {
             "fetchOrderBook": "system busy",
             "loadMarkets": {
@@ -457,7 +449,6 @@
         }
     },
     "btcalpha": {
-	"skip": "USDT_USD high price is a negative number below zero breaking the assertion in the test",
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
@@ -474,7 +465,6 @@
         }
     },
     "btcmarkets": {
-        "skip": "04/05 under maintenance",
         "skipMethods": {
             "loadMarkets":{
                 "active":"is undefined"
@@ -484,7 +474,6 @@
         }
     },
     "btctradeua": {
-        "skip": "24/05 exchange not available",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined",
@@ -496,7 +485,6 @@
         }
     },
     "bybit": {
-	"skip": "403 forbidden, RateLimitExceeded",
         "httpsProxy": "http://51.83.140.52:21800",
         "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
@@ -510,7 +498,7 @@
         }
     },
     "buda": {
-        "skip": "forbidden location"
+        "httpsProxy": "http://51.83.140.52:11230"
     },
     "bigone": {
         "skipMethods": {
@@ -639,7 +627,6 @@
         }
     },
     "currencycom": {
-        "skip": "17/06 exchange not available 503",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -661,7 +648,6 @@
         }
     },
     "delta": {
-        "skip": "failing bid /ask test",
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "fetchOrderBook": "ask crossing bids test failing",
@@ -818,7 +804,6 @@
         }
     },
     "huobijp": {
-        "skip": "29/06 fetchMarkets returns empty array",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -842,7 +827,6 @@
         }
     },
     "stex": {
-        "skip": "31/05 maintenance",
         "skipMethods": {
             "fetchCurrencies":{
                 "withdraw":"not provided",
@@ -922,7 +906,7 @@
         }
     },
     "kuna": {
-        "skip": "403 forbidden"
+        "httpsProxy": "http://51.83.140.52:11230"
     },
     "kucoin": {
         "skipWs": true,
@@ -1035,7 +1019,6 @@
         }
     },
     "ndax": {
-        "skip": "https://api.ndax.io:8443/AP/GetProducts?omsId=1 503 Service Unavailable No server is available to handle this request.",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -1124,7 +1107,6 @@
         }
     },
     "okcoin": {
-        "skip": "502 Bad Gateway, probably location restricted, or might be temporary",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
@@ -1198,7 +1180,6 @@
         }
     },
     "tidex": {
-        "skip": "exchange does not seem to respond"
     },
     "kraken": {
         "skipWs": true,
@@ -1243,7 +1224,7 @@
         }
     },
     "ripio": {
-        "skip": "503 Service Unavailable, might be location issue",
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true
     },
     "timex": {
@@ -1277,7 +1258,6 @@
     },
     "wazirx": {
         "skipWs": true,
-        "skip": "rate limit blocks"
     },
     "whitebit": {
         "skipWs": true,
@@ -1306,7 +1286,6 @@
         }
 	},
     "xt": {
-        "skip": "fetchFundingRate returns 502 Bad Gateway",
         "skipMethods": {
             "loadMarkets": "expiry and expiryDatetime are defined for non future/options markets",
             "fetchCurrencies": {
@@ -1331,7 +1310,6 @@
         }
     },
     "zaif": {
-        "skip": "2023-07-13 403 Forbidden",
         "skipMethods": {
             "fetchCurrencies": {
                 "info": "key is missing"
