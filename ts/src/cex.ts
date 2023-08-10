@@ -895,7 +895,7 @@ export default class cex extends Exchange {
                 feeRate = this.safeString (order, 'tradingFeeTaker', feeRate);
             }
             if (feeRate) {
-                feeRate = Precise.stringDiv (feeRate, '100.0'); // convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = Precise.stringDiv (feeRate, '100'); // convert to mathematically-correct percentage coefficients: 1.0 = 100%
             }
             if ((baseFee in order) || (baseTakerFee in order)) {
                 const baseFeeCost = this.safeNumber2 (order, baseFee, baseTakerFee);
