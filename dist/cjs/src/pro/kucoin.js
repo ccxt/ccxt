@@ -27,7 +27,7 @@ class kucoin extends kucoin$1 {
                 },
                 'watchOrderBook': {
                     'snapshotDelay': 5,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
             },
             'streaming': {
