@@ -213,17 +213,17 @@ export default class idex extends idexRest {
         const marketId = this.safeString (trade, 'm');
         const symbol = this.safeSymbol (marketId);
         const id = this.safeString (trade, 'i');
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
-        const cost = this.safeFloat (trade, 'Q');
+        const price = this.safeString (trade, 'p');
+        const amount = this.safeString (trade, 'q');
+        const cost = this.safeString (trade, 'Q');
         const timestamp = this.safeInteger (trade, 't');
         const side = this.safeString (trade, 's');
         const fee = {
             'currency': this.safeString (trade, 'a'),
-            'cost': this.safeFloat (trade, 'f'),
+            'cost': this.safeString (trade, 'f'),
         };
         const takerOrMarker = this.safeString (trade, 'l');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -237,7 +237,7 @@ export default class idex extends idexRest {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        });
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -602,16 +602,8 @@ export default class idex extends idexRest {
         const orderType = this.safeString (order, 'o');
         const amount = this.safeString (order, 'q');
         const filled = this.safeString (order, 'z');
-        let remaining = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = Precise.stringSub (amount, filled);
-        }
         const average = this.safeString (order, 'v');
         const price = this.safeString (order, 'price', average);  // for market orders
-        let cost = undefined;
-        if ((amount !== undefined) && (price !== undefined)) {
-            cost = Precise.stringMul (amount, price);
-        }
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const fee = {
@@ -622,10 +614,11 @@ export default class idex extends idexRest {
         for (let i = 0; i < trades.length; i++) {
             lastTrade = trades[i];
             fee['currency'] = lastTrade['fee']['currency'];
-            fee['cost'] = this.sum (fee['cost'], lastTrade['fee']['cost']);
+            const stringLastTradeFee = lastTrade['fee']['cost'];
+            fee['cost'] = Precise.stringAdd (fee['cost'], stringLastTradeFee);
         }
         const lastTradeTimestamp = this.safeInteger (lastTrade, 'timestamp');
-        const parsedOrder = {
+        const parsedOrder = this.safeOrder ({
             'info': message,
             'id': id,
             'clientOrderId': undefined,
@@ -639,14 +632,14 @@ export default class idex extends idexRest {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': this.parseNumber (amount),
-            'cost': this.parseNumber (cost),
+            'cost': undefined,
             'average': this.parseNumber (average),
             'filled': this.parseNumber (filled),
-            'remaining': this.parseNumber (remaining),
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
