@@ -916,9 +916,9 @@ export default class cex extends Exchange {
         if (!cost) {
             cost = Precise.stringMul (price, filled);
         }
-        const side = order['type'];
+        const side = this.safeString (order, 'type');
         let trades = undefined;
-        const orderId = order['id'];
+        const orderId = this.safeString (order, 'id');
         if ('vtx' in order) {
             trades = [];
             for (let i = 0; i < order['vtx'].length; i++) {
