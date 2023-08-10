@@ -4394,7 +4394,7 @@ export default class Exchange {
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseWsOHLCV (ohlcvs[i], market));
         }
-        return this.sortBy (results, 0) as any;
+        return results;
     }
 
     async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
