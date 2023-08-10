@@ -46,7 +46,7 @@ export default class bittrex extends bittrexRest {
                 'hub': 'c3',
                 'I': this.milliseconds (),
                 'watchOrderBook': {
-                    'snapshotMaxRetries': 3,
+                    'snapshotSyncMaxRetries': 3,
                 },
             },
         });
