@@ -110,7 +110,6 @@ export default class tokocrypto extends Exchange {
                 'signIn': false,
                 'transfer': false,
                 'withdraw': true,
-                'ws': undefined,  // has but unimplemented
             },
             'timeframes': {
                 '1m': '1m',

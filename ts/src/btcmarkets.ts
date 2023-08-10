@@ -74,7 +74,6 @@ export default class btcmarkets extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'withdraw': true,
-                'ws': undefined,  // has but not implemented
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',

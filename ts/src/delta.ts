@@ -81,7 +81,6 @@ export default class delta extends Exchange {
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
-                'ws': undefined,  // has but unimplemented
             },
             'timeframes': {
                 '1m': '1m',

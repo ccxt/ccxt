@@ -78,7 +78,6 @@ export default class lykke extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'withdraw': true,
-                'ws': undefined,  // has but unimplemented
             },
             'requiredCredentials': {
                 'apiKey': true,

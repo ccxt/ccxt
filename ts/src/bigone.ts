@@ -58,7 +58,6 @@ export default class bigone extends Exchange {
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
-                'ws': undefined,  // has but not implemented
             },
             'timeframes': {
                 '1m': 'min1',

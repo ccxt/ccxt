@@ -73,7 +73,6 @@ export default class timex extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'ws': undefined,  // has but unimplemented
             },
             'timeframes': {
                 '1m': 'I1',

@@ -105,7 +105,6 @@ export default class bkex extends Exchange {
                 'signIn': undefined,
                 'transfer': false,
                 'withdraw': false,
-                'ws': undefined,  // has but not implemented
             },
             'timeframes': {
                 '1m': '1m',

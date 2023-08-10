@@ -63,7 +63,6 @@ export default class bitbns extends Exchange {
                 'fetchWithdrawals': true,
                 'transfer': false,
                 'withdraw': false,
-                'ws': undefined,  // has but unimplemented
             },
             'hostname': 'bitbns.com',
             'urls': {

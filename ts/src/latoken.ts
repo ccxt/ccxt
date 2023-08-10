@@ -58,7 +58,6 @@ export default class latoken extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'transfer': true,
-                'ws': undefined,  // has but unimplemented
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',

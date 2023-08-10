@@ -60,7 +60,6 @@ export default class kuna extends Exchange {
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setPositionMode': false,
-                'ws': undefined,  // has but unimplemented
             },
             'timeframes': undefined,
             'urls': {

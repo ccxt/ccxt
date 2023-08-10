@@ -75,7 +75,6 @@ export default class lbank extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'withdraw': true,
-                'ws': undefined,  // has but unimplemented
             },
             'timeframes': {
                 '1m': 'minute1',
