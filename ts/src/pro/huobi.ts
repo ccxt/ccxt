@@ -88,7 +88,6 @@ export default class huobi extends huobiRest {
                 'OHLCVLimit': 1000,
                 'watchOrderBook': {
                     'snapshotMaxRetries': 3,
-                    'limit': 150, // the default
                 },
                 'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
@@ -334,8 +333,7 @@ export default class huobi extends huobiRest {
         symbol = market['symbol'];
         const allowedSpotLimits = [ 150 ];
         const allowedSwapLimits = [ 20, 150 ];
-        const defaultLimit = this.handleOption ('watchOrderBook', 'limit', 150);
-        limit = (limit === undefined) ? defaultLimit : limit;
+        limit = (limit === undefined) ? 150 : limit;
         if (market['spot'] && !this.inArray (limit, allowedSpotLimits)) {
             throw new ExchangeError (this.id + ' watchOrderBook spot market accepts limits of 150 only');
         }
