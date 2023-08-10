@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bittrexRest from '../bittrex.js';
-import { BadRequest } from '../base/errors.js';
+import { InvalidNonce, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -43,12 +43,11 @@ export default class bittrex extends bittrexRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'watchOrderBook': {
-                    'fetchSnapshotAttempts': 3,
-                    'limit': 25, // the default
-                },
                 'hub': 'c3',
                 'I': this.milliseconds (),
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
             },
         });
     }
@@ -619,8 +618,7 @@ export default class bittrex extends bittrexRest {
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const defaultLimitFromOptions = this.handleOption ('watchOrderBook', 'limit', 25);
-        limit = (limit === undefined) ? defaultLimitFromOptions : limit; // 25 by default
+        limit = (limit === undefined) ? 25 : limit; // 25 by default
         if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
             throw new BadRequest (this.id + ' watchOrderBook() limit argument must be undefined, 1, 25 or 500, default is 25');
         }
@@ -638,7 +636,8 @@ export default class bittrex extends bittrexRest {
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
         const market = this.market (symbol);
-        const messageHash = 'orderbook' + '_' + market['id'] + '_' + limit.toString ();
+        const name = 'orderbook';
+        const messageHash = name + '_' + market['id'] + '_' + limit.toString ();
         const subscription = {
             'symbol': symbol,
             'messageHash': messageHash,
@@ -657,7 +656,7 @@ export default class bittrex extends bittrexRest {
         try {
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit);
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
             // make sure we have at least one delta before fetching the snapshot
@@ -666,23 +665,50 @@ export default class bittrex extends bittrexRest {
             // https://github.com/ccxt/ccxt/issues/6762
             const firstMessage = this.safeValue (messages, 0, {});
             const sequence = this.safeInteger (firstMessage, 'sequence');
-            this.spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot);
+            const nonce = this.safeInteger (snapshot, 'nonce');
+            // if the received snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in maxAttempts
+            if ((sequence !== undefined) && (nonce < sequence)) {
+                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                // 3. Playback the cached Level 2 data flow.
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            }
         } catch (e) {
             client.reject (e, messageHash);
         }
     }
 
     handleOrderBookSubscription (client: Client, message, subscription) {
-        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const defaultLimit = this.safeInteger (options, 'limit', orderBookLimitOld);
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        // watch the snapshot in a separate async call
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 

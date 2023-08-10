@@ -1587,7 +1587,7 @@ export default class Exchange {
         // retry synchronizing in maxAttempts
         if (sequence !== undefined && snapshot['nonce'] < sequence) {
             const options = this.safeValue (this.options, 'watchOrderBook', {});
-            const maxAttempts = this.safeInteger (options, 'fetchSnapshotAttempts', 3);
+            const maxAttempts = this.safeInteger (options, 'snapshotMaxRetries', 3);
             let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
             // retry to synchronize if we have not reached maxAttempts yet
             if (numAttempts < maxAttempts) {

@@ -87,7 +87,7 @@ export default class huobi extends huobiRest {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchOrderBook': {
-                    'fetchSnapshotAttempts': 3,
+                    'snapshotMaxRetries': 3,
                     'limit': 150, // the default
                 },
                 'api': 'api', // or api-aws for clients hosted on AWS
