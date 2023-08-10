@@ -4271,61 +4271,6 @@ export default class bybit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchSpotClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const request = {};
-        if (symbol !== undefined) {
-            request['symbol'] = market['id'];
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        const response = await this.privateGetSpotV3PrivateHistoryOrders (this.extend (request, params));
-        const result = this.safeValue (response, 'result', {});
-        //
-        //    {
-        //        "retCode": "0",
-        //        "retMsg": "OK",
-        //        "result": {
-        //            "list": [
-        //                {
-        //                    "accountId": "13380434",
-        //                    "symbol": "AAVEUSDT",
-        //                    "orderLinkId": "1666697847966604",
-        //                    "orderId": "1274748373594828288",
-        //                    "orderPrice": "80",
-        //                    "orderQty": "0.11",
-        //                    "execQty": "0",
-        //                    "cummulativeQuoteQty": "0",
-        //                    "avgPrice": "0",
-        //                    "status": "CANCELED",
-        //                    "timeInForce": "GTC",
-        //                    "orderType": "LIMIT",
-        //                    "side": "BUY",
-        //                    "stopPrice": "0.0",
-        //                    "icebergQty": "0.0",
-        //                    "createTime": "1666697847972",
-        //                    "updateTime": "1666697865809",
-        //                    "isWorking": "1",
-        //                    "orderCategory": "0"
-        //                },
-        //            ]
-        //        },
-        //        "retExtInfo": null,
-        //        "time": "1666732287588"
-        //    }
-        //
-        const orders = this.safeValue (result, 'list', []);
-        return this.parseOrders (orders, market, since, limit);
-    }
-
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -4338,19 +4283,9 @@ export default class bybit extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        const enableUnified = await this.isUnifiedEnabled ();
-        const request = {};
-        if ((type === 'spot') && !enableUnified[1]) {
-            return await this.fetchSpotClosedOrders (symbol, since, limit, params);
-        } else {
-            request['orderStatus'] = 'Filled';
-        }
+        const request = {
+            'orderStatus': 'Filled',
+        };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
@@ -4366,19 +4301,9 @@ export default class bybit extends Exchange {
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
-        const enableUnified = await this.isUnifiedEnabled ();
-        const request = {};
-        if ((type === 'spot') && !enableUnified[1]) {
-            throw new NotSupported (this.id + ' fetchCanceledOrders() only allow spot market orders for unified trade account, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
-        } else {
-            request['orderStatus'] = 'Cancelled';
-        }
+        const request = {
+            'orderStatus': 'Cancelled',
+        };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
