@@ -1257,7 +1257,7 @@
         }
     },
     "wazirx": {
-        "skipWs": true,
+        "skipWs": true
     },
     "whitebit": {
         "skipWs": true,
