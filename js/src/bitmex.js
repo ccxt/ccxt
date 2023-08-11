@@ -2204,6 +2204,8 @@ export default class bitmex extends Exchange {
             'marginMode': marginMode,
             'marginRatio': undefined,
             'percentage': this.safeNumber(position, 'unrealisedPnlPcnt'),
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

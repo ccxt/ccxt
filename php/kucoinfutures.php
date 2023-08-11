@@ -1066,6 +1066,8 @@ class kucoinfutures extends kucoin {
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

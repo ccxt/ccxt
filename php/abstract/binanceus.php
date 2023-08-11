@@ -1609,8 +1609,17 @@ abstract class binanceus extends \ccxt\binance {
     public function private_get_mypreventedmatches($params = array()) {
         return $this->request('myPreventedMatches', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_myallocations($params = array()) {
+        return $this->request('myAllocations', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_post_order_oco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_sor_order($params = array()) {
+        return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_sor_order_test($params = array()) {
+        return $this->request('sor/order/test', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_order($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -3418,8 +3427,17 @@ abstract class binanceus extends \ccxt\binance {
     public function privateGetMyPreventedMatches($params = array()) {
         return $this->request('myPreventedMatches', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetMyAllocations($params = array()) {
+        return $this->request('myAllocations', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function privatePostOrderOco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSorOrder($params = array()) {
+        return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSorOrderTest($params = array()) {
+        return $this->request('sor/order/test', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOrder($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));

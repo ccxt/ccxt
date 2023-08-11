@@ -37,6 +37,9 @@ class idex extends \ccxt\async\idex {
                 'watchOrderBookLimit' => 1000, // default limit
                 'orderBookSubscriptions' => array(),
                 'token' => null,
+                'watchOrderBook' => array(
+                    'snapshotMaxRetries' => 3,
+                ),
                 'fetchOrderBookSnapshotMaxAttempts' => 10,
                 'fetchOrderBookSnapshotMaxDelay' => 10000, // throw if there are no orders in 10 seconds
             ),
@@ -365,7 +368,7 @@ class idex extends \ccxt\async\idex {
             try {
                 $limit = $this->safe_integer($subscription, 'limit', 0);
                 // 3. Request a level-2 order book $snapshot for the $market from the REST API Order Books endpoint with $limit set to 0.
-                $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit));
                 $firstBuffered = $this->safe_value($orderbook->cache, 0);
                 $firstData = $this->safe_value($firstBuffered, 'data');
                 $firstNonce = $this->safe_integer($firstData, 'u');

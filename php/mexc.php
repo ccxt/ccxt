@@ -158,7 +158,7 @@ class mexc extends Exchange {
                             'order' => 1,
                             'openOrders' => 1,
                             'allOrders' => 1,
-                            'account' => 1,
+                            'account' => 10,
                             'myTrades' => 1,
                             'sub-account/list' => 1,
                             'sub-account/apiKey' => 1,
@@ -199,7 +199,7 @@ class mexc extends Exchange {
                             'sub-account/apiKey' => 1,
                             'sub-account/futures' => 1,
                             'sub-account/margin' => 1,
-                            'batchOrders' => 1,
+                            'batchOrders' => 10,
                             'capital/withdraw/apply' => 1,
                             'capital/transfer' => 1,
                             'capital/deposit/address' => 1,
@@ -229,8 +229,8 @@ class mexc extends Exchange {
                     'public' => array(
                         'get' => array(
                             'ping' => 2,
-                            'detail' => 2,
-                            'support_currencies' => 2, // TODO => should we implement 'fetchCurrencies' solely for swap? because spot doesnt have it atm
+                            'detail' => 100,
+                            'support_currencies' => 2,
                             'depth/{symbol}' => 2,
                             'depth_commits/{symbol}/{limit}' => 2,
                             'index_price/{symbol}' => 2,
@@ -295,7 +295,7 @@ class mexc extends Exchange {
                             'market/symbols' => 1,
                             'market/coin/list' => 2,
                             'common/timestamp' => 1,
-                            'common/ping' => 1,
+                            'common/ping' => 2,
                             'market/ticker' => 1,
                             'market/depth' => 1,
                             'market/deals' => 1,
@@ -4504,6 +4504,9 @@ class mexc extends Exchange {
             'marginRatio' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'hedged' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
             'lastUpdateTimestamp' => null,
         ));
     }

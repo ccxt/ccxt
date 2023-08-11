@@ -4015,8 +4015,8 @@ export default class gate extends Exchange {
         //        "order_type": ""
         //    }
         //
-        const put = this.safeValue2 (order, 'put', 'initial');
-        const trigger = this.safeValue (order, 'trigger');
+        const put = this.safeValue2 (order, 'put', 'initial', {});
+        const trigger = this.safeValue (order, 'trigger', {});
         let contract = this.safeString (put, 'contract');
         let type = this.safeString (put, 'type');
         let timeInForce = this.safeStringUpper2 (put, 'time_in_force', 'tif');
@@ -4819,6 +4819,8 @@ export default class gate extends Exchange {
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
 

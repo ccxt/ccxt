@@ -214,6 +214,7 @@ class tokocrypto extends Exchange {
             'precisionMode' => DECIMAL_PLACES,
             'options' => array(
                 // 'fetchTradesMethod' => 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
+                'createMarketBuyOrderRequiresPrice' => true,
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 // 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
@@ -1479,14 +1480,13 @@ class tokocrypto extends Exchange {
         $filled = $this->safe_string($order, 'executedQty', '0');
         $timestamp = $this->safe_integer($order, 'createTime');
         $average = $this->safe_string($order, 'avgPrice');
-        $price = $this->safe_string($order, 'price');
+        $price = $this->safe_string_2($order, 'price', 'executedPrice');
         $amount = $this->safe_string($order, 'origQty');
         // - Spot/Margin $market => cummulativeQuoteQty
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
-        $cost = $this->safe_string_2($order, 'cummulativeQuoteQty', 'cumQuote');
-        $cost = $this->safe_string($order, 'cumBase', $cost);
+        $cost = $this->safe_string_n($order, array( 'cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase' ));
         $id = $this->safe_string($order, 'orderId');
-        $type = $this->safe_string_lower($order, 'type');
+        $type = $this->parse_order_type($this->safe_string_lower($order, 'type'));
         $side = $this->safe_string_lower($order, 'side');
         if ($side === '0') {
             $side = 'buy';
@@ -1494,16 +1494,13 @@ class tokocrypto extends Exchange {
             $side = 'sell';
         }
         $fills = $this->safe_value($order, 'fills', array());
-        $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             $timeInForce = 'PO';
         }
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'PO');
-        if ($type === 'limit_maker') {
-            $type = 'limit';
-        }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
         return $this->safe_order(array(
@@ -1533,11 +1530,22 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
+    public function parse_order_type($status) {
+        $statuses = array(
+            '2' => 'market',
+            '1' => 'limit',
+            '4' => 'limit',
+            '7' => 'limit',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
-             * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
              * create a trade order
+             * @see https://www.tokocrypto.com/apidocs/#new-order--signed
+             * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1619,18 +1627,19 @@ class tokocrypto extends Exchange {
             //     LIMIT_MAKER          quantity, $price
             //
             if ($uppercaseType === 'MARKET') {
-                $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
-                if ($quoteOrderQty) {
-                    $quoteOrderQtyInner = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
-                    $precision = $market['precision']['price'];
-                    if ($quoteOrderQtyInner !== null) {
-                        $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyInner, TRUNCATE, $precision, $this->precisionMode);
-                        $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
-                    } elseif ($price !== null) {
-                        $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
-                    } else {
-                        $quantityIsRequired = true;
-                    }
+                $quoteOrderQtyInner = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
+                if ($this->options['createMarketBuyOrderRequiresPrice'] && ($side === 'buy') && ($price === null) && ($quoteOrderQtyInner === null)) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the $amount parameter');
+                }
+                $precision = $market['precision']['price'];
+                if ($quoteOrderQtyInner !== null) {
+                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyInner, TRUNCATE, $precision, $this->precisionMode);
+                    $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
+                } elseif ($price !== null) {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $quoteOrderQty = Precise::string_mul($amountString, $priceString);
+                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
                 } else {
                     $quantityIsRequired = true;
                 }
