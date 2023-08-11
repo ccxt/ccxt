@@ -312,20 +312,7 @@ export default class binance extends binanceRest {
                 }
             }
             this.orderbooks[symbol] = orderbook;
-            // if (!messageHash.startsWith ('multipleOrderbook')) {
             client.resolve (orderbook, messageHash);
-            // }
-            // watchMultipleOrderbook part
-            // const messageHashes = this.findMessageHashes (client, 'multipleOrderbook::');
-            // for (let i = 0; i < messageHashes.length; i++) {
-            //     const messageHash = messageHashes[i];
-            //     const parts = messageHash.split ('::');
-            //     const symbolsString = parts[1];
-            //     const symbols = symbolsString.split (',');
-            //     if (this.inArray (symbol, symbols)) {
-            //         client.resolve (orderbook, messageHash);
-            //     }
-            // }
         } catch (e) {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
