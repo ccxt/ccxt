@@ -101,9 +101,9 @@ export default class lbank2 extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
                 'api': {
                     'rest': 'https://api.lbank.info',
+                    'contract': 'https://lbkperp.lbank.com',
                 },
                 'api2': 'https://api.lbkex.com',
-                'contract': 'https://lbkperp.lbank.com',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://www.lbank.info/en-US/docs/index.html',
                 'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
@@ -2420,7 +2420,7 @@ export default class lbank2 extends Exchange {
         if (api[0] === 'spot') {
             url += '.do';
         } else {
-            url = this.urls['contract'] + '/' + this.implodeParams (path, params);
+            url = this.urls['api']['contract'] + '/' + this.implodeParams (path, params);
         }
         if (api[1] === 'public') {
             if (Object.keys (query).length) {
