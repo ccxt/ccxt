@@ -1572,6 +1572,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
     }
 
+    async watchOHLCVForSymbols (symbols: string[], timeframes = [ '1m' ], since: Int = undefined, limit: Int = undefined, params = {}) {
+        throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
+    }
+
     async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchDepositAddresses() is not supported yet');
     }
