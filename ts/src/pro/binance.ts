@@ -315,7 +315,7 @@ export default class binance extends binanceRest {
             // if (!messageHash.startsWith ('multipleOrderbook')) {
             client.resolve (orderbook, messageHash);
             // }
-            // watchMultipleOrderbook part
+            // watchOrderbookForSymbols part
             // const messageHashes = this.findMessageHashes (client, 'multipleOrderbook::');
             // for (let i = 0; i < messageHashes.length; i++) {
             //     const messageHash = messageHashes[i];
@@ -421,7 +421,7 @@ export default class binance extends binanceRest {
                             this.handleOrderBookMessage (client, message, orderbook);
                             if (nonce < orderbook['nonce']) {
                                 client.resolve (orderbook, messageHash);
-                                // watchMultipleOrderbook part (dry logic)
+                                // watchOrderBookForSymbols part (dry logic)
                                 this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbook::', symbol, orderbook);
                             }
                         } else {
@@ -439,7 +439,7 @@ export default class binance extends binanceRest {
                             this.handleOrderBookMessage (client, message, orderbook);
                             if (nonce <= orderbook['nonce']) {
                                 client.resolve (orderbook, messageHash);
-                                // watchMultipleOrderbook part (dry logic)
+                                // watchOrderBookForSymbols part (dry logic)
                                 this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbook::', symbol, orderbook);
                             }
                         } else {
@@ -473,7 +473,7 @@ export default class binance extends binanceRest {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
-        const symbols = this.safeValue (subscription, 'symbols', [ symbol ]); // watchMultipleOrderBook
+        const symbols = this.safeValue (subscription, 'symbols', [ symbol ]); // watchOrderBookForSymbols
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
@@ -508,7 +508,7 @@ export default class binance extends binanceRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name binance#watchMultipleTrades
+         * @name binance#watchTradesForSymbols
          * @description get the list of most recent trades for a list of symbols
          * @param {string[]} symbols unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -774,7 +774,7 @@ export default class binance extends binanceRest {
         tradesArray.append (trade);
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, messageHash);
-        // watchMultipleTrades part
+        // watchTradesForSymbols part
         this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, tradesArray);
     }
 
@@ -826,7 +826,7 @@ export default class binance extends binanceRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchMultipleOHLCV (symbols: string[], timeframes = [ '1m' ], since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCVForSymbols (symbols: string[], timeframes = [ '1m' ], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOHLCV
@@ -953,7 +953,7 @@ export default class binance extends binanceRest {
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
-        // watchMultipleOHLCV part
+        // watchOHLCVForSymbols part
         const messageHashes = this.findMessageHashes (client, 'multipleOHLCV::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
