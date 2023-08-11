@@ -74,6 +74,7 @@ export default class lbank2 extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
@@ -289,6 +290,47 @@ export default class lbank2 extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://www.lbank.info/en-US/docs/index.html#get-timestamp
+         * @see https://www.lbank.com/en-US/docs/contract.html#get-the-current-time
+         * @param {object} [params] extra parameters specific to the lbank2 api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.contractPublicGetCfdOpenApiV1PubGetTime (params);
+        } else {
+            response = await this.spotPublicGetTimestamp (params);
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "result": "true",
+        //         "data": 1691789627950,
+        //         "error_code": 0,
+        //         "ts": 1691789627950
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "data": 1691789627950,
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
+        //     }
+        //
+        return this.safeInteger (response, 'data');
     }
 
     async fetchMarkets (params = {}) {
