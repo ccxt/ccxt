@@ -243,7 +243,7 @@ export default class binance extends binanceRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const messageHash = market['lowercaseId'] + '@' + name + watchOrderBookRate + 'ms';
+            const messageHash = market['lowercaseId'] + '@' + name + '@' + watchOrderBookRate + 'ms';
             subParams.push (messageHash);
         }
         const request = {
