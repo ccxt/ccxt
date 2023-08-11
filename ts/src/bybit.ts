@@ -4449,331 +4449,6 @@ export default class bybit extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyUnifiedTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        const request = {
-            // 'symbol': market['id'],
-            // 'category': '', // Product type. spot,linear,option
-            // 'orderId': '', // Order ID
-            // 'orderLinkId': '', // User customised order ID
-            // 'baseCoin': '', // Base coin
-            // 'startTime': 0, // The start timestamp (ms)
-            // 'endTime': 0, // The end timestamp (ms)
-            // 'execType': '', // Execution type
-            // 'limit': 0, // Limit for data size per page. [1, 100]. Default: 50
-            // 'cursor': '', // Cursor. Used for pagination
-        };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        if (type === 'spot') {
-            request['category'] = 'spot';
-        } else {
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
-            if (subType === 'inverse') {
-                throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + subType + ' markets.');
-            }
-            request['category'] = subType;
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 20, max 50
-        }
-        const response = await this.privateGetV5ExecutionList (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "nextPageCursor": "132766%3A2%2C132766%3A2",
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "symbol": "ETHPERP",
-        //                     "orderType": "Market",
-        //                     "underlyingPrice": "",
-        //                     "orderLinkId": "",
-        //                     "side": "Buy",
-        //                     "indexPrice": "",
-        //                     "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
-        //                     "stopOrderType": "UNKNOWN",
-        //                     "leavesQty": "0",
-        //                     "execTime": "1672282722429",
-        //                     "isMaker": false,
-        //                     "execFee": "0.071409",
-        //                     "feeRate": "0.0006",
-        //                     "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
-        //                     "tradeIv": "",
-        //                     "blockTradeId": "",
-        //                     "markPrice": "1183.54",
-        //                     "execPrice": "1190.15",
-        //                     "markIv": "",
-        //                     "orderQty": "0.1",
-        //                     "orderPrice": "1236.9",
-        //                     "execValue": "119.015",
-        //                     "execType": "Trade",
-        //                     "execQty": "0.1"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672283754510
-        //     }
-        //
-        const trades = this.addPaginationCursorToResult (response);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchMySpotTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMySpotTrades() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            // 'orderId': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
-            // 'startTime': parseInt (since / 1000),
-            // 'endTime': 0,
-            // 'fromTradeId': '',
-            // 'toTradeId': '',
-            // 'limit' 20, // max 50
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 20, max 50
-        }
-        const response = await this.privateGetSpotV3PrivateMyTrades (this.extend (request, params));
-        //
-        //    {
-        //         "retCode": "0",
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "symbol": "AAVEUSDT",
-        //                     "id": "1274785101965716992",
-        //                     "orderId": "1274784252359089664",
-        //                     "tradeId": "2270000000031365639",
-        //                     "orderPrice": "82.5",
-        //                     "orderQty": "0.016",
-        //                     "execFee": "0",
-        //                     "feeTokenId": "AAVE",
-        //                     "creatTime": "1666702226326",
-        //                     "isBuyer": "0",
-        //                     "isMaker": "0",
-        //                     "matchOrderId": "1274785101865076224",
-        //                     "makerRebate": "0",
-        //                     "executionTime": "1666702226335"
-        //                 },
-        //             ]
-        //         },
-        //         "retExtMap": {},
-        //         "retExtInfo": null,
-        //         "time": "1666768215157"
-        //     }
-        //
-        const trades = this.addPaginationCursorToResult (response);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchMyUnifiedMarginTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let settle = undefined;
-        const request = {
-            // 'symbol': market['id'],
-            // 'orderId': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
-            // 'startTime': parseInt (since / 1000),
-            // 'endTime': 0,
-            // 'category': ''
-            // 'limit' 20, // max 50
-        };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            settle = market['settle'];
-            request['symbol'] = market['id'];
-        }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params, 'linear');
-        request['category'] = subType;
-        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
-        if (settle !== undefined) {
-            request['settleCoin'] = settle;
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 20, max 50
-        }
-        const response = await this.privateGetUnifiedV3PrivateExecutionList (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "Success",
-        //         "result": {
-        //             "nextPageCursor": "1565%3A0%2C1565%3A0",
-        //             "category": "option",
-        //             "list": [
-        //                 {
-        //                     "orderType": "Limit",
-        //                     "symbol": "BTC-14JUL22-17500-C",
-        //                     "orderLinkId": "188889689-yuanzhen-558998998899",
-        //                     "side": "Buy",
-        //                     "orderId": "09c5836f-81ef-4208-a5b4-43135d3e02a2",
-        //                     "leavesQty": "0.0000",
-        //                     "execTime": 1657714122417,
-        //                     "execFee": "0.11897082",
-        //                     "feeRate": "0.000300",
-        //                     "execId": "6e492560-78b4-5d2b-b331-22921d3173c9",
-        //                     "blockTradeId": "",
-        //                     "execPrice": "2360.00000000",
-        //                     "lastLiquidityInd": "TAKER",
-        //                     "orderQty": "0.0200",
-        //                     "orderPrice": "2360.00000000",
-        //                     "execValue": "47.20000000",
-        //                     "execType": "Trade",
-        //                     "execQty": "0.0200"
-        //                 }
-        //             ]
-        //         },
-        //         "time": 1657714292783
-        //     }
-        //
-        const trades = this.addPaginationCursorToResult (response);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchMyContractTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyContractTrades() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        let market = undefined;
-        const request = {
-            // 'symbol': market['id'],
-            // 'category': '', // Product type. spot,linear,option
-            // 'orderId': '', // Order ID
-            // 'orderLinkId': '', // User customised order ID
-            // 'baseCoin': '', // Base coin
-            // 'startTime': 0, // The start timestamp (ms)
-            // 'endTime': 0, // The end timestamp (ms)
-            // 'execType': '', // Execution type
-            // 'limit': 0, // Limit for data size per page. [1, 100]. Default: 50
-            // 'cursor': '', // Cursor. Used for pagination
-        };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
-        request['category'] = subType;
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 50, max 100
-        }
-        const response = await this.privateGetV5ExecutionList (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "nextPageCursor": "132766%3A2%2C132766%3A2",
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "symbol": "ETHPERP",
-        //                     "orderType": "Market",
-        //                     "underlyingPrice": "",
-        //                     "orderLinkId": "",
-        //                     "side": "Buy",
-        //                     "indexPrice": "",
-        //                     "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
-        //                     "stopOrderType": "UNKNOWN",
-        //                     "leavesQty": "0",
-        //                     "execTime": "1672282722429",
-        //                     "isMaker": false,
-        //                     "execFee": "0.071409",
-        //                     "feeRate": "0.0006",
-        //                     "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
-        //                     "tradeIv": "",
-        //                     "blockTradeId": "",
-        //                     "markPrice": "1183.54",
-        //                     "execPrice": "1190.15",
-        //                     "markIv": "",
-        //                     "orderQty": "0.1",
-        //                     "orderPrice": "1236.9",
-        //                     "execValue": "119.015",
-        //                     "execType": "Trade",
-        //                     "execQty": "0.1"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672283754510
-        //     }
-        //
-        const trades = this.addPaginationCursorToResult (response);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchMyUsdcTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-            request['category'] = market['option'] ? 'OPTION' : 'PERPETUAL';
-        } else {
-            request['category'] = 'PERPETUAL';
-        }
-        const response = await this.privatePostOptionUsdcOpenapiPrivateV1ExecutionList (this.extend (request, params));
-        //
-        //     {
-        //       "result": {
-        //         "cursor": "29%3A1%2C28%3A1",
-        //         "resultTotalSize": 2,
-        //         "dataList": [
-        //           {
-        //             "symbol": "ETHPERP",
-        //             "orderLinkId": "",
-        //             "side": "Sell",
-        //             "orderId": "d83f8b4d-2f60-4e04-a64a-a3f207989dc6",
-        //             "execFee": "0.0210",
-        //             "feeRate": "0.000600",
-        //             "blockTradeId": "",
-        //             "tradeTime": "1669196423581",
-        //             "execPrice": "1161.45",
-        //             "lastLiquidityInd": "TAKER",
-        //             "execValue": "34.8435",
-        //             "execType": "Trade",
-        //             "execQty": "0.030",
-        //             "tradeId": "d9aa8590-9e6a-575e-a1be-d6261e6ed2e5"
-        //           }, ...
-        //         ]
-        //       },
-        //       "retCode": 0,
-        //       "retMsg": "Success."
-        //     }
-        //
-        const dataList = this.addPaginationCursorToResult (response);
-        return this.parseTrades (dataList, market, since, limit);
-    }
-
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -4786,40 +4461,106 @@ export default class bybit extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        const request = {};
         let market = undefined;
-        let settle = this.safeString (params, 'settleCoin');
-        if (settle === undefined) {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'settle', settle);
-        }
+        let type = this.safeString (params, 'type', 'linear');
+        params = this.omit (params, 'type');
         if (symbol !== undefined) {
             market = this.market (symbol);
-            settle = market['settle'];
-        }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
-        const isInverse = subType === 'inverse';
-        const isUsdcSettled = settle === 'USDC';
-        const isLinearSettle = isUsdcSettled || (settle === 'USDT');
-        if (isInverse && isLinearSettle) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades with inverse subType requires settle to not be USDT or USDC');
-        }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount && !isInverse) {
-            const orderId = this.safeString (params, 'orderId');
-            if (orderId === undefined && type !== 'spot') {
-                this.checkRequiredSymbol ('fetchMyTrades', symbol);
+            const isUsdcSettled = market['settle'] === 'USDC';
+            if (isUsdcSettled && !isUnifiedAccount) {
+                throw new NotSupported (this.id + ' fetchMyTrades() Normal Account not support USDC contract');
             }
-            return await this.fetchMyUnifiedTrades (symbol, since, limit, query);
-        } else if (type === 'spot') {
-            return await this.fetchMySpotTrades (symbol, since, limit, query);
-        } else if (enableUnifiedMargin && !isInverse) {
-            return await this.fetchMyUnifiedMarginTrades (symbol, since, limit, query);
-        } else if (isUsdcSettled) {
-            return await this.fetchMyUsdcTrades (symbol, since, limit, query);
+            request['symbol'] = market['id'];
+            if (market['spot']) {
+                type = 'spot';
+            } else if (market['linear']) {
+                type = 'linear';
+            } else if (market['inverse']) {
+                type = 'inverse';
+            } else if (market['option'] && isUnifiedAccount) {
+                type = 'option';
+            } else {
+                throw new NotSupported (this.id + ' fetchMyTrades() ' + symbol + ' market type not support');
+            }
         } else {
-            return await this.fetchMyContractTrades (symbol, since, limit, query);
+            if (type === 'option') {
+                if (!isUnifiedAccount) {
+                    throw new NotSupported (this.id + ' fetchMyTrades() Normal Account not support ' + type + ' market');
+                }
+            }
         }
+        request['category'] = type;
+        const isStop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, [ 'stop' ]);
+        if (isStop) {
+            if (type === 'spot') {
+                request['orderFilter'] = 'tpslOrder';
+            } else {
+                request['orderFilter'] = 'StopOrder';
+            }
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'till', 'until' ]);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        } else {
+            if (since !== undefined) {
+                throw new BadRequest (this.id + ' fetchOrders() requires until/endTime when since is provided.');
+            }
+        }
+        const response = await this.privateGetV5ExecutionList (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "nextPageCursor": "132766%3A2%2C132766%3A2",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHPERP",
+        //                     "orderType": "Market",
+        //                     "underlyingPrice": "",
+        //                     "orderLinkId": "",
+        //                     "side": "Buy",
+        //                     "indexPrice": "",
+        //                     "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
+        //                     "stopOrderType": "UNKNOWN",
+        //                     "leavesQty": "0",
+        //                     "execTime": "1672282722429",
+        //                     "isMaker": false,
+        //                     "execFee": "0.071409",
+        //                     "feeRate": "0.0006",
+        //                     "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
+        //                     "tradeIv": "",
+        //                     "blockTradeId": "",
+        //                     "markPrice": "1183.54",
+        //                     "execPrice": "1190.15",
+        //                     "markIv": "",
+        //                     "orderQty": "0.1",
+        //                     "orderPrice": "1236.9",
+        //                     "execValue": "119.015",
+        //                     "execType": "Trade",
+        //                     "execQty": "0.1"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672283754510
+        //     }
+        //
+        const trades = this.addPaginationCursorToResult (response);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
