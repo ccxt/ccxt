@@ -1482,7 +1482,7 @@ export default class tokocrypto extends Exchange {
         let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
         cost = this.safeString (order, 'cumBase', cost);
         const id = this.safeString (order, 'orderId');
-        let type = this.safeStringLower (order, 'type');
+        const type = this.parseOrderType (this.safeStringLower (order, 'type'));
         let side = this.safeStringLower (order, 'side');
         if (side === '0') {
             side = 'buy';
@@ -1497,9 +1497,6 @@ export default class tokocrypto extends Exchange {
             timeInForce = 'PO';
         }
         const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
-        if (type === 'limit_maker') {
-            type = 'limit';
-        }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
         return this.safeOrder ({
@@ -1527,6 +1524,16 @@ export default class tokocrypto extends Exchange {
             'fee': undefined,
             'trades': fills,
         }, market);
+    }
+
+    parseOrderType (status) {
+        const statuses = {
+            '2': 'market',
+            '1': 'limit',
+            '4': 'limit',
+            '7': 'limit',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
