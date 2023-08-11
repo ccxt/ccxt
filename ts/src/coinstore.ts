@@ -939,7 +939,7 @@ export default class coinstore extends Exchange {
          * @param {object} [body] body to use for the request
          * @returns {object} an associative dictionary of currencies
          */
-        let url = this['urls']['api']['spot'];
+        let url = this.urls['api']['spot'];
         url = this.implodeHostname (url);
         // v1 api implodes 'symbol' for some endpoints
         path = this.implodeParams (path, params);
