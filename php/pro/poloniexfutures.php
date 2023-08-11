@@ -45,7 +45,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
                 'watchOrderBook' => array(
                     'method' => '/contractMarket/level2', // can also be '/contractMarket/level3v2'
                     'snapshotDelay' => 5,
-                    'maxRetries' => 3,
+                    'snapshotMaxRetries' => 3,
                 ),
                 'streamLimit' => 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash' => array(),

@@ -248,6 +248,8 @@ class bitget(Exchange, ImplicitAPI):
                             'plan/currentPlan': 1,
                             'plan/historyPlan': 1,
                             'plan/batchCancelPlan': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'convert/quoted-price': 4,
+                            'convert/trade': 4,
                             'trace/order/orderCurrentList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/order/orderHistoryList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/order/closeTrackingOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
@@ -261,16 +263,14 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/user/myFollowers': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/config/setProductCode': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/user/removeTrader': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/getRemovableFollower': 2,
+                            'trace/user/removeFollower': 2,
                             'trace/profit/totalProfitInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/profit/totalProfitList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/profit/profitHisList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/profit/profitHisDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/profit/waitProfitDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/user/getTraderInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'trace/getRemovableFollower': 2,
-                            'trace/user/removeFollower': 2,
-                            'convert/quoted-price': 4,
-                            'convert/trade': 4,
                         },
                     },
                     'mix': {
@@ -334,6 +334,7 @@ class bitget(Exchange, ImplicitAPI):
                             'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/modifyTPSL': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/closeTrackOrderBySymbol': 2,
                             'trace/setUpCopySymbols': 2,
                             'trace/followerSetBatchTraceConfig': 2,
                             'trace/followerCloseByTrackingNo': 2,
@@ -349,7 +350,6 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/report/order/currentList': 2,  # 10 times/1s(IP) => 20/10 = 2
                             'trace/queryTraderTpslRatioConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/traderUpdateTpslRatioConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'trace/closeTrackOrderBySymbol': 2,
                         },
                     },
                     'user': {
@@ -430,6 +430,10 @@ class bitget(Exchange, ImplicitAPI):
                             'isolated/account/riskRate': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'cross/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'isolated/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/flashRepay': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/queryFlashRepayStatus': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/flashRepay': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/queryFlashRepayStatus': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'isolated/order/placeOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'isolated/order/batchPlaceOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'isolated/order/cancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2

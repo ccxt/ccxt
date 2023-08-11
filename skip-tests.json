@@ -1353,7 +1353,10 @@
     },
     "bingx": {
         "skipMethods": {
-            "loadMarkets": "some coins not detected",
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            },
             "fetchTrades": {
                 "side": "undefined"
             },
@@ -1367,7 +1370,8 @@
                 "precision": "not provided"
             },
             "fetchOrderBook": {
-                "ask": "multiple ask prices are equal in ob https://app.travis-ci.com/github/ccxt/ccxt/builds/264706670#L2228"
+                "ask": "multiple ask prices are equal in ob https://app.travis-ci.com/github/ccxt/ccxt/builds/264706670#L2228",
+                "bid": "multiple similar bid prices"
             }
         }
     }

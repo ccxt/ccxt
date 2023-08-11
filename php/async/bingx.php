@@ -12,7 +12,6 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
-use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -97,6 +96,7 @@ class bingx extends Exchange {
                                 'common/symbols' => 3,
                                 'market/trades' => 3,
                                 'market/depth' => 3,
+                                'market/kline' => 3,
                             ),
                         ),
                         'private' => array(
@@ -109,6 +109,7 @@ class bingx extends Exchange {
                             'post' => array(
                                 'trade/order' => 3,
                                 'trade/cancel' => 3,
+                                'trade/batchOrders' => 3,
                             ),
                         ),
                     ),
@@ -561,6 +562,7 @@ class bingx extends Exchange {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
+             * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -584,10 +586,12 @@ class bingx extends Exchange {
             } else {
                 $request['limit'] = 50;
             }
+            $response = null;
             if ($market['spot']) {
-                throw new NotSupported($this->id . ' fetchOHLCV is not supported for spot markets');
+                $response = Async\await($this->spotV1PublicGetMarketKline (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->swapV2PublicGetQuoteKlines (array_merge($request, $params)));
             }
-            $response = Async\await($this->swapV2PublicGetQuoteKlines (array_merge($request, $params)));
             //
             //    {
             //        "code" => 0,
@@ -606,7 +610,7 @@ class bingx extends Exchange {
             //    }
             //
             $ohlcvs = $this->safe_value($response, 'data', array());
-            if (gettype($ohlcvs) === 'array') {
+            if (gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs))) {
                 $ohlcvs = array( $ohlcvs );
             }
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
@@ -623,7 +627,28 @@ class bingx extends Exchange {
         //        "volume" => "167.44",
         //        "time" => 1666584000000
         //    }
+        // spot
+        //    array(
+        //        1691402580000,
+        //        29093.61,
+        //        29093.93,
+        //        29087.73,
+        //        29093.24,
+        //        0.59,
+        //        1691402639999,
+        //        17221.07
+        //    )
         //
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
+            return array(
+                $this->safe_integer($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+                $this->safe_number($ohlcv, 5),
+            );
+        }
         return array(
             $this->safe_integer($ohlcv, 'time'),
             $this->safe_number($ohlcv, 'open'),
@@ -745,6 +770,12 @@ class bingx extends Exchange {
             $time = $this->parse8601($datetimeId);
         }
         $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
+        $takeOrMaker = null;
+        if ($isBuyerMaker) {
+            $takeOrMaker = 'maker';
+        } elseif ($isBuyerMaker !== null) {
+            $takeOrMaker = 'taker';
+        }
         $cost = $this->safe_string($trade, 'quoteQty');
         $type = ($cost === null) ? 'spot' : 'swap';
         $currencyId = $this->safe_string($trade, 'currency');
@@ -758,7 +789,7 @@ class bingx extends Exchange {
             'order' => null,
             'type' => null,
             'side' => null,
-            'takerOrMaker' => ($isBuyerMaker === true) ? 'maker' : 'taker',
+            'takerOrMaker' => $takeOrMaker,
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string_2($trade, 'qty', 'amount'),
             'cost' => $cost,
@@ -1662,10 +1693,11 @@ class bingx extends Exchange {
             'currency' => $this->safe_string($order, 'feeAsset'),
             'rate' => $this->safe_string_2($order, 'fee', 'commission'),
         );
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $orderId,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1695,6 +1727,7 @@ class bingx extends Exchange {
             'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
+            'CANCELLED' => 'canceled',
             'FAILED' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
