@@ -453,14 +453,16 @@
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
             "fetchTickers": {
+                "symbol": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265171549#L2518",
                 "percentage": "broken",
                 "bid": "messed bid-ask",
                 "ask": "messed bid-ask"
             },
             "fetchTicker": {
-                "percentage": "broken",
-                "bid": "messed bid-ask",
-                "ask": "messed bid-ask"
+                "percentage": "",
+                "symbol": "",
+                "bid": "",
+                "ask": ""
             }
         }
     },
@@ -485,8 +487,6 @@
         }
     },
     "bybit": {
-        "httpsProxy": "http://51.83.140.52:21800",
-        "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": {
                 "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT"
