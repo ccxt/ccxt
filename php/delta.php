@@ -1675,6 +1675,8 @@ class delta extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => null,
             'marginRatio' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         );
     }
 

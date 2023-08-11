@@ -4793,6 +4793,8 @@ export default class gate extends Exchange {
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async fetchPosition(symbol, params = {}) {

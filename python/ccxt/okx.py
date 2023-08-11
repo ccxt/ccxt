@@ -4749,6 +4749,8 @@ class okx(Exchange, ImplicitAPI):
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'leverage': self.parse_number(leverageString),
             'marginRatio': marginRatio,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):

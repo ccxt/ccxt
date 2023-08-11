@@ -6687,35 +6687,35 @@ class huobi extends huobi$1 {
     }
     parsePosition(position, market = undefined) {
         //
-        //     {
-        //       symbol: 'BTC',
-        //       contract_code: 'BTC-USDT',
-        //       volume: '1.000000000000000000',
-        //       available: '1.000000000000000000',
-        //       frozen: '0E-18',
-        //       cost_open: '47162.000000000000000000',
-        //       cost_hold: '47151.300000000000000000',
-        //       profit_unreal: '0.007300000000000000',
-        //       profit_rate: '-0.000144183876850008',
-        //       lever_rate: '2',
-        //       position_margin: '23.579300000000000000',
-        //       direction: 'buy',
-        //       profit: '-0.003400000000000000',
-        //       last_price: '47158.6',
-        //       margin_asset: 'USDT',
-        //       margin_mode: 'isolated',
-        //       margin_account: 'BTC-USDT',
-        //       margin_balance: '24.973020070000000000',
-        //       margin_position: '23.579300000000000000',
-        //       margin_frozen: '0',
-        //       margin_available: '1.393720070000000000',
-        //       profit_real: '0E-18',
-        //       risk_rate: '1.044107779705080303',
-        //       withdraw_available: '1.386420070000000000000000000000000000',
-        //       liquidation_price: '22353.229148614609571788',
-        //       adjust_factor: '0.015000000000000000',
-        //       margin_static: '24.965720070000000000'
-        //     }
+        //    {
+        //        symbol: 'BTC',
+        //        contract_code: 'BTC-USDT',
+        //        volume: '1.000000000000000000',
+        //        available: '1.000000000000000000',
+        //        frozen: '0E-18',
+        //        cost_open: '47162.000000000000000000',
+        //        cost_hold: '47151.300000000000000000',
+        //        profit_unreal: '0.007300000000000000',
+        //        profit_rate: '-0.000144183876850008',
+        //        lever_rate: '2',
+        //        position_margin: '23.579300000000000000',
+        //        direction: 'buy',
+        //        profit: '-0.003400000000000000',
+        //        last_price: '47158.6',
+        //        margin_asset: 'USDT',
+        //        margin_mode: 'isolated',
+        //        margin_account: 'BTC-USDT',
+        //        margin_balance: '24.973020070000000000',
+        //        margin_position: '23.579300000000000000',
+        //        margin_frozen: '0',
+        //        margin_available: '1.393720070000000000',
+        //        profit_real: '0E-18',
+        //        risk_rate: '1.044107779705080303',
+        //        withdraw_available: '1.386420070000000000000000000000000000',
+        //        liquidation_price: '22353.229148614609571788',
+        //        adjust_factor: '0.015000000000000000',
+        //        margin_static: '24.965720070000000000'
+        //    }
         //
         market = this.safeMarket(this.safeString(position, 'contract_code'));
         const symbol = market['symbol'];
@@ -6771,7 +6771,10 @@ class huobi extends huobi$1 {
             'marginRatio': this.parseNumber(marginRatio),
             'timestamp': undefined,
             'datetime': undefined,
+            'hedged': undefined,
             'lastUpdateTimestamp': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async fetchPositions(symbols = undefined, params = {}) {

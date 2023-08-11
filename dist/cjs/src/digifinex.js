@@ -3381,6 +3381,8 @@ class digifinex extends digifinex$1 {
             'leverage': this.safeNumber2(position, 'leverage', 'leverage_ratio'),
             'marginRatio': this.safeNumber(position, 'margin_ratio'),
             'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {

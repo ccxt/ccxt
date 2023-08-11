@@ -1094,6 +1094,8 @@ class poloniexfutures extends poloniexfutures$1 {
             'marginMode': marginMode,
             'side': side,
             'percentage': this.parseNumber(Precise["default"].stringDiv(unrealisedPnl, initialMargin)),
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

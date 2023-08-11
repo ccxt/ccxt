@@ -2092,6 +2092,8 @@ class bitmex(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'marginRatio': None,
             'percentage': self.safe_number(position, 'unrealisedPnlPcnt'),
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):

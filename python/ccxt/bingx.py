@@ -1359,6 +1359,8 @@ class bingx(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):

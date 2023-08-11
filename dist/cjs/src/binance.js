@@ -6866,6 +6866,7 @@ class binance extends binance$1 {
     parsePositionRisk(position, market = undefined) {
         //
         // usdm
+        //
         //     {
         //       "symbol": "BTCUSDT",
         //       "positionAmt": "0.001",
@@ -6885,6 +6886,7 @@ class binance extends binance$1 {
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol": "BTCUSD_PERP",
         //       "positionAmt": "2",
@@ -7035,6 +7037,8 @@ class binance extends binance$1 {
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
     async loadLeverageBrackets(reload = false, params = {}) {

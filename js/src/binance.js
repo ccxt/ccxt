@@ -6869,6 +6869,7 @@ export default class binance extends Exchange {
     parsePositionRisk(position, market = undefined) {
         //
         // usdm
+        //
         //     {
         //       "symbol": "BTCUSDT",
         //       "positionAmt": "0.001",
@@ -6888,6 +6889,7 @@ export default class binance extends Exchange {
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol": "BTCUSD_PERP",
         //       "positionAmt": "2",
@@ -7038,6 +7040,8 @@ export default class binance extends Exchange {
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
     async loadLeverageBrackets(reload = false, params = {}) {

@@ -6384,6 +6384,7 @@ class binance(Exchange, ImplicitAPI):
     def parse_position_risk(self, position, market=None):
         #
         # usdm
+        #
         #     {
         #       "symbol": "BTCUSDT",
         #       "positionAmt": "0.001",
@@ -6403,6 +6404,7 @@ class binance(Exchange, ImplicitAPI):
         #     }
         #
         # coinm
+        #
         #     {
         #       "symbol": "BTCUSD_PERP",
         #       "positionAmt": "2",
@@ -6536,6 +6538,8 @@ class binance(Exchange, ImplicitAPI):
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         }
 
     async def load_leverage_brackets(self, reload=False, params={}):

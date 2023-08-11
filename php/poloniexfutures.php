@@ -1077,6 +1077,8 @@ class poloniexfutures extends Exchange {
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         );
     }
 

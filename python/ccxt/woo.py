@@ -2417,6 +2417,9 @@ class woo(Exchange, ImplicitAPI):
             'marginType': None,
             'side': side,
             'percentage': None,
+            'hedged': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def default_network_code_for_currency(self, code):

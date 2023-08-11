@@ -7242,6 +7242,8 @@ class bybit(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'side': side,
             'percentage': None,
+            'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
+            'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
         })
 
     def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):

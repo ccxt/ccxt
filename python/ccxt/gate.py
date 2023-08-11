@@ -4546,6 +4546,8 @@ class gate(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'side': side,
             'percentage': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def fetch_position(self, symbol: str, params={}):

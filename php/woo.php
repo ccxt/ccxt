@@ -2545,6 +2545,9 @@ class woo extends Exchange {
             'marginType' => null,
             'side' => $side,
             'percentage' => null,
+            'hedged' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

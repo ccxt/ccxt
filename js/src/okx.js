@@ -5040,6 +5040,8 @@ export default class okx extends Exchange {
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'leverage': this.parseNumber(leverageString),
             'marginRatio': marginRatio,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {

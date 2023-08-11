@@ -2795,6 +2795,8 @@ class cryptocom(Exchange, ImplicitAPI):
             'marginMode': None,
             'percentage': None,
             'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def nonce(self):
