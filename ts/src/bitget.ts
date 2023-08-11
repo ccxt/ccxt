@@ -4157,6 +4157,8 @@ export default class bitget extends Exchange {
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'leverage': this.parseNumber (leverage),
             'marginRatio': this.parseNumber (marginRatio),
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
 

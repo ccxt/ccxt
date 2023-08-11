@@ -7728,6 +7728,8 @@ export default class bybit extends Exchange {
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
+            'stopLossPrice': this.safeNumber2 (position, 'stop_loss', 'stopLoss'),
+            'takeProfitPrice': this.safeNumber2 (position, 'take_profit', 'takeProfit'),
         });
     }
 
