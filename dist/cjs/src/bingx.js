@@ -2781,7 +2781,8 @@ class bingx extends bingx$1 {
             this.checkRequiredCredentials();
             params['timestamp'] = this.nonce();
             let query = this.urlencode(params);
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+            const rawQuery = this.rawencode(params);
+            const signature = this.hmac(this.encode(rawQuery), this.encode(this.secret), sha256.sha256);
             if (Object.keys(params).length) {
                 query = '?' + query + '&';
             }

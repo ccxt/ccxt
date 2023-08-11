@@ -2750,7 +2750,8 @@ class bingx extends Exchange {
             $this->check_required_credentials();
             $params['timestamp'] = $this->nonce();
             $query = $this->urlencode($params);
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
+            $rawQuery = $this->rawencode($params);
+            $signature = $this->hmac($this->encode($rawQuery), $this->encode($this->secret), 'sha256');
             if ($params) {
                 $query = '?' . $query . '&';
             } else {

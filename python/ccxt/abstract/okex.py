@@ -78,7 +78,7 @@ class ImplicitAPI:
     private_get_trade_orders_history = privateGetTradeOrdersHistory = Entry('trade/orders-history', 'private', 'GET', {'cost': 0.5})
     private_get_trade_orders_history_archive = privateGetTradeOrdersHistoryArchive = Entry('trade/orders-history-archive', 'private', 'GET', {'cost': 1})
     private_get_trade_fills = privateGetTradeFills = Entry('trade/fills', 'private', 'GET', {'cost': 0.3333333333333333})
-    private_get_trade_fills_history = privateGetTradeFillsHistory = Entry('trade/fills-history', 'private', 'GET', {'cost': 2})
+    private_get_trade_fills_history = privateGetTradeFillsHistory = Entry('trade/fills-history', 'private', 'GET', {'cost': 2.2})
     private_get_trade_order_algo = privateGetTradeOrderAlgo = Entry('trade/order-algo', 'private', 'GET', {'cost': 1})
     private_get_trade_orders_algo_pending = privateGetTradeOrdersAlgoPending = Entry('trade/orders-algo-pending', 'private', 'GET', {'cost': 1})
     private_get_trade_orders_algo_history = privateGetTradeOrdersAlgoHistory = Entry('trade/orders-algo-history', 'private', 'GET', {'cost': 1})

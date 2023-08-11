@@ -2639,7 +2639,8 @@ class bingx(Exchange, ImplicitAPI):
             self.check_required_credentials()
             params['timestamp'] = self.nonce()
             query = self.urlencode(params)
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
+            rawQuery = self.rawencode(params)
+            signature = self.hmac(self.encode(rawQuery), self.encode(self.secret), hashlib.sha256)
             if params:
                 query = '?' + query + '&'
             else:
