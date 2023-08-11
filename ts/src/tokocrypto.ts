@@ -1475,12 +1475,11 @@ export default class tokocrypto extends Exchange {
         const filled = this.safeString (order, 'executedQty', '0');
         const timestamp = this.safeInteger (order, 'createTime');
         const average = this.safeString (order, 'avgPrice');
-        const price = this.safeString (order, 'price');
+        const price = this.safeString2 (order, 'price', 'executedPrice');
         const amount = this.safeString (order, 'origQty');
         // - Spot/Margin market: cummulativeQuoteQty
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
-        cost = this.safeString (order, 'cumBase', cost);
+        const cost = this.safeStringN (order, [ 'cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase' ]);
         const id = this.safeString (order, 'orderId');
         const type = this.parseOrderType (this.safeStringLower (order, 'type'));
         let side = this.safeStringLower (order, 'side');
@@ -1490,7 +1489,7 @@ export default class tokocrypto extends Exchange {
             side = 'sell';
         }
         const fills = this.safeValue (order, 'fills', []);
-        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const clientOrderId = this.safeString2 (order, 'clientOrderId', 'clientId');
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
