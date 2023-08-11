@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.huobi import huobi
+from ccxt.abstract.huobipro import ImplicitAPI
 
 
-class huobipro(huobi):
+class huobipro(huobi, ImplicitAPI):
 
     def describe(self):
         # self is an alias for backward-compatibility
@@ -14,4 +15,5 @@ class huobipro(huobi):
         return self.deep_extend(super(huobipro, self).describe(), {
             'id': 'huobipro',
             'alias': True,
+            'name': 'Huobi Pro',
         })

@@ -4,16 +4,22 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.btcturk import ImplicitAPI
 import hashlib
 import math
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class btcturk(Exchange):
+class btcturk(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(btcturk, self).describe(), {
@@ -67,7 +73,14 @@ class btcturk(Exchange):
                 'setPositionMode': False,
             },
             'timeframes': {
-                '1d': '1d',
+                '1m': 1,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '4h': 240,
+                '1d': '1 day',
+                '1w': '1 week',
+                '1y': '1 year',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
@@ -106,6 +119,7 @@ class btcturk(Exchange):
                 'graph': {
                     'get': {
                         'ohlcs': 1,
+                        'klines/history': 1,
                     },
                 },
             },
@@ -128,51 +142,52 @@ class btcturk(Exchange):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for btcturk
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetServerExchangeinfo(params)
         #
-        #     {
-        #       "data": {
-        #         "timeZone": "UTC",
-        #         "serverTime": "1618826678404",
-        #         "symbols": [
-        #           {
-        #             "id": "1",
-        #             "name": "BTCTRY",
-        #             "nameNormalized": "BTC_TRY",
-        #             "status": "TRADING",
-        #             "numerator": "BTC",
-        #             "denominator": "TRY",
-        #             "numeratorScale": "8",
-        #             "denominatorScale": "2",
-        #             "hasFraction": False,
-        #             "filters": [
-        #               {
-        #                 "filterType": "PRICE_FILTER",
-        #                 "minPrice": "0.0000000000001",
-        #                 "maxPrice": "10000000",
-        #                 "tickSize": "10",
-        #                 "minExchangeValue": "99.91",
-        #                 "minAmount": null,
-        #                 "maxAmount": null
-        #               }
-        #             ],
-        #             "orderMethods": [
-        #               "MARKET",
-        #               "LIMIT",
-        #               "STOP_MARKET",
-        #               "STOP_LIMIT"
-        #             ],
-        #             "displayFormat": "#,###",
-        #             "commissionFromNumerator": False,
-        #             "order": "1000",
-        #             "priceRounding": False
-        #           },
-        #         },
-        #       ],
-        #     }
+        #    {
+        #        "data": {
+        #            "timeZone": "UTC",
+        #            "serverTime": "1618826678404",
+        #            "symbols": [
+        #                {
+        #                    "id": "1",
+        #                    "name": "BTCTRY",
+        #                    "nameNormalized": "BTC_TRY",
+        #                    "status": "TRADING",
+        #                    "numerator": "BTC",
+        #                    "denominator": "TRY",
+        #                    "numeratorScale": "8",
+        #                    "denominatorScale": "2",
+        #                    "hasFraction": False,
+        #                    "filters": [
+        #                        {
+        #                            "filterType": "PRICE_FILTER",
+        #                            "minPrice": "0.0000000000001",
+        #                            "maxPrice": "10000000",
+        #                            "tickSize": "10",
+        #                            "minExchangeValue": "99.91",
+        #                            "minAmount": null,
+        #                            "maxAmount": null
+        #                        }
+        #                    ],
+        #                    "orderMethods": [
+        #                        "MARKET",
+        #                        "LIMIT",
+        #                        "STOP_MARKET",
+        #                        "STOP_LIMIT"
+        #                    ],
+        #                    "displayFormat": "#,###",
+        #                    "commissionFromNumerator": False,
+        #                    "order": "1000",
+        #                    "priceRounding": False
+        #                },
+        #                ...
+        #            },
+        #        ],
+        #    }
         #
         data = self.safe_value(response, 'data')
         markets = self.safe_value(data, 'symbols', [])
@@ -271,7 +286,7 @@ class btcturk(Exchange):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the btcturk api endpoint
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
@@ -294,13 +309,13 @@ class btcturk(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|float|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -372,24 +387,24 @@ class btcturk(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTicker(params)
         tickers = self.safe_value(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         tickers = self.fetch_tickers([symbol], params)
@@ -456,14 +471,14 @@ class btcturk(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|float|None since: timestamp in ms of the earliest trade to fetch
-        :param int|float|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -495,21 +510,18 @@ class btcturk(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None):
-        #     {
-        #        "pair": "BTCTRY",
-        #        "time": 1508284800,
-        #        "open": 20873.689453125,
-        #        "high": 20925.0,
-        #        "low": 19310.0,
-        #        "close": 20679.55078125,
-        #        "volume": 402.216101626982,
-        #        "total": 8103096.44443274,
-        #        "average": 20146.13,
-        #        "dailyChangeAmount": -194.14,
-        #        "dailyChangePercentage": -0.93
-        #      },
+        #
+        #    {
+        #        'timestamp': 1661990400,
+        #        'high': 368388.0,
+        #        'open': 368388.0,
+        #        'low': 368388.0,
+        #        'close': 368388.0,
+        #        'volume': 0.00035208,
+        #    }
+        #
         return [
-            self.safe_timestamp(ohlcv, 'time'),
+            self.safe_timestamp(ohlcv, 'timestamp'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -517,36 +529,109 @@ class btcturk(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://docs.btcturk.com/public-endpoints/get-kline-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'pair': market['id'],
+            'symbol': market['id'],
+            'resolution': self.safe_value(self.timeframes, timeframe, timeframe),  # allows the user to pass custom timeframes if needed
         }
+        until = self.safe_integer(params, 'until', self.milliseconds())
+        request['to'] = self.parse_to_int((until / 1000))
+        if since is not None:
+            request['from'] = self.parse_to_int(since / 1000)
+        elif limit is None:  # since will also be None
+            limit = 100  # default value
         if limit is not None:
-            request['last'] = limit
-        response = self.graphGetOhlcs(self.extend(request, params))
+            if timeframe == '1y':  # difficult with leap years
+                raise BadRequest(self.id + ' fetchOHLCV() does not accept a limit parameter when timeframe == "1y"')
+            seconds = self.parse_timeframe(timeframe)
+            limitSeconds = seconds * (limit - 1)
+            if since is not None:
+                to = self.parse_to_int(since / 1000) + limitSeconds
+                request['to'] = min(request['to'], to)
+            else:
+                request['from'] = self.parse_to_int(until / 1000) - limitSeconds
+        response = self.graphGetKlinesHistory(self.extend(request, params))
+        #
+        #    {
+        #        "s": "ok",
+        #        "t": [
+        #          1661990400,
+        #          1661990520,
+        #          ...
+        #        ],
+        #        "h": [
+        #          368388.0,
+        #          369090.0,
+        #          ...
+        #        ],
+        #        "o": [
+        #          368388.0,
+        #          368467.0,
+        #          ...
+        #        ],
+        #        "l": [
+        #          368388.0,
+        #          368467.0,
+        #          ...
+        #        ],
+        #        "c": [
+        #          368388.0,
+        #          369090.0,
+        #          ...
+        #        ],
+        #        "v": [
+        #          0.00035208,
+        #          0.2972395,
+        #          ...
+        #        ]
+        #    }
+        #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None):
+        results = []
+        timestamp = self.safe_value(ohlcvs, 't')
+        high = self.safe_value(ohlcvs, 'h')
+        open = self.safe_value(ohlcvs, 'o')
+        low = self.safe_value(ohlcvs, 'l')
+        close = self.safe_value(ohlcvs, 'c')
+        volume = self.safe_value(ohlcvs, 'v')
+        for i in range(0, len(timestamp)):
+            ohlcv = {
+                'timestamp': self.safe_value(timestamp, i),
+                'high': self.safe_value(high, i),
+                'open': self.safe_value(open, i),
+                'low': self.safe_value(low, i),
+                'close': self.safe_value(close, i),
+                'volume': self.safe_value(volume, i),
+            }
+            results.append(self.parse_ohlcv(ohlcv, market))
+        sorted = self.sort_by(results, 0)
+        return self.filter_by_since_limit(sorted, since, limit, 0)
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param int|float amount: how much of currency you want to trade in units of base currency
-        :param int|float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -566,27 +651,27 @@ class btcturk(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: not used by btcturk cancelOrder()
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: not used by btcturk cancelOrder()
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'id': id,
         }
         return self.privateDeleteOrder(self.extend(request, params))
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch open orders for
-        :param int|float|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -600,14 +685,14 @@ class btcturk(Exchange):
         asks = self.safe_value(data, 'asks', [])
         return self.parse_orders(self.array_concat(bids, asks), market, since, limit)
 
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: the earliest time in ms to fetch orders for
-        :param int|float|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -652,7 +737,7 @@ class btcturk(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market):
+    def parse_order(self, order, market=None):
         #
         # fetchOrders / fetchOpenOrders
         #     {
@@ -718,14 +803,14 @@ class btcturk(Exchange):
             'fee': None,
         }, market)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -786,5 +871,6 @@ class btcturk(Exchange):
         message = self.safe_string(response, 'message')
         output = body if (message is None) else message
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + output)
-        if errorCode != '0':
+        if (errorCode != '0') and (errorCode != 'SUCCESS'):
             raise ExchangeError(self.id + ' ' + output)
+        return None

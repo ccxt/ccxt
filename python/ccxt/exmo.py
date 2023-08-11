@@ -4,9 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -16,11 +20,12 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class exmo(Exchange):
+class exmo(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(exmo, self).describe(), {
@@ -51,6 +56,9 @@ class exmo(Exchange):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -75,7 +83,7 @@ class exmo(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': True,
@@ -188,7 +196,7 @@ class exmo(Exchange):
                 },
                 'transaction': {
                     'tierBased': False,
-                    'percentage': False,  # fixed transaction fees for crypto, see fetchTransactionFees below
+                    'percentage': False,  # fixed transaction fees for crypto, see fetchDepositWithdrawFees below
                 },
             },
             'options': {
@@ -234,7 +242,7 @@ class exmo(Exchange):
             },
         })
 
-    def modify_margin_helper(self, symbol, amount, type, params={}):
+    def modify_margin_helper(self, symbol: str, amount, type, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -272,31 +280,31 @@ class exmo(Exchange):
             'status': 'ok',
         }
 
-    def reduce_margin(self, symbol, amount, params={}):
+    def reduce_margin(self, symbol: str, amount, params={}):
         """
         remove margin from a position
         :param str symbol: unified market symbol
-        :param int|float amount: the amount of margin to remove
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def add_margin(self, symbol, amount, params={}):
+    def add_margin(self, symbol: str, amount, params={}):
         """
         add margin
         :param str symbol: unified market symbol
-        :param int|float amount: amount of margin to add
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         method = self.safe_string(params, 'method')
         params = self.omit(params, 'method')
@@ -409,35 +417,28 @@ class exmo(Exchange):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
-        :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/en/latest/manual.html#fees-structure>`
+         * @deprecated
+        please use fetchDepositWithdrawFees instead
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/#/?id=fees-structure>`
         """
         self.load_markets()
-        currencyList = self.publicGetCurrencyListExtended(params)
-        #
-        #     [
-        #         {"name":"VLX","description":"Velas"},
-        #         {"name":"RUB","description":"Russian Ruble"},
-        #         {"name":"BTC","description":"Bitcoin"},
-        #         {"name":"USD","description":"US Dollar"}
-        #     ]
-        #
         cryptoList = self.publicGetPaymentsProvidersCryptoList(params)
         #
         #     {
         #         "BTC":[
         #             {"type":"deposit", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider self when sending funds", "commission_desc":"0%", "currency_confirmations":1},
-        #             {"type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6}
+        #             {"type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6}
         #         ],
         #         "ETH":[
-        #             {"type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4},
+        #             {"type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4},
         #             {"type":"deposit", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.01 ETH. We do not support BSC and BEP20 network, please consider self when sending funds", "commission_desc":"0%", "currency_confirmations":1}
         #         ],
         #         "USDT":[
         #             {"type":"deposit", "name":"USDT(OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2},
-        #             {"type":"withdraw", "name":"USDT(OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6},
+        #             {"type":"withdraw", "name":"USDT(OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6},
         #             {"type":"deposit", "name":"USDT(ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2},
         #             {
         #                 "type":"withdraw",
@@ -446,45 +447,129 @@ class exmo(Exchange):
         #                 "min":"55",
         #                 "max":"200000",
         #                 "enabled":true,
-        #                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation: Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
+        #                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Recommendation: Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
         #                 "commission_desc":"10 USDT",
         #                 "currency_confirmations":6
         #             },
         #             {"type":"deposit", "name":"USDT(TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2},
-        #             {"type":"withdraw", "name":"USDT(TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6}
+        #             {"type":"withdraw", "name":"USDT(TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6}
         #         ],
         #         "XLM":[
         #             {"type":"deposit", "name":"XLM", "currency_name":"XLM", "min":"1", "max":"1000000", "enabled":true,"comment":"Attention! A deposit without memo(invoice) will not be credited. Minimum deposit amount is 1 XLM. We do not support BSC and BEP20 network, please consider self when sending funds", "commission_desc":"0%", "currency_confirmations":1},
-        #             {"type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1}
+        #             {"type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1}
         #         ],
         #     }
         #
-        result = {
-            'info': cryptoList,
-            'withdraw': {},
-            'deposit': {},
-        }
-        for i in range(0, len(currencyList)):
-            currency = currencyList[i]
-            currencyId = self.safe_string(currency, 'name')
-            code = self.safe_currency_code(currencyId)
+        result = {}
+        cryptoListKeys = list(cryptoList.keys())
+        for i in range(0, len(cryptoListKeys)):
+            code = cryptoListKeys[i]
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'deposit': None,
+                'withdraw': None,
+            }
+            currency = self.currency(code)
+            currencyId = self.safe_string(currency, 'id')
             providers = self.safe_value(cryptoList, currencyId, [])
             for j in range(0, len(providers)):
                 provider = providers[j]
-                type = self.safe_string(provider, 'type')
+                typeInner = self.safe_string(provider, 'type')
                 commissionDesc = self.safe_string(provider, 'commission_desc')
-                newFee = self.parse_fixed_float_value(commissionDesc)
-                previousFee = self.safe_number(result[type], code)
-                if (previousFee is None) or ((newFee is not None) and (newFee < previousFee)):
-                    result[type][code] = newFee
+                fee = self.parse_fixed_float_value(commissionDesc)
+                result[code][typeInner] = fee
+            result[code]['info'] = providers
         # cache them for later use
         self.options['transactionFees'] = result
         return result
 
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/#/?id=fees-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetPaymentsProvidersCryptoList(params)
+        #
+        #    {
+        #        "USDT": [
+        #            {
+        #                "type": "deposit",  # or "withdraw"
+        #                "name": "USDT(ERC20)",
+        #                "currency_name": "USDT",
+        #                "min": "10",
+        #                "max": "0",
+        #                "enabled": True,
+        #                "comment": "Minimum deposit amount is 10 USDT",
+        #                "commission_desc": "0%",
+        #                "currency_confirmations": 2
+        #            },
+        #            ...
+        #        ],
+        #        ...
+        #    }
+        #
+        result = self.parse_deposit_withdraw_fees(response, codes)
+        # cache them for later use
+        self.options['transactionFees'] = result
+        return result
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    [
+        #        {
+        #            "type": "deposit",  # or "withdraw"
+        #            "name": "BTC",
+        #            "currency_name": "BTC",
+        #            "min": "0.001",
+        #            "max": "0",
+        #            "enabled": True,
+        #            "comment": "Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider self when sending funds",
+        #            "commission_desc": "0%",
+        #            "currency_confirmations": 1
+        #        },
+        #        ...
+        #    ]
+        #
+        result = self.deposit_withdraw_fee(fee)
+        for i in range(0, len(fee)):
+            provider = fee[i]
+            type = self.safe_string(provider, 'type')
+            networkId = self.safe_string(provider, 'name')
+            networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+            commissionDesc = self.safe_string(provider, 'commission_desc')
+            splitCommissionDesc = []
+            percentage = None
+            if commissionDesc is not None:
+                splitCommissionDesc = commissionDesc.split('%')
+                splitCommissionDescLength = len(splitCommissionDesc)
+                percentage = splitCommissionDescLength >= 2
+            network = self.safe_value(result['networks'], networkCode)
+            if network is None:
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
+            result['networks'][networkCode][type] = {
+                'fee': self.parse_fixed_float_value(self.safe_string(splitCommissionDesc, 0)),
+                'percentage': percentage,
+            }
+        return self.assign_default_deposit_withdraw_fees(result)
+
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param dict [params]: extra parameters specific to the exmo api endpoint
         :returns dict: an associative dictionary of currencies
         """
         #
@@ -502,23 +587,23 @@ class exmo(Exchange):
         #     {
         #         "BTC":[
         #             {"type":"deposit", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider self when sending funds", "commission_desc":"0%", "currency_confirmations":1},
-        #             {"type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6}
+        #             {"type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6}
         #         ],
         #         "ETH":[
-        #             {"type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4},
+        #             {"type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4},
         #             {"type":"deposit", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.01 ETH. We do not support BSC and BEP20 network, please consider self when sending funds", "commission_desc":"0%", "currency_confirmations":1}
         #         ],
         #         "USDT":[
         #             {"type":"deposit", "name":"USDT(OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2},
-        #             {"type":"withdraw", "name":"USDT(OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6},
+        #             {"type":"withdraw", "name":"USDT(OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6},
         #             {"type":"deposit", "name":"USDT(ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2},
-        #             {"type":"withdraw", "name":"USDT(ERC20)", "currency_name":"USDT", "min":"55", "max":"200000", "enabled":true, "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation: Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",  "commission_desc":"10 USDT", "currency_confirmations":6},
+        #             {"type":"withdraw", "name":"USDT(ERC20)", "currency_name":"USDT", "min":"55", "max":"200000", "enabled":true, "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Recommendation: Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",  "commission_desc":"10 USDT", "currency_confirmations":6},
         #             {"type":"deposit", "name":"USDT(TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2},
-        #             {"type":"withdraw", "name":"USDT(TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6}
+        #             {"type":"withdraw", "name":"USDT(TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6}
         #         ],
         #         "XLM":[
         #             {"type":"deposit", "name":"XLM", "currency_name":"XLM", "min":"1", "max":"1000000", "enabled":true,"comment":"Attention! A deposit without memo(invoice) will not be credited. Minimum deposit amount is 1 XLM. We do not support BSC and BEP20 network, please consider self when sending funds", "commission_desc":"0%", "currency_confirmations":1},
-        #             {"type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1}
+        #             {"type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1}
         #         ],
         #     }
         #
@@ -549,28 +634,29 @@ class exmo(Exchange):
             else:
                 for j in range(0, len(providers)):
                     provider = providers[j]
-                    type = self.safe_string(provider, 'type')
-                    minValue = self.safe_number(provider, 'min')
-                    maxValue = self.safe_number(provider, 'max')
-                    if maxValue == 0.0:
+                    typeInner = self.safe_string(provider, 'type')
+                    minValue = self.safe_string(provider, 'min')
+                    maxValue = self.safe_string(provider, 'max')
+                    if Precise.string_eq(maxValue, '0.0'):
                         maxValue = None
                     activeProvider = self.safe_value(provider, 'enabled')
-                    if type == 'deposit':
+                    if typeInner == 'deposit':
                         if activeProvider and not depositEnabled:
                             depositEnabled = True
                         elif not activeProvider:
                             depositEnabled = False
-                    elif type == 'withdraw':
+                    elif typeInner == 'withdraw':
                         if activeProvider and not withdrawEnabled:
                             withdrawEnabled = True
                         elif not activeProvider:
                             withdrawEnabled = False
                     if activeProvider:
                         active = True
-                        if (limits[type]['min'] is None) or (minValue < limits[type]['min']):
-                            limits[type]['min'] = minValue
-                            limits[type]['max'] = maxValue
-                            if type == 'withdraw':
+                        limitMin = self.number_to_string(limits[typeInner]['min'])
+                        if (limits[typeInner]['min'] is None) or (Precise.string_lt(minValue, limitMin)):
+                            limits[typeInner]['min'] = minValue
+                            limits[typeInner]['max'] = maxValue
+                            if typeInner == 'withdraw':
                                 commissionDesc = self.safe_string(provider, 'commission_desc')
                                 fee = self.parse_fixed_float_value(commissionDesc)
             code = self.safe_currency_code(currencyId)
@@ -583,17 +669,18 @@ class exmo(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': self.parse_number('0.00000001'),
+                'precision': self.parse_number('1e-8'),
                 'limits': limits,
                 'info': providers,
+                'networks': {},
             }
         return result
 
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for exmo
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetPairSettings(params)
         #
@@ -637,7 +724,7 @@ class exmo(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -649,7 +736,7 @@ class exmo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
+                    'amount': self.parse_number('1e-8'),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_precision'))),
                 },
                 'limits': {
@@ -674,21 +761,21 @@ class exmo(Exchange):
             })
         return result
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         options = self.safe_value(self.options, 'fetchOHLCV')
         maxLimit = self.safe_integer(options, 'maxLimit', 3000)
@@ -696,21 +783,20 @@ class exmo(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
-                request['from'] = int(now / 1000) - limit * duration - 1
-                request['to'] = int(now / 1000)
+                limit = 1000  # cap default at generous amount
+            if limit > maxLimit:
+                limit = maxLimit  # avoid exception
+            request['from'] = self.parse_to_int(now / 1000) - limit * duration - 1
+            request['to'] = self.parse_to_int(now / 1000)
         else:
-            request['from'] = int(since / 1000) - 1
+            request['from'] = self.parse_to_int(since / 1000) - 1
             if limit is None:
-                request['to'] = int(now / 1000)
+                request['to'] = self.parse_to_int(now / 1000)
             else:
                 if limit > maxLimit:
                     raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
                 to = self.sum(since, limit * duration * 1000)
-                request['to'] = int(to / 1000)
+                request['to'] = self.parse_to_int(to / 1000)
         response = self.publicGetCandlesHistory(self.extend(request, params))
         #
         #     {
@@ -763,7 +849,7 @@ class exmo(Exchange):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param dict [params]: extra parameters specific to the exmo api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
@@ -782,13 +868,13 @@ class exmo(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|float|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -801,13 +887,13 @@ class exmo(Exchange):
         result = self.safe_value(response, market['id'])
         return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
-    def fetch_order_books(self, symbols=None, limit=None, params={}):
+    def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
-        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
-        :param int|float|None limit: max number of entries per orderbook to return, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param int [limit]: max number of entries per orderbook to return, default is None
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
         """
         self.load_markets()
         ids = None
@@ -830,10 +916,7 @@ class exmo(Exchange):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            symbol = marketId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+            symbol = self.safe_symbol(marketId)
             result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
         return result
 
@@ -877,14 +960,15 @@ class exmo(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTicker(params)
         #
         #     {
@@ -911,12 +995,12 @@ class exmo(Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTicker(params)
@@ -954,7 +1038,6 @@ class exmo(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(trade, 'date')
-        symbol = None
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
@@ -963,16 +1046,8 @@ class exmo(Exchange):
         side = self.safe_string(trade, 'type')
         type = None
         marketId = self.safe_string(trade, 'pair')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         takerOrMaker = self.safe_string(trade, 'exec_type')
         fee = None
         feeCostString = self.safe_string(trade, 'commission_amount')
@@ -1003,14 +1078,14 @@ class exmo(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|float|None since: timestamp in ms of the earliest trade to fetch
-        :param int|float|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1043,14 +1118,14 @@ class exmo(Exchange):
         data = self.safe_value(response, market['id'], [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         # a symbol is required but it can be a single string, or a non-empty array
         if symbol is None:
@@ -1074,35 +1149,25 @@ class exmo(Exchange):
             request['limit'] = limit
         response = self.privatePostUserTrades(self.extend(request, params))
         result = []
-        marketIds = list(response.keys())
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
-            symbol = None
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+        marketIdsInner = list(response.keys())
+        for i in range(0, len(marketIdsInner)):
+            marketId = marketIdsInner[i]
+            resultMarket = self.safe_market(marketId, None, '_')
             items = response[marketId]
-            trades = self.parse_trades(items, market, since, limit, {
-                'symbol': symbol,
-            })
+            trades = self.parse_trades(items, resultMarket, since, limit)
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param int|float amount: how much of currency you want to trade in units of base currency
-        :param int|float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1167,24 +1232,24 @@ class exmo(Exchange):
             'average': None,
         }
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: not used by exmo cancelOrder()
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: not used by exmo cancelOrder()
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {'order_id': id}
         return self.privatePostOrderCancel(self.extend(request, params))
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        :param str|None symbol: not used by exmo fetchOrder
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: not used by exmo fetchOrder
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1217,15 +1282,15 @@ class exmo(Exchange):
             'id': str(id),
         })
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
-        :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         market = None
         if symbol is not None:
@@ -1262,14 +1327,14 @@ class exmo(Exchange):
         trades = self.safe_value(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch open orders for
-        :param int|float|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         if symbol is not None:
@@ -1280,10 +1345,11 @@ class exmo(Exchange):
         orders = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = None
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            parsedOrders = self.parse_orders(response[marketId], market)
+            market = self.safe_market(marketId)
+            params = self.extend(params, {
+                'status': 'open',
+            })
+            parsedOrders = self.parse_orders(response[marketId], market, since, limit, params)
             orders = self.array_concat(orders, parsedOrders)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
@@ -1325,7 +1391,6 @@ class exmo(Exchange):
         #
         id = self.safe_string(order, 'order_id')
         timestamp = self.safe_timestamp(order, 'created')
-        symbol = None
         side = self.safe_string(order, 'type')
         marketId = None
         if 'pair' in order:
@@ -1335,70 +1400,23 @@ class exmo(Exchange):
                 marketId = order['in_currency'] + '_' + order['out_currency']
             else:
                 marketId = order['out_currency'] + '_' + order['in_currency']
-        if (marketId is not None) and (marketId in self.markets_by_id):
-            market = self.markets_by_id[marketId]
-        amount = self.safe_number(order, 'quantity')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        amount = self.safe_string(order, 'quantity')
         if amount is None:
             amountField = 'in_amount' if (side == 'buy') else 'out_amount'
-            amount = self.safe_number(order, amountField)
-        price = self.safe_number(order, 'price')
-        cost = self.safe_number(order, 'amount')
-        filled = 0.0
-        trades = []
+            amount = self.safe_string(order, amountField)
+        price = self.safe_string(order, 'price')
+        cost = self.safe_string(order, 'amount')
         transactions = self.safe_value(order, 'trades', [])
-        feeCost = None
-        lastTradeTimestamp = None
-        average = None
-        numTransactions = len(transactions)
-        if numTransactions > 0:
-            feeCost = 0
-            for i in range(0, numTransactions):
-                trade = self.parse_trade(transactions[i], market)
-                if id is None:
-                    id = trade['order']
-                if timestamp is None:
-                    timestamp = trade['timestamp']
-                if timestamp > trade['timestamp']:
-                    timestamp = trade['timestamp']
-                filled = self.sum(filled, trade['amount'])
-                feeCost = self.sum(feeCost, trade['fee']['cost'])
-                trades.append(trade)
-            lastTradeTimestamp = trades[numTransactions - 1]['timestamp']
-        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
-        remaining = None
-        if amount is not None:
-            remaining = amount - filled
-            if filled >= amount:
-                status = 'closed'
-            else:
-                status = 'open'
-        if market is None:
-            market = self.get_market_from_trades(trades)
-        feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
-        if cost is None:
-            if price is not None:
-                cost = price * filled
-        else:
-            if filled > 0:
-                if average is None:
-                    average = cost / filled
-                if price is None:
-                    price = cost / filled
-        fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        }
         clientOrderId = self.safe_integer(order, 'client_id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
+            'lastTradeTimestamp': None,
+            'status': None,
             'symbol': symbol,
             'type': 'limit',
             'timeInForce': None,
@@ -1406,24 +1424,25 @@ class exmo(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': cost,
             'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'average': average,
-            'trades': trades,
-            'fee': fee,
+            'filled': None,
+            'remaining': None,
+            'average': None,
+            'trades': transactions,
+            'fee': None,
             'info': order,
-        }
+        }, market)
 
-    def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: timestamp in ms of the earliest order, default is None
-        :param int|float|None limit: max number of orders to return, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: timestamp in ms of the earliest order, default is None
+        :param int [limit]: max number of orders to return, default is None
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1447,17 +1466,26 @@ class exmo(Exchange):
         #         "amount": "1"
         #     }]
         #
+        params = self.extend(params, {
+            'status': 'canceled',
+        })
         return self.parse_orders(response, market, since, limit, params)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         response = self.privatePostDepositAddress(params)
+        #
+        #     {
+        #         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
+        #         "USDTTRC20":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9"
+        #     }
+        #
         depositAddress = self.safe_string(response, code)
         address = None
         tag = None
@@ -1484,15 +1512,15 @@ class exmo(Exchange):
             return self.markets[symbols[0]]
         return None
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
-        :param int|float amount: the amount to withdraw
+        :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
@@ -1525,55 +1553,60 @@ class exmo(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
-        # fetchTransactions
+        # fetchDepositsWithdrawals
         #
-        #          {
-        #            "dt": 1461841192,
-        #            "type": "deposit",
-        #            "curr": "RUB",
-        #            "status": "processing",
-        #            "provider": "Qiwi(LA) [12345]",
-        #            "amount": "1",
-        #            "account": "",
-        #            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
-        #          }
+        #    {
+        #        "dt": 1461841192,
+        #        "type": "deposit",
+        #        "curr": "RUB",
+        #        "status": "processing",
+        #        "provider": "Qiwi(LA) [12345]",
+        #        "amount": "1",
+        #        "account": "",
+        #        "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        #    }
         #
         # fetchWithdrawals
         #
-        #          {
-        #             "operation_id": 47412538520634344,
-        #             "created": 1573760013,
-        #             "updated": 1573760013,
-        #             "type": "withdraw",
-        #             "currency": "DOGE",
-        #             "status": "Paid",
-        #             "amount": "300",
-        #             "provider": "DOGE",
-        #             "commission": "0",
-        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        #             "order_id": 69670170,
-        #             "provider_type": "crypto",
-        #             "crypto_address": "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        #             "card_number": "",
-        #             "wallet_address": "",
-        #             "email": "",
-        #             "phone": "",
-        #             "extra": {
-        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
-        #                 "confirmations": null,
-        #                 "excode": "",
-        #                 "invoice": ""
-        #             },
-        #             "error": ""
-        #          },
+        #    {
+        #        "operation_id": 47412538520634344,
+        #        "created": 1573760013,
+        #        "updated": 1573760013,
+        #        "type": "withdraw",
+        #        "currency": "DOGE",
+        #        "status": "Paid",
+        #        "amount": "300",
+        #        "provider": "DOGE",
+        #        "commission": "0",
+        #        "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #        "order_id": 69670170,
+        #        "provider_type": "crypto",
+        #        "crypto_address": "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #        "card_number": "",
+        #        "wallet_address": "",
+        #        "email": "",
+        #        "phone": "",
+        #        "extra": {
+        #            "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #            "confirmations": null,
+        #            "excode": "",
+        #            "invoice": ""
+        #        },
+        #        "error": ""
+        #    }
         #
-        id = self.safe_string_2(transaction, 'order_id', 'task_id')
+        # withdraw
+        #
+        #    {
+        #        "result": True,
+        #        "error": "",
+        #        "task_id": 11775077
+        #    }
+        #
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
-        updated = self.safe_timestamp(transaction, 'updated')
-        amount = self.safe_number(transaction, 'amount')
+        amount = self.safe_string(transaction, 'amount')
         if amount is not None:
-            amount = abs(amount)
-        status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
+            amount = Precise.string_abs(amount)
         txid = self.safe_string(transaction, 'txid')
         if txid is None:
             extra = self.safe_value(transaction, 'extra', {})
@@ -1584,7 +1617,6 @@ class exmo(Exchange):
         currencyId = self.safe_string_2(transaction, 'curr', 'currency')
         code = self.safe_currency_code(currencyId, currency)
         address = None
-        tag = None
         comment = None
         account = self.safe_string(transaction, 'account')
         if type == 'deposit':
@@ -1597,62 +1629,64 @@ class exmo(Exchange):
                 if numParts == 2:
                     address = self.safe_string(parts, 1)
                     address = address.replace(' ', '')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         # fixed funding fees only(for now)
         if not self.fees['transaction']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
-            feeCost = self.safe_number(transaction, 'commission')
+            feeCost = self.safe_string(transaction, 'commission')
             if feeCost is None:
-                feeCost = self.safe_number(self.options['transactionFees'][key], code)
+                transactionFees = self.safe_value(self.options, 'transactionFees', {})
+                codeFees = self.safe_value(transactionFees, code, {})
+                feeCost = self.safe_string(codeFees, key)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':
-                feeCost = 0
+                feeCost = '0'
             if feeCost is not None:
                 # withdrawal amount includes the fee
                 if type == 'withdrawal':
-                    amount = amount - feeCost
-                fee = {
-                    'cost': feeCost,
-                    'currency': code,
-                    'rate': None,
-                }
-        network = self.safe_string(transaction, 'provider')
+                    amount = Precise.string_sub(amount, feeCost)
+                fee['cost'] = self.parse_number(feeCost)
+                fee['currency'] = code
         return {
             'info': transaction,
-            'id': id,
+            'id': self.safe_string_2(transaction, 'order_id', 'task_id'),
+            'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': self.safe_string(transaction, 'provider'),
+            'amount': amount,
+            'status': self.parse_transaction_status(self.safe_string_lower(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
-            'network': network,
             'address': address,
-            'addressTo': address,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': tag,
+            'addressTo': address,
+            'tag': None,
             'tagFrom': None,
-            'status': status,
-            'type': type,
-            'updated': updated,
+            'tagTo': None,
+            'updated': self.safe_timestamp(transaction, 'updated'),
             'comment': comment,
-            'txid': txid,
             'fee': fee,
         }
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
-        :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|float|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|float|None limit: max number of transactions to return, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {}
         if since is not None:
-            request['date'] = int(since / 1000)
+            request['date'] = self.parse_to_int(since / 1000)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1689,14 +1723,14 @@ class exmo(Exchange):
         #
         return self.parse_transactions(response['history'], currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
-        :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch withdrawals for
-        :param int|float|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -1738,13 +1772,13 @@ class exmo(Exchange):
         items = self.safe_value(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
-        :param str|None code: unified currency code of the currency withdrawn, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str code: unified currency code of the currency withdrawn, default is None
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -1786,13 +1820,13 @@ class exmo(Exchange):
         first = self.safe_value(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposit(self, id=None, code=None, params={}):
+    def fetch_deposit(self, id=None, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
-        :param str|None code: unified currency code, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str code: unified currency code, default is None
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -1834,14 +1868,14 @@ class exmo(Exchange):
         first = self.safe_value(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
-        :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch deposits for
-        :param int|float|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -1907,7 +1941,7 @@ class exmo(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if ('result' in response) or ('errmsg' in response):
             #
             #     {"result":false,"error":"Error 50052: Insufficient funds"}
@@ -1932,3 +1966,4 @@ class exmo(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)
+        return None

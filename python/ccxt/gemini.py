@@ -4,9 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -18,11 +22,12 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class gemini(Exchange):
+class gemini(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(gemini, self).describe(), {
@@ -44,20 +49,21 @@ class gemini(Exchange):
                 'addMargin': False,
                 'cancelOrder': True,
                 'createDepositAddress': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
-                'fetchBidsAsks': None,
+                'fetchBidsAsks': False,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
-                'fetchClosedOrders': None,
-                'fetchDepositAddress': None,  # TODO
+                'fetchClosedOrders': False,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
-                'fetchDeposits': None,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -74,7 +80,7 @@ class gemini(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
@@ -85,8 +91,7 @@ class gemini(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': True,
-                'fetchWithdrawals': None,
+                'fetchTransactions': 'emulated',
                 'postOnly': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -100,6 +105,7 @@ class gemini(Exchange):
                     'public': 'https://api.gemini.com',
                     'private': 'https://api.gemini.com',
                     'web': 'https://docs.gemini.com',
+                    'webExchange': 'https://exchange.gemini.com',
                 },
                 'www': 'https://gemini.com/',
                 'doc': [
@@ -122,6 +128,11 @@ class gemini(Exchange):
                 ],
             },
             'api': {
+                'webExchange': {
+                    'get': [
+                        '',
+                    ],
+                },
                 'web': {
                     'get': [
                         'rest-api',
@@ -131,6 +142,7 @@ class gemini(Exchange):
                     'get': {
                         'v1/symbols': 5,
                         'v1/symbols/details/{symbol}': 5,
+                        'v1/staking/rates': 5,
                         'v1/pubticker/{symbol}': 5,
                         'v2/ticker/{symbol}': 5,
                         'v2/candles/{symbol}/{timeframe}': 5,
@@ -144,6 +156,10 @@ class gemini(Exchange):
                 },
                 'private': {
                     'post': {
+                        'v1/staking/unstake': 1,
+                        'v1/staking/stake': 1,
+                        'v1/staking/rewards': 1,
+                        'v1/staking/history': 1,
                         'v1/order/new': 1,
                         'v1/order/cancel': 1,
                         'v1/wrap/{symbol}': 1,
@@ -159,6 +175,7 @@ class gemini(Exchange):
                         'v1/clearing/cancel': 1,
                         'v1/clearing/confirm': 1,
                         'v1/balances': 1,
+                        'v1/balances/staking': 1,
                         'v1/notionalbalances/{currency}': 1,
                         'v1/transfers': 1,
                         'v1/addresses/{network}': 1,
@@ -171,6 +188,7 @@ class gemini(Exchange):
                         'v1/payments/sen/withdraw': 1,
                         'v1/balances/earn': 1,
                         'v1/earn/interest': 1,
+                        'v1/earn/history': 1,
                         'v1/approvedAddresses/{network}/request': 1,
                         'v1/approvedAddresses/account/{network}': 1,
                         'v1/approvedAddresses/{network}/remove': 1,
@@ -247,17 +265,22 @@ class gemini(Exchange):
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
-                'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
-                'networkIds': {
-                    'bitcoin': 'BTC',
-                    'ethereum': 'ERC20',
-                    'bitcoincash': 'BCH',
-                    'litecoin': 'LTC',
-                    'zcash': 'ZEC',
-                    'filecoin': 'FIL',
-                    'dogecoin': 'DOGE',
-                    'tezos': 'XTZ',
+                'fetchMarketFromWebRetries': 10,
+                'fetchMarketsFromAPI': {
+                    'fetchDetailsForAllSymbols': False,
+                    'fetchDetailsForMarketIds': [],
                 },
+                'fetchMarkets': {
+                    'webApiEnable': True,  # fetches from WEB
+                    'webApiRetries': 10,
+                },
+                'fetchCurrencies': {
+                    'webApiEnable': True,  # fetches from WEB
+                    'webApiRetries': 5,
+                    'webApiMuteFailure': True,
+                },
+                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],  # keep self list updated(not available trough web api)
+                'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networks': {
                     'BTC': 'bitcoin',
                     'ERC20': 'ethereum',
@@ -267,27 +290,128 @@ class gemini(Exchange):
                     'FIL': 'filecoin',
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
+                    'AVAXX': 'avalanche',
+                    'SOL': 'solana',
+                    'ATOM': 'cosmos',
+                    'DOT': 'polkadot',
                 },
+                'nonce': 'milliseconds',  # if getting a Network 400 error change to seconds
             },
         })
+
+    def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict [params]: extra parameters specific to the endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        return self.fetch_currencies_from_web(params)
+
+    def fetch_currencies_from_web(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict [params]: extra parameters specific to the endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        data = self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', True, '="currencyData">', '</script>')
+        if data is None:
+            return None
+        #
+        #    {
+        #        "tradingPairs": [
+        #            ["BTCAUD", 2, 8, "0.00001", 10, True],
+        #            ...
+        #        ],
+        #        "currencies": [
+        #            ["ORCA", "Orca", 204, 6, 0, 6, 8, False, null, "solana"],  #, precisions seem to be the 5th index
+        #            ["ATOM", "Cosmos", 44, 6, 0, 6, 8, False, null, "cosmos"],
+        #            ["ETH", "Ether", 2, 6, 0, 18, 8, False, null, "ethereum"],
+        #            ["GBP", "Pound Sterling", 22, 2, 2, 2, 2, True, '£', null],
+        #            ...
+        #        ],
+        #        "networks": [
+        #            ["solana", "SOL", "Solana"],
+        #            ["zcash", "ZEC", "Zcash"],
+        #            ["tezos", "XTZ", "Tezos"],
+        #            ["cosmos", "ATOM", "Cosmos"],
+        #            ["ethereum", "ETH", "Ethereum"],
+        #            ...
+        #        ]
+        #    }
+        #
+        result = {}
+        currenciesArray = self.safe_value(data, 'currencies', [])
+        for i in range(0, len(currenciesArray)):
+            currency = currenciesArray[i]
+            id = self.safe_string(currency, 0)
+            code = self.safe_currency_code(id)
+            type = 'fiat' if self.safe_string(currency, 7) else 'crypto'
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 5)))
+            networks = {}
+            networkId = self.safe_string(currency, 9)
+            networkCode = self.network_id_to_code(networkId)
+            networks[networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'network': networkCode,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': precision,
+                'limits': {
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+            result[code] = {
+                'info': currency,
+                'id': id,
+                'code': code,
+                'name': self.safe_string(currency, 1),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'type': type,
+                'precision': precision,
+                'limits': {
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'networks': networks,
+            }
+        return result
 
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for gemini
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         method = self.safe_value(self.options, 'fetchMarketsMethod', 'fetch_markets_from_api')
-        return getattr(self, method)(params)
+        if method == 'fetch_markets_from_web':
+            usdMarkets = self.fetch_markets_from_web(params)  # get usd markets
+            usdtMarkets = self.fetch_usdt_markets(params)  # get usdt markets
+            return self.array_concat(usdMarkets, usdtMarkets)
+        return self.fetch_markets_from_api(params)
 
     def fetch_markets_from_web(self, params={}):
-        response = self.webGetRestApi(params)
-        sections = response.split('<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
-        numSections = len(sections)
-        error = self.id + ' fetchMarketsFromWeb() the ' + self.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + self.name + ' markets.'
-        if numSections != 2:
-            raise NotSupported(error)
-        tables = sections[1].split('tbody>')
+        data = self.fetch_web_endpoint('fetchMarkets', 'webGetRestApi', False, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
+        error = self.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.'
+        tables = data.split('tbody>')
         numTables = len(tables)
         if numTables < 2:
             raise NotSupported(error)
@@ -375,6 +499,33 @@ class gemini(Exchange):
             })
         return result
 
+    def parse_market_active(self, status):
+        statuses = {
+            'open': True,
+            'closed': False,
+            'cancel_only': True,
+            'post_only': True,
+            'limit_only': True,
+        }
+        return self.safe_value(statuses, status, True)
+
+    def fetch_usdt_markets(self, params={}):
+        # these markets can't be scrapped and fetchMarketsFrom api does an extra call
+        # to load market ids which we don't need here
+        if 'test' in self.urls:
+            return []  # sandbox does not have usdt markets
+        fetchUsdtMarkets = self.safe_value(self.options, 'fetchUsdtMarkets', [])
+        result = []
+        for i in range(0, len(fetchUsdtMarkets)):
+            marketId = fetchUsdtMarkets[i]
+            request = {
+                'symbol': marketId,
+            }
+            # don't use Promise.all here, for some reason the exchange can't handle it and crashes
+            rawResponse = self.publicGetV1SymbolsDetailsSymbol(self.extend(request, params))
+            result.append(self.parse_market(rawResponse))
+        return result
+
     def fetch_markets_from_api(self, params={}):
         response = self.publicGetV1Symbols(params)
         #
@@ -384,72 +535,117 @@ class gemini(Exchange):
         #         ...
         #     ]
         #
-        result = []
+        result = {}
         for i in range(0, len(response)):
             marketId = response[i]
-            market = marketId
-            idLength = len(marketId) - 0
-            baseId = marketId[0:idLength - 3]
-            quoteId = marketId[idLength - 3:idLength]
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            result.append({
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': None,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'price': None,
-                    'amount': None,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'info': market,
-            })
-        return result
+            market = {
+                'symbol': marketId,
+            }
+            result[marketId] = self.parse_market(market)
+        options = self.safe_value(self.options, 'fetchMarketsFromAPI', {})
+        fetchDetailsForAllSymbols = self.safe_value(options, 'fetchDetailsForAllSymbols', False)
+        fetchDetailsForMarketIds = self.safe_value(options, 'fetchDetailsForMarketIds', [])
+        promises = []
+        marketIds = []
+        if fetchDetailsForAllSymbols:
+            marketIds = response
+        else:
+            marketIds = fetchDetailsForMarketIds
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            method = 'publicGetV1SymbolsDetailsSymbol'
+            request = {
+                'symbol': marketId,
+            }
+            promises.append(getattr(self, method)(self.extend(request, params)))
+            #
+            #     {
+            #         "symbol": "BTCUSD",
+            #         "base_currency": "BTC",
+            #         "quote_currency": "USD",
+            #         "tick_size": 1E-8,
+            #         "quote_increment": 0.01,
+            #         "min_order_size": "0.00001",
+            #         "status": "open",
+            #         "wrap_enabled": False
+            #     }
+            #
+        promises = promises
+        for i in range(0, len(promises)):
+            responseInner = promises[i]
+            marketId = self.safe_string_lower(responseInner, 'symbol')
+            result[marketId] = self.parse_market(responseInner)
+        return self.to_array(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def parse_market(self, response):
+        marketId = self.safe_string_lower(response, 'symbol')
+        baseId = self.safe_string(response, 'base_currency')
+        quoteId = self.safe_string(response, 'quote_currency')
+        if baseId is None:
+            idLength = len(marketId) - 0
+            isUSDT = marketId.find('usdt') >= 0
+            quoteSize = 4 if isUSDT else 3
+            baseId = marketId[0:idLength - quoteSize]  # Not True for all markets
+            quoteId = marketId[idLength - quoteSize:idLength]
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        status = self.safe_string(response, 'status')
+        return {
+            'id': marketId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': self.parse_market_active(status),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'price': self.safe_number(response, 'quote_increment'),
+                'amount': self.safe_number(response, 'tick_size'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.safe_number(response, 'min_order_size'),
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': response,
+        }
+
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|float|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -462,7 +658,7 @@ class gemini(Exchange):
         response = self.publicGetV1BookSymbol(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def fetch_ticker_v1(self, symbol, params={}):
+    def fetch_ticker_v1(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -483,7 +679,7 @@ class gemini(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_ticker_v2(self, symbol, params={}):
+    def fetch_ticker_v2(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -505,7 +701,7 @@ class gemini(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_ticker_v1_and_v2(self, symbol, params={}):
+    def fetch_ticker_v1_and_v2(self, symbol: str, params={}):
         tickerA = self.fetch_ticker_v1(symbol, params)
         tickerB = self.fetch_ticker_v2(symbol, params)
         return self.deep_extend(tickerA, {
@@ -518,12 +714,13 @@ class gemini(Exchange):
             'info': tickerB['info'],
         })
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :param dict [params.fetchTickerMethod]: 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetch_ticker- 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         method = self.safe_value(self.options, 'fetchTickerMethod', 'fetchTickerV1')
         return getattr(self, method)(symbol, params)
@@ -618,12 +815,12 @@ class gemini(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetV1Pricefeed(params)
@@ -706,20 +903,25 @@ class gemini(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://docs.gemini.com/rest-api/#trade-history
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|float|None since: timestamp in ms of the earliest trade to fetch
-        :param int|float|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
+        if limit is not None:
+            request['limit_trades'] = limit
+        if since is not None:
+            request['timestamp'] = since
         response = self.publicGetV1TradesSymbol(self.extend(request, params))
         #
         #     [
@@ -751,8 +953,8 @@ class gemini(Exchange):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.privatePostV1Notionalvolume(params)
@@ -806,7 +1008,7 @@ class gemini(Exchange):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the gemini api endpoint
+        :param dict [params]: extra parameters specific to the gemini api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
@@ -963,6 +1165,7 @@ class gemini(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': average,
             'cost': None,
             'amount': amount,
@@ -972,12 +1175,12 @@ class gemini(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1009,14 +1212,14 @@ class gemini(Exchange):
         #
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch open orders for
-        :param int|float|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         response = self.privatePostV1Orders(params)
@@ -1050,29 +1253,30 @@ class gemini(Exchange):
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://docs.gemini.com/rest-api/#new-order
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
-        :param int|float amount: how much of currency you want to trade in units of base currency
-        :param int|float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        if type == 'market':
+        if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is None:
-            clientOrderId = self.nonce()
+            clientOrderId = str(self.milliseconds())
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
         priceString = self.price_to_precision(symbol, price)
         request = {
-            'client_order_id': str(clientOrderId),
+            'client_order_id': clientOrderId,
             'symbol': market['id'],
             'amount': amountString,
             'price': priceString,
@@ -1134,13 +1338,13 @@ class gemini(Exchange):
         #
         return self.parse_order(response)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1173,14 +1377,14 @@ class gemini(Exchange):
         #
         return self.parse_order(response)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -1192,19 +1396,19 @@ class gemini(Exchange):
         if limit is not None:
             request['limit_trades'] = limit
         if since is not None:
-            request['timestamp'] = int(since / 1000)
+            request['timestamp'] = self.parse_to_int(since / 1000)
         response = self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
-        :param int|float amount: the amount to withdraw
+        :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str tag:
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1245,16 +1449,19 @@ class gemini(Exchange):
         return self.parse_transaction(response, currency)
 
     def nonce(self):
-        return self.milliseconds()
+        nonceMethod = self.safe_string(self.options, 'nonce', 'milliseconds')
+        if nonceMethod == 'milliseconds':
+            return self.milliseconds()
+        return self.seconds()
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
-        :param str|None code: not used by gemini.fetchTransactions
-        :param int|float|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|float|None limit: max number of transactions to return, default is None
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {}
@@ -1344,16 +1551,39 @@ class gemini(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
+        """
+        see https://docs.gemini.com/rest-api/#get-deposit-addresses
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the endpoint
+        :param str [params.network]:  *required* The chain of currency
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
-        network = self.safe_string(params, 'network')
-        if network is None:
-            raise ArgumentsRequired(self.id + ' fetchDepositAddressesByNetwork() requires a network parameter')
-        params = self.omit(params, 'network')
-        networks = self.safe_value(self.options, 'networks', {})
-        networkId = self.safe_string(networks, network, network)
-        networkIds = self.safe_value(self.options, 'networkIds', {})
-        networkCode = self.safe_string(networkIds, networkId, network)
+        groupedByNetwork = self.fetch_deposit_addresses_by_network(code, params)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        networkGroup = self.index_by(self.safe_value(groupedByNetwork, networkCode), 'currency')
+        return self.safe_value(networkGroup, code)
+
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+        """
+        fetch a dictionary of addresses for a currency, indexed by network
+        see https://docs.gemini.com/rest-api/#get-deposit-addresses
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :param str [params.network]:  *required* The chain of currency
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        code = currency['code']
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is None:
+            raise ArgumentsRequired(self.id + ' fetchDepositAddresses() requires a network parameter')
+        networkId = self.network_code_to_id(networkCode)
         request = {
             'network': networkId,
         }
@@ -1376,11 +1606,11 @@ class gemini(Exchange):
             }, query)
             payload = self.json(request)
             payload = self.string_to_base64(payload)
-            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': self.apiKey,
-                'X-GEMINI-PAYLOAD': self.decode(payload),
+                'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
             }
         else:
@@ -1396,7 +1626,7 @@ class gemini(Exchange):
             if isinstance(body, str):
                 feedback = self.id + ' ' + body
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {
         #         "result": "error",
@@ -1406,20 +1636,21 @@ class gemini(Exchange):
         #
         result = self.safe_string(response, 'result')
         if result == 'error':
-            reason = self.safe_string(response, 'reason')
+            reasonInner = self.safe_string(response, 'reason')
             message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + message
-            self.throw_exactly_matched_exception(self.exceptions['exact'], reason, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], reasonInner, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1436,20 +1667,21 @@ class gemini(Exchange):
             'info': response,
         }
 
-    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the gemini api endpoint
-        :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the gemini api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
+        timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': timeframeId,
             'symbol': market['id'],
         }
         response = self.publicGetV2CandlesSymbolTimeframe(self.extend(request, params))

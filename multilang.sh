@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# Usage example:
+#     bash multilang.sh -a "binance fetchTicker XRP/USDT"
+#
 
 function usage() {
   echo "usage: $0 [-clsh] exchange method [...args]"
@@ -115,7 +119,8 @@ done
 
 shift $((OPTIND - 1))
 
-if grep  -q -e "-[^0-9]" <<< "$@"; then
+# if there are any unparsed options then print usage and exit
+if grep -q -Ee "\s-[^0-9]" <<< "$@"; then
   usage
 fi
 

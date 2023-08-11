@@ -6,19 +6,19 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
+use ccxt\abstract\luno as Exchange;
 
 class luno extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'luno',
             'name' => 'luno',
             'countries' => array( 'GB', 'SG', 'ZA' ),
             // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit' => 200,
             'version' => '1',
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -49,6 +49,7 @@ class luno extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => false, // overload of base fetchOHLCV, doesn't property_exists($this, work) exchange
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -62,7 +63,8 @@ class luno extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFees' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -108,33 +110,35 @@ class luno extends Exchange {
                         'funding_address' => 1,
                         'listorders' => 1,
                         'listtrades' => 1,
+                        'send_fee' => 1,
                         'orders/{id}' => 1,
-                        'quotes/{id}' => 1,
                         'withdrawals' => 1,
                         'withdrawals/{id}' => 1,
                         'transfers' => 1,
+                        // GET /api/exchange/1/move
+                        // GET /api/exchange/1/move/list_moves
+                        // GET /api/exchange/1/candles
+                        // GET /api/exchange/1/transfers
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     ),
                     'post' => array(
                         'accounts' => 1,
-                        'accounts/{id}/name' => 1,
+                        'address/validate' => 1,
                         'postorder' => 1,
                         'marketorder' => 1,
                         'stoporder' => 1,
                         'funding_address' => 1,
                         'withdrawals' => 1,
                         'send' => 1,
-                        'quotes' => 1,
                         'oauth2/grant' => 1,
+                        // POST /api/exchange/1/move
                     ),
                     'put' => array(
                         'accounts/{id}/name' => 1,
-                        'quotes/{id}' => 1,
                     ),
                     'delete' => array(
-                        'quotes/{id}' => 1,
                         'withdrawals/{id}' => 1,
                     ),
                 ),
@@ -154,8 +158,8 @@ class luno extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for luno
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing $market data
          */
         $response = $this->exchangeGetMarkets ($params);
         //
@@ -242,8 +246,8 @@ class luno extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account type
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account type
          */
         $response = $this->privateGetBalance ($params);
         $wallets = $this->safe_value($response, 'balance', array());
@@ -295,7 +299,7 @@ class luno extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the luno api endpoint
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
@@ -313,13 +317,13 @@ class luno extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|float|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $method = 'publicGetOrderbook';
@@ -408,6 +412,7 @@ class luno extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'cost' => $cost,
@@ -419,12 +424,12 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @param {string|null} $symbol not used by luno fetchOrder
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {string} $symbol not used by luno fetchOrder
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -434,7 +439,7 @@ class luno extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders_by_state($state = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_state($state = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -450,38 +455,38 @@ class luno extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|float|null} $since the earliest time in ms to fetch orders for
-         * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_state(null, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|float|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_state('PENDING', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|float|null} $since the earliest time in ms to fetch orders for
-         * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_state('COMPLETE', $symbol, $since, $limit, $params);
     }
@@ -524,14 +529,15 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetTickers ($params);
         $tickers = $this->index_by($response['tickers'], 'pair');
         $ids = is_array($tickers) ? array_keys($tickers) : array();
@@ -546,12 +552,12 @@ class luno extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -571,7 +577,7 @@ class luno extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -652,7 +658,7 @@ class luno extends Exchange {
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $this->safe_string($trade, 'price'),
-            'amount' => $this->safe_string($trade, 'volume'),
+            'amount' => $this->safe_string_2($trade, 'volume', 'base'),
             // Does not include potential fee costs
             'cost' => $this->safe_string($trade, 'counter'),
             'fee' => array(
@@ -662,14 +668,14 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|float|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|float|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -697,14 +703,14 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|float|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of $trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -746,31 +752,44 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
-         * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         * fetch the trading fees for a $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
-        $response = $this->privateGetFeeInfo ($params);
+        $market = $this->market($symbol);
+        $request = array(
+            'pair' => $market['id'],
+        );
+        $response = $this->privateGetFeeInfo (array_merge($request, $params));
+        //
+        //     {
+        //          "maker_fee" => "0.00250000",
+        //          "taker_fee" => "0.00500000",
+        //          "thirty_day_volume" => "0"
+        //     }
+        //
         return array(
             'info' => $response,
+            'symbol' => $symbol,
             'maker' => $this->safe_number($response, 'maker_fee'),
             'taker' => $this->safe_number($response, 'taker_fee'),
         );
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {int|float} $amount how much of currency you want to trade in units of base currency
-         * @param {int|float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $method = 'privatePost';
@@ -781,32 +800,32 @@ class luno extends Exchange {
         if ($type === 'market') {
             $method .= 'Marketorder';
             $request['type'] = strtoupper($side);
-            // todo add createMarketBuyOrderRequires $price logic as it is implemented in the other exchanges
+            // todo add createMarketBuyOrderRequires $price logic is implemented in the other exchanges
             if ($side === 'buy') {
-                $request['counter_volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
+                $request['counter_volume'] = $this->amount_to_precision($market['symbol'], $amount);
             } else {
-                $request['base_volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
+                $request['base_volume'] = $this->amount_to_precision($market['symbol'], $amount);
             }
         } else {
             $method .= 'Postorder';
-            $request['volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
-            $request['price'] = floatval($this->price_to_precision($market['symbol'], $price));
+            $request['volume'] = $this->amount_to_precision($market['symbol'], $amount);
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
         }
         $response = $this->$method (array_merge($request, $params));
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $response['order_id'],
-        );
+        ), $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -815,8 +834,14 @@ class luno extends Exchange {
         return $this->privatePostStoporder (array_merge($request, $params));
     }
 
-    public function fetch_ledger_by_entries($code = null, $entry = -1, $limit = 1, $params = array ()) {
+    public function fetch_ledger_by_entries(?string $code = null, $entry = null, $limit = null, $params = array ()) {
         // by default without $entry number or $limit number, return most recent $entry
+        if ($entry === null) {
+            $entry = -1;
+        }
+        if ($limit === null) {
+            $limit = 1;
+        }
         $since = null;
         $request = array(
             'min_row' => $entry,
@@ -825,14 +850,14 @@ class luno extends Exchange {
         return $this->fetch_ledger($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|null} $code unified $currency $code, default is null
-         * @param {int|float|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|float|null} $limit max number of ledger entrys to return, default is null
-         * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         * @param {string} $code unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {array} [$params] extra parameters specific to the luno api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ledger-structure ledger structure~
          */
         $this->load_markets();
         $this->load_accounts();
@@ -914,34 +939,34 @@ class luno extends Exchange {
         // $details = $this->safe_value($entry, 'details', array());
         $id = $this->safe_string($entry, 'row_index');
         $account_id = $this->safe_string($entry, 'account_id');
-        $timestamp = $this->safe_value($entry, 'timestamp');
+        $timestamp = $this->safe_integer($entry, 'timestamp');
         $currencyId = $this->safe_string($entry, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $available_delta = $this->safe_number($entry, 'available_delta');
-        $balance_delta = $this->safe_number($entry, 'balance_delta');
-        $after = $this->safe_number($entry, 'balance');
+        $available_delta = $this->safe_string($entry, 'available_delta');
+        $balance_delta = $this->safe_string($entry, 'balance_delta');
+        $after = $this->safe_string($entry, 'balance');
         $comment = $this->safe_string($entry, 'description');
         $before = $after;
-        $amount = 0.0;
+        $amount = '0.0';
         $result = $this->parse_ledger_comment($comment);
         $type = $result['type'];
         $referenceId = $result['referenceId'];
         $direction = null;
         $status = null;
-        if ($balance_delta !== 0.0) {
-            $before = $after - $balance_delta; // TODO => float precision
+        if (!Precise::string_equals($balance_delta, '0.0')) {
+            $before = Precise::string_sub($after, $balance_delta);
             $status = 'ok';
-            $amount = abs($balance_delta);
-        } elseif ($available_delta < 0.0) {
+            $amount = Precise::string_abs($balance_delta);
+        } elseif (Precise::string_lt($available_delta, '0.0')) {
             $status = 'pending';
-            $amount = abs($available_delta);
-        } elseif ($available_delta > 0.0) {
+            $amount = Precise::string_abs($available_delta);
+        } elseif (Precise::string_gt($available_delta, '0.0')) {
             $status = 'canceled';
-            $amount = abs($available_delta);
+            $amount = Precise::string_abs($available_delta);
         }
-        if ($balance_delta > 0 || $available_delta > 0) {
+        if (Precise::string_gt($balance_delta, '0') || Precise::string_gt($available_delta, '0')) {
             $direction = 'in';
-        } elseif ($balance_delta < 0 || $available_delta < 0) {
+        } elseif (Precise::string_lt($balance_delta, '0') || Precise::string_lt($available_delta, '0')) {
             $direction = 'out';
         }
         return array(
@@ -952,11 +977,11 @@ class luno extends Exchange {
             'referenceAccount' => null,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'before' => $before,
-            'after' => $after,
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
             'status' => $status,
             'fee' => null,
             'info' => $entry,
@@ -973,7 +998,7 @@ class luno extends Exchange {
             $this->check_required_credentials();
             $auth = base64_encode($this->apiKey . ':' . $this->secret);
             $headers = array(
-                'Authorization' => 'Basic ' . $this->decode($auth),
+                'Authorization' => 'Basic ' . $auth,
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -981,11 +1006,12 @@ class luno extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $error = $this->safe_value($response, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

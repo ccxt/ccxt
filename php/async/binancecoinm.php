@@ -6,11 +6,13 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\binancecoinm as binance;
+use React\Async;
 
 class binancecoinm extends binance {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'binancecoinm',
             'name' => 'Binance COIN-M',
             'urls' => array(
@@ -22,27 +24,32 @@ class binancecoinm extends binance {
             ),
             'has' => array(
                 'CORS' => null,
-                'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'future' => true,
                 'option' => null,
                 'createStopMarketOrder' => true,
             ),
             'options' => array(
-                'defaultType' => 'delivery',
+                'fetchMarkets' => array( 'inverse' ),
+                'defaultSubType' => 'inverse',
                 'leverageBrackets' => null,
             ),
         ));
     }
 
-    public function transfer_in($code, $amount, $params = array ()) {
-        // transfer from spot wallet to coinm futures wallet
-        return yield $this->futuresTransfer ($code, $amount, 3, $params);
+    public function transfer_in(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
+            // transfer from spot wallet to coinm futures wallet
+            return Async\await($this->futuresTransfer ($code, $amount, 3, $params));
+        }) ();
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
-        // transfer from coinm futures wallet to spot wallet
-        return yield $this->futuresTransfer ($code, $amount, 4, $params);
+    public function transfer_out(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
+            // transfer from coinm futures wallet to spot wallet
+            return Async\await($this->futuresTransfer ($code, $amount, 4, $params));
+        }) ();
     }
 }
