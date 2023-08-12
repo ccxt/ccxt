@@ -2499,7 +2499,7 @@ export default class bitfinex2 extends Exchange {
         //
         const marketId = this.safeString (position, 0);
         const amount = this.safeString (position, 2);
-        const timestamp = this.safeString (position, 12);
+        const timestamp = this.safeInteger (position, 12);
         const meta = this.safeString (position, 19);
         const tradePrice = this.safeString (meta, 'trade_price');
         const tradeAmount = this.safeString (meta, 'trade_amount');
