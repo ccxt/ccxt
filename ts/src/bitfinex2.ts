@@ -2426,6 +2426,7 @@ export default class bitfinex2 extends Exchange {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.privatePostAuthRPositions (params);
         //
         //     [
@@ -2461,7 +2462,7 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        return this.parsePositions (response);
+        return this.parsePositions (response, symbols);
     }
 
     parsePosition (position, market = undefined) {
