@@ -962,8 +962,9 @@ export default class coinstore extends Exchange {
             const timestamp = this.milliseconds () + 2000;
             headers['X-CS-EXPIRES'] = timestamp.toString ();
             headers['X-CS-APIKEY'] = this.apiKey;
-            const expiresKey = Math.floor (timestamp / 30000);
-            const expiresHmac = this.hmac (this.encode (expiresKey.toString ()), this.encode (this.secret), sha256, 'hex');
+            let expiresKey = Math.floor (timestamp / 30000);
+            expiresKey = expiresKey.toString ();
+            const expiresHmac = this.hmac (this.encode (expiresKey), this.encode (this.secret), sha256, 'hex');
             headers['X-CS-SIGN'] = this.hmac (this.encode (paramString + bodyString), this.encode (expiresHmac), sha256, 'hex');
         }
         if (method === 'POST') {
