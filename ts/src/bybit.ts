@@ -7271,7 +7271,8 @@ export default class bybit extends Exchange {
             symbols = [ symbols ];
         }
         symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
+        const symbolsLength = symbols.length;
+        if ((symbols === undefined) || (symbolsLength === 0)) {
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USDT');
         } else {
             const first = this.safeValue (symbols, 0);
