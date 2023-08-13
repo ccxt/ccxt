@@ -7265,8 +7265,10 @@ export default class bybit extends Exchange {
             if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
-            const market = this.market (symbols[0]);
-            settle = market['settle'];
+            if (symbolsLength === 1) {
+                const market = this.market (symbols[0]);
+                settle = market['settle'];
+            }
         } else if (symbols !== undefined) {
             symbols = [ symbols ];
         }
