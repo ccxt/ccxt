@@ -425,7 +425,7 @@ export default class kucoin extends kucoinRest {
          */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
-            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+            throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         if (limit !== undefined) {
             if ((limit !== 20) && (limit !== 100)) {
