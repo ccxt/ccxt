@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import kucoinRest from '../kucoin.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -303,6 +303,35 @@ export default class kucoin extends kucoinRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        await this.loadMarkets ();
+        const url = await this.negotiate (false);
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const topic = '/market/match:' + marketIds.join (',');
+        const messageHash = 'multipleTrades::' + symbols.join (',');
+        const trades = await this.subscribe (url, messageHash, topic, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (undefined, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
     handleTrade (client: Client, message) {
         //
         //     {
@@ -335,6 +364,8 @@ export default class kucoin extends kucoinRest {
         }
         trades.append (trade);
         client.resolve (trades, messageHash);
+        // watchMultipleTrades
+        this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, trades);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
