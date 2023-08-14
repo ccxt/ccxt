@@ -413,6 +413,40 @@ export default class kucoin extends kucoinRest {
         return orderbook.limit ();
     }
 
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        if (limit !== undefined) {
+            if ((limit !== 20) && (limit !== 100)) {
+                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
+            }
+        }
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const url = await this.negotiate (false);
+        const topic = '/market/level2:' + marketIds.join (',');
+        const messageHash = 'multipleOrderbook::' + symbols.join (',');
+        const subscription = {
+            'method': this.handleOrderBookSubscription,
+            'symbols': symbols,
+            'limit': limit,
+        };
+        const orderbook = await this.subscribe (url, messageHash, topic, params, subscription);
+        return orderbook.limit ();
+    }
+
     handleOrderBook (client: Client, message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
@@ -456,6 +490,8 @@ export default class kucoin extends kucoinRest {
         }
         this.handleDelta (storedOrderBook, data);
         client.resolve (storedOrderBook, messageHash);
+        // watchMultipleOrderBook
+        this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbook::', symbol, storedOrderBook);
     }
 
     getCacheIndex (orderbook, cache) {
@@ -498,9 +534,17 @@ export default class kucoin extends kucoinRest {
     }
 
     handleOrderBookSubscription (client: Client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        const symbols = this.safeValue (subscription, 'symbols');
+        if (symbols === undefined) {
+            const symbol = this.safeString (subscription, 'symbol');
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
+        }
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
         // the general idea is to fetch the snapshot after the first delta
