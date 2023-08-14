@@ -7895,7 +7895,7 @@ export default class binance extends Exchange {
             }
         } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
-            if (method === 'POST' && path === 'order') {
+            if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
                 // inject in implicit API calls
                 const newClientOrderId = this.safeString (params, 'newClientOrderId');
                 if (newClientOrderId === undefined) {
