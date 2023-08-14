@@ -249,6 +249,8 @@ export interface Position {
     marginRatio?: number;
     lastUpdateTimestamp?: number;
     lastPrice?: number;
+    stopLossPrice?: number;
+    takeProfitPrice?: number;
     percentage?: number;
 }
 

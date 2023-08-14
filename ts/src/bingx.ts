@@ -1423,6 +1423,8 @@ export default class bingx extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
 
@@ -2813,7 +2815,8 @@ export default class bingx extends Exchange {
             this.checkRequiredCredentials ();
             params['timestamp'] = this.nonce ();
             let query = this.urlencode (params);
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            const rawQuery = this.rawencode (params);
+            const signature = this.hmac (this.encode (rawQuery), this.encode (this.secret), sha256);
             if (Object.keys (params).length) {
                 query = '?' + query + '&';
             } else {

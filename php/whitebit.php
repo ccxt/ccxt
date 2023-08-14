@@ -644,6 +644,7 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the whitebit api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
          */
+        $this->load_markets();
         $response = $this->v4PublicGetAssets ($params);
         //
         //      {

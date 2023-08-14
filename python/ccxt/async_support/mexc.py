@@ -4298,6 +4298,9 @@ class mexc(Exchange, ImplicitAPI):
             'marginRatio': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'hedged': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
             'lastUpdateTimestamp': None,
         })
 

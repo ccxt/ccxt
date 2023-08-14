@@ -236,7 +236,7 @@ abstract class okex extends \ccxt\okx {
         return $this->request('trade/fills', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
     }
     public function private_get_trade_fills_history($params = array()) {
-        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2.2));
     }
     public function private_get_trade_order_algo($params = array()) {
         return $this->request('trade/order-algo', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -998,7 +998,7 @@ abstract class okex extends \ccxt\okx {
         return $this->request('trade/fills', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
     }
     public function privateGetTradeFillsHistory($params = array()) {
-        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2.2));
     }
     public function privateGetTradeOrderAlgo($params = array()) {
         return $this->request('trade/order-algo', 'private', 'GET', $params, null, null, array("cost" => 1));

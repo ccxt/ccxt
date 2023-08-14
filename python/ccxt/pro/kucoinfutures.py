@@ -39,7 +39,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 'tradesLimit': 1000,
                 'watchOrderBook': {
                     'snapshotDelay': 20,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'watchTicker': {
                     'name': 'contractMarket/tickerV2',  # market/ticker

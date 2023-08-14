@@ -48,6 +48,9 @@ class bittrex(ccxt.async_support.bittrex):
                 'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': self.milliseconds(),
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
             },
         })
 
@@ -589,7 +592,7 @@ class bittrex(ccxt.async_support.bittrex):
         try:
             # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             # todo: self is a synch blocking call in ccxt.php - make it async
-            snapshot = await self.fetch_order_book(symbol, limit)
+            snapshot = await self.fetch_rest_order_book_safe(symbol, limit)
             orderbook = self.orderbooks[symbol]
             messages = orderbook.cache
             # make sure we have at least one delta before fetching the snapshot

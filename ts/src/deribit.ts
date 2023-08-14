@@ -2387,6 +2387,9 @@ export default class deribit extends Exchange {
             'marginMode': undefined,
             'side': side,
             'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
 

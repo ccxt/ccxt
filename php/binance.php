@@ -6711,6 +6711,7 @@ class binance extends Exchange {
     public function parse_position_risk($position, $market = null) {
         //
         // usdm
+        //
         //     {
         //       "symbol" => "BTCUSDT",
         //       "positionAmt" => "0.001",
@@ -6730,6 +6731,7 @@ class binance extends Exchange {
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol" => "BTCUSD_PERP",
         //       "positionAmt" => "2",
@@ -6875,6 +6877,8 @@ class binance extends Exchange {
             'side' => $side,
             'hedged' => $hedged,
             'percentage' => $percentage,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         );
     }
 

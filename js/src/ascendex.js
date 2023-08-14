@@ -2607,6 +2607,8 @@ export default class ascendex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger(position, 'leverage'),
             'marginRatio': undefined,
+            'stopLossPrice': this.safeNumber(position, 'stopLossPrice'),
+            'takeProfitPrice': this.safeNumber(position, 'takeProfitPrice'),
         });
     }
     parseFundingRate(contract, market = undefined) {

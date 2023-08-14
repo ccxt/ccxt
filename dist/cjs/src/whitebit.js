@@ -653,6 +653,7 @@ class whitebit extends whitebit$1 {
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
+        await this.loadMarkets();
         const response = await this.v4PublicGetAssets(params);
         //
         //      {

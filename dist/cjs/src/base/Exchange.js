@@ -1013,13 +1013,13 @@ class Exchange {
             client.reject(new errors.ExchangeError(this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
-        const maxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
+        const maxRetries = this.handleOption('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
         try {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
                 const cache = stored.cache;
-                const orderBook = await this.fetchOrderBook(symbol, limit, params);
+                const orderBook = await this.fetchRestOrderBookSafe(symbol, limit, params);
                 const index = this.getCacheIndex(orderBook, cache);
                 if (index >= 0) {
                     stored.reset(orderBook);
@@ -1297,6 +1297,21 @@ class Exchange {
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderBook() is not supported yet');
+    }
+    async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
+        const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'snapshotMaxRetries', 3);
+        for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
+            try {
+                const orderBook = await this.fetchOrderBook(symbol, limit, params);
+                return orderBook;
+            }
+            catch (e) {
+                if ((i + 1) === fetchSnapshotMaxRetries) {
+                    throw e;
+                }
+            }
+        }
+        return undefined;
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOrderBook() is not supported yet');

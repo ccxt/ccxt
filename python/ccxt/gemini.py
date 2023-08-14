@@ -583,7 +583,7 @@ class gemini(Exchange, ImplicitAPI):
         quoteId = self.safe_string(response, 'quote_currency')
         if baseId is None:
             idLength = len(marketId) - 0
-            isUSDT = marketId.find('usdt') != -1
+            isUSDT = marketId.find('usdt') >= 0
             quoteSize = 4 if isUSDT else 3
             baseId = marketId[0:idLength - quoteSize]  # Not True for all markets
             quoteId = marketId[idLength - quoteSize:idLength]

@@ -2495,6 +2495,8 @@ class ascendex(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': self.safe_integer(position, 'leverage'),
             'marginRatio': None,
+            'stopLossPrice': self.safe_number(position, 'stopLossPrice'),
+            'takeProfitPrice': self.safe_number(position, 'takeProfitPrice'),
         })
 
     def parse_funding_rate(self, contract, market=None):
