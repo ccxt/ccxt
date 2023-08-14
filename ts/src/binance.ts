@@ -4232,6 +4232,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+         * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
