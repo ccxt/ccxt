@@ -456,6 +456,48 @@ export default class bybit extends bybitRest {
         return orderbook.limit ();
     }
 
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return.
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols);
+        const url = this.getUrlByMarketType (symbols[0], false, params);
+        params = this.cleanParams (params);
+        const market = this.market (symbols[0]);
+        if (limit === undefined) {
+            limit = (market['spot']) ? 50 : 500;
+        } else {
+            if (!market['spot']) {
+                // bybit only support limit 1, 50, 200, 500 for contract
+                if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
+                    throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.');
+                }
+            }
+        }
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const topic = 'orderbook.' + limit.toString () + '.' + market['id'];
+            topics.push (topic);
+        }
+        const messageHash = 'multipleOrderbook::' + symbols.join (',');
+        const orderbook = await this.watchTopics (url, messageHash, topics, params);
+        return orderbook.limit ();
+    }
+
     handleOrderBook (client: Client, message) {
         //
         //     {
@@ -517,6 +559,8 @@ export default class bybit extends bybitRest {
         const messageHash = 'orderbook' + ':' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
+        // handle watchOrderBookForSymbols
+        this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbook::', symbol, orderbook);
     }
 
     handleDelta (bookside, delta) {
