@@ -2391,11 +2391,13 @@ class bitfinex2 extends bitfinex2$1 {
          * @method
          * @name bitfinex2#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.bitfinex.com/reference/rest-auth-positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
         const response = await this.privatePostAuthRPositions(params);
         //
         //     [
@@ -2431,8 +2433,76 @@ class bitfinex2 extends bitfinex2$1 {
         //         ]
         //     ]
         //
-        // todo unify parsePosition/parsePositions
-        return response;
+        return this.parsePositions(response, symbols);
+    }
+    parsePosition(position, market = undefined) {
+        //
+        //    [
+        //        "tBTCUSD",                    // SYMBOL
+        //        "ACTIVE",                     // STATUS
+        //        0.0195,                       // AMOUNT
+        //        8565.0267019,                 // BASE_PRICE
+        //        0,                            // MARGIN_FUNDING
+        //        0,                            // MARGIN_FUNDING_TYPE
+        //        -0.33455568705000516,         // PL
+        //        -0.0003117550117425625,       // PL_PERC
+        //        7045.876419249083,            // PRICE_LIQ
+        //        3.0673001895895604,           // LEVERAGE
+        //        null,                         // _PLACEHOLDER
+        //        142355652,                    // POSITION_ID
+        //        1574002216000,                // MTS_CREATE
+        //        1574002216000,                // MTS_UPDATE
+        //        null,                         // _PLACEHOLDER
+        //        0,                            // TYPE
+        //        null,                         // _PLACEHOLDER
+        //        0,                            // COLLATERAL
+        //        0,                            // COLLATERAL_MIN
+        //        // META
+        //        {
+        //            "reason": "TRADE",
+        //            "order_id": 34271018124,
+        //            "liq_stage": null,
+        //            "trade_price": "8565.0267019",
+        //            "trade_amount": "0.0195",
+        //            "order_id_oppo": 34277498022
+        //        }
+        //    ]
+        //
+        const marketId = this.safeString(position, 0);
+        const amount = this.safeString(position, 2);
+        const timestamp = this.safeInteger(position, 12);
+        const meta = this.safeString(position, 19);
+        const tradePrice = this.safeString(meta, 'trade_price');
+        const tradeAmount = this.safeString(meta, 'trade_amount');
+        return this.safePosition({
+            'info': position,
+            'id': this.safeString(position, 11),
+            'symbol': this.safeSymbol(marketId, market),
+            'notional': this.parseNumber(amount),
+            'marginMode': 'isolated',
+            'liquidationPrice': this.safeNumber(position, 8),
+            'entryPrice': this.safeNumber(position, 3),
+            'unrealizedPnl': this.safeNumber(position, 6),
+            'percentage': this.safeNumber(position, 7),
+            'contracts': undefined,
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'side': Precise["default"].stringGt(amount, '0') ? 'long' : 'short',
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': this.safeInteger(position, 13),
+            'maintenanceMargin': this.safeNumber(position, 18),
+            'maintenanceMarginPercentage': undefined,
+            'collateral': this.safeNumber(position, 17),
+            'initialMargin': this.parseNumber(Precise["default"].stringMul(tradeAmount, tradePrice)),
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber(position, 9),
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
     nonce() {
         return this.milliseconds();

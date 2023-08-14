@@ -2423,11 +2423,13 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             * @see https://docs.bitfinex.com/reference/rest-auth-positions
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
             $response = Async\await($this->privatePostAuthRPositions ($params));
             //
             //     array(
@@ -2463,9 +2465,78 @@ class bitfinex2 extends Exchange {
             //         )
             //     )
             //
-            // todo unify parsePosition/parsePositions
-            return $response;
+            return $this->parse_positions($response, $symbols);
         }) ();
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //    array(
+        //        "tBTCUSD",                    // SYMBOL
+        //        "ACTIVE",                     // STATUS
+        //        0.0195,                       // AMOUNT
+        //        8565.0267019,                 // BASE_PRICE
+        //        0,                            // MARGIN_FUNDING
+        //        0,                            // MARGIN_FUNDING_TYPE
+        //        -0.33455568705000516,         // PL
+        //        -0.0003117550117425625,       // PL_PERC
+        //        7045.876419249083,            // PRICE_LIQ
+        //        3.0673001895895604,           // LEVERAGE
+        //        null,                         // _PLACEHOLDER
+        //        142355652,                    // POSITION_ID
+        //        1574002216000,                // MTS_CREATE
+        //        1574002216000,                // MTS_UPDATE
+        //        null,                         // _PLACEHOLDER
+        //        0,                            // TYPE
+        //        null,                         // _PLACEHOLDER
+        //        0,                            // COLLATERAL
+        //        0,                            // COLLATERAL_MIN
+        //        // META
+        //        {
+        //            "reason" => "TRADE",
+        //            "order_id" => 34271018124,
+        //            "liq_stage" => null,
+        //            "trade_price" => "8565.0267019",
+        //            "trade_amount" => "0.0195",
+        //            "order_id_oppo" => 34277498022
+        //        }
+        //    )
+        //
+        $marketId = $this->safe_string($position, 0);
+        $amount = $this->safe_string($position, 2);
+        $timestamp = $this->safe_integer($position, 12);
+        $meta = $this->safe_string($position, 19);
+        $tradePrice = $this->safe_string($meta, 'trade_price');
+        $tradeAmount = $this->safe_string($meta, 'trade_amount');
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => $this->safe_string($position, 11),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'notional' => $this->parse_number($amount),
+            'marginMode' => 'isolated',  // derivatives use isolated, margin uses cross, https://support.bitfinex.com/hc/en-us/articles/360035475374-Derivatives-Trading-on-Bitfinex
+            'liquidationPrice' => $this->safe_number($position, 8),
+            'entryPrice' => $this->safe_number($position, 3),
+            'unrealizedPnl' => $this->safe_number($position, 6),
+            'percentage' => $this->safe_number($position, 7),
+            'contracts' => null,
+            'contractSize' => null,
+            'markPrice' => null,
+            'lastPrice' => null,
+            'side' => Precise::string_gt($amount, '0') ? 'long' : 'short',
+            'hedged' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => $this->safe_integer($position, 13),
+            'maintenanceMargin' => $this->safe_number($position, 18),
+            'maintenanceMarginPercentage' => null,
+            'collateral' => $this->safe_number($position, 17),
+            'initialMargin' => $this->parse_number(Precise::string_mul($tradeAmount, $tradePrice)),
+            'initialMarginPercentage' => null,
+            'leverage' => $this->safe_number($position, 9),
+            'marginRatio' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
+        ));
     }
 
     public function nonce() {

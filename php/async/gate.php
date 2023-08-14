@@ -4048,13 +4048,12 @@ class gate extends Exchange {
         $side = $this->safe_string($order, 'side', $side);
         $price = $this->safe_string($order, 'price', $price);
         $remainingString = $this->safe_string($order, 'left');
-        $filledString = Precise::string_sub($amount, $remainingString);
         $cost = $this->safe_string($order, 'filled_total');
+        $triggerPrice = $this->safe_number($trigger, 'price');
         $rawStatus = null;
         $average = $this->safe_number_2($order, 'avg_deal_price', 'fill_price');
-        if ($put) {
+        if ($triggerPrice) {
             $remainingString = $amount;
-            $filledString = '0';
             $cost = '0';
         }
         if ($contract) {
@@ -4102,7 +4101,6 @@ class gate extends Exchange {
         $numFeeCurrencies = count($fees);
         $multipleFeeCurrencies = $numFeeCurrencies > 1;
         $status = $this->parse_order_status($rawStatus);
-        $filled = Precise::string_abs($filledString);
         $remaining = Precise::string_abs($remainingString);
         // handle spot $market buy
         $account = $this->safe_string($order, 'account'); // using this instead of $market $type because of the conflicting ids
@@ -4110,7 +4108,6 @@ class gate extends Exchange {
             $averageString = $this->safe_string($order, 'avg_deal_price');
             $average = $this->parse_number($averageString);
             if (($type === 'market') && ($side === 'buy')) {
-                $filled = Precise::string_div($filledString, $averageString);
                 $remaining = Precise::string_div($remainingString, $averageString);
                 $price = null; // arrives
                 $cost = $amount;
@@ -4130,13 +4127,13 @@ class gate extends Exchange {
             'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_value($order, 'is_reduce_only'),
             'side' => $side,
-            'price' => $this->parse_number($price),
-            'stopPrice' => $this->safe_number($trigger, 'price'),
-            'triggerPrice' => $this->safe_number($trigger, 'price'),
+            'price' => $price,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
             'average' => $average,
-            'amount' => $this->parse_number(Precise::string_abs($amount)),
+            'amount' => Precise::string_abs($amount),
             'cost' => Precise::string_abs($cost),
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'fee' => $multipleFeeCurrencies ? null : $this->safe_value($fees, 0),
             'fees' => $multipleFeeCurrencies ? $fees : array(),
