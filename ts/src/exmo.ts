@@ -1266,6 +1266,7 @@ export default class exmo extends Exchange {
         const market = this.market (symbol);
         const prefix = (type === 'market') ? (type + '_') : '';
         const orderType = prefix + side;
+        const isMarket = (type === 'market') && (price === undefined);
         const request = {
             'pair': market['id'],
             // 'leverage': 2,
@@ -1273,7 +1274,7 @@ export default class exmo extends Exchange {
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type': orderType,
-            'price': ((type === 'market') && (price === undefined)) ? 0 : this.priceToPrecision (market['symbol'], price),
+            'price': isMarket ? 0 : this.priceToPrecision (market['symbol'], price),
             // 'stop_price': this.priceToPrecision (symbol, stopPrice),
             // 'distance': 0, // distance for trailing stop orders
             // 'expire': 0, // expiration timestamp in UTC timezone for the order, unless expire is 0
