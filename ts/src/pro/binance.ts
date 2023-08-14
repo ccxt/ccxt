@@ -443,19 +443,6 @@ export default class binance extends binanceRest {
         }
     }
 
-    resolvePromiseIfMessagehashMatches (client, prefix: string, symbol: string, data) {
-        const messageHashes = this.findMessageHashes (client, prefix);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            if (this.inArray (symbol, symbols)) {
-                client.resolve (data, messageHash);
-            }
-        }
-    }
-
     handleOrderBookSubscription (client: Client, message, subscription) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
