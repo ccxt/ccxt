@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bybitRest from '../bybit.js';
-import { AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
@@ -556,6 +556,41 @@ export default class bybit extends bybitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        const url = this.getUrlByMarketType (symbols[0], false, params);
+        const topics = [];
+        params = this.cleanParams (params);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const topic = 'publicTrade.' + market['id'];
+            topics.push (topic);
+        }
+        const messageHash = 'multipleTrades::' + symbols.join (',');
+        const trades = await this.watchTopics (url, messageHash, topics, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (undefined, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
     handleTrades (client: Client, message) {
         //
         //     {
@@ -597,6 +632,8 @@ export default class bybit extends bybitRest {
         }
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);
+        // handle watchTradesForSymbols part
+        this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, stored);
     }
 
     parseWsTrade (trade, market = undefined) {

@@ -1572,9 +1572,9 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
     }
 
-    async watchOHLCVForSymbols (symbols: string[], timeframes = [ '1m' ], since: Int = undefined, limit: Int = undefined, params = {}) {
-        throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
-    }
+    // async watchOHLCVForSymbols (symbols: string[], timeframes = [ '1m' ], since: Int = undefined, limit: Int = undefined, params = {}) {
+    //     throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
+    // }
 
     async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchDepositAddresses() is not supported yet');
@@ -4423,6 +4423,19 @@ export default class Exchange {
          * @description Typed wrapper for filterByArray that returns a list of positions
          */
         return this.filterByArray (objects, key, values, indexed) as Position[];
+    }
+
+    resolvePromiseIfMessagehashMatches (client, prefix: string, symbol: string, data) {
+        const messageHashes = this.findMessageHashes (client, prefix);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            if (this.inArray (symbol, symbols)) {
+                client.resolve (data, messageHash);
+            }
+        }
     }
 }
 
