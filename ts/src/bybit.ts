@@ -5203,6 +5203,7 @@ export default class bybit extends Exchange {
             'coin': currency['id'],
             'amount': this.numberToString (amount),
             'address': address,
+            'timestamp': this.milliseconds (),
         };
         if (tag !== undefined) {
             request['tag'] = tag;
@@ -5212,9 +5213,7 @@ export default class bybit extends Exchange {
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase ();
         }
-        const enableUnified = await this.isUnifiedEnabled ();
-        const method = (enableUnified[1]) ? 'privatePostV5AssetWithdrawCreate' : 'privatePostAssetV3PrivateWithdrawCreate';
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.privatePostV5AssetWithdrawCreate (this.extend (request, query));
         //
         //    {
         //         "retCode": "0",
