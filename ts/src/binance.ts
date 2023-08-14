@@ -4239,8 +4239,9 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         const sor = this.safeValue2 (params, 'sor', 'SOR', false);
+        params = this.omit (params, 'sor', 'SOR');
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let method = 'privatePostOrder';
         if (sor) {
             method = 'privatePostSorOrder';
