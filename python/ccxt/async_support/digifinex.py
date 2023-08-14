@@ -3181,6 +3181,8 @@ class digifinex(Exchange, ImplicitAPI):
             'leverage': self.safe_number_2(position, 'leverage', 'leverage_ratio'),
             'marginRatio': self.safe_number(position, 'margin_ratio'),
             'percentage': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         }
 
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):

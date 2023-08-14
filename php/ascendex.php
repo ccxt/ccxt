@@ -2585,6 +2585,8 @@ class ascendex extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_integer($position, 'leverage'),
             'marginRatio' => null,
+            'stopLossPrice' => $this->safe_number($position, 'stopLossPrice'),
+            'takeProfitPrice' => $this->safe_number($position, 'takeProfitPrice'),
         ));
     }
 

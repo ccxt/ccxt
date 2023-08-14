@@ -270,7 +270,7 @@ class okx(Exchange, ImplicitAPI):
                         'trade/orders-history': 1 / 2,
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
-                        'trade/fills-history': 2,
+                        'trade/fills-history': 2.2,
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -4749,6 +4749,8 @@ class okx(Exchange, ImplicitAPI):
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'leverage': self.parse_number(leverageString),
             'marginRatio': marginRatio,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):

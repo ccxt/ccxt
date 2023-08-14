@@ -4092,6 +4092,8 @@ class bitget extends Exchange {
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'leverage' => $this->parse_number($leverage),
             'marginRatio' => $this->parse_number($marginRatio),
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

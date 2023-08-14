@@ -1077,6 +1077,8 @@ export default class kucoinfutures extends kucoin {
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {

@@ -2969,6 +2969,8 @@ class cryptocom extends cryptocom$1 {
             'marginMode': undefined,
             'percentage': undefined,
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     nonce() {

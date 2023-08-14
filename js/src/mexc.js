@@ -4564,6 +4564,9 @@ export default class mexc extends Exchange {
             'marginRatio': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
             'lastUpdateTimestamp': undefined,
         });
     }

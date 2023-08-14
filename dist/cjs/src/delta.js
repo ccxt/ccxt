@@ -1691,6 +1691,8 @@ class delta extends delta$1 {
             'initialMarginPercentage': undefined,
             'leverage': undefined,
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
     parseOrderStatus(status) {

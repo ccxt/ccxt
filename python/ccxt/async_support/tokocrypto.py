@@ -234,6 +234,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'precisionMode': DECIMAL_PLACES,
             'options': {
                 # 'fetchTradesMethod': 'binanceGetTrades',  # binanceGetTrades, binanceGetAggTrades
+                'createMarketBuyOrderRequiresPrice': True,
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 # 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
@@ -1443,28 +1444,25 @@ class tokocrypto(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'executedQty', '0')
         timestamp = self.safe_integer(order, 'createTime')
         average = self.safe_string(order, 'avgPrice')
-        price = self.safe_string(order, 'price')
+        price = self.safe_string_2(order, 'price', 'executedPrice')
         amount = self.safe_string(order, 'origQty')
         # - Spot/Margin market: cummulativeQuoteQty
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
-        cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
-        cost = self.safe_string(order, 'cumBase', cost)
+        cost = self.safe_string_n(order, ['cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase'])
         id = self.safe_string(order, 'orderId')
-        type = self.safe_string_lower(order, 'type')
+        type = self.parse_order_type(self.safe_string_lower(order, 'type'))
         side = self.safe_string_lower(order, 'side')
         if side == '0':
             side = 'buy'
         elif side == '1':
             side = 'sell'
         fills = self.safe_value(order, 'fills', [])
-        clientOrderId = self.safe_string(order, 'clientOrderId')
+        clientOrderId = self.safe_string_2(order, 'clientOrderId', 'clientId')
         timeInForce = self.safe_string(order, 'timeInForce')
         if timeInForce == 'GTX':
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO'
         postOnly = (type == 'limit_maker') or (timeInForce == 'PO')
-        if type == 'limit_maker':
-            type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
         stopPrice = self.parse_number(self.omit_zero(stopPriceString))
         return self.safe_order({
@@ -1493,10 +1491,20 @@ class tokocrypto(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
+    def parse_order_type(self, status):
+        statuses = {
+            '2': 'market',
+            '1': 'limit',
+            '4': 'limit',
+            '7': 'limit',
+        }
+        return self.safe_string(statuses, status, status)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         create a trade order
+        see https://www.tokocrypto.com/apidocs/#new-order--signed
+        see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1569,17 +1577,18 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     LIMIT_MAKER          quantity, price
         #
         if uppercaseType == 'MARKET':
-            quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
-            if quoteOrderQty:
-                quoteOrderQtyInner = self.safe_value_2(params, 'quoteOrderQty', 'cost')
-                precision = market['precision']['price']
-                if quoteOrderQtyInner is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyInner, TRUNCATE, precision, self.precisionMode)
-                    params = self.omit(params, ['quoteOrderQty', 'cost'])
-                elif price is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
-                else:
-                    quantityIsRequired = True
+            quoteOrderQtyInner = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+            if self.options['createMarketBuyOrderRequiresPrice'] and (side == 'buy') and (price is None) and (quoteOrderQtyInner is None):
+                raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+            precision = market['precision']['price']
+            if quoteOrderQtyInner is not None:
+                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyInner, TRUNCATE, precision, self.precisionMode)
+                params = self.omit(params, ['quoteOrderQty', 'cost'])
+            elif price is not None:
+                amountString = self.number_to_string(amount)
+                priceString = self.number_to_string(price)
+                quoteOrderQty = Precise.string_mul(amountString, priceString)
+                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
             else:
                 quantityIsRequired = True
         elif uppercaseType == 'LIMIT':

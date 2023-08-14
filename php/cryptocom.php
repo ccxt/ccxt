@@ -2933,6 +2933,8 @@ class cryptocom extends Exchange {
             'marginMode' => null,
             'percentage' => null,
             'marginRatio' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

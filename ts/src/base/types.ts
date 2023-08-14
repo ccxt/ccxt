@@ -215,6 +215,8 @@ export interface Position {
     lastUpdateTimestamp?: number;
     lastPrice?: number;
     percentage?: number;
+    stopLossPrice?: number;
+    takeProfitPrice?: number;
     info: any;
 }
 

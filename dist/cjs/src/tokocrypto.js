@@ -208,6 +208,7 @@ class tokocrypto extends tokocrypto$1 {
             'precisionMode': number.DECIMAL_PLACES,
             'options': {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
+                'createMarketBuyOrderRequiresPrice': true,
                 'defaultTimeInForce': 'GTC',
                 // 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -1461,14 +1462,13 @@ class tokocrypto extends tokocrypto$1 {
         const filled = this.safeString(order, 'executedQty', '0');
         const timestamp = this.safeInteger(order, 'createTime');
         const average = this.safeString(order, 'avgPrice');
-        const price = this.safeString(order, 'price');
+        const price = this.safeString2(order, 'price', 'executedPrice');
         const amount = this.safeString(order, 'origQty');
         // - Spot/Margin market: cummulativeQuoteQty
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        let cost = this.safeString2(order, 'cummulativeQuoteQty', 'cumQuote');
-        cost = this.safeString(order, 'cumBase', cost);
+        const cost = this.safeStringN(order, ['cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase']);
         const id = this.safeString(order, 'orderId');
-        let type = this.safeStringLower(order, 'type');
+        const type = this.parseOrderType(this.safeStringLower(order, 'type'));
         let side = this.safeStringLower(order, 'side');
         if (side === '0') {
             side = 'buy';
@@ -1477,16 +1477,13 @@ class tokocrypto extends tokocrypto$1 {
             side = 'sell';
         }
         const fills = this.safeValue(order, 'fills', []);
-        const clientOrderId = this.safeString(order, 'clientOrderId');
+        const clientOrderId = this.safeString2(order, 'clientOrderId', 'clientId');
         let timeInForce = this.safeString(order, 'timeInForce');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
         const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
-        if (type === 'limit_maker') {
-            type = 'limit';
-        }
         const stopPriceString = this.safeString(order, 'stopPrice');
         const stopPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder({
@@ -1515,12 +1512,22 @@ class tokocrypto extends tokocrypto$1 {
             'trades': fills,
         }, market);
     }
+    parseOrderType(status) {
+        const statuses = {
+            '2': 'market',
+            '1': 'limit',
+            '4': 'limit',
+            '7': 'limit',
+        };
+        return this.safeString(statuses, status, status);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#createOrder
-         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @description create a trade order
+         * @see https://www.tokocrypto.com/apidocs/#new-order--signed
+         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1606,20 +1613,20 @@ class tokocrypto extends tokocrypto$1 {
         //     LIMIT_MAKER          quantity, price
         //
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
-            if (quoteOrderQty) {
-                const quoteOrderQtyInner = this.safeValue2(params, 'quoteOrderQty', 'cost');
-                const precision = market['precision']['price'];
-                if (quoteOrderQtyInner !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyInner, number.TRUNCATE, precision, this.precisionMode);
-                    params = this.omit(params, ['quoteOrderQty', 'cost']);
-                }
-                else if (price !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision(amount * price, number.TRUNCATE, precision, this.precisionMode);
-                }
-                else {
-                    quantityIsRequired = true;
-                }
+            const quoteOrderQtyInner = this.safeValue2(params, 'quoteOrderQty', 'cost');
+            if (this.options['createMarketBuyOrderRequiresPrice'] && (side === 'buy') && (price === undefined) && (quoteOrderQtyInner === undefined)) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+            }
+            const precision = market['precision']['price'];
+            if (quoteOrderQtyInner !== undefined) {
+                request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyInner, number.TRUNCATE, precision, this.precisionMode);
+                params = this.omit(params, ['quoteOrderQty', 'cost']);
+            }
+            else if (price !== undefined) {
+                const amountString = this.numberToString(amount);
+                const priceString = this.numberToString(price);
+                const quoteOrderQty = Precise["default"].stringMul(amountString, priceString);
+                request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQty, number.TRUNCATE, precision, this.precisionMode);
             }
             else {
                 quantityIsRequired = true;
