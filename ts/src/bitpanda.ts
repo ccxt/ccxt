@@ -1547,14 +1547,14 @@ export default class bitpanda extends Exchange {
         if (uppercaseType === 'LIMIT' || uppercaseType === 'STOP') {
             priceIsRequired = true;
         }
-        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'trigger_price');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'trigger_price', 'stopPrice' ]);
         if (triggerPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
                 throw new BadRequest (this.id + ' createOrder() cannot place stop market orders, only stop limit');
             }
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['type'] = 'STOP';
-            params = this.omit (params, [ 'triggerPrice', 'trigger_price' ]);
+            params = this.omit (params, [ 'triggerPrice', 'trigger_price', 'stopPrice' ]);
         } else if (uppercaseType === 'STOP') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice param for ' + type + ' orders');
         }
