@@ -8,6 +8,7 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+import ccxt from '../ccxt.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4197,6 +4198,9 @@ export default class bybit extends Exchange {
     }
 
     async editUnifiedAccountOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (amount === undefined && price === undefined) {
+            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['linear'] && !market['option']) {
@@ -4275,6 +4279,9 @@ export default class bybit extends Exchange {
     }
 
     async editUnifiedMarginOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+        if (amount === undefined && price === undefined) {
+            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['linear'] && !market['option']) {
@@ -4368,6 +4375,9 @@ export default class bybit extends Exchange {
     }
 
     async editContractV3Order (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (amount === undefined && price === undefined) {
+            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
