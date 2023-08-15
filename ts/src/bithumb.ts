@@ -1085,7 +1085,7 @@ export default class bithumb extends Exchange {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return undefined; // no error
                 }
-                const feedback = this.id + ' ' + body;
+                const feedback = this.id + ' ' + message;
                 this.throwExactlyMatchedException (this.exceptions, status, feedback);
                 this.throwExactlyMatchedException (this.exceptions, message, feedback);
                 throw new ExchangeError (feedback);
