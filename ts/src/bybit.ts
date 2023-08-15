@@ -5244,38 +5244,24 @@ export default class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
-        if (enableUnifiedMargin || enableUnifiedAccount) {
-            method = (enableUnifiedAccount) ? 'privateGetV5PositionList' : 'privateGetUnifiedV3PrivatePositionList';
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else {
-                throw new NotSupported (this.id + ' fetchPosition() does not allow inverse market orders for ' + symbol + ' markets');
-            }
-        } else if (isUsdcSettled) {
-            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';
-            if (market['option']) {
-                request['category'] = 'OPTION';
-            } else if (market['linear']) {
-                request['category'] = 'PERPETUAL';
-            }
-        } else {
-            if (market['linear']) {
-                request['category'] = 'linear';
-            } else if (market['inverse']) {
-                request['category'] = 'inverse';
-            } else {
-                throw new NotSupported (this.id + ' fetchPosition() does not allow option market orders for ' + symbol + ' markets');
-            }
-            method = 'privateGetV5PositionList';
+        if (isUsdcSettled && !isUnifiedAccount) {
+            throw new NotSupported (this.id + ' fetchPosition() Normal Account not support USDC contract');
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // unified account
+        let type = undefined;
+        if (market['linear']) {
+            type = 'linear';
+        } else if (market['inverse']) {
+            type = 'inverse';
+        } else if (market['option'] && isUnifiedAccount) {
+            type = 'option';
+        } else {
+            throw new NotSupported (this.id + ' fetchPosition() ' + symbol + ' market type not support');
+        }
+        request['category'] = type;
+        const response = await this.privateGetV5PositionList (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5316,103 +5302,6 @@ export default class bybit extends Exchange {
         //         "time": 1672280219169
         //     }
         //
-        // unified margin
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "Success",
-        //         "result": {
-        //             "nextPageCursor": "0%3A1657711949945%2C0%3A1657711949945",
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "symbol": "ETHUSDT",
-        //                     "leverage": "10",
-        //                     "updatedTime": 1657711949945,
-        //                     "side": "Buy",
-        //                     "positionValue": "536.92500000",
-        //                     "takeProfit": "",
-        //                     "tpslMode": "Full",
-        //                     "riskId": 11,
-        //                     "trailingStop": "",
-        //                     "entryPrice": "1073.85000000",
-        //                     "unrealisedPnl": "",
-        //                     "markPrice": "1080.65000000",
-        //                     "size": "0.5000",
-        //                     "positionStatus": "normal",
-        //                     "stopLoss": "",
-        //                     "cumRealisedPnl": "-0.32215500",
-        //                     "positionMM": "2.97456450",
-        //                     "createdTime": 1657711949928,
-        //                     "positionIdx": 0,
-        //                     "positionIM": "53.98243950"
-        //                 }
-        //             ]
-        //         },
-        //         "time": 1657713693182
-        //     }
-        //
-        // contract v3
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "positionIdx": 1,
-        //                     "riskId": "41",
-        //                     "symbol": "XRPUSDT",
-        //                     "side": "Buy",
-        //                     "size": "0",
-        //                     "positionValue": "0",
-        //                     "entryPrice": "0",
-        //                     "tradeMode": 0,
-        //                     "autoAddMargin": 0,
-        //                     "leverage": "10",
-        //                     "positionBalance": "0",
-        //                     "liqPrice": "0.0000",
-        //                     "bustPrice": "0.0000",
-        //                     "takeProfit": "0.0000",
-        //                     "stopLoss": "0.0000",
-        //                     "trailingStop": "0.0000",
-        //                     "unrealisedPnl": "0",
-        //                     "createdTime": "1658827444328",
-        //                     "updatedTime": "1658904863412",
-        //                     "tpSlMode": "Full",
-        //                     "riskLimitValue": "200000",
-        //                     "activePrice": "0.0000"
-        //                 },
-        //                 {
-        //                     "positionIdx": 2,
-        //                     "riskId": "41",
-        //                     "symbol": "XRPUSDT",
-        //                     "side": "Sell",
-        //                     "size": "50",
-        //                     "positionValue": "16.68",
-        //                     "entryPrice": "0.3336",
-        //                     "tradeMode": 0,
-        //                     "autoAddMargin": 0,
-        //                     "leverage": "10",
-        //                     "positionBalance": "1.6790088",
-        //                     "liqPrice": "12.4835",
-        //                     "bustPrice": "12.4869",
-        //                     "takeProfit": "0.0000",
-        //                     "stopLoss": "0.0000",
-        //                     "trailingStop": "0.0000",
-        //                     "unrealisedPnl": "0",
-        //                     "createdTime": "1658827444328",
-        //                     "updatedTime": "1658904863412",
-        //                     "tpSlMode": "Full",
-        //                     "riskLimitValue": "200000",
-        //                     "activePrice": "0.0000"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": null,
-        //         "time": 1658904877942
-        //     }
-        //
         const result = this.safeValue (response, 'result', {});
         const positions = this.safeValue2 (result, 'list', 'dataList', []);
         const timestamp = this.safeInteger (response, 'time');
@@ -5424,45 +5313,77 @@ export default class bybit extends Exchange {
         });
     }
 
-    async fetchUnifiedPositions (symbols: string[] = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let type = undefined;
-        let settle = undefined;
-        const enableUnified = await this.isUnifiedEnabled ();
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchPositions
+         * @description fetch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        let symbol = undefined;
         if (Array.isArray (symbols)) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
+            } else if (symbolsLength === 1) {
+                symbol = symbols[0];
             }
-            const market = this.market (symbols[0]);
-            settle = market['settle'];
         } else if (symbols !== undefined) {
-            symbols = [ symbols ];
+            symbol = symbols;
         }
-        symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USDT');
-        } else {
-            const first = this.safeValue (symbols, 0);
-            const market = this.market (first);
-            settle = market['settle'];
+        await this.loadMarkets ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        const request = {};
+        let market = undefined;
+        let type = this.safeString (params, 'type', 'linear');
+        const settleCoin = this.safeString (params, 'settleCoin');
+        const baseCoin = this.safeString (params, 'baseCoin');
+        if (symbol !== undefined) {
+            market = this.market (symbol);
             request['symbol'] = market['id'];
+            const isUsdcSettled = market['settle'] === 'USDC';
+            if (isUsdcSettled && !isUnifiedAccount) {
+                throw new NotSupported (this.id + ' fetchPosition() Normal Account not support USDC contract');
+            }
+            if (market['linear']) {
+                type = 'linear';
+            } else if (market['inverse']) {
+                type = 'inverse';
+            } else if (market['option'] && isUnifiedAccount) {
+                type = 'option';
+                if (baseCoin !== undefined) {
+                    request['baseCoin'] = baseCoin;
+                }
+            } else {
+                throw new NotSupported (this.id + ' fetchPosition() ' + symbol + ' market type not support');
+            }
+        } else {
+            if (type === 'spot') {
+                throw new NotSupported (this.id + ' fetchPosition() not support spot market');
+            }
+            if (type === 'option') {
+                if (!isUnifiedAccount) {
+                    throw new NotSupported (this.id + ' fetchPosition() Normal Account not support ' + type + ' market');
+                }
+            }
+            if ((type === 'linear') || (type === 'inverse')) {
+                if (settleCoin === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchPosition() requires settleCoin argument in linear and inverse market');
+                }
+                request['settleCoin'] = settleCoin;
+            }
+            if (type === 'option') {
+                if (baseCoin !== undefined) {
+                    request['baseCoin'] = baseCoin;
+                }
+            }
         }
-        if (enableUnified[1]) {
-            request['settleCoin'] = settle;
-            request['limit'] = 200;
-        }
-        // market undefined
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params, 'linear');
-        request['category'] = subType;
-        if (type === 'option') {
-            request['category'] = 'option';
-        }
-        const method = (enableUnified[1]) ? 'privateGetV5PositionList' : 'privateGetUnifiedV3PrivatePositionList';
-        const response = await this[method] (this.extend (request, params));
+        params = this.omit (params, [ 'type', 'settleCoin', 'baseCoin' ]);
+        request['category'] = type;
+        const response = await this.privateGetV5PositionList (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5509,191 +5430,6 @@ export default class bybit extends Exchange {
             results.push (this.parsePosition (rawPosition));
         }
         return this.filterByArray (results, 'symbol', symbols, false);
-    }
-
-    async fetchUSDCPositions (symbols: string[] = undefined, params = {}) {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const request = {};
-        let market = undefined;
-        let type = undefined;
-        if (Array.isArray (symbols)) {
-            const length = symbols.length;
-            if (length !== 1) {
-                throw new ArgumentsRequired (this.id + ' fetchUSDCPositions() takes an array with exactly one symbol');
-            }
-            const symbol = this.safeString (symbols, 0);
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        } else if (symbols !== undefined) {
-            market = this.market (symbols);
-            request['symbol'] = market['id'];
-        }
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchUSDCPositions', market, params);
-        request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
-        const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition (this.extend (request, params));
-        //
-        //     {
-        //         "result": {
-        //             "cursor": "BTC-31DEC21-24000-P%3A1640834421431%2CBTC-31DEC21-24000-P%3A1640834421431",
-        //             "resultTotalSize": 1,
-        //             "dataList": [
-        //                 {
-        //                 "symbol": "BTC-31DEC21-24000-P",
-        //                 "leverage": "",
-        //                 "occClosingFee": "",
-        //                 "liqPrice": "",
-        //                 "positionValue": "",
-        //                 "takeProfit": "",
-        //                 "riskId": "",
-        //                 "trailingStop": "",
-        //                 "unrealisedPnl": "",
-        //                 "createdAt": "1640834421431",
-        //                 "markPrice": "0.00",
-        //                 "cumRealisedPnl": "",
-        //                 "positionMM": "359.5271",
-        //                 "positionIM": "467.0633",
-        //                 "updatedAt": "1640834421431",
-        //                 "tpSLMode": "",
-        //                 "side": "Sell",
-        //                 "bustPrice": "",
-        //                 "deleverageIndicator": 0,
-        //                 "entryPrice": "1.4",
-        //                 "size": "-0.100",
-        //                 "sessionRPL": "",
-        //                 "positionStatus": "",
-        //                 "sessionUPL": "",
-        //                 "stopLoss": "",
-        //                 "orderMargin": "",
-        //                 "sessionAvgPrice": "1.5"
-        //                 }
-        //             ]
-        //         },
-        //         "retCode": 0,
-        //         "retMsg": "Success."
-        //     }
-        //
-        const positions = this.addPaginationCursorToResult (response);
-        const results = [];
-        for (let i = 0; i < positions.length; i++) {
-            let rawPosition = positions[i];
-            if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
-                // futures only
-                rawPosition = this.safeValue (rawPosition, 'data');
-            }
-            results.push (this.parsePosition (rawPosition, market));
-        }
-        return this.filterByArray (results, 'symbol', symbols, false);
-    }
-
-    async fetchDerivativesPositions (symbols: string[] = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        let settle = undefined;
-        if (Array.isArray (symbols)) {
-            const symbolsLength = symbols.length;
-            if (symbolsLength > 1) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
-            }
-            if (symbolsLength === 1) {
-                market = this.market (symbols[0]);
-                settle = market['settle'];
-                request['symbol'] = market['id'];
-            }
-        }
-        [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
-        if (settle !== undefined) {
-            request['settleCoin'] = settle;
-        }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
-        request['category'] = subType;
-        const response = await this.privateGetV5PositionList (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "nextPageCursor": "updateAt%3D1672279322668",
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "symbol": "XRPUSDT",
-        //                     "leverage": "10",
-        //                     "avgPrice": "0.3615",
-        //                     "liqPrice": "0.0001",
-        //                     "riskLimitValue": "200000",
-        //                     "takeProfit": "",
-        //                     "positionValue": "36.15",
-        //                     "tpslMode": "Full",
-        //                     "riskId": 41,
-        //                     "trailingStop": "0",
-        //                     "unrealisedPnl": "-1.83",
-        //                     "markPrice": "0.3432",
-        //                     "cumRealisedPnl": "0.48805876",
-        //                     "positionMM": "0.381021",
-        //                     "createdTime": "1672121182216",
-        //                     "positionIdx": 0,
-        //                     "positionIM": "3.634521",
-        //                     "updatedTime": "1672279322668",
-        //                     "side": "Buy",
-        //                     "bustPrice": "",
-        //                     "size": "100",
-        //                     "positionStatus": "Normal",
-        //                     "stopLoss": "",
-        //                     "tradeMode": 0
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672280219169
-        //     }
-        //
-        const positions = this.addPaginationCursorToResult (response);
-        return this.parsePositions (positions, symbols, params);
-    }
-
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchPositions
-         * @description fetch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
-        if (Array.isArray (symbols)) {
-            const symbolsLength = symbols.length;
-            if (symbolsLength > 1) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
-            }
-        } else if (symbols !== undefined) {
-            symbols = [ symbols ];
-        }
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        let settle = this.safeString (params, 'settleCoin');
-        let paramsOmitted = undefined;
-        if (settle === undefined) {
-            [ settle, paramsOmitted ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
-        }
-        const isUsdcSettled = settle === 'USDC';
-        let subType = undefined;
-        [ subType, paramsOmitted ] = this.handleSubTypeAndParams ('fetchPositions', undefined, paramsOmitted);
-        const isInverse = subType === 'inverse';
-        const isLinearSettle = isUsdcSettled || (settle === 'USDT');
-        if (isInverse && isLinearSettle) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
-        }
-        if ((enableUnifiedMargin || enableUnifiedAccount) && !isInverse) {
-            return await this.fetchUnifiedPositions (symbols, params);
-        } else if (isUsdcSettled) {
-            return await this.fetchUSDCPositions (symbols, paramsOmitted);
-        } else {
-            return await this.fetchDerivativesPositions (symbols, params);
-        }
     }
 
     parsePosition (position, market = undefined) {
