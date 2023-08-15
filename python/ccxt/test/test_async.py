@@ -274,26 +274,30 @@ class testMainClass(baseMainTestClass):
         return message + res
 
     async def test_method(self, methodName, exchange, args, isPublic):
+        isLoadMarkets = (methodName == 'loadMarkets')
         methodNameInTest = get_test_name(methodName)
         # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in base exchange)
         if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
             return
         skipMessage = None
         isFetchOhlcvEmulated = (methodName == 'fetchOHLCV' and exchange.has['fetchOHLCV'] == 'emulated')  # todo: remove emulation from base
-        if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
+        if not isLoadMarkets and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
             skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
         elif (methodName in self.skippedMethods) and (isinstance(self.skippedMethods[methodName], str)):
             skipMessage = '[INFO:SKIPPED_TEST]'
         elif not (methodNameInTest in self.testFiles):
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
-        if skipMessage:
-            if self.info:
-                dump(self.add_padding(skipMessage, 25), exchange.id, methodNameInTest)
-            return
         argsStringified = '(' + ','.join(args) + ')'
-        if self.info:
-            dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         try:
+            # exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" need it to be called anyway(but can skip "test.loadMarket" for it)
+            if isLoadMarkets:
+                await exchange.load_markets()
+            if skipMessage:
+                if self.info:
+                    dump(self.add_padding(skipMessage, 25), exchange.id, methodNameInTest)
+                return
+            if self.info:
+                dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
             skippedProperties = exchange.safe_value(self.skippedMethods, methodName, {})
             await call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
             if isPublic:
@@ -307,7 +311,7 @@ class testMainClass(baseMainTestClass):
             else:
                 raise e
 
-    async def test_safe(self, methodName, exchange, args, isPublic):
+    async def test_safe(self, methodName, exchange, args=[], isPublic=False):
         # `testSafe` method does not raise an exception, instead mutes it.
         # The reason we mute the thrown exceptions here is because if self test is part
         # of "runPublicTests", then we don't want to stop the whole test if any single
@@ -334,18 +338,25 @@ class testMainClass(baseMainTestClass):
                 if tempFailure:
                     # wait and retry again
                     await exchange.sleep(i * 1000)  # increase wait seconds on every retry
+                    # if last retry was gone with same `tempFailure` error, then let's eventually return False
+                    if i == maxRetries - 1:
+                        dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified)
+                        if methodName == 'loadMarkets':
+                            # in case of loadMarkets, we completely stop test for current exchange
+                            exit_script()
+                        return False
                     continue
+                elif isinstance(e, OnMaintenance):
+                    # in case of maintenance, skip exchange(don't fail the test)
+                    dump('[TEST_WARNING] Exchange is on maintenance', exchange.id)
+                    exit_script()
                 else:
-                    # if not temp failure, then dump exception without retrying
-                    dump('[TEST_WARNING]', 'Method could not be tested', exception_message(e), exchange.id, methodName, argsStringified)
+                    # if not a temporary connectivity issue, then mark test(no need to re-try)
+                    dump('[TEST_FAILURE]', exception_message(e), exchange.id, methodName, argsStringified)
                     return False
-        # if maxretries was gone with same `tempFailure` error, then let's eventually return False
-        dump('[TEST_WARNING]', 'Method not tested due to a Network/Availability issue', exchange.id, methodName, argsStringified)
-        return False
 
     async def run_public_tests(self, exchange, symbol):
         tests = {
-            'loadMarkets': [],
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
@@ -380,33 +391,19 @@ class testMainClass(baseMainTestClass):
         # promises.append(testThrottle())
         results = await asyncio.gather(*promises)
         # now count which test-methods retuned `false` from "testSafe" and dump that info below
-        errors = []
-        for i in range(0, len(testNames)):
-            if not results[i]:
-                errors.append(testNames[i])
         if self.info:
+            errors = []
+            for i in range(0, len(testNames)):
+                if not results[i]:
+                    errors.append(testNames[i])
             # we don't raise exception for public-tests, see comments under 'testSafe' method
             failedMsg = ''
             if len(errors):
                 failedMsg = ' | Failed methods: ' + ', '.join(errors)
-            dump(self.add_padding('[INFO:PUBLIC_TESTS_DONE]' + market['type'] + failedMsg, 25), exchange.id)
+            dump(self.add_padding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id)
 
     async def load_exchange(self, exchange):
-        try:
-            await exchange.load_markets()
-        except Exception as e:
-            if isinstance(e, OnMaintenance):
-                dump('[SKIPPED] Exchange is on maintenance', exchangeId)
-                exit_script()
-            raise e
-        assert isinstance(exchange.markets, dict), '.markets is not an object'
-        assert isinstance(exchange.symbols, list), '.symbols is not an array'
-        symbolsLength = len(exchange.symbols)
-        marketKeys = list(exchange.markets.keys())
-        marketKeysLength = len(marketKeys)
-        assert symbolsLength > 0, '.symbols count <= 0(less than or equal to zero)'
-        assert marketKeysLength > 0, '.markets objects keys length <= 0(less than or equal to zero)'
-        assert symbolsLength == marketKeysLength, 'number of .symbols is not equal to the number of .markets'
+        await self.test_safe('loadMarkets', exchange, [], True)
         symbols = [
             'BTC/CNY',
             'BTC/USD',

@@ -31,6 +31,9 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'api' => array(
                     'ws' => 'wss://ws-feed.pro.coinbase.com',
                 ),
+                'test' => array(
+                    'ws' => 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
+                ),
             ),
             'options' => array(
                 'tradesLimit' => 1000,
@@ -195,7 +198,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'marketId' => $market['id'],
                 'limit' => $limit,
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+            $authentication = $this->authenticate();
+            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $authentication), $messageHash, $subscription));
             return $orderbook->limit ();
         }) ();
     }

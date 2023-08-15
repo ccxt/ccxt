@@ -1083,7 +1083,7 @@ class kucoinfutures extends kucoin {
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
             'contractSize' => $this->safe_value($market, 'contractSize'),
-            //     realisedPnl => $position['realised_pnl'],
+            'realizedPnl' => $this->safe_number($position, 'realised_pnl'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
@@ -1092,6 +1092,8 @@ class kucoinfutures extends kucoin {
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 
@@ -1116,7 +1118,7 @@ class kucoinfutures extends kucoin {
              * @param {float} [$params->leverage] Leverage size of the order
              * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
              * @param {string} [$params->remark] remark for the order, length cannot exceed 100 utf8 characters
-             * @param {string} [$params->stop] 'up' or 'down', the direction the $stopPrice is triggered from, requires $stopPrice-> down => Triggers when the $price reaches or goes below the $stopPrice-> up => Triggers when the $price reaches or goes above the $stopPrice->
+             * @param {string} [$params->stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down => Triggers when the $price reaches or goes below the stopPrice. up => Triggers when the $price reaches or goes above the stopPrice.
              * @param {string} [$params->stopPriceType]  TP, IP or MP, defaults to MP => Mark Price
              * @param {bool} [$params->closeOrder] set to true to close position
              * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
@@ -1139,17 +1141,14 @@ class kucoinfutures extends kucoin {
                 'size' => $preciseAmount,
                 'leverage' => 1,
             );
-            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-            $isStopLoss = $stopLossPrice !== null;
-            $isTakeProfit = $takeProfitPrice !== null;
-            if ($stopPrice) {
+            list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handleTriggerPrices ($params);
+            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
+            if ($triggerPrice) {
                 $request['stop'] = ($side === 'buy') ? 'up' : 'down';
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['stopPriceType'] = 'MP';
-            } elseif ($isStopLoss || $isTakeProfit) {
-                if ($isStopLoss) {
+            } elseif ($stopLossPrice || $takeProfitPrice) {
+                if ($stopLossPrice) {
                     $request['stop'] = ($side === 'buy') ? 'up' : 'down';
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
                 } else {

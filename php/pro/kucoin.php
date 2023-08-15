@@ -31,7 +31,7 @@ class kucoin extends \ccxt\async\kucoin {
                 ),
                 'watchOrderBook' => array(
                     'snapshotDelay' => 5,
-                    'maxRetries' => 3,
+                    'snapshotMaxRetries' => 3,
                 ),
             ),
             'streaming' => array(

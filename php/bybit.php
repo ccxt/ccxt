@@ -82,6 +82,7 @@ class bybit extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -1233,6 +1234,165 @@ class bybit extends Exchange {
 
     public function upgrade_unified_trade_account($params = array ()) {
         return $this->privatePostV5AccountUpgradeToUta ($params);
+    }
+
+    public function convert_expire_date($date) {
+        // parse YYMMDD to timestamp
+        $year = mb_substr($date, 0, 2 - 0);
+        $month = mb_substr($date, 2, 4 - 2);
+        $day = mb_substr($date, 4, 6 - 4);
+        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+        return $reconstructedDate;
+    }
+
+    public function convert_expire_date_to_market_id_date($date) {
+        // parse 231229 to 29DEC23
+        $year = mb_substr($date, 0, 2 - 0);
+        $monthRaw = mb_substr($date, 2, 4 - 2);
+        $month = null;
+        $day = mb_substr($date, 4, 6 - 4);
+        if ($monthRaw === '01') {
+            $month = 'JAN';
+        } elseif ($monthRaw === '02') {
+            $month = 'FEB';
+        } elseif ($monthRaw === '03') {
+            $month = 'MAR';
+        } elseif ($monthRaw === '04') {
+            $month = 'APR';
+        } elseif ($monthRaw === '05') {
+            $month = 'MAY';
+        } elseif ($monthRaw === '06') {
+            $month = 'JUN';
+        } elseif ($monthRaw === '07') {
+            $month = 'JUL';
+        } elseif ($monthRaw === '08') {
+            $month = 'AUG';
+        } elseif ($monthRaw === '09') {
+            $month = 'SEP';
+        } elseif ($monthRaw === '10') {
+            $month = 'OCT';
+        } elseif ($monthRaw === '11') {
+            $month = 'NOV';
+        } elseif ($monthRaw === '12') {
+            $month = 'DEC';
+        }
+        $reconstructedDate = $day . $month . $year;
+        return $reconstructedDate;
+    }
+
+    public function convert_market_id_expire_date($date) {
+        // parse 22JAN23 to 230122
+        $monthMappping = array(
+            'JAN' => '01',
+            'FEB' => '02',
+            'MAR' => '03',
+            'APR' => '04',
+            'MAY' => '05',
+            'JUN' => '06',
+            'JUL' => '07',
+            'AUG' => '08',
+            'SEP' => '09',
+            'OCT' => '10',
+            'NOV' => '11',
+            'DEC' => '12',
+        );
+        $year = mb_substr($date, 0, 2 - 0);
+        $monthName = mb_substr($date, 2, 5 - 2);
+        $month = $this->safe_string($monthMappping, $monthName);
+        $day = mb_substr($date, 5, 7 - 5);
+        $reconstructedDate = $day . $month . $year;
+        return $reconstructedDate;
+    }
+
+    public function create_expired_option_market($symbol) {
+        // support expired option contracts
+        $quote = 'USD';
+        $settle = 'USDC';
+        $optionParts = explode('-', $symbol);
+        $symbolBase = explode('/', $symbol);
+        $base = null;
+        $expiry = null;
+        if (mb_strpos($symbol, '/') > -1) {
+            $base = $this->safe_string($symbolBase, 0);
+            $expiry = $this->safe_string($optionParts, 1);
+        } else {
+            $base = $this->safe_string($optionParts, 0);
+            $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
+        }
+        $strike = $this->safe_string($optionParts, 2);
+        $optionType = $this->safe_string($optionParts, 3);
+        $datetime = $this->convert_expire_date($expiry);
+        $timestamp = $this->parse8601($datetime);
+        return array(
+            'id' => $base . '-' . $this->convert_expire_date_to_market_id_date($expiry) . '-' . $strike . '-' . $optionType,
+            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $base,
+            'quoteId' => $quote,
+            'settleId' => $settle,
+            'active' => false,
+            'type' => 'option',
+            'linear' => null,
+            'inverse' => null,
+            'spot' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => true,
+            'margin' => false,
+            'contract' => true,
+            'contractSize' => null,
+            'expiry' => $timestamp,
+            'expiryDatetime' => $datetime,
+            'optionType' => ($optionType === 'C') ? 'call' : 'put',
+            'strike' => $this->parse_number($strike),
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+            ),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => null,
+        );
+    }
+
+    public function market($symbol) {
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' $markets not loaded');
+        }
+        if (gettype($symbol) === 'string') {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                return $this->markets[$symbol];
+            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
+                $markets = $this->markets_by_id[$symbol];
+                return $markets[0];
+            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1)) {
+                return $this->create_expired_option_market($symbol);
+            }
+        }
+        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+    }
+
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            // handle expired option contracts
+            return $this->create_expired_option_market($marketId);
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
     public function fetch_time($params = array ()) {
@@ -3299,7 +3459,7 @@ class bybit extends Exchange {
         //         "symbol" => "XRPUSDT",
         //         "side" => "Buy",
         //         "orderType" => "Market",
-        //         "price" => "0.3431",
+        //         "price" => "0.3432",
         //         "qty" => "65",
         //         "reduceOnly" => true,
         //         "timeInForce" => "ImmediateOrCancel",
@@ -3681,7 +3841,7 @@ class bybit extends Exchange {
         }
         $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
         if ($postOnly) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'gtc') {
@@ -3882,7 +4042,7 @@ class bybit extends Exchange {
         $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'postonly', $params);
         if ($postOnly) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'gtc') {
@@ -3983,7 +4143,7 @@ class bybit extends Exchange {
         }
         $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // same specific param
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
         if ($postOnly) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'gtc') {
@@ -6503,7 +6663,7 @@ class bybit extends Exchange {
         $timestamp = $this->safe_integer_2($transaction, 'createTime', 'successAt');
         $updated = $this->safe_integer($transaction, 'updateTime');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number_2($transaction, 'depositFee', 'withdrawFee', 0);
+        $feeCost = $this->safe_number_2($transaction, 'depositFee', 'withdrawFee');
         $type = (is_array($transaction) && array_key_exists('depositFee', $transaction)) ? 'deposit' : 'withdrawal';
         $fee = null;
         if ($feeCost !== null) {
@@ -7035,25 +7195,25 @@ class bybit extends Exchange {
     public function fetch_unified_positions(?array $symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array();
-        $type = null;
         $settle = null;
+        $market = null;
         $enableUnified = $this->is_unified_enabled();
         if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
             $symbolsLength = count($symbols);
             if ($symbolsLength > 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
             }
-            $market = $this->market($symbols[0]);
-            $settle = $market['settle'];
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+            }
         } elseif ($symbols !== null) {
             $symbols = array( $symbols );
+            $market = $this->market($symbols);
         }
         $symbols = $this->market_symbols($symbols);
-        if ($symbols === null) {
+        if ($market === null) {
             list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', 'USDT');
         } else {
-            $first = $this->safe_value($symbols, 0);
-            $market = $this->market($first);
             $settle = $market['settle'];
             $request['symbol'] = $market['id'];
         }
@@ -7061,16 +7221,20 @@ class bybit extends Exchange {
             $request['settleCoin'] = $settle;
             $request['limit'] = 200;
         }
-        // $market null
-        list($type, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params, 'linear');
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
         $request['category'] = $subType;
         if ($type === 'option') {
             $request['category'] = 'option';
         }
-        $method = ($enableUnified[1]) ? 'privateGetV5PositionList' : 'privateGetUnifiedV3PrivatePositionList';
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($enableUnified[1]) {
+            $response = $this->privateGetV5PositionList (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetUnifiedV3PrivatePositionList (array_merge($request, $params));
+        }
         //
         //     {
         //         "retCode" => 0,
@@ -7116,7 +7280,7 @@ class bybit extends Exchange {
             }
             $results[] = $this->parse_position($rawPosition);
         }
-        return $this->filter_by_array($results, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
     public function fetch_usdc_positions(?array $symbols = null, $params = array ()) {
@@ -7191,7 +7355,7 @@ class bybit extends Exchange {
             }
             $results[] = $this->parse_position($rawPosition, $market);
         }
-        return $this->filter_by_array($results, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
     public function fetch_derivatives_positions(?array $symbols = null, $params = array ()) {
@@ -7504,6 +7668,8 @@ class bybit extends Exchange {
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
+            'stopLossPrice' => $this->safe_number_2($position, 'stop_loss', 'stopLoss'),
+            'takeProfitPrice' => $this->safe_number_2($position, 'take_profit', 'takeProfit'),
         ));
     }
 
@@ -8607,7 +8773,7 @@ class bybit extends Exchange {
         $data = $this->safe_value($result, 'list', array());
         $settlements = $this->parse_settlements($data, $market);
         $sorted = $this->sort_by($settlements, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function parse_settlement($settlement, $market) {
@@ -8642,6 +8808,62 @@ class bybit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
+    }
+
+    public function fetch_volatility_history(string $code, $params = array ()) {
+        /**
+         * fetch the historical $volatility of an option market based on an underlying asset
+         * @see https://bybit-exchange.github.io/docs/v5/market/iv
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {int} [$params->period] the period in days to fetch the $volatility for => 7,14,21,30,60,90,180,270
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$volatility-structure $volatility history objects~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'category' => 'option',
+            'baseCoin' => $currency['id'],
+        );
+        $response = $this->publicGetV5MarketHistoricalVolatility (array_merge($request, $params));
+        //
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "SUCCESS",
+        //         "category" => "option",
+        //         "result" => array(
+        //             {
+        //                 "period" => 7,
+        //                 "value" => "0.23854072",
+        //                 "time" => "1690574400000"
+        //             }
+        //         )
+        //     }
+        //
+        $volatility = $this->safe_value($response, 'result', array());
+        return $this->parse_volatility_history($volatility);
+    }
+
+    public function parse_volatility_history($volatility) {
+        //
+        //     {
+        //         "period" => 7,
+        //         "value" => "0.23854072",
+        //         "time" => "1690574400000"
+        //     }
+        //
+        $result = array();
+        for ($i = 0; $i < count($volatility); $i++) {
+            $entry = $volatility[$i];
+            $timestamp = $this->safe_integer($entry, 'time');
+            $result[] = array(
+                'info' => $volatility,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'volatility' => $this->safe_number($entry, 'value'),
+            );
         }
         return $result;
     }

@@ -292,6 +292,11 @@ class coinex extends coinex$1 {
                 'accountsById': {
                     'spot': '0',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -3012,7 +3017,7 @@ class coinex extends coinex$1 {
         for (let i = 0; i < position.length; i++) {
             result.push(this.parsePosition(position[i], market));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -3189,6 +3194,8 @@ class coinex extends coinex$1 {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
+            'stopLossPrice': this.safeNumber(position, 'stop_loss_price'),
+            'takeProfitPrice': this.safeNumber(position, 'take_profit_price'),
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
@@ -3723,17 +3730,21 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#withdraw
          * @description make a withdrawal
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @param {string} [params.network] unified network code
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
+        const networkCode = this.safeStringUpper(params, 'network');
+        params = this.omit(params, 'network');
         if (tag) {
             address = address + ':' + tag;
         }
@@ -3743,6 +3754,9 @@ class coinex extends coinex$1 {
             'actual_amount': parseFloat(amount),
             'transfer_method': 'onchain', // onchain, local
         };
+        if (networkCode !== undefined) {
+            request['smart_contract_name'] = this.networkCodeToId(networkCode);
+        }
         const response = await this.privatePostBalanceCoinWithdraw(this.extend(request, params));
         //
         //     {

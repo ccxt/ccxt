@@ -3209,7 +3209,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push(this.parsePosition(positions[i], market));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -3384,6 +3384,8 @@ export default class digifinex extends Exchange {
             'leverage': this.safeNumber2(position, 'leverage', 'leverage_ratio'),
             'marginRatio': this.safeNumber(position, 'margin_ratio'),
             'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {

@@ -15,6 +15,8 @@ async def test_watch_order_book(exchange, symbol):
         'woo',
         'luno',  # requires authentication for watch_order_book
         'alpaca',  # requires auth
+        'coinbasepro',  # requires auth
+        'coinbaseprime',  # requires auth
     ]
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'test skipped')

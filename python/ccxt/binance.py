@@ -130,6 +130,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchTransactionFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
@@ -881,9 +882,12 @@ class binance(Exchange, ImplicitAPI):
                         'myTrades': 10,
                         'rateLimit/order': 20,
                         'myPreventedMatches': 1,
+                        'myAllocations': 10,
                     },
                     'post': {
                         'order/oco': 1,
+                        'sor/order': 1,
+                        'sor/order/test': 1,
                         'order': 1,
                         'order/cancelReplace': 1,
                         'order/test': 1,
@@ -950,6 +954,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/repay-futures-switch': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1,  # 1
+                        'asset-collection': 3,
                     },
                     'put': {
                         'listenKey': 1,  # 1
@@ -4050,6 +4055,8 @@ class binance(Exchange, ImplicitAPI):
         see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
         see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
         see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
@@ -4057,15 +4064,21 @@ class binance(Exchange, ImplicitAPI):
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :param boolean [params.sor]: *spot only* whether to use SOR(Smart Order Routing) or not, default is False
+        :param boolean [params.test]: *spot only* whether to use the test endpoint or not, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         marketType = self.safe_string(params, 'type', market['type'])
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
+        sor = self.safe_value_2(params, 'sor', 'SOR', False)
+        params = self.omit(params, 'sor', 'SOR')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         method = 'privatePostOrder'
-        if market['linear']:
+        if sor:
+            method = 'privatePostSorOrder'
+        elif market['linear']:
             method = 'fapiPrivatePostOrder'
         elif market['inverse']:
             method = 'dapiPrivatePostOrder'
@@ -4141,11 +4154,10 @@ class binance(Exchange, ImplicitAPI):
         if marginMode == 'isolated':
             request['isIsolated'] = True
         if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, marketType)
-                if brokerId is not None:
-                    request['newClientOrderId'] = brokerId + self.uuid22()
+            broker = self.safe_value(self.options, 'broker', {})
+            defaultId = 'x-xcKtGhcu' if (market['contract']) else 'x-R4BD3S82'
+            brokerId = self.safe_string(broker, marketType, defaultId)
+            request['newClientOrderId'] = brokerId + self.uuid22()
         else:
             request['newClientOrderId'] = clientOrderId
         if (marketType == 'spot') or (marketType == 'margin'):
@@ -6379,6 +6391,7 @@ class binance(Exchange, ImplicitAPI):
     def parse_position_risk(self, position, market=None):
         #
         # usdm
+        #
         #     {
         #       "symbol": "BTCUSDT",
         #       "positionAmt": "0.001",
@@ -6398,6 +6411,7 @@ class binance(Exchange, ImplicitAPI):
         #     }
         #
         # coinm
+        #
         #     {
         #       "symbol": "BTCUSD_PERP",
         #       "positionAmt": "2",
@@ -6531,6 +6545,8 @@ class binance(Exchange, ImplicitAPI):
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         }
 
     def load_leverage_brackets(self, reload=False, params={}):
@@ -6756,7 +6772,7 @@ class binance(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(response)):
             result.append(self.parse_position(response[i], market))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -6858,7 +6874,7 @@ class binance(Exchange, ImplicitAPI):
         account = getattr(self, method)(query)
         result = self.parse_account_positions(account)
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def fetch_positions_risk(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -6947,7 +6963,7 @@ class binance(Exchange, ImplicitAPI):
             parsed = self.parse_position_risk(response[i])
             result.append(parsed)
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -7352,14 +7368,15 @@ class binance(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
-            if method == 'POST' and path == 'order':
+            if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
                 newClientOrderId = self.safe_string(params, 'newClientOrderId')
                 if newClientOrderId is None:
                     isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
                     marketType = 'spot' if isSpotOrMargin else 'future'
-                    broker = self.safe_value(self.options, 'broker')
-                    brokerId = self.safe_string(broker, marketType)
+                    defaultId = 'x-xcKtGhcu' if (not isSpotOrMargin) else 'x-R4BD3S82'
+                    broker = self.safe_value(self.options, 'broker', {})
+                    brokerId = self.safe_string(broker, marketType, defaultId)
                     params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')

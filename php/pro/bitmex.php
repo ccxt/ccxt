@@ -1183,7 +1183,7 @@ class bitmex extends \ccxt\async\bitmex {
             $orderbook['symbol'] = $symbol;
             for ($i = 0; $i < count($data); $i++) {
                 $price = $this->safe_float($data[$i], 'price');
-                $size = $this->safe_float($data[$i], 'size');
+                $size = $this->convertFromRawQuantity ($symbol, $this->safe_string($data[$i], 'size'));
                 $id = $this->safe_string($data[$i], 'id');
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
@@ -1206,8 +1206,8 @@ class bitmex extends \ccxt\async\bitmex {
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];
-                $price = $this->safe_float($data[$i], 'price');
-                $size = ($action === 'delete') ? 0 : $this->safe_float($data[$i], 'size', 0);
+                $price = $this->safe_number($data[$i], 'price');
+                $size = ($action === 'delete') ? 0 : $this->convertFromRawQuantity ($symbol, $this->safe_string($data[$i], 'size', '0'));
                 $id = $this->safe_string($data[$i], 'id');
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';

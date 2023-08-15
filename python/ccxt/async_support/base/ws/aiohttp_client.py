@@ -44,7 +44,7 @@ class AiohttpClient(Client):
         elif message.type == WSMsgType.PING:
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'ping', message)
-            ensure_future(self.connection.pong(), loop=self.asyncio_loop)
+            ensure_future(self.connection.pong(message.data), loop=self.asyncio_loop)
         elif message.type == WSMsgType.PONG:
             self.lastPong = milliseconds()
             if self.verbose:

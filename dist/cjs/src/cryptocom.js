@@ -82,6 +82,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayMargin': true,
@@ -2968,6 +2969,8 @@ class cryptocom extends cryptocom$1 {
             'marginMode': undefined,
             'percentage': undefined,
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     nonce() {

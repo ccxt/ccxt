@@ -50,7 +50,8 @@ class deribit extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFees' => true,
-                'fetchHistoricalVolatility' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -77,6 +78,7 @@ class deribit extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'transfer' => true,
@@ -2331,6 +2333,9 @@ class deribit extends Exchange {
             'marginMode' => null,
             'side' => $side,
             'percentage' => null,
+            'hedged' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 
@@ -2440,7 +2445,14 @@ class deribit extends Exchange {
         return $this->parse_positions($result, $symbols);
     }
 
-    public function fetch_historical_volatility(string $code, $params = array ()) {
+    public function fetch_volatility_history(string $code, $params = array ()) {
+        /**
+         * fetch the historical volatility of an option market based on an underlying asset
+         * @see https://docs.deribit.com/#public-get_historical_volatility
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the deribit api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=volatility-structure volatility history objects~
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -2461,13 +2473,31 @@ class deribit extends Exchange {
         //         "testnet" => false
         //     }
         //
-        $volatilityResult = $this->safe_value($response, 'result', array());
+        return $this->parse_volatility_history($response);
+    }
+
+    public function parse_volatility_history($volatility) {
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "result" => [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn" => 1641515379467734,
+        //         "usOut" => 1641515379468095,
+        //         "usDiff" => 361,
+        //         "testnet" => false
+        //     }
+        //
+        $volatilityResult = $this->safe_value($volatility, 'result', array());
         $result = array();
         for ($i = 0; $i < count($volatilityResult); $i++) {
             $timestamp = $this->safe_integer($volatilityResult[$i], 0);
             $volatility = $this->safe_number($volatilityResult[$i], 1);
             $result[] = array(
-                'info' => $response,
+                'info' => $volatility,
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
                 'volatility' => $volatility,
@@ -2711,6 +2741,128 @@ class deribit extends Exchange {
         //
         $data = $this->safe_value($response, 'result', array());
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @see https://docs.deribit.com/#public-get_funding_rate_value
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the deribit api endpoint
+         * @param {int} [$params->start_timestamp] fetch funding rate starting from this timestamp
+         * @param {int} [$params->end_timestamp] fetch funding rate ending at this timestamp
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $time = $this->milliseconds();
+        $request = array(
+            'instrument_name' => $market['id'],
+            'start_timestamp' => $time - (8 * 60 * 60 * 1000), // 8h ago,
+            'end_timestamp' => $time,
+        );
+        $response = $this->publicGetGetFundingRateValue (array_merge($request, $params));
+        //
+        //   {
+        //       "jsonrpc":"2.0",
+        //       "result":"0",
+        //       "usIn":"1691161645596519",
+        //       "usOut":"1691161645597149",
+        //       "usDiff":"630",
+        //       "testnet":false
+        //   }
+        //
+        return $this->parse_funding_rate($response, $market);
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the current funding $rate
+         * @see https://docs.deribit.com/#public-get_funding_rate_history
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the deribit api endpoint
+         * @param {int} [$params->end_timestamp] fetch funding $rate ending at this timestamp
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $time = $this->milliseconds();
+        $month = 30 * 24 * 60 * 60 * 1000;
+        if ($since === null) {
+            $since = $time - $month;
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+            'start_timestamp' => $since,
+            'end_timestamp' => $time,
+        );
+        $response = $this->publicGetGetFundingRateHistory (array_merge($request, $params));
+        //
+        //    {
+        //        "jsonrpc" => "2.0",
+        //        "id" => 7617,
+        //        "result" => array(
+        //          {
+        //            "timestamp" => 1569891600000,
+        //            "index_price" => 8222.87,
+        //            "prev_index_price" => 8305.72,
+        //            "interest_8h" => -0.00009234260068476106,
+        //            "interest_1h" => -4.739622041017375e-7
+        //          }
+        //        )
+        //    }
+        //
+        $rates = array();
+        $result = $this->safe_value($response, 'result', array());
+        for ($i = 0; $i < count($result); $i++) {
+            $fr = $result[$i];
+            $rate = $this->parse_funding_rate($fr, $market);
+            $rates[] = $rate;
+        }
+        return $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //   {
+        //       "jsonrpc":"2.0",
+        //       "result":"0",
+        //       "usIn":"1691161645596519",
+        //       "usOut":"1691161645597149",
+        //       "usDiff":"630",
+        //       "testnet":false
+        //   }
+        // history
+        //   {
+        //     "timestamp" => 1569891600000,
+        //     "index_price" => 8222.87,
+        //     "prev_index_price" => 8305.72,
+        //     "interest_8h" => -0.00009234260068476106,
+        //     "interest_1h" => -4.739622041017375e-7
+        //   }
+        //
+        $timestamp = $this->safe_integer($contract, 'timestamp');
+        $datetime = $this->iso8601($timestamp);
+        $result = $this->safe_number_2($contract, 'result', 'interest_8h');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => null,
+            'indexPrice' => $this->safe_number($contract, 'index_price'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'fundingRate' => $result,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
     }
 
     public function nonce() {

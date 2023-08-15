@@ -297,6 +297,11 @@ class coinex extends Exchange {
                 'accountsById' => array(
                     'spot' => '0',
                 ),
+                'networks' => array(
+                    'BEP20' => 'BSC',
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
+                ),
             ),
             'commonCurrencies' => array(
                 'ACM' => 'Actinium',
@@ -3034,7 +3039,7 @@ class coinex extends Exchange {
             for ($i = 0; $i < count($position); $i++) {
                 $result[] = $this->parse_position($position[$i], $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -3214,6 +3219,8 @@ class coinex extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => $leverage,
             'marginRatio' => null,
+            'stopLossPrice' => $this->safe_number($position, 'stop_loss_price'),
+            'takeProfitPrice' => $this->safe_number($position, 'take_profit_price'),
         ));
     }
 
@@ -3762,17 +3769,21 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {string} [$params->network] unified network $code
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
+            $networkCode = $this->safe_string_upper($params, 'network');
+            $params = $this->omit($params, 'network');
             if ($tag) {
                 $address = $address . ':' . $tag;
             }
@@ -3782,6 +3793,9 @@ class coinex extends Exchange {
                 'actual_amount' => floatval($amount), // the actual $amount without fees, https://www.coinex.com/fees
                 'transfer_method' => 'onchain', // onchain, local
             );
+            if ($networkCode !== null) {
+                $request['smart_contract_name'] = $this->network_code_to_id($networkCode);
+            }
             $response = Async\await($this->privatePostBalanceCoinWithdraw (array_merge($request, $params)));
             //
             //     {

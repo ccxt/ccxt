@@ -106,6 +106,7 @@ class okx extends okx$1 {
                 'fetchTransactions': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -245,7 +246,7 @@ class okx extends okx$1 {
                         'trade/orders-history': 1 / 2,
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
-                        'trade/fills-history': 2,
+                        'trade/fills-history': 2.2,
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -541,16 +542,16 @@ class okx extends okx$1 {
                     '51018': errors.ExchangeError,
                     '51019': errors.ExchangeError,
                     '51020': errors.InvalidOrder,
-                    '51021': errors.BadSymbol,
-                    '51022': errors.BadSymbol,
+                    '51021': errors.ContractUnavailable,
+                    '51022': errors.ContractUnavailable,
                     '51023': errors.ExchangeError,
                     '51024': errors.AccountSuspended,
                     '51025': errors.ExchangeError,
                     '51026': errors.BadSymbol,
-                    '51027': errors.BadSymbol,
-                    '51028': errors.BadSymbol,
-                    '51029': errors.BadSymbol,
-                    '51030': errors.BadSymbol,
+                    '51027': errors.ContractUnavailable,
+                    '51028': errors.ContractUnavailable,
+                    '51029': errors.ContractUnavailable,
+                    '51030': errors.ContractUnavailable,
                     '51046': errors.InvalidOrder,
                     '51047': errors.InvalidOrder,
                     '51031': errors.InvalidOrder,
@@ -1238,6 +1239,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchMarkets
          * @description retrieves data on all markets for okx
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -1353,12 +1355,10 @@ class okx extends okx$1 {
             }
         }
         const tickSize = this.safeString(market, 'tickSz');
-        const minAmountString = this.safeString(market, 'minSz');
-        const minAmount = this.parseNumber(minAmountString);
         const fees = this.safeValue2(this.fees, type, 'trading', {});
-        const precisionPrice = this.parseNumber(tickSize);
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
+        const maxSpotCost = this.safeNumber(market, 'maxMktSz');
         return this.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -1385,7 +1385,7 @@ class okx extends okx$1 {
             'optionType': optionType,
             'precision': {
                 'amount': this.safeNumber(market, 'lotSz'),
-                'price': precisionPrice,
+                'price': this.parseNumber(tickSize),
             },
             'limits': {
                 'leverage': {
@@ -1393,16 +1393,16 @@ class okx extends okx$1 {
                     'max': this.parseNumber(maxLeverage),
                 },
                 'amount': {
-                    'min': minAmount,
+                    'min': this.safeNumber(market, 'minSz'),
                     'max': undefined,
                 },
                 'price': {
-                    'min': precisionPrice,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
@@ -4805,7 +4805,7 @@ class okx extends okx$1 {
         const data = this.safeValue(response, 'data', []);
         const position = this.safeValue(data, 0);
         if (position === undefined) {
-            return position;
+            return undefined;
         }
         return this.parsePosition(position);
     }
@@ -4892,7 +4892,7 @@ class okx extends okx$1 {
         for (let i = 0; i < positions.length; i++) {
             result.push(this.parsePosition(positions[i]));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -5037,6 +5037,8 @@ class okx extends okx$1 {
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'leverage': this.parseNumber(leverageString),
             'marginRatio': marginRatio,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {

@@ -543,7 +543,10 @@ interface Exchange {
     privateGetMyTrades (params?: {}): Promise<implicitReturnType>;
     privateGetRateLimitOrder (params?: {}): Promise<implicitReturnType>;
     privateGetMyPreventedMatches (params?: {}): Promise<implicitReturnType>;
+    privateGetMyAllocations (params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco (params?: {}): Promise<implicitReturnType>;
+    privatePostSorOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostSorOrderTest (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOrderCancelReplace (params?: {}): Promise<implicitReturnType>;
     privatePostOrderTest (params?: {}): Promise<implicitReturnType>;
@@ -602,6 +605,7 @@ interface Exchange {
     papiPostPortfolioRepayFuturesSwitch (params?: {}): Promise<implicitReturnType>;
     papiPostPortfolioRepayFuturesNegativeBalance (params?: {}): Promise<implicitReturnType>;
     papiPostListenKey (params?: {}): Promise<implicitReturnType>;
+    papiPostAssetCollection (params?: {}): Promise<implicitReturnType>;
     papiPutListenKey (params?: {}): Promise<implicitReturnType>;
     papiDeleteUmOrder (params?: {}): Promise<implicitReturnType>;
     papiDeleteUmAllOpenOrders (params?: {}): Promise<implicitReturnType>;

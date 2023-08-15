@@ -257,6 +257,7 @@ class testMainClass extends baseMainTestClass {
 
     public function test_method($methodName, $exchange, $args, $isPublic) {
         return Async\async(function () use ($methodName, $exchange, $args, $isPublic) {
+            $isLoadMarkets = ($methodName === 'loadMarkets');
             $methodNameInTest = get_test_name ($methodName);
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base $exchange)
             if (!$isPublic && (is_array($this->checkedPublicTests) && array_key_exists($methodNameInTest, $this->checkedPublicTests)) && ($methodName !== 'fetchCurrencies')) {
@@ -264,24 +265,28 @@ class testMainClass extends baseMainTestClass {
             }
             $skipMessage = null;
             $isFetchOhlcvEmulated = ($methodName === 'fetchOHLCV' && $exchange->has['fetchOHLCV'] === 'emulated'); // todo => remove emulation from base
-            if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) || $isFetchOhlcvEmulated) {
+            if (!$isLoadMarkets && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) || $isFetchOhlcvEmulated) {
                 $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
             } elseif ((is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) && (gettype($this->skippedMethods[$methodName]) === 'string')) {
                 $skipMessage = '[INFO:SKIPPED_TEST]';
             } elseif (!(is_array($this->testFiles) && array_key_exists($methodNameInTest, $this->testFiles))) {
                 $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
             }
-            if ($skipMessage) {
-                if ($this->info) {
-                    dump ($this->add_padding($skipMessage, 25), $exchange->id, $methodNameInTest);
-                }
-                return;
-            }
             $argsStringified = '(' . implode(',', $args) . ')';
-            if ($this->info) {
-                dump ($this->add_padding('[INFO:TESTING]', 25), $exchange->id, $methodNameInTest, $argsStringified);
-            }
             try {
+                // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" need it to be called anyway (but can skip "test.loadMarket" for it)
+                if ($isLoadMarkets) {
+                    Async\await($exchange->load_markets());
+                }
+                if ($skipMessage) {
+                    if ($this->info) {
+                        dump ($this->add_padding($skipMessage, 25), $exchange->id, $methodNameInTest);
+                    }
+                    return;
+                }
+                if ($this->info) {
+                    dump ($this->add_padding('[INFO:TESTING]', 25), $exchange->id, $methodNameInTest, $argsStringified);
+                }
                 $skippedProperties = $exchange->safe_value($this->skippedMethods, $methodName, array());
                 Async\await(call_method ($this->testFiles, $methodNameInTest, $exchange, $skippedProperties, $args));
                 if ($isPublic) {
@@ -301,7 +306,7 @@ class testMainClass extends baseMainTestClass {
         }) ();
     }
 
-    public function test_safe($methodName, $exchange, $args, $isPublic) {
+    public function test_safe($methodName, $exchange, $args = [], $isPublic = false) {
         return Async\async(function () use ($methodName, $exchange, $args, $isPublic) {
             // `testSafe` method does not throw an exception, instead mutes it.
             // The reason we mute the thrown exceptions here is because if this test is part
@@ -329,24 +334,33 @@ class testMainClass extends baseMainTestClass {
                     if ($tempFailure) {
                         // wait and retry again
                         Async\await($exchange->sleep ($i * 1000)); // increase wait seconds on every retry
+                        // if last retry was gone with same `$tempFailure` error, then let's eventually return false
+                        if ($i === $maxRetries - 1) {
+                            dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $exchange->id, $methodName, $argsStringified);
+                            if ($methodName === 'loadMarkets') {
+                                // in case of loadMarkets, we completely stop test for current $exchange
+                                exit_script ();
+                            }
+                            return false;
+                        }
                         continue;
+                    } elseif ($e instanceof OnMaintenance) {
+                        // in case of maintenance, skip $exchange (don't fail the test)
+                        dump ('[TEST_WARNING] Exchange is on maintenance', $exchange->id);
+                        exit_script ();
                     } else {
-                        // if not temp failure, then dump exception without retrying
-                        dump ('[TEST_WARNING]', 'Method could not be tested', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                        // if not a temporary connectivity issue, then mark test (no need to re-try)
+                        dump ('[TEST_FAILURE]', exception_message ($e), $exchange->id, $methodName, $argsStringified);
                         return false;
                     }
                 }
             }
-            // if maxretries was gone with same `$tempFailure` error, then let's eventually return false
-            dump ('[TEST_WARNING]', 'Method not tested due to a Network/Availability issue', $exchange->id, $methodName, $argsStringified);
-            return false;
         }) ();
     }
 
     public function run_public_tests($exchange, $symbol) {
         return Async\async(function () use ($exchange, $symbol) {
             $tests = array(
-                'loadMarkets' => array(),
                 'fetchCurrencies' => array(),
                 'fetchTicker' => array( $symbol ),
                 'fetchTickers' => array( $symbol ),
@@ -383,42 +397,26 @@ class testMainClass extends baseMainTestClass {
             // $promises[] = testThrottle ();
             $results = Async\await(Promise\all($promises));
             // now count which test-methods retuned `false` from "testSafe" and dump that info below
-            $errors = array();
-            for ($i = 0; $i < count($testNames); $i++) {
-                if (!$results[$i]) {
-                    $errors[] = $testNames[$i];
-                }
-            }
             if ($this->info) {
+                $errors = array();
+                for ($i = 0; $i < count($testNames); $i++) {
+                    if (!$results[$i]) {
+                        $errors[] = $testNames[$i];
+                    }
+                }
                 // we don't throw exception for public-$tests, see comments under 'testSafe' method
                 $failedMsg = '';
                 if (strlen($errors)) {
                     $failedMsg = ' | Failed methods => ' . implode(', ', $errors);
                 }
-                dump ($this->add_padding('[INFO:PUBLIC_TESTS_DONE]' . $market['type'] . $failedMsg, 25), $exchange->id);
+                dump ($this->add_padding('[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $failedMsg, 25), $exchange->id);
             }
         }) ();
     }
 
     public function load_exchange($exchange) {
         return Async\async(function () use ($exchange) {
-            try {
-                Async\await($exchange->load_markets());
-            } catch (Exception $e) {
-                if ($e instanceof OnMaintenance) {
-                    dump ('[SKIPPED] Exchange is on maintenance', exchangeId);
-                    exit_script ();
-                }
-                throw $e;
-            }
-            assert (gettype($exchange->markets) === 'array', '.markets is not an object');
-            assert (gettype($exchange->symbols) === 'array' && array_keys($exchange->symbols) === array_keys(array_keys($exchange->symbols)), '.symbols is not an array');
-            $symbolsLength = count($exchange->symbols);
-            $marketKeys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
-            $marketKeysLength = count($marketKeys);
-            assert ($symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
-            assert ($marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
-            assert ($symbolsLength === $marketKeysLength, 'number of .symbols is not equal to the number of .markets');
+            Async\await($this->test_safe('loadMarkets', $exchange, array(), true));
             $symbols = array(
                 'BTC/CNY',
                 'BTC/USD',

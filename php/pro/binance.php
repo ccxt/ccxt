@@ -89,6 +89,9 @@ class binance extends \ccxt\async\binance {
                 'watchOHLCV' => array(
                     'name' => 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
                 ),
+                'watchOrderBook' => array(
+                    'snapshotMaxRetries' => 3,
+                ),
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => false, // or true
                     'awaitBalanceSnapshot' => true, // whether to wait for the balance snapshot before providing updates
@@ -223,9 +226,9 @@ class binance extends \ccxt\async\binance {
                 $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
                 $params = $this->safe_value($subscription, 'params');
                 // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
-                // todo => this is a synch blocking call in ccxt.php - make it async
+                // todo => this is a synch blocking call - make it async
                 // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-                $snapshot = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
                 $orderbook = $this->safe_value($this->orderbooks, $symbol);
                 if ($orderbook === null) {
                     // if the $orderbook is dropped before the $snapshot is received
@@ -1841,7 +1844,6 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $this->check_required_symbol('fetchOpenOrdersWs', $symbol);
             Async\await($this->load_markets());
             $this->check_is_spot('fetchOpenOrdersWs', $symbol);
             $url = $this->urls['api']['ws']['ws'];
@@ -1850,9 +1852,11 @@ class binance extends \ccxt\async\binance {
             $returnRateLimits = false;
             list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrderWs', 'returnRateLimits', false);
             $payload = array(
-                'symbol' => $this->market_id($symbol),
                 'returnRateLimits' => $returnRateLimits,
             );
+            if ($symbol !== null) {
+                $payload['symbol'] = $this->market_id($symbol);
+            }
             $message = array(
                 'id' => $messageHash,
                 'method' => 'openOrders.status',

@@ -80,6 +80,7 @@ class cryptocom extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'repayMargin' => true,
@@ -2932,6 +2933,8 @@ class cryptocom extends Exchange {
             'marginMode' => null,
             'percentage' => null,
             'marginRatio' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

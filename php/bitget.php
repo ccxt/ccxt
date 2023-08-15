@@ -221,6 +221,8 @@ class bitget extends Exchange {
                             'plan/currentPlan' => 1,
                             'plan/historyPlan' => 1,
                             'plan/batchCancelPlan' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'convert/quoted-price' => 4,
+                            'convert/trade' => 4,
                             'trace/order/orderCurrentList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/orderHistoryList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/closeTrackingOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
@@ -234,14 +236,14 @@ class bitget extends Exchange {
                             'trace/user/myFollowers' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/config/setProductCode' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/user/removeTrader' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/getRemovableFollower' => 2,
+                            'trace/user/removeFollower' => 2,
                             'trace/profit/totalProfitInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/profit/totalProfitList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/profit/profitHisList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/profit/profitHisDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/profit/waitProfitDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/user/getTraderInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'convert/quoted-price' => 4,
-                            'convert/trade' => 4,
                         ),
                     ),
                     'mix' => array(
@@ -252,6 +254,7 @@ class bitget extends Exchange {
                             'position/singlePosition-v2' => 2,
                             'position/allPosition' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'position/allPosition-v2' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'position/history-position' => 1,
                             'account/accountBill' => 2,
                             'account/accountBusinessBill' => 4,
                             'order/current' => 1, // 20 times/1s (UID) => 20/20 = 1
@@ -304,6 +307,7 @@ class bitget extends Exchange {
                             'plan/cancelAllPlan' => 2,
                             'trace/closeTrackOrder' => 2,
                             'trace/modifyTPSL' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/closeTrackOrderBySymbol' => 2,
                             'trace/setUpCopySymbols' => 2,
                             'trace/followerSetBatchTraceConfig' => 2,
                             'trace/followerCloseByTrackingNo' => 2,
@@ -399,6 +403,10 @@ class bitget extends Exchange {
                             'isolated/account/riskRate' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'cross/account/maxBorrowableAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'isolated/account/maxBorrowableAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/flashRepay' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/queryFlashRepayStatus' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/flashRepay' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/queryFlashRepayStatus' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'isolated/order/placeOrder' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'isolated/order/batchPlaceOrder' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'isolated/order/cancelOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
@@ -1013,6 +1021,9 @@ class bitget extends Exchange {
                 'networksById' => array(
                     'TRC20' => 'TRX',
                     'BSC' => 'BEP20',
+                ),
+                'fetchPositions' => array(
+                    'method' => 'privateMixGetPositionAllPositionV2', // or privateMixGetPositionHistoryPosition
                 ),
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ),
@@ -2697,8 +2708,10 @@ class bitget extends Exchange {
          * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *swap only* The $price at which a take profit order is triggered at
-         * @param {float} [$params->stopLoss] *swap only* *uses the Place Position TPSL* The $price at which a stop loss order is triggered at
-         * @param {float} [$params->takeProfit] *swap only* *uses the Place Position TPSL* The $price at which a take profit order is triggered at
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [$params->takeProfit.triggerPrice] *swap only* take profit trigger $price
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [$params->stopLoss.triggerPrice] *swap only* stop loss trigger $price
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -2710,11 +2723,11 @@ class bitget extends Exchange {
             'orderType' => $type,
         );
         $isMarketOrder = $type === 'market';
-        $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
-        $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
-        $stopLoss = $this->safe_number($params, 'stopLoss');
-        $takeProfit = $this->safe_number($params, 'takeProfit');
+        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+        $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_value($params, 'stopLoss');
+        $takeProfit = $this->safe_value($params, 'takeProfit');
         $isTriggerOrder = $triggerPrice !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
@@ -2722,8 +2735,8 @@ class bitget extends Exchange {
         $isTakeProfit = $takeProfit !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $isStopLossOrTakeProfit = $isStopLoss || $isTakeProfit;
-        if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder, $isStopLoss, $isTakeProfit) > 1) {
-            throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, stopLossPrice, takeProfitPrice, $stopLoss, takeProfit');
+        if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder) > 1) {
+            throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, stopLossPrice, takeProfitPrice');
         }
         if (($type === 'limit') && ($triggerPrice === null)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -2780,56 +2793,23 @@ class bitget extends Exchange {
                 $request[$quantityKey] = $quantity;
             }
         } else {
+            $request['marginCoin'] = $market['settleId'];
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
             }
-            if (!$isStopLossOrTakeProfit) {
-                $request['size'] = $this->amount_to_precision($symbol, $amount);
-            }
-            if ($isTriggerOrder || $isStopLossOrTakeProfit) {
+            if ($isTriggerOrder || $isStopLossOrTakeProfitTrigger) {
                 // default $triggerType to $market $price for unification
                 $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
                 $request['triggerType'] = $triggerType;
             }
-            if ($isStopLossOrTakeProfitTrigger || $isStopLossOrTakeProfit) {
+            if ($isStopLossOrTakeProfitTrigger) {
                 if (!$isMarketOrder) {
                     throw new ExchangeError($this->id . ' createOrder() bitget $stopLoss or $takeProfit orders must be $market orders');
                 }
                 $request['holdSide'] = ($side === 'buy') ? 'long' : 'short';
-            }
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-            if ($isTriggerOrder) {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                if ($price !== null) {
-                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                }
-                if ($side === 'buy') {
-                    $request['side'] = 'open_long';
-                } elseif ($side === 'sell') {
-                    $request['side'] = 'open_short';
-                } else {
-                    $request['side'] = $side;
-                }
-                $method = 'privateMixPostPlanPlacePlan';
-            } elseif ($isStopLossOrTakeProfitTrigger) {
-                if ($isStopLossTriggerOrder) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                    $request['planType'] = 'loss_plan';
-                } elseif ($isTakeProfitTriggerOrder) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                    $request['planType'] = 'profit_plan';
-                }
-                $method = 'privateMixPostPlanPlaceTPSL';
-            } elseif ($isStopLossOrTakeProfit) {
-                if ($isStopLoss) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLoss);
-                    $request['planType'] = 'pos_loss';
-                } elseif ($isTakeProfit) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfit);
-                    $request['planType'] = 'pos_profit';
-                }
-                $method = 'privateMixPostPlanPlacePositionsTPSL';
             } else {
+                $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+                $request['size'] = $this->amount_to_precision($symbol, $amount);
                 if ($reduceOnly) {
                     $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
                 } else {
@@ -2842,18 +2822,40 @@ class bitget extends Exchange {
                     }
                 }
             }
-            $request['marginCoin'] = $market['settleId'];
-        }
-        if (!$isStopLossOrTakeProfit) {
-            if ($postOnly) {
-                $request[$timeInForceKey] = 'post_only';
-            } elseif ($timeInForce === 'gtc') {
-                $request[$timeInForceKey] = 'normal';
-            } elseif ($timeInForce === 'fok') {
-                $request[$timeInForceKey] = 'fok';
-            } elseif ($timeInForce === 'ioc') {
-                $request[$timeInForceKey] = 'ioc';
+            if ($isTriggerOrder) {
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                }
+                $method = 'privateMixPostPlanPlacePlan';
+            } elseif ($isStopLossOrTakeProfitTrigger) {
+                if ($isStopLossTriggerOrder) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                    $request['planType'] = 'pos_loss';
+                } elseif ($isTakeProfitTriggerOrder) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                    $request['planType'] = 'pos_profit';
+                }
+                $method = 'privateMixPostPlanPlacePositionsTPSL';
+            } elseif ($isStopLossOrTakeProfit) {
+                if ($isStopLoss) {
+                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
+                    $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                }
+                if ($isTakeProfit) {
+                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
+                    $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                }
             }
+        }
+        if ($postOnly) {
+            $request[$timeInForceKey] = 'post_only';
+        } elseif ($timeInForce === 'gtc') {
+            $request[$timeInForceKey] = 'normal';
+        } elseif ($timeInForce === 'fok') {
+            $request[$timeInForceKey] = 'fok';
+        } elseif ($timeInForce === 'ioc') {
+            $request[$timeInForceKey] = 'ioc';
         }
         $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly' ));
         $response = $this->$method (array_merge($request, $omitted));
@@ -3850,6 +3852,8 @@ class bitget extends Exchange {
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $this->load_markets();
+        $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
+        $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateMixGetPositionAllPositionV2');
         $market = null;
         if ($symbols !== null) {
             $first = $this->safe_string($symbols, 0);
@@ -3864,13 +3868,33 @@ class bitget extends Exchange {
         $request = array(
             'productType' => $productType,
         );
-        $response = $this->privateMixGetPositionAllPositionV2 (array_merge($request, $params));
+        if ($method === 'privateMixGetPositionHistoryPosition') {
+            // endTime and startTime mandatory
+            $since = $this->safe_integer_2($params, 'startTime', 'since');
+            if ($since === null) {
+                $since = $this->milliseconds() - 7689600000; // 3 months ago
+            }
+            $request['startTime'] = $since;
+            $until = $this->safe_integer_2($params, 'endTime', 'until');
+            if ($until === null) {
+                $until = $this->milliseconds();
+            }
+            $request['endTime'] = $until;
+        }
+        $response = null;
+        $isHistory = false;
+        if ($method === 'privateMixGetPositionAllPositionV2') {
+            $response = $this->privateMixGetPositionAllPositionV2 (array_merge($request, $params));
+        } else {
+            $isHistory = true;
+            $response = $this->privateMixGetPositionHistoryPosition (array_merge($request, $params));
+        }
         //
         //     {
         //       code => '00000',
         //       msg => 'success',
         //       requestTime => '1645933905060',
-        //       data => array(
+        //       $data => array(
         //         {
         //           marginCoin => 'USDT',
         //           symbol => 'BTCUSDT_UMCBL',
@@ -3892,14 +3916,47 @@ class bitget extends Exchange {
         //         }
         //       )
         //     }
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 0,
+        //         "data" => {
+        //           "list" => array(
+        //             {
+        //               "symbol" => "ETHUSDT_UMCBL",
+        //               "marginCoin" => "USDT",
+        //               "holdSide" => "short",
+        //               "openAvgPrice" => "1206.7",
+        //               "closeAvgPrice" => "1206.8",
+        //               "marginMode" => "fixed",
+        //               "openTotalPos" => "1.15",
+        //               "closeTotalPos" => "1.15",
+        //               "pnl" => "-0.11",
+        //               "netProfit" => "-1.780315",
+        //               "totalFunding" => "0",
+        //               "openFee" => "-0.83",
+        //               "closeFee" => "-0.83",
+        //               "ctime" => "1689300233897",
+        //               "utime" => "1689300238205"
+        //             }
+        //           ),
+        //           "endId" => "1062308959580516352"
+        //         }
+        //       }
         //
-        $position = $this->safe_value($response, 'data', array());
+        $position = array();
+        if (!$isHistory) {
+            $position = $this->safe_value($response, 'data', array());
+        } else {
+            $data = $this->safe_value($response, 'data', array());
+            $position = $this->safe_value($data, 'list', array());
+        }
         $result = array();
         for ($i = 0; $i < count($position); $i++) {
             $result[] = $this->parse_position($position[$i]);
         }
         $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {
@@ -3924,10 +3981,30 @@ class bitget extends Exchange {
         //         cTime => '1645922194988'
         //     }
         //
+        // history
+        //
+        //     {
+        //       "symbol" => "ETHUSDT_UMCBL",
+        //       "marginCoin" => "USDT",
+        //       "holdSide" => "short",
+        //       "openAvgPrice" => "1206.7",
+        //       "closeAvgPrice" => "1206.8",
+        //       "marginMode" => "fixed",
+        //       "openTotalPos" => "1.15",
+        //       "closeTotalPos" => "1.15",
+        //       "pnl" => "-0.11",
+        //       "netProfit" => "-1.780315",
+        //       "totalFunding" => "0",
+        //       "openFee" => "-0.83",
+        //       "closeFee" => "-0.83",
+        //       "ctime" => "1689300233897",
+        //       "utime" => "1689300238205"
+        //     }
+        //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer($position, 'cTime');
+        $timestamp = $this->safe_integer_2($position, 'cTime', 'ctime');
         $marginMode = $this->safe_string($position, 'marginMode');
         $collateral = null;
         $initialMargin = null;
@@ -3952,13 +4029,16 @@ class bitget extends Exchange {
         $contractSizeNumber = $this->safe_value($market, 'contractSize');
         $contractSize = $this->number_to_string($contractSizeNumber);
         $baseAmount = $this->safe_string($position, 'total');
-        $entryPrice = $this->safe_string($position, 'averageOpenPrice');
+        $entryPrice = $this->safe_string_2($position, 'averageOpenPrice', 'openAvgPrice');
         $maintenanceMarginPercentage = $this->safe_string($position, 'keepMarginRate');
         $openNotional = Precise::string_mul($entryPrice, $baseAmount);
         if ($initialMargin === null) {
             $initialMargin = Precise::string_div($openNotional, $leverage);
         }
         $contracts = $this->parse_number(Precise::string_div($baseAmount, $contractSize));
+        if ($contracts === null) {
+            $contracts = $this->safe_number($position, 'closeTotalPos');
+        }
         $markPrice = $this->safe_string($position, 'marketPrice');
         $notional = Precise::string_mul($baseAmount, $markPrice);
         $initialMarginPercentage = Precise::string_div($initialMargin, $notional);
@@ -3994,16 +4074,17 @@ class bitget extends Exchange {
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPrice),
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'realizedPnl' => $this->safe_number($position, 'pnl'),
             'percentage' => $this->parse_number($percentage),
             'contracts' => $contracts,
             'contractSize' => $contractSizeNumber,
             'markPrice' => $this->parse_number($markPrice),
-            'lastPrice' => null,
+            'lastPrice' => $this->safe_number($position, 'closeAvgPrice'),
             'side' => $side,
             'hedged' => $hedged,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer($position, 'utime'),
             'maintenanceMargin' => $this->parse_number($maintenanceMargin),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
             'collateral' => $this->parse_number($collateral),
@@ -4011,6 +4092,8 @@ class bitget extends Exchange {
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'leverage' => $this->parse_number($leverage),
             'marginRatio' => $this->parse_number($marginRatio),
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

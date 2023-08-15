@@ -193,6 +193,7 @@ class huobi(Exchange, ImplicitAPI):
                     'https://huobiapi.github.io/docs/dm/v1/en/',
                     'https://huobiapi.github.io/docs/coin_margined_swap/v1/en/',
                     'https://huobiapi.github.io/docs/usdt_swap/v1/en/',
+                    'https://www.huobi.com/en-us/opend/newApiPages/',
                 ],
                 'fees': 'https://www.huobi.com/about/fee/',
             },
@@ -617,6 +618,8 @@ class huobi(Exchange, ImplicitAPI):
                             'swap-api/v1/swap_api_trading_status': 1,
                             # Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
+                            'linear-swap-api/v1/swap_cross_position_side': 1,
+                            'linear-swap-api/v1/swap_position_side': 1,
                             'linear-swap-api/v3/unified_account_info': 1,
                             'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
@@ -2224,8 +2227,7 @@ class huobi(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        tradeId = self.safe_string_2(trade, 'trade-id', 'tradeId')
-        id = self.safe_string_2(trade, 'trade_id', 'id', tradeId)
+        id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -6131,35 +6133,35 @@ class huobi(Exchange, ImplicitAPI):
 
     def parse_position(self, position, market=None):
         #
-        #     {
-        #       symbol: 'BTC',
-        #       contract_code: 'BTC-USDT',
-        #       volume: '1.000000000000000000',
-        #       available: '1.000000000000000000',
-        #       frozen: '0E-18',
-        #       cost_open: '47162.000000000000000000',
-        #       cost_hold: '47151.300000000000000000',
-        #       profit_unreal: '0.007300000000000000',
-        #       profit_rate: '-0.000144183876850008',
-        #       lever_rate: '2',
-        #       position_margin: '23.579300000000000000',
-        #       direction: 'buy',
-        #       profit: '-0.003400000000000000',
-        #       last_price: '47158.6',
-        #       margin_asset: 'USDT',
-        #       margin_mode: 'isolated',
-        #       margin_account: 'BTC-USDT',
-        #       margin_balance: '24.973020070000000000',
-        #       margin_position: '23.579300000000000000',
-        #       margin_frozen: '0',
-        #       margin_available: '1.393720070000000000',
-        #       profit_real: '0E-18',
-        #       risk_rate: '1.044107779705080303',
-        #       withdraw_available: '1.386420070000000000000000000000000000',
-        #       liquidation_price: '22353.229148614609571788',
-        #       adjust_factor: '0.015000000000000000',
-        #       margin_static: '24.965720070000000000'
-        #     }
+        #    {
+        #        symbol: 'BTC',
+        #        contract_code: 'BTC-USDT',
+        #        volume: '1.000000000000000000',
+        #        available: '1.000000000000000000',
+        #        frozen: '0E-18',
+        #        cost_open: '47162.000000000000000000',
+        #        cost_hold: '47151.300000000000000000',
+        #        profit_unreal: '0.007300000000000000',
+        #        profit_rate: '-0.000144183876850008',
+        #        lever_rate: '2',
+        #        position_margin: '23.579300000000000000',
+        #        direction: 'buy',
+        #        profit: '-0.003400000000000000',
+        #        last_price: '47158.6',
+        #        margin_asset: 'USDT',
+        #        margin_mode: 'isolated',
+        #        margin_account: 'BTC-USDT',
+        #        margin_balance: '24.973020070000000000',
+        #        margin_position: '23.579300000000000000',
+        #        margin_frozen: '0',
+        #        margin_available: '1.393720070000000000',
+        #        profit_real: '0E-18',
+        #        risk_rate: '1.044107779705080303',
+        #        withdraw_available: '1.386420070000000000000000000000000000',
+        #        liquidation_price: '22353.229148614609571788',
+        #        adjust_factor: '0.015000000000000000',
+        #        margin_static: '24.965720070000000000'
+        #    }
         #
         market = self.safe_market(self.safe_string(position, 'contract_code'))
         symbol = market['symbol']
@@ -6213,7 +6215,10 @@ class huobi(Exchange, ImplicitAPI):
             'marginRatio': self.parse_number(marginRatio),
             'timestamp': None,
             'datetime': None,
+            'hedged': None,
             'lastUpdateTimestamp': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
@@ -6337,7 +6342,7 @@ class huobi(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             }))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     async def fetch_position(self, symbol: str, params={}):
         """

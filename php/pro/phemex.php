@@ -649,7 +649,7 @@ class phemex extends \ccxt\async\phemex {
     }
 
     public function handle_delta($bookside, $delta, $market = null) {
-        $bidAsk = $this->customParseBidAsk ($delta, 0, 1, $market);
+        $bidAsk = $this->custom_parse_bid_ask($delta, 0, 1, $market);
         $bookside->storeArray ($bidAsk);
     }
 
@@ -714,7 +714,7 @@ class phemex extends \ccxt\async\phemex {
         $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
         if ($type === 'snapshot') {
             $book = $this->safe_value_2($message, 'book', 'orderbook_p', array());
-            $snapshot = $this->customParseOrderBook ($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
+            $snapshot = $this->custom_parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
             $snapshot['nonce'] = $nonce;
             $orderbook = $this->order_book($snapshot, $depth);
             $this->orderbooks[$symbol] = $orderbook;

@@ -401,6 +401,7 @@ class Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
+                'fetchPositionsBySymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
@@ -859,18 +860,6 @@ class Exchange {
             return hexData;
         }
     }
-    // method to override
-    findTimeframe(timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
-        const keys = Object.keys(timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
     spawn(method, ...args) {
         const future = Future.createFuture();
         method.apply(this, args).then(future.resolve).catch(future.reject);
@@ -1019,21 +1008,18 @@ class Exchange {
             await client.close();
         }
     }
-    handleDelta(bookside, delta, nonce = undefined) {
-        //stub
-    }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject(new errors.ExchangeError(this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
-        const maxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
+        const maxRetries = this.handleOption('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
         try {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
                 const cache = stored.cache;
-                const orderBook = await this.fetchOrderBook(symbol, limit, params);
+                const orderBook = await this.fetchRestOrderBookSafe(symbol, limit, params);
                 const index = this.getCacheIndex(orderBook, cache);
                 if (index >= 0) {
                     stored.reset(orderBook);
@@ -1051,16 +1037,6 @@ class Exchange {
             client.reject(e, messageHash);
             await this.loadOrderBook(client, messageHash, symbol, limit, params);
         }
-    }
-    handleDeltas(orderbook, deltas, nonce = undefined) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(orderbook, deltas[i]);
-        }
-    }
-    // eslint-disable-next-line no-unused-vars
-    getCacheIndex(orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        return -1;
     }
     convertToBigInt(value) {
         return BigInt(value); // used on XT
@@ -1117,6 +1093,31 @@ class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    handleDeltas(orderbook, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta(orderbook, deltas[i]);
+        }
+    }
+    handleDelta(bookside, delta) {
+        throw new errors.NotSupported(this.id + ' handleDelta not supported yet');
+    }
+    getCacheIndex(orderbook, deltas) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
+    }
+    findTimeframe(timeframe, timeframes = undefined) {
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
+        const keys = Object.keys(timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
     checkProxySettings(url, method, headers, body) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
         const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
@@ -1296,6 +1297,21 @@ class Exchange {
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderBook() is not supported yet');
+    }
+    async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
+        const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'snapshotMaxRetries', 3);
+        for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
+            try {
+                const orderBook = await this.fetchOrderBook(symbol, limit, params);
+                return orderBook;
+            }
+            catch (e) {
+                if ((i + 1) === fetchSnapshotMaxRetries) {
+                    throw e;
+                }
+            }
+        }
+        return undefined;
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOrderBook() is not supported yet');
@@ -2541,7 +2557,7 @@ class Exchange {
             const position = this.extend(this.parsePosition(positions[i], undefined), params);
             result.push(position);
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parseAccounts(accounts, params = {}) {
         accounts = this.toArray(accounts);
@@ -2742,6 +2758,17 @@ class Exchange {
     }
     async fetchPosition(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPosition() is not supported yet');
+    }
+    async fetchPositionsBySymbol(symbol, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionsBySymbol
+         * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new errors.NotSupported(this.id + ' fetchPositionsBySymbol() is not supported yet');
     }
     async fetchPositions(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
@@ -3961,6 +3988,14 @@ class Exchange {
         else {
             throw new errors.NotSupported(this.id + ' fetchTransactions () is not supported yet');
         }
+    }
+    filterByArrayPositions(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of positions
+         */
+        return this.filterByArray(objects, key, values, indexed);
     }
 }
 

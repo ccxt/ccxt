@@ -30,6 +30,7 @@ from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ContractUnavailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -129,6 +130,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': True,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
@@ -268,7 +270,7 @@ class okx(Exchange, ImplicitAPI):
                         'trade/orders-history': 1 / 2,
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
-                        'trade/fills-history': 2,
+                        'trade/fills-history': 2.2,
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -564,16 +566,16 @@ class okx(Exchange, ImplicitAPI):
                     '51018': ExchangeError,  # User with option account can not hold net short positions
                     '51019': ExchangeError,  # No net long positions can be held under isolated margin mode in options
                     '51020': InvalidOrder,  # Order amount should be greater than the min available amount
-                    '51021': BadSymbol,  # Contract to be listed
-                    '51022': BadSymbol,  # Contract suspended
+                    '51021': ContractUnavailable,  # Contract to be listed
+                    '51022': ContractUnavailable,  # Contract suspended
                     '51023': ExchangeError,  # Position does not exist
                     '51024': AccountSuspended,  # Unified accountblocked
                     '51025': ExchangeError,  # Order count exceeds the limit
                     '51026': BadSymbol,  # Instrument type does not match underlying index
-                    '51027': BadSymbol,  # Contract expired
-                    '51028': BadSymbol,  # Contract under delivery
-                    '51029': BadSymbol,  # Contract is being settled
-                    '51030': BadSymbol,  # Funding fee is being settled
+                    '51027': ContractUnavailable,  # Contract expired
+                    '51028': ContractUnavailable,  # Contract under delivery
+                    '51029': ContractUnavailable,  # Contract is being settled
+                    '51030': ContractUnavailable,  # Funding fee is being settled
                     '51046': InvalidOrder,  # The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder,  # The stop loss trigger price must be lower than the order price
                     '51031': InvalidOrder,  # This order price is not within the closing price range
@@ -1241,6 +1243,7 @@ class okx(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for okx
+        see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -1348,12 +1351,10 @@ class okx(Exchange, ImplicitAPI):
                 symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType
                 optionType = 'put' if (optionType == 'P') else 'call'
         tickSize = self.safe_string(market, 'tickSz')
-        minAmountString = self.safe_string(market, 'minSz')
-        minAmount = self.parse_number(minAmountString)
         fees = self.safe_value_2(self.fees, type, 'trading', {})
-        precisionPrice = self.parse_number(tickSize)
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
+        maxSpotCost = self.safe_number(market, 'maxMktSz')
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -1380,7 +1381,7 @@ class okx(Exchange, ImplicitAPI):
             'optionType': optionType,
             'precision': {
                 'amount': self.safe_number(market, 'lotSz'),
-                'price': precisionPrice,
+                'price': self.parse_number(tickSize),
             },
             'limits': {
                 'leverage': {
@@ -1388,16 +1389,16 @@ class okx(Exchange, ImplicitAPI):
                     'max': self.parse_number(maxLeverage),
                 },
                 'amount': {
-                    'min': minAmount,
+                    'min': self.safe_number(market, 'minSz'),
                     'max': None,
                 },
                 'price': {
-                    'min': precisionPrice,
+                    'min': None,
                     'max': None,
                 },
                 'cost': {
                     'min': None,
-                    'max': None,
+                    'max': None if contract else maxSpotCost,
                 },
             },
             'info': market,
@@ -4538,7 +4539,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         position = self.safe_value(data, 0)
         if position is None:
-            return position
+            return None
         return self.parse_position(position)
 
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
@@ -4618,7 +4619,7 @@ class okx(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -4748,6 +4749,8 @@ class okx(Exchange, ImplicitAPI):
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'leverage': self.parse_number(leverageString),
             'marginRatio': marginRatio,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):

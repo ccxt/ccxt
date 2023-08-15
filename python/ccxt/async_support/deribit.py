@@ -69,7 +69,8 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFees': True,
-                'fetchHistoricalVolatility': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -96,6 +97,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'transfer': True,
@@ -2258,6 +2260,9 @@ class deribit(Exchange, ImplicitAPI):
             'marginMode': None,
             'side': side,
             'percentage': None,
+            'hedged': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     async def fetch_position(self, symbol: str, params={}):
@@ -2361,7 +2366,14 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result')
         return self.parse_positions(result, symbols)
 
-    async def fetch_historical_volatility(self, code: str, params={}):
+    async def fetch_volatility_history(self, code: str, params={}):
+        """
+        fetch the historical volatility of an option market based on an underlying asset
+        see https://docs.deribit.com/#public-get_historical_volatility
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :returns dict[]: a list of `volatility history objects <https://docs.ccxt.com/#/?id=volatility-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2382,13 +2394,30 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": False
         #     }
         #
-        volatilityResult = self.safe_value(response, 'result', {})
+        return self.parse_volatility_history(response)
+
+    def parse_volatility_history(self, volatility):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": [
+        #             [1640142000000,63.828320460740585],
+        #             [1640142000000,63.828320460740585],
+        #             [1640145600000,64.03821964123213]
+        #         ],
+        #         "usIn": 1641515379467734,
+        #         "usOut": 1641515379468095,
+        #         "usDiff": 361,
+        #         "testnet": False
+        #     }
+        #
+        volatilityResult = self.safe_value(volatility, 'result', [])
         result = []
         for i in range(0, len(volatilityResult)):
             timestamp = self.safe_integer(volatilityResult[i], 0)
             volatility = self.safe_number(volatilityResult[i], 1)
             result.append({
-                'info': response,
+                'info': volatility,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'volatility': volatility,
@@ -2620,6 +2649,123 @@ class deribit(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'result', {})
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
+
+    async def fetch_funding_rate(self, symbol: str, params={}):
+        """
+        fetch the current funding rate
+        see https://docs.deribit.com/#public-get_funding_rate_value
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :param int [params.start_timestamp]: fetch funding rate starting from self timestamp
+        :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        time = self.milliseconds()
+        request = {
+            'instrument_name': market['id'],
+            'start_timestamp': time - (8 * 60 * 60 * 1000),  # 8h ago,
+            'end_timestamp': time,
+        }
+        response = await self.publicGetGetFundingRateValue(self.extend(request, params))
+        #
+        #   {
+        #       "jsonrpc":"2.0",
+        #       "result":"0",
+        #       "usIn":"1691161645596519",
+        #       "usOut":"1691161645597149",
+        #       "usDiff":"630",
+        #       "testnet":false
+        #   }
+        #
+        return self.parse_funding_rate(response, market)
+
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch the current funding rate
+        see https://docs.deribit.com/#public-get_funding_rate_history
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        time = self.milliseconds()
+        month = 30 * 24 * 60 * 60 * 1000
+        if since is None:
+            since = time - month
+        request = {
+            'instrument_name': market['id'],
+            'start_timestamp': since,
+            'end_timestamp': time,
+        }
+        response = await self.publicGetGetFundingRateHistory(self.extend(request, params))
+        #
+        #    {
+        #        "jsonrpc": "2.0",
+        #        "id": 7617,
+        #        "result": [
+        #          {
+        #            "timestamp": 1569891600000,
+        #            "index_price": 8222.87,
+        #            "prev_index_price": 8305.72,
+        #            "interest_8h": -0.00009234260068476106,
+        #            "interest_1h": -4.739622041017375e-7
+        #          }
+        #        ]
+        #    }
+        #
+        rates = []
+        result = self.safe_value(response, 'result', [])
+        for i in range(0, len(result)):
+            fr = result[i]
+            rate = self.parse_funding_rate(fr, market)
+            rates.append(rate)
+        return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #   {
+        #       "jsonrpc":"2.0",
+        #       "result":"0",
+        #       "usIn":"1691161645596519",
+        #       "usOut":"1691161645597149",
+        #       "usDiff":"630",
+        #       "testnet":false
+        #   }
+        # history
+        #   {
+        #     "timestamp": 1569891600000,
+        #     "index_price": 8222.87,
+        #     "prev_index_price": 8305.72,
+        #     "interest_8h": -0.00009234260068476106,
+        #     "interest_1h": -4.739622041017375e-7
+        #   }
+        #
+        timestamp = self.safe_integer(contract, 'timestamp')
+        datetime = self.iso8601(timestamp)
+        result = self.safe_number_2(contract, 'result', 'interest_8h')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': None,
+            'indexPrice': self.safe_number(contract, 'index_price'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fundingRate': result,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
 
     def nonce(self):
         return self.milliseconds()

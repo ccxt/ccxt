@@ -34,6 +34,7 @@ class ImplicitAPI:
     private_post_querytrades = privatePostQueryTrades = Entry('QueryTrades', 'private', 'POST', {'cost': 3})
     private_post_retrieveexport = privatePostRetrieveExport = Entry('RetrieveExport', 'private', 'POST', {'cost': 3})
     private_post_removeexport = privatePostRemoveExport = Entry('RemoveExport', 'private', 'POST', {'cost': 3})
+    private_post_balanceex = privatePostBalanceEx = Entry('BalanceEx', 'private', 'POST', {'cost': 3})
     private_post_tradebalance = privatePostTradeBalance = Entry('TradeBalance', 'private', 'POST', {'cost': 3})
     private_post_tradeshistory = privatePostTradesHistory = Entry('TradesHistory', 'private', 'POST', {'cost': 6})
     private_post_tradevolume = privatePostTradeVolume = Entry('TradeVolume', 'private', 'POST', {'cost': 3})

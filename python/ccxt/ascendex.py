@@ -2435,7 +2435,7 @@ class ascendex(Exchange, ImplicitAPI):
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -2495,6 +2495,8 @@ class ascendex(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': self.safe_integer(position, 'leverage'),
             'marginRatio': None,
+            'stopLossPrice': self.safe_number(position, 'stopLossPrice'),
+            'takeProfitPrice': self.safe_number(position, 'takeProfitPrice'),
         })
 
     def parse_funding_rate(self, contract, market=None):

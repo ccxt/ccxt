@@ -211,7 +211,7 @@ export default class digifinex extends Exchange {
         maker: number;
         taker: number;
     };
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): {
         info: any;
@@ -237,6 +237,8 @@ export default class digifinex extends Exchange {
         leverage: number;
         marginRatio: number;
         percentage: any;
+        stopLossPrice: any;
+        takeProfitPrice: any;
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

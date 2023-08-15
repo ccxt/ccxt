@@ -737,6 +737,7 @@ export default class cex extends Exchange {
          * @method
          * @name cex#createOrder
          * @description create a trade order
+         * @see https://cex.io/rest-api#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -752,7 +753,10 @@ export default class cex extends Exchange {
                     throw new InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 }
                 else {
-                    amount = amount * price;
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const baseAmount = Precise.stringMul(amountString, priceString);
+                    amount = this.parseNumber(baseAmount);
                 }
             }
         }
@@ -781,16 +785,16 @@ export default class cex extends Exchange {
         //         "complete": false
         //     }
         //
-        const placedAmount = this.safeNumber(response, 'amount');
-        const remaining = this.safeNumber(response, 'pending');
+        const placedAmount = this.safeString(response, 'amount');
+        const remaining = this.safeString(response, 'pending');
         const timestamp = this.safeValue(response, 'time');
         const complete = this.safeValue(response, 'complete');
         const status = complete ? 'closed' : 'open';
         let filled = undefined;
         if ((placedAmount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max(placedAmount - remaining, 0);
+            filled = Precise.stringMax(Precise.stringSub(placedAmount, remaining), '0');
         }
-        return {
+        return this.safeOrder({
             'id': this.safeString(response, 'id'),
             'info': response,
             'clientOrderId': undefined,
@@ -801,7 +805,7 @@ export default class cex extends Exchange {
             'side': this.safeString(response, 'type'),
             'symbol': market['symbol'],
             'status': status,
-            'price': this.safeNumber(response, 'price'),
+            'price': this.safeString(response, 'price'),
             'amount': placedAmount,
             'cost': undefined,
             'average': undefined,
@@ -809,7 +813,7 @@ export default class cex extends Exchange {
             'filled': filled,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -825,7 +829,9 @@ export default class cex extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostCancelOrder(this.extend(request, params));
+        const response = await this.privatePostCancelOrder(this.extend(request, params));
+        // 'true'
+        return this.extend(this.parseOrder({}), { 'info': response, 'type': undefined, 'id': id, 'status': 'canceled' });
     }
     parseOrder(order, market = undefined) {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
@@ -835,7 +841,7 @@ export default class cex extends Exchange {
             // ISO8601 string
             timestamp = this.parse8601(timestamp);
         }
-        else {
+        else if (timestamp !== undefined) {
             // either integer or string integer
             timestamp = parseInt(timestamp);
         }
@@ -845,44 +851,50 @@ export default class cex extends Exchange {
             const quoteId = this.safeString(order, 'symbol2');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
             if (symbol in this.markets) {
                 market = this.market(symbol);
             }
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
-        const price = this.safeNumber(order, 'price');
-        let amount = this.safeNumber(order, 'amount');
+        const price = this.safeString(order, 'price');
+        let amount = this.omitZero(this.safeString(order, 'amount'));
         // sell orders can have a negative amount
         // https://github.com/ccxt/ccxt/issues/5338
         if (amount !== undefined) {
-            amount = Math.abs(amount);
+            amount = Precise.stringAbs(amount);
         }
-        const remaining = this.safeNumber2(order, 'pending', 'remains');
-        const filled = amount - remaining;
+        else if (market !== undefined) {
+            const amountKey = 'a:' + market['base'] + 'cds:';
+            amount = Precise.stringAbs(this.safeString(order, amountKey));
+        }
+        const remaining = this.safeString2(order, 'pending', 'remains');
+        const filled = Precise.stringSub(amount, remaining);
         let fee = undefined;
         let cost = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-            const taCost = this.safeNumber(order, 'ta:' + market['quote']);
-            const ttaCost = this.safeNumber(order, 'tta:' + market['quote']);
-            cost = this.sum(taCost, ttaCost);
+            const taCost = this.safeString(order, 'ta:' + market['quote']);
+            const ttaCost = this.safeString(order, 'tta:' + market['quote']);
+            cost = Precise.stringAdd(taCost, ttaCost);
             const baseFee = 'fa:' + market['base'];
             const baseTakerFee = 'tfa:' + market['base'];
             const quoteFee = 'fa:' + market['quote'];
             const quoteTakerFee = 'tfa:' + market['quote'];
-            let feeRate = this.safeNumber(order, 'tradingFeeMaker');
+            let feeRate = this.safeString(order, 'tradingFeeMaker');
             if (!feeRate) {
-                feeRate = this.safeNumber(order, 'tradingFeeTaker', feeRate);
+                feeRate = this.safeString(order, 'tradingFeeTaker', feeRate);
             }
             if (feeRate) {
-                feeRate = feeRate / 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = Precise.stringDiv(feeRate, '100'); // convert to mathematically-correct percentage coefficients: 1.0 = 100%
             }
             if ((baseFee in order) || (baseTakerFee in order)) {
                 const baseFeeCost = this.safeNumber2(order, baseFee, baseTakerFee);
                 fee = {
                     'currency': market['base'],
-                    'rate': feeRate,
+                    'rate': this.parseNumber(feeRate),
                     'cost': baseFeeCost,
                 };
             }
@@ -890,17 +902,17 @@ export default class cex extends Exchange {
                 const quoteFeeCost = this.safeNumber2(order, quoteFee, quoteTakerFee);
                 fee = {
                     'currency': market['quote'],
-                    'rate': feeRate,
+                    'rate': this.parseNumber(feeRate),
                     'cost': quoteFeeCost,
                 };
             }
         }
         if (!cost) {
-            cost = price * filled;
+            cost = Precise.stringMul(price, filled);
         }
-        const side = order['type'];
+        const side = this.safeString(order, 'type');
         let trades = undefined;
-        const orderId = order['id'];
+        const orderId = this.safeString(order, 'id');
         if ('vtx' in order) {
             trades = [];
             for (let i = 0; i < order['vtx'].length; i++) {
@@ -927,7 +939,7 @@ export default class cex extends Exchange {
                     //     ds: 0 }
                     continue;
                 }
-                const tradePrice = this.safeNumber(item, 'price');
+                const tradePrice = this.safeString(item, 'price');
                 if (tradePrice === undefined) {
                     // this represents the order
                     //   {
@@ -1031,16 +1043,16 @@ export default class cex extends Exchange {
                 //     "fee_amount": "0.03"
                 //   }
                 const tradeTimestamp = this.parse8601(this.safeString(item, 'time'));
-                const tradeAmount = this.safeNumber(item, 'amount');
-                const feeCost = this.safeNumber(item, 'fee_amount');
-                let absTradeAmount = (tradeAmount < 0) ? -tradeAmount : tradeAmount;
+                const tradeAmount = this.safeString(item, 'amount');
+                const feeCost = this.safeString(item, 'fee_amount');
+                let absTradeAmount = Precise.stringAbs(tradeAmount);
                 let tradeCost = undefined;
                 if (tradeSide === 'sell') {
                     tradeCost = absTradeAmount;
-                    absTradeAmount = this.sum(feeCost, tradeCost) / tradePrice;
+                    absTradeAmount = Precise.stringDiv(Precise.stringAdd(feeCost, tradeCost), tradePrice);
                 }
                 else {
-                    tradeCost = absTradeAmount * tradePrice;
+                    tradeCost = Precise.stringMul(absTradeAmount, tradePrice);
                 }
                 trades.push({
                     'id': this.safeString(item, 'id'),
@@ -1048,12 +1060,12 @@ export default class cex extends Exchange {
                     'datetime': this.iso8601(tradeTimestamp),
                     'order': orderId,
                     'symbol': symbol,
-                    'price': tradePrice,
-                    'amount': absTradeAmount,
-                    'cost': tradeCost,
+                    'price': this.parseNumber(tradePrice),
+                    'amount': this.parseNumber(absTradeAmount),
+                    'cost': this.parseNumber(tradeCost),
                     'side': tradeSide,
                     'fee': {
-                        'cost': feeCost,
+                        'cost': this.parseNumber(feeCost),
                         'currency': market['quote'],
                     },
                     'info': item,
@@ -1062,7 +1074,8 @@ export default class cex extends Exchange {
                 });
             }
         }
-        return {
+        return this.safeOrder({
+            'info': order,
             'id': orderId,
             'clientOrderId': undefined,
             'datetime': this.iso8601(timestamp),
@@ -1083,9 +1096,8 @@ export default class cex extends Exchange {
             'remaining': remaining,
             'trades': trades,
             'fee': fee,
-            'info': order,
             'average': undefined,
-        };
+        });
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1416,10 +1428,10 @@ export default class cex extends Exchange {
             const baseAmount = this.safeNumber(order, 'a:' + baseId + ':cds');
             const quoteAmount = this.safeNumber(order, 'a:' + quoteId + ':cds');
             const fee = this.safeNumber(order, 'f:' + quoteId + ':cds');
-            const amount = this.safeNumber(order, 'amount');
-            const price = this.safeNumber(order, 'price');
-            const remaining = this.safeNumber(order, 'remains');
-            const filled = amount - remaining;
+            const amount = this.safeString(order, 'amount');
+            const price = this.safeString(order, 'price');
+            const remaining = this.safeString(order, 'remains');
+            const filled = Precise.stringSub(amount, remaining);
             let orderAmount = undefined;
             let cost = undefined;
             let average = undefined;
@@ -1428,27 +1440,28 @@ export default class cex extends Exchange {
                 type = 'market';
                 orderAmount = baseAmount;
                 cost = quoteAmount;
-                average = orderAmount / cost;
+                average = Precise.stringDiv(orderAmount, cost);
             }
             else {
-                const ta = this.safeNumber(order, 'ta:' + quoteId, 0);
-                const tta = this.safeNumber(order, 'tta:' + quoteId, 0);
-                const fa = this.safeNumber(order, 'fa:' + quoteId, 0);
-                const tfa = this.safeNumber(order, 'tfa:' + quoteId, 0);
+                const ta = this.safeString(order, 'ta:' + quoteId, '0');
+                const tta = this.safeString(order, 'tta:' + quoteId, '0');
+                const fa = this.safeString(order, 'fa:' + quoteId, '0');
+                const tfa = this.safeString(order, 'tfa:' + quoteId, '0');
                 if (side === 'sell') {
-                    cost = this.sum(this.sum(ta, tta), this.sum(fa, tfa));
+                    cost = Precise.stringAdd(Precise.stringAdd(ta, tta), Precise.stringAdd(fa, tfa));
                 }
                 else {
-                    cost = this.sum(ta, tta) - this.sum(fa, tfa);
+                    cost = Precise.stringSub(Precise.stringAdd(ta, tta), Precise.stringAdd(fa, tfa));
                 }
                 type = 'limit';
                 orderAmount = amount;
-                average = cost / filled;
+                average = Precise.stringDiv(cost, filled);
             }
             const time = this.safeString(order, 'time');
             const lastTxTime = this.safeString(order, 'lastTxTime');
             const timestamp = this.parse8601(time);
-            results.push({
+            const safeOrder = this.safeOrder({
+                'info': order,
                 'id': this.safeString(order, 'id'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -1467,8 +1480,8 @@ export default class cex extends Exchange {
                     'cost': fee,
                     'currency': quote,
                 },
-                'info': order,
             });
+            results.push(safeOrder);
         }
         return results;
     }

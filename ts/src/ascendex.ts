@@ -2571,7 +2571,7 @@ export default class ascendex extends Exchange {
             result.push (this.parsePosition (position[i]));
         }
         symbols = this.marketSymbols (symbols);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
@@ -2634,6 +2634,8 @@ export default class ascendex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger (position, 'leverage'),
             'marginRatio': undefined,
+            'stopLossPrice': this.safeNumber (position, 'stopLossPrice'),
+            'takeProfitPrice': this.safeNumber (position, 'takeProfitPrice'),
         });
     }
 

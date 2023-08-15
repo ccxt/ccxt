@@ -99,6 +99,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'repayMargin': True,
@@ -2794,6 +2795,8 @@ class cryptocom(Exchange, ImplicitAPI):
             'marginMode': None,
             'percentage': None,
             'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def nonce(self):

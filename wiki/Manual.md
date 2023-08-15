@@ -522,7 +522,7 @@ Most exchanges allow **up to 1 or 2 requests per second**. Exchanges may tempora
 
 The CCXT library has a built-in experimental rate-limiter that will do the necessary throttling in background transparently to the user. **WARNING: users are responsible for at least some type of rate-limiting: either by implementing a custom algorithm or by doing it with the built-in rate-limiter.**.
 
-Turn on/off the built-in rate-limiter with `.enableRateLimit` property, like so:
+You can turn on/off the built-in rate-limiter with `.enableRateLimit` property, like so:
 
 ```javascript
 // JavaScript
@@ -573,15 +573,16 @@ In case your calls hit a rate limit or get nonce errors, the ccxt library will t
 A later retry is usually enough to handle that.
 
 ### Notes On Rate Limiter
+#### One Rate Limiter Per Each Exchange Instance
 
 The rate limiter is a property of the exchange instance, in other words, each exchange instance has its own rate limiter that is not aware of the other instances. In many cases the user should reuse the same exchange instance throughout the program. Do not use multiple instances of the same exchange with the same API keypair from the same IP address.
 
 ```javascript
 // DO NOT DO THIS!
 
-const binance1 = new ccxt.binance ({ enableRateLimit: true })
-const binance2 = new ccxt.binance ({ enableRateLimit: true })
-const binance3 = new ccxt.binance ({ enableRateLimit: true })
+const binance1 = new ccxt.binance ()
+const binance2 = new ccxt.binance ()
+const binance3 = new ccxt.binance ()
 
 while (true) {
     const result = await Promise.all ([
@@ -598,7 +599,7 @@ Reuse the exchange instance as much as possible as shown below:
 ```javascript
 // DO THIS INSTEAD:
 
-const binance = new ccxt.binance ({ enableRateLimit: true })
+const binance = new ccxt.binance ()
 
 while (true) {
     const result = await Promise.all ([
@@ -616,7 +617,7 @@ Since the rate limiter belongs to the exchange instance, destroying the exchange
 // DO NOT DO THIS!
 
 async function tick () {
-    const exchange = new ccxt.binance ({ enableRateLimit: true })
+    const exchange = new ccxt.binance ()
     const response = await exchange.fetchOrderBook ('BTC/USDT')
     // ... some processing here ...
     return response
@@ -639,7 +640,7 @@ async function tick (exchange) {
     return response
 }
 
-const exchange = new ccxt.binance ({ enableRateLimit: true })
+const exchange = new ccxt.binance ()
 while (true) {
     const result = await tick (exchange)
     console.log (result)
@@ -3109,6 +3110,15 @@ $exchange = new $exchange_class (array (
 ```
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
+
+#### API Key Permissions
+When you get errors like `"Invalid API-key, IP, or permissions for action."`, then, most likely, the problem is not within ccxt, please avoid opening issues unless you ensure that:
+1) You don't have typos, empty spaces, or quotes in your keys
+2) Your current IP address (check [IPv4](https://api.ipify.org/) or [IPv6](https://api64.ipify.org/)) is added into API-KEY's whitelisted IP addresses
+3) You have selected the correct options in permissions list for that api-key.
+4) You are not accidentally mixing "testnet" api-keys or "testnet" mode in your script
+5) You have checked already [reported issues](https://github.com/ccxt/ccxt/issues?q=is%3Aissue+%22Invalid+Api-Key+ID%22) about this error.
+
 
 #### Sign In
 
