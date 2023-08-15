@@ -1081,7 +1081,7 @@ export default class bithumb extends Exchange {
             if (status !== undefined) {
                 if (status === '0000') {
                     return undefined; // no error
-                } else if (message === '거래 진행중인 내역이 존재하지 않습니다') {
+                } else if (message === '거래 진행중인 내역이 존재하지 않습니다.') {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return undefined; // no error
                 }
