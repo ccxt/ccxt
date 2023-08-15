@@ -368,6 +368,7 @@
         }
     },
     "blockchaincom": {
+        "skipWs": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2304",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"not provided",
@@ -1196,6 +1197,7 @@
         }
     },
     "krakenfutures": {
+        "skip": "continious timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2431",
         "skipMethods": {
             "loadMarkets": {
                 "type":"unexpected market type",
