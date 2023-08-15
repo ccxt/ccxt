@@ -208,6 +208,7 @@ export default class alpaca extends Exchange {
                 'broad': {
                     'Invalid format for parameter': BadRequest, // {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': BadSymbol, // {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
+                    'rate limit exceeded': RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
             },
         });

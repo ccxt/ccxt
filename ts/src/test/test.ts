@@ -242,7 +242,7 @@ export default class testMainClass extends baseMainTestClass {
         try {
             // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
             if (isLoadMarkets) {
-                await exchange.loadMarkets ();
+                await exchange.loadMarkets (true);
             }
             if (skipMessage) {
                 if (this.info) {
@@ -376,7 +376,10 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        await this.testSafe ('loadMarkets', exchange, [], true);
+        const result = await this.testSafe ('loadMarkets', exchange, [], true);
+        if (!result) {
+            return;
+        }
         const symbols = [
             'BTC/CNY',
             'BTC/USD',
