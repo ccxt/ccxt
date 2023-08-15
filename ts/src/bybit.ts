@@ -5639,80 +5639,19 @@ export default class bybit extends Exchange {
 
     async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
-        const values = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = this.safeValue (values, 1);
-        if (isUnifiedAccount) {
-            return await this.setUnifiedMarginMode (marginMode, symbol, params);
-        }
-        return await this.setDerivativesMarginMode (marginMode, symbol, params);
-    }
-
-    async setUnifiedMarginMode (marginMode, symbol: string = undefined, params = {}) {
-        await this.loadMarkets ();
-        if ((marginMode !== 'REGULAR_MARGIN') && (marginMode !== 'PORTFOLIO_MARGIN')) {
-            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either REGULAR_MARGIN or PORTFOLIO_MARGIN');
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        if (marginMode === 'ISOLATED_MARGIN') {
+            if (!isUnifiedAccount) {
+                throw new NotSupported (this.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
+            }
+        } else if ((marginMode !== 'REGULAR_MARGIN') && (marginMode !== 'PORTFOLIO_MARGIN')) {
+            throw new NotSupported (this.id + ' setMarginMode() marginMode must be either ISOLATED_MARGIN or REGULAR_MARGIN or PORTFOLIO_MARGIN');
         }
         const request = {
             'setMarginMode': marginMode,
         };
         const response = await this.privatePostV5AccountSetMarginMode (this.extend (request, params));
-        //
-        //  {
-        //      "setMarginMode": "PORTFOLIO_MARGIN"
-        //  }
-        //
-        return response;
-    }
-
-    async setDerivativesMarginMode (marginMode, symbol: string = undefined, params = {}) {
-        this.checkRequiredSymbol ('setMarginMode', symbol);
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (market['settle'] === 'USDC') {
-            throw new NotSupported (this.id + ' setMarginMode() does not support market ' + symbol + '');
-        }
-        marginMode = marginMode.toUpperCase ();
-        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
-            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
-        }
-        const leverage = this.safeString (params, 'leverage');
-        let sellLeverage = undefined;
-        let buyLeverage = undefined;
-        if (leverage === undefined) {
-            sellLeverage = this.safeString2 (params, 'sell_leverage', 'sellLeverage');
-            buyLeverage = this.safeString2 (params, 'buy_leverage', 'buyLeverage');
-            if (sellLeverage === undefined && buyLeverage === undefined) {
-                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
-            }
-            if (buyLeverage === undefined) {
-                buyLeverage = sellLeverage;
-            }
-            if (sellLeverage === undefined) {
-                sellLeverage = buyLeverage;
-            }
-            params = this.omit (params, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
-        } else {
-            params = this.omit (params, 'leverage');
-            sellLeverage = leverage;
-            buyLeverage = leverage;
-        }
-        const tradeMode = (marginMode === 'ISOLATED') ? 1 : 0;
-        const request = {
-            'symbol': market['id'],
-            'tradeMode': tradeMode,
-            'buyLeverage': buyLeverage,
-            'sellLeverage': sellLeverage,
-        };
-        const response = await this.privatePostContractV3PrivatePositionSwitchIsolated (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {},
-        //         "retExtInfo": null,
-        //         "time": 1658908532580
-        //     }
-        //
         return response;
     }
 
