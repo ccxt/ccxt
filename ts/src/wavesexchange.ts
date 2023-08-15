@@ -1296,7 +1296,7 @@ export default class wavesexchange extends Exchange {
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         const isMarketOrder = (type === 'market');
-        const stopPrice = this.safeFloatN (params, [ 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const stopPrice = this.safeFloat2 (params, 'triggerPrice', 'stopPrice');
         const isStopOrder = (stopPrice !== undefined);
         if ((isMarketOrder) && (price === undefined)) {
             throw new InvalidOrder (this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
@@ -1774,7 +1774,7 @@ export default class wavesexchange extends Exchange {
                 'fee': this.parseNumber (this.currencyFromPrecision (currency, this.safeString (order, 'matcherFee'))),
             };
         }
-        let stopPrice = undefined;
+        let triggerPrice = undefined;
         const attachment = this.safeString (order, 'attachment');
         if (attachment !== undefined) {
             const decodedAttachment = this.parseJson (this.decode (this.base58ToBinary (attachment)));
@@ -1783,7 +1783,7 @@ export default class wavesexchange extends Exchange {
                 if (c !== undefined) {
                     const v = this.safeValue (c, 'v');
                     if (v !== undefined) {
-                        stopPrice = this.safeString (v, 'p');
+                        triggerPrice = this.safeString (v, 'p');
                     }
                 }
             }
@@ -1801,8 +1801,8 @@ export default class wavesexchange extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
