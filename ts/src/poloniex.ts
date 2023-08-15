@@ -1151,6 +1151,7 @@ export default class poloniex extends Exchange {
          * @name poloniex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1200,6 +1201,7 @@ export default class poloniex extends Exchange {
          * @name poloniex#createOrder
          * @description create a trade order
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  // trigger orders
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1272,6 +1274,7 @@ export default class poloniex extends Exchange {
          * @name poloniex#editOrder
          * @description edit a trade order
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1310,6 +1313,7 @@ export default class poloniex extends Exchange {
          * @name poloniex#cancelOrder
          * @description cancels an open order
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-id
+         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-order-by-id  // trigger orders
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
@@ -1342,6 +1346,7 @@ export default class poloniex extends Exchange {
          * @name poloniex#cancelAllOrders
          * @description cancel all open orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  // trigger orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1384,6 +1389,7 @@ export default class poloniex extends Exchange {
          * @name poloniex#fetchOrder
          * @description fetch an order by it's id
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
+         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
          * @param {string} id order id
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
