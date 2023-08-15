@@ -527,43 +527,61 @@ export default class lbank2 extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //      {
-        //          "symbol":"btc_usdt",
-        //          "ticker": {
-        //              "high":40200.88,
-        //              "vol":7508.3096,
-        //              "low":38239.38,
-        //              "change":0.75,
-        //              "turnover":292962771.34,
-        //              "latest":39577.95
-        //               },
-        //           "timestamp":1647005189792
-        //      }
+        // spot: fetchTicker, fetchTickers
         //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "ticker": {
+        //             "high": "29695.57",
+        //             "vol": "6890.2789",
+        //             "low": "29110",
+        //             "change": "0.58",
+        //             "turnover": "202769821.06",
+        //             "latest": "29405.98"
+        //         },
+        //         "timestamp": :1692064274908
+        //     }
+        //
+        // swap: fetchTickers
+        //
+        //     {
+        //         "prePositionFeeRate": "0.000053",
+        //         "volume": "2435.459",
+        //         "symbol": "BTCUSDT",
+        //         "highestPrice": "29446.5",
+        //         "lowestPrice": "29362.9",
+        //         "openPrice": "29419.5",
+        //         "markedPrice": "29385.1",
+        //         "turnover": "36345526.2438402",
+        //         "lastPrice": "29387.0"
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        const tickerData = this.safeValue (ticker, 'ticker');
+        const tickerData = this.safeValue (ticker, 'ticker', {});
+        market = this.safeMarket (marketId, market);
+        const data = (market['contract']) ? ticker : tickerData;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (tickerData, 'high'),
-            'low': this.safeString (tickerData, 'low'),
+            'high': this.safeString2 (data, 'high', 'highestPrice'),
+            'low': this.safeString2 (data, 'low', 'lowestPrice'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeString (data, 'openPrice'),
             'close': undefined,
-            'last': this.safeString (tickerData, 'latest'),
+            'last': this.safeString2 (data, 'latest', 'lastPrice'),
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString (tickerData, 'change'),
+            'percentage': this.safeString (data, 'change'),
             'average': undefined,
-            'baseVolume': this.safeString (tickerData, 'vol'),
-            'quoteVolume': this.safeString (tickerData, 'turnover'),
+            'baseVolume': this.safeString2 (data, 'vol', 'volume'),
+            'quoteVolume': this.safeString (data, 'turnover'),
             'info': ticker,
         }, market);
     }
@@ -585,24 +603,25 @@ export default class lbank2 extends Exchange {
         };
         const response = await this.spotPublicGetTicker24hr (this.extend (request, params));
         //
-        //      {
-        //          "result":"true",
-        //          "data": [
-        //              {
-        //                  "symbol":"btc_usdt",
-        //                  "ticker":{
-        //                          "high":40200.88,
-        //                          "vol":7508.3096,
-        //                          "low":38239.38,
-        //                          "change":0.75,
-        //                          "turnover":292962771.34,
-        //                          "latest":39577.95
-        //                      },
-        //                  "timestamp":1647005189792
-        //               }
-        //                   ],
-        //          "error_code":0,"ts":1647005190755
-        //      }
+        //     {
+        //         "result": "true",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "ticker": {
+        //                     "high": "29695.57",
+        //                     "vol": "6890.2789",
+        //                     "low": "29110",
+        //                     "change": "0.58",
+        //                     "turnover": "202769821.06",
+        //                     "latest": "29405.98"
+        //                 },
+        //                 "timestamp": :1692064274908
+        //             }
+        //         ],
+        //         "error_code": 0,
+        //         "ts": :1692064276872
+        //     }
         //
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
@@ -615,15 +634,73 @@ export default class lbank2 extends Exchange {
          * @name lbank2#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the lbank api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {
-            'symbol': 'all',
-        };
-        const response = await this.spotPublicGetTicker24hr (this.extend (request, params));
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            market = this.market (symbols[0]);
+        }
+        const request = {};
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let response = undefined;
+        if (type === 'swap') {
+            request['productGroup'] = 'SwapU';
+            response = await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
+        } else {
+            request['symbol'] = 'all';
+            response = await this.spotPublicGetTicker24hr (this.extend (request, params));
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "result": "true",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "ticker": {
+        //                     "high": "29695.57",
+        //                     "vol": "6890.2789",
+        //                     "low": "29110",
+        //                     "change": "0.58",
+        //                     "turnover": "202769821.06",
+        //                     "latest": "29405.98"
+        //                 },
+        //                 "timestamp": :1692064274908
+        //             }
+        //         ],
+        //         "error_code": 0,
+        //         "ts": :1692064276872
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "prePositionFeeRate": "0.000053",
+        //                 "volume": "2435.459",
+        //                 "symbol": "BTCUSDT",
+        //                 "highestPrice": "29446.5",
+        //                 "lowestPrice": "29362.9",
+        //                 "openPrice": "29419.5",
+        //                 "markedPrice": "29385.1",
+        //                 "turnover": "36345526.2438402",
+        //                 "lastPrice": "29387.0"
+        //             },
+        //         ],
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
