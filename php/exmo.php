@@ -1216,22 +1216,20 @@ class exmo extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $prefix = ($type === 'market') ? ($type . '_') : '';
         $orderType = $prefix . $side;
-        $orderPrice = $price;
-        if (($type === 'market') && ($price === null)) {
-            $orderPrice = 0;
-        }
+        $isMarket = ($type === 'market') && ($price === null);
         $request = array(
             'pair' => $market['id'],
             // 'leverage' => 2,
@@ -1239,10 +1237,10 @@ class exmo extends Exchange {
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type' => $orderType,
-            'price' => $this->price_to_precision($market['symbol'], $orderPrice),
+            'price' => $isMarket ? 0 : $this->price_to_precision($market['symbol'], $price),
             // 'stop_price' => $this->price_to_precision($symbol, $stopPrice),
             // 'distance' => 0, // distance for trailing stop orders
-            // 'expire' => 0, // expiration $timestamp in UTC timezone for the order, unless expire is 0
+            // 'expire' => 0, // expiration timestamp in UTC timezone for the order, unless expire is 0
             // 'client_id' => 123, // optional, must be a positive integer
             // 'comment' => '', // up to 50 latin symbols, whitespaces, underscores
         );
@@ -1251,7 +1249,7 @@ class exmo extends Exchange {
         if ($clientOrderId !== null) {
             $clientOrderId = $this->safe_integer_2($params, 'client_id', 'clientOrderId');
             if ($clientOrderId === null) {
-                throw new BadRequest($this->id . ' createOrder() client order $id must be an integer / numeric literal');
+                throw new BadRequest($this->id . ' createOrder() client order id must be an integer / numeric literal');
             } else {
                 $request['client_id'] = $clientOrderId;
             }
@@ -1268,29 +1266,7 @@ class exmo extends Exchange {
             }
         }
         $response = $this->$method (array_merge($request, $params));
-        $id = $this->safe_string($response, 'order_id');
-        $timestamp = $this->milliseconds();
-        $status = 'open';
-        return array(
-            'id' => $id,
-            'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'status' => $status,
-            'symbol' => $market['symbol'],
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'cost' => null,
-            'amount' => $amount,
-            'remaining' => $amount,
-            'filled' => 0.0,
-            'fee' => null,
-            'trades' => null,
-            'clientOrderId' => $clientOrderId,
-            'average' => null,
-        );
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1489,7 +1465,7 @@ class exmo extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => null,
             'symbol' => $symbol,
-            'type' => 'limit',
+            'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
