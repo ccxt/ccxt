@@ -31,11 +31,23 @@ abstract class wavesexchange extends \ccxt\Exchange {
     public function matcher_get_matcher_debug_oldestsnapshotoffset($params = array()) {
         return $this->request('matcher/debug/oldestSnapshotOffset', 'matcher', 'GET', $params, null, null, array());
     }
+    public function matcher_get_matcher_debug_config($params = array()) {
+        return $this->request('matcher/debug/config', 'matcher', 'GET', $params, null, null, array());
+    }
+    public function matcher_get_matcher_debug_address_address($params = array()) {
+        return $this->request('matcher/debug/address/{address}', 'matcher', 'GET', $params, null, null, array());
+    }
+    public function matcher_get_matcher_debug_status($params = array()) {
+        return $this->request('matcher/debug/status', 'matcher', 'GET', $params, null, null, array());
+    }
+    public function matcher_get_matcher_debug_address_address_check($params = array()) {
+        return $this->request('matcher/debug/address/{address}/check', 'matcher', 'GET', $params, null, null, array());
+    }
     public function matcher_get_matcher_orderbook($params = array()) {
         return $this->request('matcher/orderbook', 'matcher', 'GET', $params, null, null, array());
     }
-    public function matcher_get_matcher_orderbook_amountasset_priceasset($params = array()) {
-        return $this->request('matcher/orderbook/{amountAsset}/{priceAsset}', 'matcher', 'GET', $params, null, null, array());
+    public function matcher_get_matcher_orderbook_baseid_quoteid($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}', 'matcher', 'GET', $params, null, null, array());
     }
     public function matcher_get_matcher_orderbook_baseid_quoteid_publickey_publickey($params = array()) {
         return $this->request('matcher/orderbook/{baseId}/{quoteId}/publicKey/{publicKey}', 'matcher', 'GET', $params, null, null, array());
@@ -49,8 +61,8 @@ abstract class wavesexchange extends \ccxt\Exchange {
     public function matcher_get_matcher_orderbook_baseid_quoteid_status($params = array()) {
         return $this->request('matcher/orderbook/{baseId}/{quoteId}/status', 'matcher', 'GET', $params, null, null, array());
     }
-    public function matcher_get_matcher_orderbook_baseid_quoteid_tradeablebalance_address($params = array()) {
-        return $this->request('matcher/orderbook/{baseId}/{quoteId}/tradeableBalance/{address}', 'matcher', 'GET', $params, null, null, array());
+    public function matcher_get_matcher_orderbook_baseid_quoteid_tradablebalance_address($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}/tradableBalance/{address}', 'matcher', 'GET', $params, null, null, array());
     }
     public function matcher_get_matcher_orderbook_publickey($params = array()) {
         return $this->request('matcher/orderbook/{publicKey}', 'matcher', 'GET', $params, null, null, array());
@@ -67,6 +79,9 @@ abstract class wavesexchange extends \ccxt\Exchange {
     public function matcher_get_matcher_transactions_orderid($params = array()) {
         return $this->request('matcher/transactions/{orderId}', 'matcher', 'GET', $params, null, null, array());
     }
+    public function matcher_get_api_v1_orderbook_baseid_quoteid($params = array()) {
+        return $this->request('api/v1/orderbook/{baseId}/{quoteId}', 'matcher', 'GET', $params, null, null, array());
+    }
     public function matcher_post_matcher_orderbook($params = array()) {
         return $this->request('matcher/orderbook', 'matcher', 'POST', $params, null, null, array());
     }
@@ -79,8 +94,14 @@ abstract class wavesexchange extends \ccxt\Exchange {
     public function matcher_post_matcher_orderbook_baseid_quoteid_cancel($params = array()) {
         return $this->request('matcher/orderbook/{baseId}/{quoteId}/cancel', 'matcher', 'POST', $params, null, null, array());
     }
-    public function matcher_post_matcher_orderbook_amountasset_priceasset_calculatefee($params = array()) {
-        return $this->request('matcher/orderbook/{amountAsset}/{priceAsset}/calculateFee', 'matcher', 'POST', $params, null, null, array());
+    public function matcher_post_matcher_orderbook_baseid_quoteid_calculatefee($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}/calculateFee', 'matcher', 'POST', $params, null, null, array());
+    }
+    public function matcher_post_matcher_orderbook_baseid_quoteid_delete($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}/delete', 'matcher', 'POST', $params, null, null, array());
+    }
+    public function matcher_post_matcher_orderbook_baseid_quoteid_cancelall($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}/cancelAll', 'matcher', 'POST', $params, null, null, array());
     }
     public function matcher_post_matcher_debug_savesnapshots($params = array()) {
         return $this->request('matcher/debug/saveSnapshots', 'matcher', 'POST', $params, null, null, array());
@@ -90,6 +111,9 @@ abstract class wavesexchange extends \ccxt\Exchange {
     }
     public function matcher_post_matcher_orders_cancel_orderid($params = array()) {
         return $this->request('matcher/orders/cancel/{orderId}', 'matcher', 'POST', $params, null, null, array());
+    }
+    public function matcher_post_matcher_orders_serialize($params = array()) {
+        return $this->request('matcher/orders/serialize', 'matcher', 'POST', $params, null, null, array());
     }
     public function matcher_delete_matcher_orderbook_baseid_quoteid($params = array()) {
         return $this->request('matcher/orderbook/{baseId}/{quoteId}', 'matcher', 'DELETE', $params, null, null, array());
@@ -457,11 +481,23 @@ abstract class wavesexchange extends \ccxt\Exchange {
     public function matcherGetMatcherDebugOldestSnapshotOffset($params = array()) {
         return $this->request('matcher/debug/oldestSnapshotOffset', 'matcher', 'GET', $params, null, null, array());
     }
+    public function matcherGetMatcherDebugConfig($params = array()) {
+        return $this->request('matcher/debug/config', 'matcher', 'GET', $params, null, null, array());
+    }
+    public function matcherGetMatcherDebugAddressAddress($params = array()) {
+        return $this->request('matcher/debug/address/{address}', 'matcher', 'GET', $params, null, null, array());
+    }
+    public function matcherGetMatcherDebugStatus($params = array()) {
+        return $this->request('matcher/debug/status', 'matcher', 'GET', $params, null, null, array());
+    }
+    public function matcherGetMatcherDebugAddressAddressCheck($params = array()) {
+        return $this->request('matcher/debug/address/{address}/check', 'matcher', 'GET', $params, null, null, array());
+    }
     public function matcherGetMatcherOrderbook($params = array()) {
         return $this->request('matcher/orderbook', 'matcher', 'GET', $params, null, null, array());
     }
-    public function matcherGetMatcherOrderbookAmountAssetPriceAsset($params = array()) {
-        return $this->request('matcher/orderbook/{amountAsset}/{priceAsset}', 'matcher', 'GET', $params, null, null, array());
+    public function matcherGetMatcherOrderbookBaseIdQuoteId($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}', 'matcher', 'GET', $params, null, null, array());
     }
     public function matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey($params = array()) {
         return $this->request('matcher/orderbook/{baseId}/{quoteId}/publicKey/{publicKey}', 'matcher', 'GET', $params, null, null, array());
@@ -475,8 +511,8 @@ abstract class wavesexchange extends \ccxt\Exchange {
     public function matcherGetMatcherOrderbookBaseIdQuoteIdStatus($params = array()) {
         return $this->request('matcher/orderbook/{baseId}/{quoteId}/status', 'matcher', 'GET', $params, null, null, array());
     }
-    public function matcherGetMatcherOrderbookBaseIdQuoteIdTradeableBalanceAddress($params = array()) {
-        return $this->request('matcher/orderbook/{baseId}/{quoteId}/tradeableBalance/{address}', 'matcher', 'GET', $params, null, null, array());
+    public function matcherGetMatcherOrderbookBaseIdQuoteIdTradableBalanceAddress($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}/tradableBalance/{address}', 'matcher', 'GET', $params, null, null, array());
     }
     public function matcherGetMatcherOrderbookPublicKey($params = array()) {
         return $this->request('matcher/orderbook/{publicKey}', 'matcher', 'GET', $params, null, null, array());
@@ -493,6 +529,9 @@ abstract class wavesexchange extends \ccxt\Exchange {
     public function matcherGetMatcherTransactionsOrderId($params = array()) {
         return $this->request('matcher/transactions/{orderId}', 'matcher', 'GET', $params, null, null, array());
     }
+    public function matcherGetApiV1OrderbookBaseIdQuoteId($params = array()) {
+        return $this->request('api/v1/orderbook/{baseId}/{quoteId}', 'matcher', 'GET', $params, null, null, array());
+    }
     public function matcherPostMatcherOrderbook($params = array()) {
         return $this->request('matcher/orderbook', 'matcher', 'POST', $params, null, null, array());
     }
@@ -505,8 +544,14 @@ abstract class wavesexchange extends \ccxt\Exchange {
     public function matcherPostMatcherOrderbookBaseIdQuoteIdCancel($params = array()) {
         return $this->request('matcher/orderbook/{baseId}/{quoteId}/cancel', 'matcher', 'POST', $params, null, null, array());
     }
-    public function matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee($params = array()) {
-        return $this->request('matcher/orderbook/{amountAsset}/{priceAsset}/calculateFee', 'matcher', 'POST', $params, null, null, array());
+    public function matcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}/calculateFee', 'matcher', 'POST', $params, null, null, array());
+    }
+    public function matcherPostMatcherOrderbookBaseIdQuoteIdDelete($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}/delete', 'matcher', 'POST', $params, null, null, array());
+    }
+    public function matcherPostMatcherOrderbookBaseIdQuoteIdCancelAll($params = array()) {
+        return $this->request('matcher/orderbook/{baseId}/{quoteId}/cancelAll', 'matcher', 'POST', $params, null, null, array());
     }
     public function matcherPostMatcherDebugSaveSnapshots($params = array()) {
         return $this->request('matcher/debug/saveSnapshots', 'matcher', 'POST', $params, null, null, array());
@@ -516,6 +561,9 @@ abstract class wavesexchange extends \ccxt\Exchange {
     }
     public function matcherPostMatcherOrdersCancelOrderId($params = array()) {
         return $this->request('matcher/orders/cancel/{orderId}', 'matcher', 'POST', $params, null, null, array());
+    }
+    public function matcherPostMatcherOrdersSerialize($params = array()) {
+        return $this->request('matcher/orders/serialize', 'matcher', 'POST', $params, null, null, array());
     }
     public function matcherDeleteMatcherOrderbookBaseIdQuoteId($params = array()) {
         return $this->request('matcher/orderbook/{baseId}/{quoteId}', 'matcher', 'DELETE', $params, null, null, array());
