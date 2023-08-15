@@ -18,13 +18,6 @@ Current feature list:
 - an out of the box unified API that is extremely easy to integrate
 - works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1 and web browsers
 
-## Sponsored Promotion
-
-[![OKX + CCXT Exclusive Event: Trade And Earn](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/255981933-75add442-caf7-4a67-9f48-ec83740a5402.png)](https://www.okx.com/account/register?channelid=CCXT2023)
-
-[![OKX + CCXT: Nitro Spreads](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/255981940-fabfcf1d-0c82-4a94-b376-ad7dcb406345.jpg)](https://www.okx.com/liquid-marketplace?channelid=CCXT2023)
-
-
 ## See Also
 
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub> **[TabTrader](https://tab-trader.com/?utm_source=ccxt)** – trading on all exchanges in one app. Available on **[Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt)** and **[iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8)**!
