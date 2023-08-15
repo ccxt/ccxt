@@ -632,20 +632,27 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return message
 
     def handle_error_message(self, client: Client, message):
-        return message
+        #
+        #    {
+        #        "id": "64d8732c856851144bded10d",
+        #        "type": "error",
+        #        "code": 401,
+        #        "data": "token is expired"
+        #    }
+        #
+        data = self.safe_string(message, 'data', '')
+        self.handle_errors(None, None, client.url, None, None, data, message, None, None)
 
     def handle_message(self, client: Client, message):
-        if self.handle_error_message(client, message):
-            type = self.safe_string(message, 'type')
-            methods = {
-                # 'heartbeat': self.handleHeartbeat,
-                'welcome': self.handle_system_status,
-                'ack': self.handle_subscription_status,
-                'message': self.handle_subject,
-                'pong': self.handle_pong,
-            }
-            method = self.safe_value(methods, type)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+        type = self.safe_string(message, 'type')
+        methods = {
+            # 'heartbeat': self.handleHeartbeat,
+            'welcome': self.handle_system_status,
+            'ack': self.handle_subscription_status,
+            'message': self.handle_subject,
+            'pong': self.handle_pong,
+            'error': self.handle_error_message,
+        }
+        method = self.safe_value(methods, type)
+        if method is not None:
+            return method(client, message)

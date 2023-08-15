@@ -861,7 +861,16 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function handle_error_message(Client $client, $message) {
-        return $message;
+        //
+        //    {
+        //        id => '1',
+        //        type => 'error',
+        //        code => 415,
+        //        $data => 'type is not supported'
+        //    }
+        //
+        $data = $this->safe_string($message, 'data', '');
+        $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
     }
 
     public function handle_message(Client $client, $message) {
@@ -872,6 +881,7 @@ class kucoin extends \ccxt\async\kucoin {
             'ack' => array($this, 'handle_subscription_status'),
             'message' => array($this, 'handle_subject'),
             'pong' => array($this, 'handle_pong'),
+            'error' => array($this, 'handle_error_message'),
         );
         $method = $this->safe_value($methods, $type);
         if ($method !== null) {
