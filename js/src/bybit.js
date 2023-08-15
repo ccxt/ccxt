@@ -7328,27 +7328,27 @@ export default class bybit extends Exchange {
     async fetchUnifiedPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        let type = undefined;
         let settle = undefined;
+        let market = undefined;
         const enableUnified = await this.isUnifiedEnabled();
         if (Array.isArray(symbols)) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 1) {
                 throw new ArgumentsRequired(this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
-            const market = this.market(symbols[0]);
-            settle = market['settle'];
+            if (symbolsLength === 1) {
+                market = this.market(symbols[0]);
+            }
         }
         else if (symbols !== undefined) {
             symbols = [symbols];
+            market = this.market(symbols);
         }
         symbols = this.marketSymbols(symbols);
-        if (symbols === undefined) {
+        if (market === undefined) {
             [settle, params] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', 'USDT');
         }
         else {
-            const first = this.safeValue(symbols, 0);
-            const market = this.market(first);
             settle = market['settle'];
             request['symbol'] = market['id'];
         }
@@ -7356,16 +7356,21 @@ export default class bybit extends Exchange {
             request['settleCoin'] = settle;
             request['limit'] = 200;
         }
-        // market undefined
-        [type, params] = this.handleMarketTypeAndParams('fetchPositions', undefined, params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchPositions', market, params);
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchPositions', undefined, params, 'linear');
+        [subType, params] = this.handleSubTypeAndParams('fetchPositions', market, params, 'linear');
         request['category'] = subType;
         if (type === 'option') {
             request['category'] = 'option';
         }
-        const method = (enableUnified[1]) ? 'privateGetV5PositionList' : 'privateGetUnifiedV3PrivatePositionList';
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (enableUnified[1]) {
+            response = await this.privateGetV5PositionList(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetUnifiedV3PrivatePositionList(this.extend(request, params));
+        }
         //
         //     {
         //         "retCode": 0,

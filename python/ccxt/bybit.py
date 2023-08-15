@@ -6805,37 +6805,39 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_unified_positions(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         request = {}
-        type = None
         settle = None
+        market = None
         enableUnified = self.is_unified_enabled()
         if isinstance(symbols, list):
             symbolsLength = len(symbols)
             if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
-            market = self.market(symbols[0])
-            settle = market['settle']
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
         elif symbols is not None:
             symbols = [symbols]
+            market = self.market(symbols)
         symbols = self.market_symbols(symbols)
-        if symbols is None:
+        if market is None:
             settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', 'USDT')
         else:
-            first = self.safe_value(symbols, 0)
-            market = self.market(first)
             settle = market['settle']
             request['symbol'] = market['id']
         if enableUnified[1]:
             request['settleCoin'] = settle
             request['limit'] = 200
-        # market None
-        type, params = self.handle_market_type_and_params('fetchPositions', None, params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchPositions', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchPositions', None, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
         request['category'] = subType
         if type == 'option':
             request['category'] = 'option'
-        method = 'privateGetV5PositionList' if (enableUnified[1]) else 'privateGetUnifiedV3PrivatePositionList'
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if enableUnified[1]:
+            response = self.privateGetV5PositionList(self.extend(request, params))
+        else:
+            response = self.privateGetUnifiedV3PrivatePositionList(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,

@@ -7340,25 +7340,25 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $request = array();
-            $type = null;
             $settle = null;
+            $market = null;
             $enableUnified = Async\await($this->is_unified_enabled());
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $symbolsLength = count($symbols);
                 if ($symbolsLength > 1) {
                     throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
                 }
-                $market = $this->market($symbols[0]);
-                $settle = $market['settle'];
+                if ($symbolsLength === 1) {
+                    $market = $this->market($symbols[0]);
+                }
             } elseif ($symbols !== null) {
                 $symbols = array( $symbols );
+                $market = $this->market($symbols);
             }
             $symbols = $this->market_symbols($symbols);
-            if ($symbols === null) {
+            if ($market === null) {
                 list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', 'USDT');
             } else {
-                $first = $this->safe_value($symbols, 0);
-                $market = $this->market($first);
                 $settle = $market['settle'];
                 $request['symbol'] = $market['id'];
             }
@@ -7366,16 +7366,20 @@ class bybit extends Exchange {
                 $request['settleCoin'] = $settle;
                 $request['limit'] = 200;
             }
-            // $market null
-            list($type, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params, 'linear');
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
             $request['category'] = $subType;
             if ($type === 'option') {
                 $request['category'] = 'option';
             }
-            $method = ($enableUnified[1]) ? 'privateGetV5PositionList' : 'privateGetUnifiedV3PrivatePositionList';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($enableUnified[1]) {
+                $response = Async\await($this->privateGetV5PositionList (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetUnifiedV3PrivatePositionList (array_merge($request, $params)));
+            }
             //
             //     {
             //         "retCode" => 0,

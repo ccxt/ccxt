@@ -37,8 +37,8 @@ class tokocrypto extends tokocrypto$1 {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': undefined,
-                'createStopLimitOrder': false,
-                'createStopMarketOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -1534,6 +1534,7 @@ class tokocrypto extends tokocrypto$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();

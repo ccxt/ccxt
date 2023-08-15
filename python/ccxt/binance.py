@@ -4055,6 +4055,8 @@ class binance(Exchange, ImplicitAPI):
         see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
         see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
         see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
@@ -4062,15 +4064,21 @@ class binance(Exchange, ImplicitAPI):
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :param boolean [params.sor]: *spot only* whether to use SOR(Smart Order Routing) or not, default is False
+        :param boolean [params.test]: *spot only* whether to use the test endpoint or not, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         marketType = self.safe_string(params, 'type', market['type'])
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
+        sor = self.safe_value_2(params, 'sor', 'SOR', False)
+        params = self.omit(params, 'sor', 'SOR')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         method = 'privatePostOrder'
-        if market['linear']:
+        if sor:
+            method = 'privatePostSorOrder'
+        elif market['linear']:
             method = 'fapiPrivatePostOrder'
         elif market['inverse']:
             method = 'dapiPrivatePostOrder'
@@ -7360,7 +7368,7 @@ class binance(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
-            if method == 'POST' and path == 'order':
+            if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
                 newClientOrderId = self.safe_string(params, 'newClientOrderId')
                 if newClientOrderId is None:

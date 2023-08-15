@@ -3814,13 +3814,12 @@ class gate(Exchange, ImplicitAPI):
         side = self.safe_string(order, 'side', side)
         price = self.safe_string(order, 'price', price)
         remainingString = self.safe_string(order, 'left')
-        filledString = Precise.string_sub(amount, remainingString)
         cost = self.safe_string(order, 'filled_total')
+        triggerPrice = self.safe_number(trigger, 'price')
         rawStatus = None
         average = self.safe_number_2(order, 'avg_deal_price', 'fill_price')
-        if put:
+        if triggerPrice:
             remainingString = amount
-            filledString = '0'
             cost = '0'
         if contract:
             isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
@@ -3861,7 +3860,6 @@ class gate(Exchange, ImplicitAPI):
         numFeeCurrencies = len(fees)
         multipleFeeCurrencies = numFeeCurrencies > 1
         status = self.parse_order_status(rawStatus)
-        filled = Precise.string_abs(filledString)
         remaining = Precise.string_abs(remainingString)
         # handle spot market buy
         account = self.safe_string(order, 'account')  # using self instead of market type because of the conflicting ids
@@ -3869,7 +3867,6 @@ class gate(Exchange, ImplicitAPI):
             averageString = self.safe_string(order, 'avg_deal_price')
             average = self.parse_number(averageString)
             if (type == 'market') and (side == 'buy'):
-                filled = Precise.string_div(filledString, averageString)
                 remaining = Precise.string_div(remainingString, averageString)
                 price = None  # arrives
                 cost = amount
@@ -3887,13 +3884,13 @@ class gate(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'reduceOnly': self.safe_value(order, 'is_reduce_only'),
             'side': side,
-            'price': self.parse_number(price),
-            'stopPrice': self.safe_number(trigger, 'price'),
-            'triggerPrice': self.safe_number(trigger, 'price'),
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'average': average,
-            'amount': self.parse_number(Precise.string_abs(amount)),
+            'amount': Precise.string_abs(amount),
             'cost': Precise.string_abs(cost),
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'fee': None if multipleFeeCurrencies else self.safe_value(fees, 0),
             'fees': fees if multipleFeeCurrencies else [],

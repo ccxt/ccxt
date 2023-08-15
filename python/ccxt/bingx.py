@@ -82,6 +82,8 @@ class bingx(Exchange, ImplicitAPI):
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
                     'wallets': 'https://open-api.{hostname}/openApi',
+                    'subAccount': 'https://open-api.{hostname}/openApi',
+                    'account': 'https://open-api.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -128,6 +130,9 @@ class bingx(Exchange, ImplicitAPI):
                                 'asset/transfer': 3,
                                 'capital/deposit/hisrec': 3,
                                 'capital/withdraw/history': 3,
+                            },
+                            'post': {
+                                'post/asset/transfer': 3,
                             },
                         },
                     },
@@ -200,6 +205,35 @@ class bingx(Exchange, ImplicitAPI):
                             },
                             'post': {
                                 'capital/withdraw/apply': 3,
+                                'capital/innerTransfer/apply': 3,
+                                'capital/subAccountInnerTransfer/apply': 3,
+                            },
+                        },
+                    },
+                },
+                'subAccount': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'list': 3,
+                                'assets': 3,
+                            },
+                            'post': {
+                                'create': 3,
+                                'apiKey/create': 3,
+                                'apiKey/edit': 3,
+                                'apiKey/del': 3,
+                                'updateStatus': 3,
+                            },
+                        },
+                    },
+                },
+                'account': {
+                    'v1': {
+                        'private': {
+                            'post': {
+                                'uid': 3,
+                                'innerTransfer/authorizeSubAccount': 3,
                             },
                         },
                     },

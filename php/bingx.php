@@ -66,6 +66,8 @@ class bingx extends Exchange {
                     'swap' => 'https://open-api.{hostname}/openApi',
                     'contract' => 'https://open-api.{hostname}/openApi',
                     'wallets' => 'https://open-api.{hostname}/openApi',
+                    'subAccount' => 'https://open-api.{hostname}/openApi',
+                    'account' => 'https://open-api.{hostname}/openApi',
                 ),
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
@@ -112,6 +114,9 @@ class bingx extends Exchange {
                                 'asset/transfer' => 3,
                                 'capital/deposit/hisrec' => 3,
                                 'capital/withdraw/history' => 3,
+                            ),
+                            'post' => array(
+                                'post/asset/transfer' => 3,
                             ),
                         ),
                     ),
@@ -184,6 +189,35 @@ class bingx extends Exchange {
                             ),
                             'post' => array(
                                 'capital/withdraw/apply' => 3,
+                                'capital/innerTransfer/apply' => 3,
+                                'capital/subAccountInnerTransfer/apply' => 3,
+                            ),
+                        ),
+                    ),
+                ),
+                'subAccount' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'list' => 3,
+                                'assets' => 3,
+                            ),
+                            'post' => array(
+                                'create' => 3,
+                                'apiKey/create' => 3,
+                                'apiKey/edit' => 3,
+                                'apiKey/del' => 3,
+                                'updateStatus' => 3,
+                            ),
+                        ),
+                    ),
+                ),
+                'account' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'post' => array(
+                                'uid' => 3,
+                                'innerTransfer/authorizeSubAccount' => 3,
                             ),
                         ),
                     ),

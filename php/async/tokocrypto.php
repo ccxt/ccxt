@@ -43,8 +43,8 @@ class tokocrypto extends Exchange {
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
-                'createStopLimitOrder' => false,
-                'createStopMarketOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -1552,6 +1552,7 @@ class tokocrypto extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the tokocrypto api endpoint
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());

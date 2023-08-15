@@ -783,7 +783,16 @@ class kucoin(ccxt.async_support.kucoin):
         # https://docs.kucoin.com/#ping
 
     def handle_error_message(self, client: Client, message):
-        return message
+        #
+        #    {
+        #        id: '1',
+        #        type: 'error',
+        #        code: 415,
+        #        data: 'type is not supported'
+        #    }
+        #
+        data = self.safe_string(message, 'data', '')
+        self.handle_errors(None, None, client.url, None, None, data, message, None, None)
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
@@ -793,6 +802,7 @@ class kucoin(ccxt.async_support.kucoin):
             'ack': self.handle_subscription_status,
             'message': self.handle_subject,
             'pong': self.handle_pong,
+            'error': self.handle_error_message,
         }
         method = self.safe_value(methods, type)
         if method is not None:
