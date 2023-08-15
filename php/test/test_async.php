@@ -31,16 +31,11 @@ $exchangeSymbol = null; // todo: this should be different than JS
 // non-transpiled part, but shared names among langs
 
 class baseMainTestClass {
-    public $testFiles = [];
+    public $info = false;
     public $skippedMethods = [];
     public $checkedPublicTests = [];
+    public $testFiles = [];
     public $publicTests = [];
-    public $info = false;
-    public $verbose = false;
-    public $debug = false;
-    public $privateTest = false;
-    public $privateTestOnly = false;
-    public $sandbox = false;
 }
 
 define ('is_synchronous', stripos(__FILE__, '_async') === false);

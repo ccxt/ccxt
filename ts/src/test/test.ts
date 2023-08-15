@@ -26,11 +26,6 @@ const RequestTimeout = ccxt.RequestTimeout;
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
     info = false;
-    verbose = false;
-    debug = false;
-    privateTest = false;
-    privateTestOnly = false;
-    sandbox = false;
     skippedMethods = {};
     checkedPublicTests = {};
     testFiles = {};
@@ -123,11 +118,6 @@ async function close (exchange) {
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs () {
         this.info = getCliArgValue ('--info');
-        this.verbose = getCliArgValue ('--verbose');
-        this.debug = getCliArgValue ('--debug');
-        this.privateTest = getCliArgValue ('--private');
-        this.privateTestOnly = getCliArgValue ('--privateOnly');
-        this.sandbox = getCliArgValue ('--sandbox');
     }
 
     async init (exchangeId, symbol) {
@@ -135,8 +125,8 @@ export default class testMainClass extends baseMainTestClass {
         const symbolStr = symbol !== undefined ? symbol : 'all';
         console.log ('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
         const exchangeArgs = {
-            'verbose': this.verbose,
-            'debug': this.debug,
+            'verbose': getCliArgValue ('--verbose'),
+            'debug': getCliArgValue ('--debug'),
             'enableRateLimit': true,
             'timeout': 30000,
         };
@@ -587,7 +577,9 @@ export default class testMainClass extends baseMainTestClass {
         if (swapSymbol !== undefined) {
             dump ('Selected SWAP SYMBOL:', swapSymbol);
         }
-        if (!this.privateTestOnly) {
+        const privateTest = getCliArgValue ('--private');
+        const privateTestOnly = getCliArgValue ('--privateOnly');
+        if (!privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 if (this.info) {
                     dump ('[INFO:SPOT TESTS]');
@@ -603,7 +595,7 @@ export default class testMainClass extends baseMainTestClass {
                 await this.runPublicTests (exchange, swapSymbol);
             }
         }
-        if (this.privateTest || this.privateTestOnly) {
+        if (privateTest || privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 exchange.options['defaultType'] = 'spot';
                 await this.runPrivateTests (exchange, spotSymbol);
@@ -720,7 +712,7 @@ export default class testMainClass extends baseMainTestClass {
         if (exchange.alias) {
             return;
         }
-        if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
+        if (getCliArgValue ('--sandbox') || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
         await this.loadExchange (exchange);
