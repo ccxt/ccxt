@@ -2406,6 +2406,10 @@ export default class bitget extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-index-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-mark-candle-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2420,8 +2424,9 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         const until = this.safeInteger2 (params, 'until', 'till');
+        const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
-            limit = 1000;
+            limit = 200;
         }
         request['limit'] = limit;
         const marketType = market['spot'] ? 'spot' : 'swap';
@@ -2464,6 +2469,9 @@ export default class bitget extends Exchange {
             const defaultSpotMethod = this.safeString (params, 'method', 'publicSpotGetMarketCandles');
             const method = this.safeString (spotOptions, 'method', defaultSpotMethod);
             if (method === 'publicSpotGetMarketCandles') {
+                if (limitIsUndefined) {
+                    extended['limit'] = 1000;
+                }
                 response = await this.publicSpotGetMarketCandles (extended);
             } else if (method === 'publicSpotGetMarketHistoryCandles') {
                 response = await this.publicSpotGetMarketHistoryCandles (extended);
@@ -2473,6 +2481,9 @@ export default class bitget extends Exchange {
             const defaultSwapMethod = this.safeString (params, 'method', 'publicMixGetMarketCandles');
             const swapMethod = this.safeString (swapOptions, 'method', defaultSwapMethod);
             if (swapMethod === 'publicMixGetMarketCandles') {
+                if (limitIsUndefined) {
+                    extended['limit'] = 1000;
+                }
                 response = await this.publicMixGetMarketCandles (extended);
             } else if (swapMethod === 'publicMixGetMarketHistoryCandles') {
                 response = await this.publicMixGetMarketHistoryCandles (extended);
