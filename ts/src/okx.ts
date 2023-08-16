@@ -15,6 +15,8 @@ import { Int, OrderSide, OrderType } from './base/types.js';
  * @extends Exchange
  */
 export default class okx extends Exchange {
+    termId: string;
+
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okx',
@@ -5314,52 +5316,69 @@ export default class okx extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            // inject id in implicit api call
-            if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
-                const brokerId = this.safeString (this.options, 'brokerId', 'e847386590ce4dBC');
-                if (Array.isArray (params)) {
-                    for (let i = 0; i < params.length; i++) {
-                        const entry = params[i];
-                        const clientOrderId = this.safeString (entry, 'clOrdId');
-                        if (clientOrderId === undefined) {
-                            entry['clOrdId'] = brokerId + this.uuid16 ();
-                            entry['tag'] = brokerId;
-                            params[i] = entry;
-                        }
+            if (this.token) {
+                headers = {
+                    'Authorization': 'Bearer ' + this.token,
+                    'Content-Type': 'application/json',
+                    'TERMID': this.termId,
+                };
+                if (method !== 'GET') {
+                    if (Object.keys (query).length) {
+                        body = this.json (query);
                     }
                 } else {
-                    const clientOrderId = this.safeString (params, 'clOrdId');
-                    if (clientOrderId === undefined) {
-                        params['clOrdId'] = brokerId + this.uuid16 ();
-                        params['tag'] = brokerId;
+                    if (Object.keys (query).length) {
+                        url += '?' + this.urlencode (query);
                     }
                 }
-            }
-            const timestamp = this.iso8601 (this.milliseconds ());
-            headers = {
-                'OK-ACCESS-KEY': this.apiKey,
-                'OK-ACCESS-PASSPHRASE': this.password,
-                'OK-ACCESS-TIMESTAMP': timestamp,
-                // 'OK-FROM': '',
-                // 'OK-TO': '',
-                // 'OK-LIMIT': '',
-            };
-            let auth = timestamp + method + request;
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    const urlencodedQuery = '?' + this.urlencode (query);
-                    url += urlencodedQuery;
-                    auth += urlencodedQuery;
-                }
             } else {
-                if (isArray || Object.keys (query).length) {
-                    body = this.json (query);
-                    auth += body;
+                // inject id in implicit api call
+                if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
+                    const brokerId = this.safeString (this.options, 'brokerId', 'e847386590ce4dBC');
+                    if (Array.isArray (params)) {
+                        for (let i = 0; i < params.length; i++) {
+                            const entry = params[i];
+                            const clientOrderId = this.safeString (entry, 'clOrdId');
+                            if (clientOrderId === undefined) {
+                                entry['clOrdId'] = brokerId + this.uuid16 ();
+                                entry['tag'] = brokerId;
+                                params[i] = entry;
+                            }
+                        }
+                    } else {
+                        const clientOrderId = this.safeString (params, 'clOrdId');
+                        if (clientOrderId === undefined) {
+                            params['clOrdId'] = brokerId + this.uuid16 ();
+                            params['tag'] = brokerId;
+                        }
+                    }
                 }
-                headers['Content-Type'] = 'application/json';
+                const timestamp = this.iso8601 (this.milliseconds ());
+                headers = {
+                    'OK-ACCESS-KEY': this.apiKey,
+                    'OK-ACCESS-PASSPHRASE': this.password,
+                    'OK-ACCESS-TIMESTAMP': timestamp,
+                    // 'OK-FROM': '',
+                    // 'OK-TO': '',
+                    // 'OK-LIMIT': '',
+                };
+                let auth = timestamp + method + request;
+                if (method === 'GET') {
+                    if (Object.keys (query).length) {
+                        const urlencodedQuery = '?' + this.urlencode (query);
+                        url += urlencodedQuery;
+                        auth += urlencodedQuery;
+                    }
+                } else {
+                    if (isArray || Object.keys (query).length) {
+                        body = this.json (query);
+                        auth += body;
+                    }
+                    headers['Content-Type'] = 'application/json';
+                }
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
+                headers['OK-ACCESS-SIGN'] = signature;
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
-            headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
