@@ -8,7 +8,6 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
-import ccxt from '../ccxt.js';
 
 //  ---------------------------------------------------------------------------
 
