@@ -717,12 +717,12 @@ export default class testMainClass extends baseMainTestClass {
         }
         try {
             await this.loadExchange (exchange);
+            await this.testExchange (exchange, symbol);
+            await close (exchange);
         } catch (e) {
             await close (exchange); // close for async-python
             throw e;
         }
-        await this.testExchange (exchange, symbol);
-        await close (exchange);
     }
 }
 // ***** AUTO-TRANSPILER-END *****
