@@ -597,12 +597,13 @@ export default class bitvavo extends bitvavoRest {
         return message;
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.milliseconds ();
             const stringTimestamp = timestamp.toString ();
             const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
@@ -615,8 +616,7 @@ export default class bitvavo extends bitvavoRest {
                 'timestamp': timestamp,
             };
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -632,7 +632,8 @@ export default class bitvavo extends bitvavoRest {
         const authenticated = this.safeValue (message, 'authenticated', false);
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, messageHash);
+            future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
             client.reject (error, messageHash);
