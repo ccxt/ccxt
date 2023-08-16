@@ -4007,7 +4007,7 @@ Suppose you entered a long position (you bought) at 1000 and want to get your pr
     |   200 | 100
 ```
 
-Suppose you entered a short position (you sold) at 700 and want to get your profits from a possible price drom below 600. You would place a take profit order with triggerPrice at 600. For that take profit order either you would specify a limit price or it will be executed at market price.
+Suppose you entered a short position (you sold) at 700 and want to get your profits from a possible price drop below 600. You would place a take profit order with triggerPrice at 600. For that take profit order either you would specify a limit price or it will be executed at market price.
 
 ```
     | price  | amount
