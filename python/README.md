@@ -25,7 +25,6 @@ Current feature list:
 - <sub>[![OctoBot](https://user-images.githubusercontent.com/1294454/132113722-007fc092-7530-4b41-b929-b8ed380b7b2e.png)](https://www.octobot.online)</sub> **[OctoBot](https://www.octobot.online)** – cryptocurrency trading bot with an advanced web interface.
 - <sub>[![TokenBot](https://user-images.githubusercontent.com/1294454/152720975-0522b803-70f0-4f18-a305-3c99b37cd990.png)](https://tokenbot.com/?utm_source=github&utm_medium=ccxt&utm_campaign=algodevs)</sub> **[TokenBot](https://tokenbot.com/?utm_source=github&utm_medium=ccxt&utm_campaign=algodevs)** – discover and copy the best algorithmic traders in the world.
 
-
 ## Certified Cryptocurrency Exchanges
 
 
@@ -212,20 +211,20 @@ console.log(version, Object.keys(exchanges));
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 <<<<<<< HEAD
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.0.62/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.0.62/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.0.64/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.0.64/dist/ccxt.browser.js
 =======
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.0.62/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.0.62/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.0.64/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.0.64/dist/ccxt.browser.js
 >>>>>>> e74b18a3a8a8cbcfe45ce4c1d32b9c03d4fae41c
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
 <<<<<<< HEAD
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.0.62/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.0.64/dist/ccxt.browser.js"></script>
 =======
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.0.62/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.0.64/dist/ccxt.browser.js"></script>
 >>>>>>> e74b18a3a8a8cbcfe45ce4c1d32b9c03d4fae41c
 ```
 
