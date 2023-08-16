@@ -58,6 +58,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         // create a "limit order" which must be guaranteed not to get filled (i.e. being much far from the best bid|ask price)
         const limitBuyPrice_nonFillable = bestBid / limitPriceSafetyMultiplierFromMedian;
         const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, minimumAmountForBuy, minimumCostForBuy, limitBuyPrice_nonFillable);
+        // @ts-ignore
         const buyOrder_nonFillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_nonFillable, {}, skippedProperties);
         const buyOrder_nonFillable_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, buyOrder_nonFillable['id'], skippedProperties);
         // ensure that order is not filled
@@ -81,6 +82,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         // create limit/market order which IS GUARANTEED to have a fill (full or partial), then sell the bought amount
         const limitBuyPrice_fillable = bestAsk * limitPriceSafetyMultiplierFromMedian;
         const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, minimumAmountForBuy, minimumCostForBuy, limitBuyPrice_fillable);
+        // @ts-ignore
         const buyOrder_fillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_fillable, {}, skippedProperties);
         // try to cancel remnant (if any) of order
         testCreateOrder_tryCancelOrder (exchange, symbol, buyOrder_fillable, skippedProperties);
@@ -88,12 +90,15 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         const buyOrder_filled_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, buyOrder_fillable['id'], skippedProperties);
         // we need to find out the amount of base asset that was bought
         let amountToSell = undefined;
+        //@ts-ignore
         if (buyOrder_filled_fetched['filled'] !== undefined) {
+            //@ts-ignore
             amountToSell = buyOrder_filled_fetched['filled'];
         } else {
             // if it was not reported, then the last step is to re-fetch balance and sell all target tokens (don't worry, it will not sell much, as the test reached here, it means that even the minimum sell amount execution had failed because of insufficient coins, so, all this will sell is whatever small amount exists in wallet)
             const balance = await exchange.fetchBalance ();
             // subtract the initial balance from the current balance to find out the amount of base asset that was bought
+            // @ts-ignore
             amountToSell = balance[market['base']]['free'] - ((initialBaseBalance !== undefined) ? initialBaseBalance : 0);
         }
         // We should use 'reduceOnly' to ensure we don't open a margin-ed position accidentally (i.e. on FTX you can open a margin position with sell order even if you don't have target base coin to sell)
@@ -102,6 +107,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         if (exchange.id === 'binance') {
             // @ts-ignore
             params = {};  // because of temporary bug, we should remove 'reduceOnly' from binance createOrder for spot (it should be fixed)
+            // @ts-ignore
             priceForMarketSellOrder = (minimumCostForBuy / amountToSell) * limitPriceSafetyMultiplierFromMedian;
         }
         const sellOrder = await testCreateOrder_submitSafeOrder (exchange, symbol, 'market', 'sell', amountToSell, priceForMarketSellOrder, params, skippedProperties);
@@ -126,7 +132,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
 
 async function testCreateOrder_cancelOrder (exchange, symbol, orderId = undefined) {
     // cancel the order (one of the below methods is guaranteed to be existent, as this was checked in the start of this test)
-    let usedMethod = undefined;
+    let usedMethod = '';
     let cancelResult = undefined;
     if (exchange.has['cancelOrder'] && orderId !== undefined) {
         usedMethod = 'cancelOrder';
@@ -191,8 +197,10 @@ function getMinimumAmountForLimitPrice (exchange, market, amount, cost, price) {
         finalAmountToBuy = amount;
     } else {
         // some exchanges require total cost (notional) to be above specific value. So, we need to calculate the order size suitable for our limit-price
+        // @ts-ignore
         finalAmountToBuy = (cost * orderCostSafetyMultiplier / price);
     }
+    // @ts-ignore
     finalAmountToBuy = finalAmountToBuy * orderAmountSafetyMultiplier;
     const ROUND_UP = 2; // temp avoid import "numbers"
     finalAmountToBuy = exchange.decimalToPrecision (finalAmountToBuy, ROUND_UP, market['precision']['amount'], exchange.precisionMode);
