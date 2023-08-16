@@ -226,6 +226,12 @@ class Exchange extends \ccxt\Exchange {
         return $this->load_accounts($reload, $params);
     }
 
+    public function fetch_markets($params = array()) {
+        return Async\async(function () use ($params) {
+            return parent::fetch_markets($params);
+        }) ();
+    }
+
     public function sleep($milliseconds) {
         $time = $milliseconds / 1000;
         return new React\Promise\Promise(function ($resolve) use ($time) {
