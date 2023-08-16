@@ -471,7 +471,7 @@ export default class okcoin extends okcoinRest {
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const messageHash = 'login';
+        const messageHash = 'authenticated';
         const client = this.client (url);
         const future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
