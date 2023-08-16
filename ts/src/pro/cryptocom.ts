@@ -731,13 +731,14 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const method = 'public/auth';
             const nonce = this.nonce ().toString ();
             const auth = method + nonce + this.apiKey + nonce;
@@ -750,8 +751,7 @@ export default class cryptocom extends cryptocomRest {
                 'sig': signature,
             };
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -764,6 +764,7 @@ export default class cryptocom extends cryptocomRest {
         //
         //  { id: 1648132625434, method: 'public/auth', code: 0 }
         //
-        client.resolve (message, 'authenticated');
+        const future = this.safeValue (client.futures, 'authenticated');
+        future.resolve (true);
     }
 }
