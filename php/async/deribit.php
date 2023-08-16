@@ -2389,6 +2389,9 @@ class deribit extends Exchange {
             'marginMode' => null,
             'side' => $side,
             'percentage' => null,
+            'hedged' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

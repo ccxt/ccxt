@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, NotSupported, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -68,6 +68,8 @@ export default class bingx extends Exchange {
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
                     'wallets': 'https://open-api.{hostname}/openApi',
+                    'subAccount': 'https://open-api.{hostname}/openApi',
+                    'account': 'https://open-api.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -90,6 +92,7 @@ export default class bingx extends Exchange {
                                 'common/symbols': 3,
                                 'market/trades': 3,
                                 'market/depth': 3,
+                                'market/kline': 3,
                             },
                         },
                         'private': {
@@ -102,6 +105,7 @@ export default class bingx extends Exchange {
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
+                                'trade/batchOrders': 3,
                             },
                         },
                     },
@@ -112,6 +116,9 @@ export default class bingx extends Exchange {
                                 'asset/transfer': 3,
                                 'capital/deposit/hisrec': 3,
                                 'capital/withdraw/history': 3,
+                            },
+                            'post': {
+                                'post/asset/transfer': 3,
                             },
                         },
                     },
@@ -184,6 +191,35 @@ export default class bingx extends Exchange {
                             },
                             'post': {
                                 'capital/withdraw/apply': 3,
+                                'capital/innerTransfer/apply': 3,
+                                'capital/subAccountInnerTransfer/apply': 3,
+                            },
+                        },
+                    },
+                },
+                'subAccount': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'list': 3,
+                                'assets': 3,
+                            },
+                            'post': {
+                                'create': 3,
+                                'apiKey/create': 3,
+                                'apiKey/edit': 3,
+                                'apiKey/del': 3,
+                                'updateStatus': 3,
+                            },
+                        },
+                    },
+                },
+                'account': {
+                    'v1': {
+                        'private': {
+                            'post': {
+                                'uid': 3,
+                                'innerTransfer/authorizeSubAccount': 3,
                             },
                         },
                     },
@@ -542,6 +578,7 @@ export default class bingx extends Exchange {
          * @name bingx#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
+         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -566,10 +603,13 @@ export default class bingx extends Exchange {
         else {
             request['limit'] = 50;
         }
+        let response = undefined;
         if (market['spot']) {
-            throw new NotSupported(this.id + ' fetchOHLCV is not supported for spot markets');
+            response = await this.spotV1PublicGetMarketKline(this.extend(request, params));
         }
-        const response = await this.swapV2PublicGetQuoteKlines(this.extend(request, params));
+        else {
+            response = await this.swapV2PublicGetQuoteKlines(this.extend(request, params));
+        }
         //
         //    {
         //        "code": 0,
@@ -588,7 +628,7 @@ export default class bingx extends Exchange {
         //    }
         //
         let ohlcvs = this.safeValue(response, 'data', []);
-        if (typeof ohlcvs === 'object') {
+        if (!Array.isArray(ohlcvs)) {
             ohlcvs = [ohlcvs];
         }
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
@@ -603,7 +643,28 @@ export default class bingx extends Exchange {
         //        "volume": "167.44",
         //        "time": 1666584000000
         //    }
+        // spot
+        //    [
+        //        1691402580000,
+        //        29093.61,
+        //        29093.93,
+        //        29087.73,
+        //        29093.24,
+        //        0.59,
+        //        1691402639999,
+        //        17221.07
+        //    ]
         //
+        if (Array.isArray(ohlcv)) {
+            return [
+                this.safeInteger(ohlcv, 0),
+                this.safeNumber(ohlcv, 1),
+                this.safeNumber(ohlcv, 2),
+                this.safeNumber(ohlcv, 3),
+                this.safeNumber(ohlcv, 4),
+                this.safeNumber(ohlcv, 5),
+            ];
+        }
         return [
             this.safeInteger(ohlcv, 'time'),
             this.safeNumber(ohlcv, 'open'),
@@ -724,6 +785,13 @@ export default class bingx extends Exchange {
             time = this.parse8601(datetimeId);
         }
         const isBuyerMaker = this.safeValue2(trade, 'buyerMaker', 'isBuyerMaker');
+        let takeOrMaker = undefined;
+        if (isBuyerMaker) {
+            takeOrMaker = 'maker';
+        }
+        else if (isBuyerMaker !== undefined) {
+            takeOrMaker = 'taker';
+        }
         const cost = this.safeString(trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
         const currencyId = this.safeString(trade, 'currency');
@@ -737,7 +805,7 @@ export default class bingx extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'takerOrMaker': (isBuyerMaker === true) ? 'maker' : 'taker',
+            'takerOrMaker': takeOrMaker,
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString2(trade, 'qty', 'amount'),
             'cost': cost,
@@ -1374,6 +1442,8 @@ export default class bingx extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber(position, 'leverage'),
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1637,10 +1707,11 @@ export default class bingx extends Exchange {
             'currency': this.safeString(order, 'feeAsset'),
             'rate': this.safeString2(order, 'fee', 'commission'),
         };
+        const clientOrderId = this.safeString(order, 'clientOrderId');
         return this.safeOrder({
             'info': order,
             'id': orderId,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1669,6 +1740,7 @@ export default class bingx extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'CANCELLED': 'canceled',
             'FAILED': 'failed',
         };
         return this.safeString(statuses, status, status);
@@ -2748,7 +2820,8 @@ export default class bingx extends Exchange {
             this.checkRequiredCredentials();
             params['timestamp'] = this.nonce();
             let query = this.urlencode(params);
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+            const rawQuery = this.rawencode(params);
+            const signature = this.hmac(this.encode(rawQuery), this.encode(this.secret), sha256);
             if (Object.keys(params).length) {
                 query = '?' + query + '&';
             }

@@ -57,10 +57,10 @@ export default class deribit extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
-                'fetchIndexOHLCV': false,
-                'fetchLeverageTiers': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchIndexOHLCV': false,
+                'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -2372,6 +2372,9 @@ export default class deribit extends Exchange {
             'marginMode': undefined,
             'side': side,
             'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async fetchPosition(symbol, params = {}) {

@@ -198,7 +198,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'marketId' => $market['id'],
                 'limit' => $limit,
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+            $authentication = $this->authenticate();
+            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $authentication), $messageHash, $subscription));
             return $orderbook->limit ();
         }) ();
     }

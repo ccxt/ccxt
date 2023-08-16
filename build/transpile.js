@@ -221,6 +221,8 @@ class Transpiler {
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
             [ /\.handleErrors\s/g, '.handle_errors'],
+            [ /\.handleDeltas\s/g, '.handle_deltas'],
+            [ /\.handleDelta\s/g, '.handle_delta'],
             [ /\.handleWithdrawTagAndParams\s/g, '.handle_withdraw_tag_and_params'],
             [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
             [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
@@ -280,6 +282,9 @@ class Transpiler {
             [ /\.filterByLimit\s/g, '.filter_by_limit'],
             [ /\.fetchTime\s/g, '.fetch_time'],
             [ /\.handleOptionAndParams\s/g, '.handle_option_and_params'],
+            [ /\.fetchRestOrderBookSafe\s/g, '.fetch_rest_order_book_safe'],
+            [ /\.customParseBidAsk\s/g, '.custom_parse_bid_ask'],
+            [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 

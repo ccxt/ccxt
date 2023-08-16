@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.50';
+$version = '4.0.64';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.50';
+    const VERSION = '4.0.64';
 
     public $browser;
     public $marketsLoading = null;
@@ -292,6 +292,35 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function handle_deltas($orderbook, $deltas) {
+        for ($i = 0; $i < count($deltas); $i++) {
+            $this->handle_delta($orderbook, $deltas[$i]);
+        }
+    }
+
+    public function handle_delta($bookside, $delta) {
+        throw new NotSupported($this->id . ' handleDelta not supported yet');
+    }
+
+    public function get_cache_index($orderbook, $deltas) {
+        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
+        return -1;
+    }
+
+    public function find_timeframe($timeframe, $timeframes = null) {
+        if ($timeframes === null) {
+            $timeframes = $this->timeframes;
+        }
+        $keys = is_array($timeframes) ? array_keys($timeframes) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
+    }
+
     public function check_proxy_settings($url, $method, $headers, $body) {
         $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
         $proxyUrlCallback = ($this->proxyUrlCallback !== null) ? $this->proxyUrlCallback : $this->proxy_url_callback;
@@ -478,6 +507,23 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
+    }
+
+    public function fetch_rest_order_book_safe($symbol, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $fetchSnapshotMaxRetries = $this->handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
+            for ($i = 0; $i < $fetchSnapshotMaxRetries; $i++) {
+                try {
+                    $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                    return $orderBook;
+                } catch (Exception $e) {
+                    if (($i + 1) === $fetchSnapshotMaxRetries) {
+                        throw $e;
+                    }
+                }
+            }
+            return null;
+        }) ();
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {

@@ -424,7 +424,9 @@ class bit2c extends bit2c$1 {
         }
         else {
             request['Price'] = price;
-            request['Total'] = amount * price;
+            const amountString = this.numberToString(amount);
+            const priceString = this.numberToString(price);
+            request['Total'] = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
             request['IsBid'] = (side === 'buy');
         }
         const response = await this[method](this.extend(request, params));

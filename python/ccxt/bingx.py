@@ -17,7 +17,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import AuthenticationError
@@ -83,6 +82,8 @@ class bingx(Exchange, ImplicitAPI):
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
                     'wallets': 'https://open-api.{hostname}/openApi',
+                    'subAccount': 'https://open-api.{hostname}/openApi',
+                    'account': 'https://open-api.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -105,6 +106,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'common/symbols': 3,
                                 'market/trades': 3,
                                 'market/depth': 3,
+                                'market/kline': 3,
                             },
                         },
                         'private': {
@@ -117,6 +119,7 @@ class bingx(Exchange, ImplicitAPI):
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
+                                'trade/batchOrders': 3,
                             },
                         },
                     },
@@ -127,6 +130,9 @@ class bingx(Exchange, ImplicitAPI):
                                 'asset/transfer': 3,
                                 'capital/deposit/hisrec': 3,
                                 'capital/withdraw/history': 3,
+                            },
+                            'post': {
+                                'post/asset/transfer': 3,
                             },
                         },
                     },
@@ -199,6 +205,35 @@ class bingx(Exchange, ImplicitAPI):
                             },
                             'post': {
                                 'capital/withdraw/apply': 3,
+                                'capital/innerTransfer/apply': 3,
+                                'capital/subAccountInnerTransfer/apply': 3,
+                            },
+                        },
+                    },
+                },
+                'subAccount': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'list': 3,
+                                'assets': 3,
+                            },
+                            'post': {
+                                'create': 3,
+                                'apiKey/create': 3,
+                                'apiKey/edit': 3,
+                                'apiKey/del': 3,
+                                'updateStatus': 3,
+                            },
+                        },
+                    },
+                },
+                'account': {
+                    'v1': {
+                        'private': {
+                            'post': {
+                                'uid': 3,
+                                'innerTransfer/authorizeSubAccount': 3,
                             },
                         },
                     },
@@ -542,6 +577,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
+        see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -563,9 +599,11 @@ class bingx(Exchange, ImplicitAPI):
             request['limit'] = limit
         else:
             request['limit'] = 50
+        response = None
         if market['spot']:
-            raise NotSupported(self.id + ' fetchOHLCV is not supported for spot markets')
-        response = self.swapV2PublicGetQuoteKlines(self.extend(request, params))
+            response = self.spotV1PublicGetMarketKline(self.extend(request, params))
+        else:
+            response = self.swapV2PublicGetQuoteKlines(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -584,7 +622,7 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         ohlcvs = self.safe_value(response, 'data', [])
-        if isinstance(ohlcvs, dict):
+        if not isinstance(ohlcvs, list):
             ohlcvs = [ohlcvs]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
@@ -598,7 +636,27 @@ class bingx(Exchange, ImplicitAPI):
         #        "volume": "167.44",
         #        "time": 1666584000000
         #    }
+        # spot
+        #    [
+        #        1691402580000,
+        #        29093.61,
+        #        29093.93,
+        #        29087.73,
+        #        29093.24,
+        #        0.59,
+        #        1691402639999,
+        #        17221.07
+        #    ]
         #
+        if isinstance(ohlcv, list):
+            return [
+                self.safe_integer(ohlcv, 0),
+                self.safe_number(ohlcv, 1),
+                self.safe_number(ohlcv, 2),
+                self.safe_number(ohlcv, 3),
+                self.safe_number(ohlcv, 4),
+                self.safe_number(ohlcv, 5),
+            ]
         return [
             self.safe_integer(ohlcv, 'time'),
             self.safe_number(ohlcv, 'open'),
@@ -713,6 +771,11 @@ class bingx(Exchange, ImplicitAPI):
         if datetimeId is not None:
             time = self.parse8601(datetimeId)
         isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
+        takeOrMaker = None
+        if isBuyerMaker:
+            takeOrMaker = 'maker'
+        elif isBuyerMaker is not None:
+            takeOrMaker = 'taker'
         cost = self.safe_string(trade, 'quoteQty')
         type = 'spot' if (cost is None) else 'swap'
         currencyId = self.safe_string(trade, 'currency')
@@ -726,7 +789,7 @@ class bingx(Exchange, ImplicitAPI):
             'order': None,
             'type': None,
             'side': None,
-            'takerOrMaker': 'maker' if (isBuyerMaker is True) else 'taker',
+            'takerOrMaker': takeOrMaker,
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string_2(trade, 'qty', 'amount'),
             'cost': cost,
@@ -1330,6 +1393,8 @@ class bingx(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
@@ -1567,10 +1632,11 @@ class bingx(Exchange, ImplicitAPI):
             'currency': self.safe_string(order, 'feeAsset'),
             'rate': self.safe_string_2(order, 'fee', 'commission'),
         }
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return self.safe_order({
             'info': order,
             'id': orderId,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1599,6 +1665,7 @@ class bingx(Exchange, ImplicitAPI):
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'CANCELLED': 'canceled',
             'FAILED': 'failed',
         }
         return self.safe_string(statuses, status, status)
@@ -2607,7 +2674,8 @@ class bingx(Exchange, ImplicitAPI):
             self.check_required_credentials()
             params['timestamp'] = self.nonce()
             query = self.urlencode(params)
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
+            rawQuery = self.rawencode(params)
+            signature = self.hmac(self.encode(rawQuery), self.encode(self.secret), hashlib.sha256)
             if params:
                 query = '?' + query + '&'
             else:

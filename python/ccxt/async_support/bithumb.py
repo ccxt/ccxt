@@ -1007,10 +1007,10 @@ class bithumb(Exchange, ImplicitAPI):
             if status is not None:
                 if status == '0000':
                     return None  # no error
-                elif message == '거래 진행중인 내역이 존재하지 않습니다':
+                elif message == '거래 진행중인 내역이 존재하지 않습니다.':
                     # https://github.com/ccxt/ccxt/issues/9017
                     return None  # no error
-                feedback = self.id + ' ' + body
+                feedback = self.id + ' ' + message
                 self.throw_exactly_matched_exception(self.exceptions, status, feedback)
                 self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 raise ExchangeError(feedback)

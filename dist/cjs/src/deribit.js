@@ -54,10 +54,10 @@ class deribit extends deribit$1 {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
-                'fetchIndexOHLCV': false,
-                'fetchLeverageTiers': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchIndexOHLCV': false,
+                'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -2369,6 +2369,9 @@ class deribit extends deribit$1 {
             'marginMode': undefined,
             'side': side,
             'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async fetchPosition(symbol, params = {}) {

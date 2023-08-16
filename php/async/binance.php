@@ -865,9 +865,12 @@ class binance extends Exchange {
                         'myTrades' => 10,
                         'rateLimit/order' => 20,
                         'myPreventedMatches' => 1,
+                        'myAllocations' => 10,
                     ),
                     'post' => array(
                         'order/oco' => 1,
+                        'sor/order' => 1,
+                        'sor/order/test' => 1,
                         'order' => 1,
                         'order/cancelReplace' => 1,
                         'order/test' => 1,
@@ -4222,6 +4225,8 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
              * @see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
              * @see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
+             * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-$sor-trade
+             * @see https://binance-docs.github.io/apidocs/spot/en/#$test-new-order-using-$sor-trade
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
              * @param {string} $side 'buy' or 'sell'
@@ -4229,15 +4234,21 @@ class binance extends Exchange {
              * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
+             * @param {boolean} [$params->sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+             * @param {boolean} [$params->test] *spot only* whether to use the $test endpoint or not, default is false
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketType = $this->safe_string($params, 'type', $market['type']);
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
+            $sor = $this->safe_value_2($params, 'sor', 'SOR', false);
+            $params = $this->omit($params, 'sor', 'SOR');
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $method = 'privatePostOrder';
-            if ($market['linear']) {
+            if ($sor) {
+                $method = 'privatePostSorOrder';
+            } elseif ($market['linear']) {
                 $method = 'fapiPrivatePostOrder';
             } elseif ($market['inverse']) {
                 $method = 'dapiPrivatePostOrder';
@@ -4327,13 +4338,10 @@ class binance extends Exchange {
             $request['isIsolated'] = true;
         }
         if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker');
-            if ($broker !== null) {
-                $brokerId = $this->safe_string($broker, $marketType);
-                if ($brokerId !== null) {
-                    $request['newClientOrderId'] = $brokerId . $this->uuid22();
-                }
-            }
+            $broker = $this->safe_value($this->options, 'broker', array());
+            $defaultId = ($market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+            $brokerId = $this->safe_string($broker, $marketType, $defaultId);
+            $request['newClientOrderId'] = $brokerId . $this->uuid22();
         } else {
             $request['newClientOrderId'] = $clientOrderId;
         }
@@ -6803,6 +6811,7 @@ class binance extends Exchange {
     public function parse_position_risk($position, $market = null) {
         //
         // usdm
+        //
         //     {
         //       "symbol" => "BTCUSDT",
         //       "positionAmt" => "0.001",
@@ -6822,6 +6831,7 @@ class binance extends Exchange {
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol" => "BTCUSD_PERP",
         //       "positionAmt" => "2",
@@ -6967,6 +6977,8 @@ class binance extends Exchange {
             'side' => $side,
             'hedged' => $hedged,
             'percentage' => $percentage,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         );
     }
 
@@ -7886,14 +7898,15 @@ class binance extends Exchange {
             }
         } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
-            if ($method === 'POST' && $path === 'order') {
+            if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
                 // inject in implicit API calls
                 $newClientOrderId = $this->safe_string($params, 'newClientOrderId');
                 if ($newClientOrderId === null) {
                     $isSpotOrMargin = (mb_strpos($api, 'sapi') > -1 || $api === 'private');
                     $marketType = $isSpotOrMargin ? 'spot' : 'future';
-                    $broker = $this->safe_value($this->options, 'broker');
-                    $brokerId = $this->safe_string($broker, $marketType);
+                    $defaultId = (!$isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+                    $broker = $this->safe_value($this->options, 'broker', array());
+                    $brokerId = $this->safe_string($broker, $marketType, $defaultId);
                     $params['newClientOrderId'] = $brokerId . $this->uuid22();
                 }
             }

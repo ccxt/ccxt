@@ -1642,6 +1642,8 @@ class delta(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': None,
             'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         }
 
     def parse_order_status(self, status):

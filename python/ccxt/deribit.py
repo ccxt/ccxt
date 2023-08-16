@@ -2260,6 +2260,9 @@ class deribit(Exchange, ImplicitAPI):
             'marginMode': None,
             'side': side,
             'percentage': None,
+            'hedged': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def fetch_position(self, symbol: str, params={}):

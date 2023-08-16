@@ -12,16 +12,19 @@ interface Exchange {
     spotV1PublicGetCommonSymbols (params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketDepth (params?: {}): Promise<implicitReturnType>;
+    spotV1PublicGetMarketKline (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeQuery (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeOpenOrders (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeHistoryOrders (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancel (params?: {}): Promise<implicitReturnType>;
+    spotV1PrivatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    spotV3PrivatePostPostAssetTransfer (params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetServerTime (params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuoteContracts (params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuotePrice (params?: {}): Promise<implicitReturnType>;
@@ -60,6 +63,17 @@ interface Exchange {
     contractV1PrivateGetBalance (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivateGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivatePostCapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivatePostCapitalInnerTransferApply (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivatePostCapitalSubAccountInnerTransferApply (params?: {}): Promise<implicitReturnType>;
+    subAccountV1PrivateGetList (params?: {}): Promise<implicitReturnType>;
+    subAccountV1PrivateGetAssets (params?: {}): Promise<implicitReturnType>;
+    subAccountV1PrivatePostCreate (params?: {}): Promise<implicitReturnType>;
+    subAccountV1PrivatePostApiKeyCreate (params?: {}): Promise<implicitReturnType>;
+    subAccountV1PrivatePostApiKeyEdit (params?: {}): Promise<implicitReturnType>;
+    subAccountV1PrivatePostApiKeyDel (params?: {}): Promise<implicitReturnType>;
+    subAccountV1PrivatePostUpdateStatus (params?: {}): Promise<implicitReturnType>;
+    accountV1PrivatePostUid (params?: {}): Promise<implicitReturnType>;
+    accountV1PrivatePostInnerTransferAuthorizeSubAccount (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

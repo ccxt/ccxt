@@ -2269,11 +2269,13 @@ class bitfinex2(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
+        see https://docs.bitfinex.com/reference/rest-auth-positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.privatePostAuthRPositions(params)
         #
         #     [
@@ -2309,8 +2311,76 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        # todo unify parsePosition/parsePositions
-        return response
+        return self.parse_positions(response, symbols)
+
+    def parse_position(self, position, market=None):
+        #
+        #    [
+        #        "tBTCUSD",                    # SYMBOL
+        #        "ACTIVE",                     # STATUS
+        #        0.0195,                       # AMOUNT
+        #        8565.0267019,                 # BASE_PRICE
+        #        0,                            # MARGIN_FUNDING
+        #        0,                            # MARGIN_FUNDING_TYPE
+        #        -0.33455568705000516,         # PL
+        #        -0.0003117550117425625,       # PL_PERC
+        #        7045.876419249083,            # PRICE_LIQ
+        #        3.0673001895895604,           # LEVERAGE
+        #        null,                         # _PLACEHOLDER
+        #        142355652,                    # POSITION_ID
+        #        1574002216000,                # MTS_CREATE
+        #        1574002216000,                # MTS_UPDATE
+        #        null,                         # _PLACEHOLDER
+        #        0,                            # TYPE
+        #        null,                         # _PLACEHOLDER
+        #        0,                            # COLLATERAL
+        #        0,                            # COLLATERAL_MIN
+        #        # META
+        #        {
+        #            "reason": "TRADE",
+        #            "order_id": 34271018124,
+        #            "liq_stage": null,
+        #            "trade_price": "8565.0267019",
+        #            "trade_amount": "0.0195",
+        #            "order_id_oppo": 34277498022
+        #        }
+        #    ]
+        #
+        marketId = self.safe_string(position, 0)
+        amount = self.safe_string(position, 2)
+        timestamp = self.safe_integer(position, 12)
+        meta = self.safe_string(position, 19)
+        tradePrice = self.safe_string(meta, 'trade_price')
+        tradeAmount = self.safe_string(meta, 'trade_amount')
+        return self.safe_position({
+            'info': position,
+            'id': self.safe_string(position, 11),
+            'symbol': self.safe_symbol(marketId, market),
+            'notional': self.parse_number(amount),
+            'marginMode': 'isolated',  # derivatives use isolated, margin uses cross, https://support.bitfinex.com/hc/en-us/articles/360035475374-Derivatives-Trading-on-Bitfinex
+            'liquidationPrice': self.safe_number(position, 8),
+            'entryPrice': self.safe_number(position, 3),
+            'unrealizedPnl': self.safe_number(position, 6),
+            'percentage': self.safe_number(position, 7),
+            'contracts': None,
+            'contractSize': None,
+            'markPrice': None,
+            'lastPrice': None,
+            'side': 'long' if Precise.string_gt(amount, '0') else 'short',
+            'hedged': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': self.safe_integer(position, 13),
+            'maintenanceMargin': self.safe_number(position, 18),
+            'maintenanceMarginPercentage': None,
+            'collateral': self.safe_number(position, 17),
+            'initialMargin': self.parse_number(Precise.string_mul(tradeAmount, tradePrice)),
+            'initialMarginPercentage': None,
+            'leverage': self.safe_number(position, 9),
+            'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
+        })
 
     def nonce(self):
         return self.milliseconds()

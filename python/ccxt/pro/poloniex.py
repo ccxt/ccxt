@@ -151,7 +151,7 @@ class poloniex(ccxt.async_support.poloniex):
         if name != 'balances':
             subscribe['symbols'] = marketIds
         request = self.extend(subscribe, params)
-        return await self.watch(url, messageHash, request, name)
+        return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

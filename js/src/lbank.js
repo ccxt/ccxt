@@ -799,7 +799,7 @@ export default class lbank extends Exchange {
         return pem + '-----END PRIVATE KEY-----';
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const query = this.omit(params, this.extractParams(path));
+        let query = this.omit(params, this.extractParams(path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);
         // Every endpoint ends with ".do"
         url += '.do';
@@ -810,10 +810,10 @@ export default class lbank extends Exchange {
         }
         else {
             this.checkRequiredCredentials();
-            const queryInner = this.keysort(this.extend({
+            query = this.keysort(this.extend({
                 'api_key': this.apiKey,
-            }, params));
-            const queryString = this.rawencode(queryInner);
+            }, query));
+            const queryString = this.rawencode(query);
             const message = this.hash(this.encode(queryString), md5).toUpperCase();
             const cacheSecretAsPem = this.safeValue(this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
