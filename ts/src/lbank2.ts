@@ -711,6 +711,7 @@ export default class lbank2 extends Exchange {
          * @name lbank2#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://www.lbank.info/en-US/docs/index.html#query-market-depth
+         * @see https://www.lbank.com/en-US/docs/contract.html#get-handicap
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the lbank2 api endpoint
@@ -723,11 +724,70 @@ export default class lbank2 extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'size': limit,
         };
-        const response = await this.spotPublicGetDepth (this.extend (request, params));
-        const orderbook = response['data'];
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        let response = undefined;
+        if (type === 'swap') {
+            request['depth'] = limit;
+            response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder(this.extend (request, params));
+        } else {
+            request['size'] = limit;
+            response = await this.spotPublicGetDepth (this.extend (request, params));
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "result": "true",
+        //         "data": {
+        //             "asks": [
+        //                 ["29243.37", "2.8783"],
+        //                 ["29243.39", "2.2842"],
+        //                 ["29243.4", "0.0337"]
+        //             ],
+        //             "bids": [
+        //                 ["29243.36", "1.5258"],
+        //                 ["29243.34", "0.8218"],
+        //                 ["29243.28", "1.285"]
+        //             ],
+        //             "timestamp": :1692157328820
+        //         },
+        //         "error_code": 0,
+        //         "ts": :1692157328820
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "asks": [
+        //                 {
+        //                     "volume": "14.6535",
+        //                     "price": "29234.2",
+        //                     "orders": "1"
+        //                 },
+        //             ],
+        //             "bids": [
+        //                 {
+        //                     "volume": "13.4899",
+        //                     "price": "29234.1",
+        //                     "orders": "4"
+        //                 },
+        //             ]
+        //         },
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
+        //     }
+        //
+        const orderbook = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
+        if (market['swap']) {
+            return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
+        }
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
