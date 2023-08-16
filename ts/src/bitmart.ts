@@ -574,6 +574,11 @@ export default class bitmart extends Exchange {
         });
     }
 
+    isUsingForcedProxy (params = {}, api = 'public') {
+        if (api === 'private') return true;
+        return false;
+    }
+
     async fetchTime (params = {}) {
         /**
          * @method
