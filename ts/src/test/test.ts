@@ -286,26 +286,29 @@ export default class testMainClass extends baseMainTestClass {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
                         dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified);
-                        return false;
+                    } else {
+                        // wait and retry again
+                        await exchange.sleep (i * 1000); // increase wait seconds on every retry
+                        continue;
                     }
-                    // wait and retry again
-                    await exchange.sleep (i * 1000); // increase wait seconds on every retry
                 } else if (e instanceof OnMaintenance) {
                     // in case of maintenance, skip exchange (don't fail the test)
                     dump ('[TEST_WARNING] Exchange is on maintenance', exchange.id);
-                    return false;
                 }
                 // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                 else if (isPublic && isAuthError) {
                     if (this.info) {
                         dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodName, argsStringified);
                     }
-                    return false;
                 } else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
                     dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
-                    return false;
                 }
+                if (methodName === 'loadMarkets') {
+                    // we throw exception only for `loadMarkets` failed test
+                    throw e;
+                }
+                return false;
             }
         }
     }
@@ -365,10 +368,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        const result = await this.testSafe ('loadMarkets', exchange, [], true);
-        if (!result) {
-            return;
-        }
+        await this.testSafe ('loadMarkets', exchange, [], true);
         const symbols = [
             'BTC/CNY',
             'BTC/USD',
