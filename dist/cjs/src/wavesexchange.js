@@ -80,6 +80,7 @@ class wavesexchange extends wavesexchange$1 {
                 'signIn': true,
                 'transfer': false,
                 'withdraw': true,
+                'ws': false,
             },
             'timeframes': {
                 '1m': '1m',

@@ -19,6 +19,7 @@ class btcturk extends btcturk$1 {
             'name': 'BTCTurk',
             'countries': ['TR'],
             'rateLimit': 100,
+            'pro': false,
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -63,6 +64,7 @@ class btcturk extends btcturk$1 {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'ws': false,
             },
             'timeframes': {
                 '1m': 1,

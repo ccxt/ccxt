@@ -323,7 +323,7 @@ class cryptocom extends cryptocom$1 {
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
                 },
-                'broker': 'CCXT_',
+                'broker': 'CCXT',
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -1006,12 +1006,8 @@ class cryptocom extends cryptocom$1 {
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const broker = this.safeString(this.options, 'broker', 'CCXT_');
-        let clientOrderId = this.safeString2(params, 'clientOrderId', 'client_oid');
-        if (clientOrderId === undefined) {
-            clientOrderId = broker + this.uuid22();
-        }
-        request['client_oid'] = clientOrderId;
+        const broker = this.safeString(this.options, 'broker', 'CCXT');
+        request['broker_id'] = broker;
         let marketType = undefined;
         let marginMode = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
