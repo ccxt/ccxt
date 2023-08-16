@@ -4324,6 +4324,9 @@ class bybit extends Exchange {
     }
 
     public function edit_unified_account_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        if ($amount === null && $price === null) {
+            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4332,7 +4335,6 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'orderId' => $id,
-            'qty' => $this->amount_to_precision($symbol, $amount),
             // 'orderLinkId' => 'string', // unique client order $id, max 36 characters
             // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
@@ -4350,6 +4352,9 @@ class bybit extends Exchange {
         }
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($amount !== null) {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
         }
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
@@ -4400,6 +4405,9 @@ class bybit extends Exchange {
     }
 
     public function edit_unified_margin_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($amount === null && $price === null) {
+            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4415,7 +4423,6 @@ class bybit extends Exchange {
             'side' => $this->capitalize($side),
             'orderType' => $this->capitalize($lowerCaseType), // limit or $market
             'timeInForce' => 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'qty' => $this->amount_to_precision($symbol, $amount),
             // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
             // 'orderLinkId' => 'string', // unique client $order $id, max 36 characters
@@ -4429,6 +4436,9 @@ class bybit extends Exchange {
             $request['category'] = 'linear';
         } else {
             $request['category'] = 'option';
+        }
+        if ($amount !== null) {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
         }
         $isMarket = $lowerCaseType === 'market';
         $isLimit = $lowerCaseType === 'limit';
@@ -4491,12 +4501,14 @@ class bybit extends Exchange {
     }
 
     public function edit_contract_v3_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        if ($amount === null && $price === null) {
+            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'orderId' => $id,
-            'qty' => $this->amount_to_precision($symbol, $amount),
             // 'orderLinkId' => '', // User customised order $id-> Either orderId or orderLinkId is required
             // 'triggerPrice' => '', // Trigger $price-> Don't pass it if not modify the qty
             // 'takeProfit' => '', // Take profit $price after modification. Don't pass it if not modify the take profit
@@ -4507,6 +4519,9 @@ class bybit extends Exchange {
         );
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($amount !== null) {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
         }
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
@@ -4559,6 +4574,20 @@ class bybit extends Exchange {
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+         * @see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+         * @see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+         * @param {string} $id cancel order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $symbol argument');
         }
