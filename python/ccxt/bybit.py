@@ -3710,7 +3710,7 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same specific param
         postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3889,7 +3889,7 @@ class bybit(Exchange, ImplicitAPI):
         exchangeSpecificParam = self.safe_string(params, 'time_in_force')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'postonly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3981,7 +3981,7 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         timeInForce = self.safe_string_lower(params, 'timeInForce')  # same specific param
         postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -4146,6 +4146,8 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     def edit_unified_account_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        if amount is None and price is None:
+            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4153,7 +4155,6 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': self.amount_to_precision(symbol, amount),
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
@@ -4170,6 +4171,8 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'linear'
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
@@ -4212,6 +4215,8 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     def edit_unified_margin_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+        if amount is None and price is None:
+            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4225,7 +4230,6 @@ class bybit(Exchange, ImplicitAPI):
             'side': self.capitalize(side),
             'orderType': self.capitalize(lowerCaseType),  # limit or market
             'timeInForce': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
-            'qty': self.amount_to_precision(symbol, amount),
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
@@ -4239,6 +4243,8 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'linear'
         else:
             request['category'] = 'option'
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
         if isLimit:
@@ -4291,12 +4297,13 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     def edit_contract_v3_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        if amount is None and price is None:
+            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': self.amount_to_precision(symbol, amount),
             # 'orderLinkId': '',  # User customised order id. Either orderId or orderLinkId is required
             # 'triggerPrice': '',  # Trigger price. Don't pass it if not modify the qty
             # 'takeProfit': '',  # Take profit price after modification. Don't pass it if not modify the take profit
@@ -4307,6 +4314,8 @@ class bybit(Exchange, ImplicitAPI):
         }
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
@@ -4351,6 +4360,20 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        see https://bybit-exchange.github.io/docs/v5/order/amend-order
+        see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+        see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an symbol argument')
         self.load_markets()
@@ -6293,7 +6316,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(transaction, 'createTime', 'successAt')
         updated = self.safe_integer(transaction, 'updateTime')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee', 0)
+        feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee')
         type = 'deposit' if ('depositFee' in transaction) else 'withdrawal'
         fee = None
         if feeCost is not None:
@@ -6805,37 +6828,39 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_unified_positions(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         request = {}
-        type = None
         settle = None
+        market = None
         enableUnified = self.is_unified_enabled()
         if isinstance(symbols, list):
             symbolsLength = len(symbols)
             if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
-            market = self.market(symbols[0])
-            settle = market['settle']
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
         elif symbols is not None:
             symbols = [symbols]
+            market = self.market(symbols)
         symbols = self.market_symbols(symbols)
-        if symbols is None:
+        if market is None:
             settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', 'USDT')
         else:
-            first = self.safe_value(symbols, 0)
-            market = self.market(first)
             settle = market['settle']
             request['symbol'] = market['id']
         if enableUnified[1]:
             request['settleCoin'] = settle
             request['limit'] = 200
-        # market None
-        type, params = self.handle_market_type_and_params('fetchPositions', None, params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchPositions', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchPositions', None, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
         request['category'] = subType
         if type == 'option':
             request['category'] = 'option'
-        method = 'privateGetV5PositionList' if (enableUnified[1]) else 'privateGetUnifiedV3PrivatePositionList'
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if enableUnified[1]:
+            response = self.privateGetV5PositionList(self.extend(request, params))
+        else:
+            response = self.privateGetUnifiedV3PrivatePositionList(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
@@ -7242,6 +7267,8 @@ class bybit(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'side': side,
             'percentage': None,
+            'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
+            'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
         })
 
     def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):

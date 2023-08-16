@@ -41,6 +41,9 @@ class ndax(Exchange, ImplicitAPI):
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -265,6 +268,13 @@ class ndax(Exchange, ImplicitAPI):
                     'TrailingStopMarket': 5,
                     'TrailingStopLimit': 6,
                     'BlockTrade': 7,
+                    '1': 1,
+                    '2': 2,
+                    '3': 3,
+                    '4': 4,
+                    '5': 5,
+                    '6': 6,
+                    '7': 7,
                 },
             },
         })
@@ -1267,6 +1277,7 @@ class ndax(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the ndax api endpoint
+        :param float [params.triggerPrice]: the price at which a trigger order would be triggered
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
@@ -1275,7 +1286,14 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         clientOrderId = self.safe_integer_2(params, 'ClientOrderId', 'clientOrderId')
-        params = self.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId'])
+        orderType = self.safe_integer(self.options['orderTypes'], self.capitalize(type))
+        triggerPrice = self.safe_string(params, 'triggerPrice')
+        if triggerPrice is not None:
+            if type == 'market':
+                orderType = 3
+            elif type == 'limit':
+                orderType = 4
+        params = self.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice'])
         market = self.market(symbol)
         orderSide = 0 if (side == 'buy') else 1
         request = {
@@ -1292,7 +1310,7 @@ class ndax(Exchange, ImplicitAPI):
             # 'UseDisplayQuantity': False,  # If you enter a Limit order with a reserve, you must set UseDisplayQuantity to True
             'Side': orderSide,  # 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
             'Quantity': float(self.amount_to_precision(symbol, amount)),
-            'OrderType': self.safe_integer(self.options['orderTypes'], self.capitalize(type)),  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
+            'OrderType': orderType,  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             # 'PegPriceType': 3,  # 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             # 'LimitPrice': float(self.price_to_precision(symbol, price)),
         }
@@ -1301,6 +1319,8 @@ class ndax(Exchange, ImplicitAPI):
             request['LimitPrice'] = float(self.price_to_precision(symbol, price))
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
+        if triggerPrice is not None:
+            request['StopPrice'] = triggerPrice
         response = self.privatePostSendOrder(self.extend(request, params))
         #
         #     {

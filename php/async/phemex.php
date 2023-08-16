@@ -141,6 +141,10 @@ class phemex extends Exchange {
                         'md/v2/kline/list' => 5, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
                         'md/v2/kline' => 5, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                         'md/v2/kline/last' => 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/orderbook' => 5, // ?symbol=<symbol>
+                        'md/trade' => 5, // ?symbol=<symbol>
+                        'md/spot/ticker/24hr' => 5, // ?symbol=<symbol>
+                        'exchange/public/cfg/chain-settings' => 5, // ?currency=<currency>
                     ),
                 ),
                 'v1' => array(
@@ -205,6 +209,11 @@ class phemex extends Exchange {
                         'exchange/wallets/depositList' => 5, // ?currency=<currency>&offset=<offset>&limit=<limit>
                         'exchange/wallets/v2/depositAddress' => 5, // ?currency=<currency>
                         'api-data/spots/funds' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'api-data/spots/orders' => 5, // ?symbol=<symbol>
+                        'api-data/spots/orders/by-order-id' => 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'api-data/spots/pnls' => 5,
+                        'api-data/spots/trades' => 5, // ?symbol=<symbol>
+                        'api-data/spots/trades/by-order-id' => 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
                         'assets/convert' => 5, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
                         'assets/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
@@ -234,6 +243,7 @@ class phemex extends Exchange {
                     ),
                     'put' => array(
                         // spot
+                        'spot/orders/create' => 1, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
                         'spot/orders' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
                         'orders/replace' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
@@ -3428,75 +3438,75 @@ class phemex extends Exchange {
 
     public function parse_position($position, $market = null) {
         //
-        //   {
-        //     userID => '811370',
-        //     accountID => '8113700002',
-        //     $symbol => 'ETHUSD',
-        //     $currency => 'USD',
-        //     $side => 'Buy',
-        //     positionStatus => 'Normal',
-        //     crossMargin => false,
-        //     leverageEr => '200000000',
-        //     $leverage => '2.00000000',
-        //     initMarginReqEr => '50000000',
-        //     initMarginReq => '0.50000000',
-        //     maintMarginReqEr => '1000000',
-        //     maintMarginReq => '0.01000000',
-        //     riskLimitEv => '5000000000',
-        //     riskLimit => '500000.00000000',
-        //     size => '1',
-        //     value => '22.22370000',
-        //     valueEv => '222237',
-        //     avgEntryPriceEp => '44447400',
-        //     avgEntryPrice => '4444.74000000',
-        //     posCostEv => '111202',
-        //     posCost => '11.12020000',
-        //     assignedPosBalanceEv => '111202',
-        //     assignedPosBalance => '11.12020000',
-        //     bankruptCommEv => '84',
-        //     bankruptComm => '0.00840000',
-        //     bankruptPriceEp => '22224000',
-        //     bankruptPrice => '2222.40000000',
-        //     positionMarginEv => '111118',
-        //     positionMargin => '11.11180000',
-        //     liquidationPriceEp => '22669000',
-        //     $liquidationPrice => '2266.90000000',
-        //     deleveragePercentileEr => '0',
-        //     deleveragePercentile => '0E-8',
-        //     buyValueToCostEr => '50112500',
-        //     buyValueToCost => '0.50112500',
-        //     sellValueToCostEr => '50187500',
-        //     sellValueToCost => '0.50187500',
-        //     markPriceEp => '31332499',
-        //     markPrice => '3133.24990000',
-        //     markValueEv => '0',
-        //     markValue => null,
-        //     unRealisedPosLossEv => '0',
-        //     unRealisedPosLoss => null,
-        //     estimatedOrdLossEv => '0',
-        //     estimatedOrdLoss => '0E-8',
-        //     usedBalanceEv => '111202',
-        //     usedBalance => '11.12020000',
-        //     takeProfitEp => '0',
-        //     takeProfit => null,
-        //     stopLossEp => '0',
-        //     stopLoss => null,
-        //     cumClosedPnlEv => '-1546',
-        //     cumFundingFeeEv => '1605',
-        //     cumTransactFeeEv => '8438',
-        //     realisedPnlEv => '0',
-        //     realisedPnl => null,
-        //     cumRealisedPnlEv => '0',
-        //     cumRealisedPnl => null,
-        //     transactTimeNs => '1641571200001885324',
-        //     takerFeeRateEr => '0',
-        //     makerFeeRateEr => '0',
-        //     term => '6',
-        //     lastTermEndTimeNs => '1607711882505745356',
-        //     lastFundingTimeNs => '1641571200000000000',
-        //     curTermRealisedPnlEv => '-1567',
-        //     execSeq => '12112761561'
-        //   }
+        //    {
+        //        userID => '811370',
+        //        accountID => '8113700002',
+        //        $symbol => 'ETHUSD',
+        //        $currency => 'USD',
+        //        $side => 'Buy',
+        //        positionStatus => 'Normal',
+        //        crossMargin => false,
+        //        leverageEr => '200000000',
+        //        $leverage => '2.00000000',
+        //        initMarginReqEr => '50000000',
+        //        initMarginReq => '0.50000000',
+        //        maintMarginReqEr => '1000000',
+        //        maintMarginReq => '0.01000000',
+        //        riskLimitEv => '5000000000',
+        //        riskLimit => '500000.00000000',
+        //        size => '1',
+        //        value => '22.22370000',
+        //        valueEv => '222237',
+        //        avgEntryPriceEp => '44447400',
+        //        avgEntryPrice => '4444.74000000',
+        //        posCostEv => '111202',
+        //        posCost => '11.12020000',
+        //        assignedPosBalanceEv => '111202',
+        //        assignedPosBalance => '11.12020000',
+        //        bankruptCommEv => '84',
+        //        bankruptComm => '0.00840000',
+        //        bankruptPriceEp => '22224000',
+        //        bankruptPrice => '2222.40000000',
+        //        positionMarginEv => '111118',
+        //        positionMargin => '11.11180000',
+        //        liquidationPriceEp => '22669000',
+        //        $liquidationPrice => '2266.90000000',
+        //        deleveragePercentileEr => '0',
+        //        deleveragePercentile => '0E-8',
+        //        buyValueToCostEr => '50112500',
+        //        buyValueToCost => '0.50112500',
+        //        sellValueToCostEr => '50187500',
+        //        sellValueToCost => '0.50187500',
+        //        markPriceEp => '31332499',
+        //        markPrice => '3133.24990000',
+        //        markValueEv => '0',
+        //        markValue => null,
+        //        unRealisedPosLossEv => '0',
+        //        unRealisedPosLoss => null,
+        //        estimatedOrdLossEv => '0',
+        //        estimatedOrdLoss => '0E-8',
+        //        usedBalanceEv => '111202',
+        //        usedBalance => '11.12020000',
+        //        takeProfitEp => '0',
+        //        takeProfit => null,
+        //        stopLossEp => '0',
+        //        stopLoss => null,
+        //        cumClosedPnlEv => '-1546',
+        //        cumFundingFeeEv => '1605',
+        //        cumTransactFeeEv => '8438',
+        //        realisedPnlEv => '0',
+        //        realisedPnl => null,
+        //        cumRealisedPnlEv => '0',
+        //        cumRealisedPnl => null,
+        //        transactTimeNs => '1641571200001885324',
+        //        takerFeeRateEr => '0',
+        //        makerFeeRateEr => '0',
+        //        term => '6',
+        //        lastTermEndTimeNs => '1607711882505745356',
+        //        lastFundingTimeNs => '1641571200000000000',
+        //        curTermRealisedPnlEv => '-1567',
+        //        execSeq => '12112761561'
+        //    }
         //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
@@ -3563,6 +3573,8 @@ class phemex extends Exchange {
             'side' => $side,
             'hedged' => false,
             'percentage' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

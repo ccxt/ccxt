@@ -66,6 +66,8 @@ export default class poloniexfutures extends Exchange {
         marginMode: string;
         side: any;
         percentage: number;
+        stopLossPrice: any;
+        takeProfitPrice: any;
     };
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any[]>;

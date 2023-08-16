@@ -2496,6 +2496,8 @@ class hitbtc(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': leverage,
             'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def fetch_funding_rate(self, symbol: str, params={}):

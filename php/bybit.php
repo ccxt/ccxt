@@ -3841,7 +3841,7 @@ class bybit extends Exchange {
         }
         $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
         if ($postOnly) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'gtc') {
@@ -4042,7 +4042,7 @@ class bybit extends Exchange {
         $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'postonly', $params);
         if ($postOnly) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'gtc') {
@@ -4143,7 +4143,7 @@ class bybit extends Exchange {
         }
         $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // same specific param
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
         if ($postOnly) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'gtc') {
@@ -4324,6 +4324,9 @@ class bybit extends Exchange {
     }
 
     public function edit_unified_account_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        if ($amount === null && $price === null) {
+            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4332,7 +4335,6 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'orderId' => $id,
-            'qty' => $this->amount_to_precision($symbol, $amount),
             // 'orderLinkId' => 'string', // unique client order $id, max 36 characters
             // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
@@ -4350,6 +4352,9 @@ class bybit extends Exchange {
         }
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($amount !== null) {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
         }
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
@@ -4400,6 +4405,9 @@ class bybit extends Exchange {
     }
 
     public function edit_unified_margin_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($amount === null && $price === null) {
+            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4415,7 +4423,6 @@ class bybit extends Exchange {
             'side' => $this->capitalize($side),
             'orderType' => $this->capitalize($lowerCaseType), // limit or $market
             'timeInForce' => 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'qty' => $this->amount_to_precision($symbol, $amount),
             // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
             // 'orderLinkId' => 'string', // unique client $order $id, max 36 characters
@@ -4429,6 +4436,9 @@ class bybit extends Exchange {
             $request['category'] = 'linear';
         } else {
             $request['category'] = 'option';
+        }
+        if ($amount !== null) {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
         }
         $isMarket = $lowerCaseType === 'market';
         $isLimit = $lowerCaseType === 'limit';
@@ -4491,12 +4501,14 @@ class bybit extends Exchange {
     }
 
     public function edit_contract_v3_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        if ($amount === null && $price === null) {
+            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'orderId' => $id,
-            'qty' => $this->amount_to_precision($symbol, $amount),
             // 'orderLinkId' => '', // User customised order $id-> Either orderId or orderLinkId is required
             // 'triggerPrice' => '', // Trigger $price-> Don't pass it if not modify the qty
             // 'takeProfit' => '', // Take profit $price after modification. Don't pass it if not modify the take profit
@@ -4507,6 +4519,9 @@ class bybit extends Exchange {
         );
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($amount !== null) {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
         }
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
@@ -4559,6 +4574,20 @@ class bybit extends Exchange {
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+         * @see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+         * @see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+         * @param {string} $id cancel order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $symbol argument');
         }
@@ -6663,7 +6692,7 @@ class bybit extends Exchange {
         $timestamp = $this->safe_integer_2($transaction, 'createTime', 'successAt');
         $updated = $this->safe_integer($transaction, 'updateTime');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number_2($transaction, 'depositFee', 'withdrawFee', 0);
+        $feeCost = $this->safe_number_2($transaction, 'depositFee', 'withdrawFee');
         $type = (is_array($transaction) && array_key_exists('depositFee', $transaction)) ? 'deposit' : 'withdrawal';
         $fee = null;
         if ($feeCost !== null) {
@@ -7195,25 +7224,25 @@ class bybit extends Exchange {
     public function fetch_unified_positions(?array $symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array();
-        $type = null;
         $settle = null;
+        $market = null;
         $enableUnified = $this->is_unified_enabled();
         if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
             $symbolsLength = count($symbols);
             if ($symbolsLength > 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
             }
-            $market = $this->market($symbols[0]);
-            $settle = $market['settle'];
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+            }
         } elseif ($symbols !== null) {
             $symbols = array( $symbols );
+            $market = $this->market($symbols);
         }
         $symbols = $this->market_symbols($symbols);
-        if ($symbols === null) {
+        if ($market === null) {
             list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', 'USDT');
         } else {
-            $first = $this->safe_value($symbols, 0);
-            $market = $this->market($first);
             $settle = $market['settle'];
             $request['symbol'] = $market['id'];
         }
@@ -7221,16 +7250,20 @@ class bybit extends Exchange {
             $request['settleCoin'] = $settle;
             $request['limit'] = 200;
         }
-        // $market null
-        list($type, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params, 'linear');
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
         $request['category'] = $subType;
         if ($type === 'option') {
             $request['category'] = 'option';
         }
-        $method = ($enableUnified[1]) ? 'privateGetV5PositionList' : 'privateGetUnifiedV3PrivatePositionList';
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($enableUnified[1]) {
+            $response = $this->privateGetV5PositionList (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetUnifiedV3PrivatePositionList (array_merge($request, $params));
+        }
         //
         //     {
         //         "retCode" => 0,
@@ -7664,6 +7697,8 @@ class bybit extends Exchange {
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
+            'stopLossPrice' => $this->safe_number_2($position, 'stop_loss', 'stopLoss'),
+            'takeProfitPrice' => $this->safe_number_2($position, 'take_profit', 'takeProfit'),
         ));
     }
 

@@ -34,7 +34,7 @@ class kucoinfutures extends kucoinfutures$1 {
                 'tradesLimit': 1000,
                 'watchOrderBook': {
                     'snapshotDelay': 20,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'watchTicker': {
                     'name': 'contractMarket/tickerV2', // market/ticker
@@ -667,25 +667,30 @@ class kucoinfutures extends kucoinfutures$1 {
         return message;
     }
     handleErrorMessage(client, message) {
-        return message;
+        //
+        //    {
+        //        "id": "64d8732c856851144bded10d",
+        //        "type": "error",
+        //        "code": 401,
+        //        "data": "token is expired"
+        //    }
+        //
+        const data = this.safeString(message, 'data', '');
+        this.handleErrors(undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
-            const type = this.safeString(message, 'type');
-            const methods = {
-                // 'heartbeat': this.handleHeartbeat,
-                'welcome': this.handleSystemStatus,
-                'ack': this.handleSubscriptionStatus,
-                'message': this.handleSubject,
-                'pong': this.handlePong,
-            };
-            const method = this.safeValue(methods, type);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message);
-            }
+        const type = this.safeString(message, 'type');
+        const methods = {
+            // 'heartbeat': this.handleHeartbeat,
+            'welcome': this.handleSystemStatus,
+            'ack': this.handleSubscriptionStatus,
+            'message': this.handleSubject,
+            'pong': this.handlePong,
+            'error': this.handleErrorMessage,
+        };
+        const method = this.safeValue(methods, type);
+        if (method !== undefined) {
+            return method.call(this, client, message);
         }
     }
 }

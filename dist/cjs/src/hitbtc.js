@@ -2632,6 +2632,8 @@ class hitbtc extends hitbtc$1 {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async fetchFundingRate(symbol, params = {}) {

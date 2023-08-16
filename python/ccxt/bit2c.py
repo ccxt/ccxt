@@ -414,7 +414,9 @@ class bit2c(Exchange, ImplicitAPI):
             method += 'MarketPrice' + self.capitalize(side)
         else:
             request['Price'] = price
-            request['Total'] = amount * price
+            amountString = self.number_to_string(amount)
+            priceString = self.number_to_string(price)
+            request['Total'] = self.parse_number(Precise.string_mul(amountString, priceString))
             request['IsBid'] = (side == 'buy')
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)

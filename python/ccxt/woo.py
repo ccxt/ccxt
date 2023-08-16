@@ -213,6 +213,8 @@ class woo(Exchange, ImplicitAPI):
                             'accountinfo': 60,
                             'positions': 3.33,
                             'buypower': 1,
+                            'referrals': 60,
+                            'referral_rewards': 60,
                         },
                         'post': {
                             'algo/order': 5,
@@ -2415,6 +2417,9 @@ class woo(Exchange, ImplicitAPI):
             'marginType': None,
             'side': side,
             'percentage': None,
+            'hedged': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def default_network_code_for_currency(self, code):

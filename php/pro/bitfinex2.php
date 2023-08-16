@@ -636,21 +636,21 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $deltas = $message[1];
             $orderbook = $this->orderbooks[$symbol];
             if ($isRaw) {
-                $price = $this->safe_float($deltas, 1);
+                $price = $this->safe_string($deltas, 1);
                 $size = ($deltas[2] < 0) ? -$deltas[2] : $deltas[2];
                 $side = ($deltas[2] < 0) ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
                 // $price = 0 means that you have to remove the order from your book
-                $amount = ($price > 0) ? $size : 0;
-                $bookside->store ($price, $amount, $id);
+                $amount = Precise::string_gt($price, '0') ? $size : '0';
+                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $id);
             } else {
-                $amount = $this->safe_number($deltas, 2);
-                $counter = $this->safe_number($deltas, 1);
-                $price = $this->safe_number($deltas, 0);
-                $size = ($amount < 0) ? -$amount : $amount;
-                $side = ($amount < 0) ? 'asks' : 'bids';
+                $amount = $this->safe_string($deltas, 2);
+                $counter = $this->safe_string($deltas, 1);
+                $price = $this->safe_string($deltas, 0);
+                $size = Precise::string_lt($amount, '0') ? Precise::string_neg($amount) : $amount;
+                $side = Precise::string_lt($amount, '0') ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
-                $bookside->store ($price, $size, $counter);
+                $bookside->store ($this->parse_number($price), $this->parse_number($size), $this->parse_number($counter));
             }
             $client->resolve ($orderbook, $messageHash);
         }
@@ -1046,11 +1046,11 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $clientOrderId = $this->safe_string($order, 1);
         $marketId = $this->safe_string($order, 3);
         $symbol = $this->safe_symbol($marketId);
-        $market = $this->safe_market($marketId);
-        $amount = $this->safe_number($order, 7);
+        $market = $this->safe_market($symbol);
+        $amount = $this->safe_string($order, 7);
         $side = 'buy';
-        if ($amount < 0) {
-            $amount = abs($amount);
+        if (Precise::string_lt($amount, '0')) {
+            $amount = Precise::string_abs($amount);
             $side = 'sell';
         }
         $remaining = Precise::string_abs($this->safe_string($order, 6));

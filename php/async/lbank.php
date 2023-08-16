@@ -822,10 +822,10 @@ class lbank extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $queryInner = $this->keysort(array_merge(array(
+            $query = $this->keysort(array_merge(array(
                 'api_key' => $this->apiKey,
-            ), $params));
-            $queryString = $this->rawencode($queryInner);
+            ), $query));
+            $queryString = $this->rawencode($query);
             $message = strtoupper($this->hash($this->encode($queryString), 'md5'));
             $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
             $pem = null;

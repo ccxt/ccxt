@@ -253,7 +253,7 @@ class okx extends Exchange {
                         'trade/orders-history' => 1 / 2,
                         'trade/orders-history-archive' => 1,
                         'trade/fills' => 1 / 3,
-                        'trade/fills-history' => 2,
+                        'trade/fills-history' => 2.2,
                         'trade/order-algo' => 1,
                         'trade/orders-algo-pending' => 1,
                         'trade/orders-algo-history' => 1,
@@ -444,6 +444,7 @@ class okx extends Exchange {
                         'broker/nd/subaccount/delete-apikey' => 1,
                         'broker/nd/set-subaccount-level' => 4,
                         'broker/nd/set-subaccount-fee-rate' => 4,
+                        'broker/nd/set-subaccount-assets' => 0.25,
                         'asset/broker/nd/subaccount-deposit-address' => 1,
                         'asset/broker/nd/modify-subaccount-deposit-address' => 5 / 3,
                         'broker/nd/rebate-per-orders' => 36000,
@@ -549,16 +550,16 @@ class okx extends Exchange {
                     '51018' => '\\ccxt\\ExchangeError', // User with option account can not hold net short positions
                     '51019' => '\\ccxt\\ExchangeError', // No net long positions can be held under isolated margin mode in options
                     '51020' => '\\ccxt\\InvalidOrder', // Order amount should be greater than the min available amount
-                    '51021' => '\\ccxt\\BadSymbol', // Contract to be listed
-                    '51022' => '\\ccxt\\BadSymbol', // Contract suspended
+                    '51021' => '\\ccxt\\ContractUnavailable', // Contract to be listed
+                    '51022' => '\\ccxt\\ContractUnavailable', // Contract suspended
                     '51023' => '\\ccxt\\ExchangeError', // Position does not exist
                     '51024' => '\\ccxt\\AccountSuspended', // Unified accountblocked
                     '51025' => '\\ccxt\\ExchangeError', // Order count exceeds the limit
                     '51026' => '\\ccxt\\BadSymbol', // Instrument type does not match underlying index
-                    '51027' => '\\ccxt\\BadSymbol', // Contract expired
-                    '51028' => '\\ccxt\\BadSymbol', // Contract under delivery
-                    '51029' => '\\ccxt\\BadSymbol', // Contract is being settled
-                    '51030' => '\\ccxt\\BadSymbol', // Funding fee is being settled
+                    '51027' => '\\ccxt\\ContractUnavailable', // Contract expired
+                    '51028' => '\\ccxt\\ContractUnavailable', // Contract under delivery
+                    '51029' => '\\ccxt\\ContractUnavailable', // Contract is being settled
+                    '51030' => '\\ccxt\\ContractUnavailable', // Funding fee is being settled
                     '51046' => '\\ccxt\\InvalidOrder', // The take profit trigger price must be higher than the order price
                     '51047' => '\\ccxt\\InvalidOrder', // The stop loss trigger price must be lower than the order price
                     '51031' => '\\ccxt\\InvalidOrder', // This order price is not within the closing price range
@@ -605,6 +606,7 @@ class okx extends Exchange {
                     '51162' => '\\ccxt\\InvalidOrder', // You have {instrument} open orders. Cancel these orders and try again
                     '51163' => '\\ccxt\\InvalidOrder', // You hold {instrument} positions. Close these positions and try again
                     '51166' => '\\ccxt\\InvalidOrder', // Currently, we don't support leading trades with this instrument
+                    '51174' => '\\ccxt\\InvalidOrder', // The number of {param0} pending orders reached the upper limit of {param1} (orders).
                     '51201' => '\\ccxt\\InvalidOrder', // Value of per market order cannot exceed 100,000 USDT
                     '51202' => '\\ccxt\\InvalidOrder', // Market - order amount exceeds the max amount
                     '51203' => '\\ccxt\\InvalidOrder', // Order amount exceeds the limit {0}
@@ -5051,6 +5053,8 @@ class okx extends Exchange {
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'leverage' => $this->parse_number($leverageString),
             'marginRatio' => $marginRatio,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

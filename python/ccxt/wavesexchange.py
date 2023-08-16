@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
 import math
+import json
 from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
 from typing import Optional
@@ -112,23 +113,23 @@ class wavesexchange(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test': {
-                    'matcher': 'https://matcher-testnet.waves.exchange',
+                    'matcher': 'https://matcher-testnet.wx.network',
                     'node': 'https://nodes-testnet.wavesnodes.com',
                     'public': 'https://api-testnet.wavesplatform.com/v0',
-                    'private': 'https://api-testnet.waves.exchange/v1',
-                    'forward': 'https://testnet.waves.exchange/api/v1/forward/matcher',
-                    'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
+                    'private': 'https://api-testnet.wx.network/v1',
+                    'forward': 'https://testnet.wx.network/api/v1/forward/matcher',
+                    'market': 'https://testnet.wx.network/api/v1/forward/marketdata/api/v1',
                 },
                 'api': {
-                    'matcher': 'https://matcher.waves.exchange',
-                    'node': 'https://nodes.waves.exchange',
+                    'matcher': 'https://matcher.wx.network',
+                    'node': 'https://nodes.wx.network',
                     'public': 'https://api.wavesplatform.com/v0',
-                    'private': 'https://api.waves.exchange/v1',
-                    'forward': 'https://waves.exchange/api/v1/forward/matcher',
-                    'market': 'https://waves.exchange/api/v1/forward/marketdata/api/v1',
+                    'private': 'https://api.wx.network/v1',
+                    'forward': 'https://wx.network/api/v1/forward/matcher',
+                    'market': 'https://wx.network/api/v1/forward/marketdata/api/v1',
                 },
-                'doc': 'https://docs.waves.exchange',
-                'www': 'https://waves.exchange',
+                'doc': 'https://docs.wx.network',
+                'www': 'https://wx.network',
             },
             'api': {
                 'matcher': {
@@ -141,28 +142,36 @@ class wavesexchange(Exchange, ImplicitAPI):
                         'matcher/debug/currentOffset',
                         'matcher/debug/lastOffset',
                         'matcher/debug/oldestSnapshotOffset',
+                        'matcher/debug/config',
+                        'matcher/debug/address/{address}',
+                        'matcher/debug/status',
+                        'matcher/debug/address/{address}/check',
                         'matcher/orderbook',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}',
+                        'matcher/orderbook/{baseId}/{quoteId}',
                         'matcher/orderbook/{baseId}/{quoteId}/publicKey/{publicKey}',
                         'matcher/orderbook/{baseId}/{quoteId}/{orderId}',
                         'matcher/orderbook/{baseId}/{quoteId}/info',
                         'matcher/orderbook/{baseId}/{quoteId}/status',
-                        'matcher/orderbook/{baseId}/{quoteId}/tradeableBalance/{address}',
+                        'matcher/orderbook/{baseId}/{quoteId}/tradableBalance/{address}',
                         'matcher/orderbook/{publicKey}',
                         'matcher/orderbook/{publicKey}/{orderId}',
                         'matcher/orders/{address}',
                         'matcher/orders/{address}/{orderId}',
                         'matcher/transactions/{orderId}',
+                        'api/v1/orderbook/{baseId}/{quoteId}',
                     ],
                     'post': [
                         'matcher/orderbook',
                         'matcher/orderbook/market',
                         'matcher/orderbook/cancel',
                         'matcher/orderbook/{baseId}/{quoteId}/cancel',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/calculateFee',
+                        'matcher/orderbook/{baseId}/{quoteId}/calculateFee',
+                        'matcher/orderbook/{baseId}/{quoteId}/delete',
+                        'matcher/orderbook/{baseId}/{quoteId}/cancelAll',
                         'matcher/debug/saveSnapshots',
                         'matcher/orders/{address}/cancel',
                         'matcher/orders/cancel/{orderId}',
+                        'matcher/orders/serialize',
                     ],
                     'delete': [
                         'matcher/orderbook/{baseId}/{quoteId}',
@@ -368,6 +377,7 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def set_sandbox_mode(self, enabled):
         self.options['messagePrefix'] = 'T' if enabled else 'W'
+        self.options['sandboxMode'] = enabled
         super(wavesexchange, self).set_sandbox_mode(enabled)
 
     def get_fees_for_asset(self, symbol: str, side, amount, price, params={}):
@@ -376,13 +386,13 @@ class wavesexchange(Exchange, ImplicitAPI):
         amount = self.custom_amount_to_precision(symbol, amount)
         price = self.custom_price_to_precision(symbol, price)
         request = self.extend({
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
             'orderType': side,
             'amount': amount,
             'price': price,
         }, params)
-        return self.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee(request)
+        return self.matcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee(request)
 
     def custom_calculate_fee(self, symbol: str, type, side, amount, price, takerOrMaker='taker', params={}):
         response = self.get_fees_for_asset(symbol, side, amount, price)
@@ -425,7 +435,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             # currencies can have any name because you can create you own token
             # result someone can create a fake token called BTC
             # we use self mapping to determine the real tokens
-            # https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
+            # https://docs.wx.network/en/waves-matcher/matcher-api#asset-pair
             response = self.matcherGetMatcherSettings()
             # {
             #   "orderVersions": [
@@ -589,10 +599,10 @@ class wavesexchange(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request = self.extend({
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }, params)
-        response = self.matcherGetMatcherOrderbookAmountAssetPriceAsset(request)
+        response = self.matcherGetMatcherOrderbookBaseIdQuoteId(request)
         timestamp = self.safe_integer(response, 'timestamp')
         bids = self.parse_order_book_side(self.safe_value(response, 'bids'), market, limit)
         asks = self.parse_order_book_side(self.safe_value(response, 'asks'), market, limit)
@@ -699,7 +709,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             expiresDelta = 60 * 60 * 24 * 7
             seconds = self.sum(self.seconds(), expiresDelta)
             seconds = str(seconds)
-            clientId = 'waves.exchange'
+            clientId = 'wx.network'
             # W for production, T for testnet
             defaultMessagePrefix = self.safe_string(self.options, 'messagePrefix', 'W')
             message = defaultMessagePrefix + ':' + clientId + ':' + seconds
@@ -1201,6 +1211,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param float [params.stopPrice]: The price at which a stop order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
@@ -1211,9 +1222,10 @@ class wavesexchange(Exchange, ImplicitAPI):
         amountAsset = self.get_asset_id(market['baseId'])
         priceAsset = self.get_asset_id(market['quoteId'])
         isMarketOrder = (type == 'market')
+        stopPrice = self.safe_float_2(params, 'triggerPrice', 'stopPrice')
+        isStopOrder = (stopPrice is not None)
         if (isMarketOrder) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell')
-        orderType = 0 if (side == 'buy') else 1
         timestamp = self.milliseconds()
         defaultExpiryDelta = self.safe_integer(self.options, 'createOrderDefaultExpiry', 2419200000)
         expiration = self.sum(timestamp, defaultExpiryDelta)
@@ -1228,7 +1240,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #        "matcherFee":"4077612"
         #     }
         #  }
-        base = self.safe_value(matcherFees, 'base')
+        base = self.safe_value_2(matcherFees, 'base', 'discount')
         baseFeeAssetId = self.safe_string(base, 'feeAssetId')
         baseFeeAsset = self.safe_currency_code(baseFeeAssetId)
         baseMatcherFee = self.safe_string(base, 'matcherFee')
@@ -1269,26 +1281,12 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise InsufficientFunds(self.id + ' not enough funds on none of the eligible asset fees')
         amount = self.custom_amount_to_precision(symbol, amount)
         price = self.custom_price_to_precision(symbol, price)
-        byteArray = [
-            self.number_to_be(3, 1),
-            self.base58_to_binary(self.apiKey),
-            self.base58_to_binary(matcherPublicKey),
-            self.get_asset_bytes(market['baseId']),
-            self.get_asset_bytes(market['quoteId']),
-            self.number_to_be(orderType, 1),
-            self.number_to_be(price, 8),
-            self.number_to_be(amount, 8),
-            self.number_to_be(timestamp, 8),
-            self.number_to_be(expiration, 8),
-            self.number_to_be(matcherFee, 8),
-            self.get_asset_bytes(matcherFeeAssetId),
-        ]
-        binary = self.binary_concat_array(byteArray)
-        signature = self.eddsa(self.binary_to_base16(binary), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
         assetPair = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         }
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        chainId = 84 if (sandboxMode) else 87
         body = {
             'senderPublicKey': self.apiKey,
             'matcherPublicKey': matcherPublicKey,
@@ -1299,35 +1297,68 @@ class wavesexchange(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'expiration': expiration,
             'matcherFee': int(matcherFee),
-            'signature': signature,
-            'version': 3,
+            'priceMode': 'assetDecimals',
+            'version': 4,
+            'chainId': chainId,
         }
+        if isStopOrder:
+            #
+            # {
+            #     'v': 1,  # version(int)
+            #     'c': { # condition(object)
+            #         't': 'sp',  # condition type. for now only "stop-price"(string)
+            #         'v': { # value(object)
+            #             'p': '123',  # price(long)
+            #         },
+            #     },
+            # }
+            #
+            attachment = {
+                'v': 1,
+                'c': {
+                    't': 'sp',
+                    'v': {
+                        'p': self.custom_price_to_precision(symbol, stopPrice),
+                    },
+                },
+            }
+            body['attachment'] = self.binary_to_base58(self.encode(json.dumps(attachment)))
         if matcherFeeAssetId != 'WAVES':
             body['matcherFeeAssetId'] = matcherFeeAssetId
+        serializedOrder = self.matcherPostMatcherOrdersSerialize(body)
+        if (serializedOrder[0] == '"') and (serializedOrder[(len(serializedOrder) - 1)] == '"'):
+            serializedOrder = serializedOrder[1:len(serializedOrder) - 1]
+        signature = self.eddsa(self.binary_to_base16(self.base58_to_binary(serializedOrder)), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
+        body['signature'] = signature
         #
         #     {
-        #         "success":true,
-        #         "message":{
-        #             "version":3,
-        #             "id":"GK5ox4RfLJFtqjQsCbDmvCya8ZhFVEUQDtF4yYuAJ6C7",
-        #             "sender":"3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
-        #             "senderPublicKey":"AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
-        #             "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
-        #             "assetPair":{
-        #                 "amountAsset":"C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS",
-        #                 "priceAsset":"WAVES"
-        #             },
-        #             "orderType":"buy",
-        #             "amount":110874978,
-        #             "price":514397851,
-        #             "timestamp":1650473255988,
-        #             "expiration":1652892455988,
-        #             "matcherFee":7074571,
-        #             "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on",
-        #             "signature":"5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8",
-        #             "proofs":["5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8"]
+        #         "success": True,
+        #         "message": {
+        #           "version": 4,
+        #           "id": "8VR49dLZFaYcVwzx9TqVMTAZCSUoyB74kLUHrEPCSJgN",
+        #           "sender": "3MpEdBXtsRHRj2TvZURSb8uLDxzneVbYczW",
+        #           "senderPublicKey": "8aUTNqHGCBiubySBRhcS1N6NC5jLczhVcndRfMAuwtkY",
+        #           "matcherPublicKey": "8QUAqtTckM5B8gvcuP7mMswat9SjKUuafJMusEoSn1Gy",
+        #           "assetPair": {
+        #             "amountAsset": "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        #             "priceAsset": "25FEqEjRkqK6yCkiT7Lz6SAYz7gUFCtxfCChnrVFD5AT"
+        #           },
+        #           "orderType": "sell",
+        #           "amount": 100000,
+        #           "price": 480000,
+        #           "timestamp": 1690852043772,
+        #           "expiration": 1693271243772,
+        #           "matcherFee": 83327570,
+        #           "signature": "3QYDWQVSP4kdqpTLodCuboh8bpWd6GW5s1pQyKdce1JBDwX6t4kH5Xtuq35pqo94gxjo3cfG6k6Xuic2JaYLubkK",
+        #           "proofs": [
+        #             "3QYDWQVSP4kdqpTLodCuboh8bpWd6GW5s1pQyKdce1JBDwX6t4kH5Xtuq35pqo94gxjo3cfG6k6Xuic2JaYLubkK"
+        #           ],
+        #           "matcherFeeAssetId": "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        #           "eip712Signature": null,
+        #           "priceMode": "assetDecimals",
+        #           "attachment": "2PQ4akZHnMSZrQissuu5uudoXbgsipeDnFcRtXtjVgkdm1gUWEgGzp"
         #         },
-        #         "status":"OrderAccepted"
+        #         "status": "OrderAccepted"
         #     }
         #
         if isMarketOrder:
@@ -1548,7 +1579,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         # createOrder
         #
         #     {
-        #         'version': 3,
+        #         'version': 4,
         #         'id': 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
         #         'sender': '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
         #         'senderPublicKey': 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
@@ -1568,6 +1599,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #         'proofs': [
         #             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
         #         ],
+        #         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         #     }
         #
         #
@@ -1590,8 +1622,9 @@ class wavesexchange(Exchange, ImplicitAPI):
         #             priceAsset: 'WAVES'
         #         },
         #         avgWeighedPrice: 0,
-        #         version: 3,
+        #         version: 4,
         #         totalExecutedPriceAssets: 0,  # in fetchOpenOrder/s
+        #         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         #     }
         #
         timestamp = self.safe_integer(order, 'timestamp')
@@ -1629,6 +1662,16 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'currency': currency,
                 'fee': self.parse_number(self.currency_from_precision(currency, self.safe_string(order, 'matcherFee'))),
             }
+        triggerPrice = None
+        attachment = self.safe_string(order, 'attachment')
+        if attachment is not None:
+            decodedAttachment = self.parse_json(self.decode(self.base58_to_binary(attachment)))
+            if decodedAttachment is not None:
+                c = self.safe_value(decodedAttachment, 'c')
+                if c is not None:
+                    v = self.safe_value(c, 'v')
+                    if v is not None:
+                        triggerPrice = self.safe_string(v, 'p')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1642,8 +1685,8 @@ class wavesexchange(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -2136,8 +2179,8 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://docs.waves.exchange/en/api/gateways/deposit/currencies
-        see https://docs.waves.exchange/en/api/gateways/withdraw/currencies
+        see https://docs.wx.network/en/api/gateways/deposit/currencies
+        see https://docs.wx.network/en/api/gateways/withdraw/currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
