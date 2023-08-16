@@ -144,7 +144,6 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         this.expandSettings (exchange, symbol);
         await this.startTest (exchange, symbol);
-        await close (exchange);
     }
 
     async importFiles (exchange) {
@@ -230,44 +229,31 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         let skipMessage = undefined;
-        const isFetchOhlcvEmulated = (methodName === 'fetchOHLCV' && exchange.has['fetchOHLCV'] === 'emulated'); // todo: remove emulation from base
-        if (!isLoadMarkets && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
+        if (!isLoadMarkets && (!(methodName in exchange.has) || !exchange.has[methodName])) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
         } else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
-        const argsStringified = '(' + args.join (',') + ')';
-        try {
-            // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
-            if (isLoadMarkets) {
-                await exchange.loadMarkets (true);
-            }
-            if (skipMessage) {
-                if (this.info) {
-                    dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
-                }
-                return;
-            }
+        // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
+        if (isLoadMarkets) {
+            await exchange.loadMarkets (true);
+        }
+        if (skipMessage) {
             if (this.info) {
-                dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+                dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
             }
-            const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
-            await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
-            if (isPublic) {
-                this.checkedPublicTests[methodNameInTest] = true;
-            }
-        } catch (e) {
-            const isAuthError = (e instanceof AuthenticationError);
-            // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-            if (isPublic && isAuthError) {
-                if (this.info) {
-                    dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodNameInTest, argsStringified);
-                }
-            } else {
-                throw e;
-            }
+            return;
+        }
+        if (this.info) {
+            const argsStringified = '(' + args.join (',') + ')';
+            dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+        }
+        const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
+        await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
+        if (isPublic) {
+            this.checkedPublicTests[methodNameInTest] = true;
         }
     }
 
@@ -289,6 +275,7 @@ export default class testMainClass extends baseMainTestClass {
                 await this.testMethod (methodName, exchange, args, isPublic);
                 return true;
             } catch (e) {
+                const isAuthError = (e instanceof AuthenticationError);
                 const isRateLimitExceeded = (e instanceof RateLimitExceeded);
                 const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
                 const isNetworkError = (e instanceof NetworkError);
@@ -296,22 +283,24 @@ export default class testMainClass extends baseMainTestClass {
                 const isRequestTimeout = (e instanceof RequestTimeout);
                 const tempFailure = (isRateLimitExceeded || isExchangeNotAvailable || isNetworkError || isDDoSProtection || isRequestTimeout);
                 if (tempFailure) {
-                    // wait and retry again
-                    await exchange.sleep (i * 1000); // increase wait seconds on every retry
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
                         dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified);
-                        if (methodName === 'loadMarkets') {
-                            // in case of loadMarkets, we completely stop test for current exchange
-                            exitScript ();
-                        }
                         return false;
                     }
-                    continue;
+                    // wait and retry again
+                    await exchange.sleep (i * 1000); // increase wait seconds on every retry
                 } else if (e instanceof OnMaintenance) {
                     // in case of maintenance, skip exchange (don't fail the test)
                     dump ('[TEST_WARNING] Exchange is on maintenance', exchange.id);
-                    exitScript ();
+                    return false;
+                }
+                // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+                else if (isPublic && isAuthError) {
+                    if (this.info) {
+                        dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                    }
+                    return false;
                 } else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
                     dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
@@ -726,8 +715,14 @@ export default class testMainClass extends baseMainTestClass {
         if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
-        await this.loadExchange (exchange);
+        try {
+            await this.loadExchange (exchange);
+        } catch (e) {
+            await close (exchange); // close for async-python
+            throw e;
+        }
         await this.testExchange (exchange, symbol);
+        await close (exchange);
     }
 }
 // ***** AUTO-TRANSPILER-END *****
