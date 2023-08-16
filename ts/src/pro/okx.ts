@@ -609,15 +609,16 @@ export default class okx extends okxRest {
         return message;
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const access = this.safeString (params, 'access', 'private');
         params = this.omit (params, [ 'access' ]);
         const url = this.urls['api']['ws'][access];
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.seconds ().toString ();
             const method = 'GET';
             const path = '/users/self/verify';
@@ -636,8 +637,7 @@ export default class okx extends okxRest {
                 ],
             };
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1235,7 +1235,8 @@ export default class okx extends okxRest {
         //
         //     { event: 'login', success: true }
         //
-        client.resolve (message, 'authenticated');
+        const future = this.safeValue (client.futures, 'authenticated');
+        future.resolve (true);
     }
 
     ping (client) {
