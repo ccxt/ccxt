@@ -473,9 +473,9 @@ export default class okcoin extends okcoinRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'login';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future ('authenticated');
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.seconds ().toString ();
             const method = 'GET';
             const path = '/users/self/verify';
@@ -490,9 +490,9 @@ export default class okcoin extends okcoinRest {
                     signature,
                 ],
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            this.watch (url, messageHash, request, messageHash);
         }
-        return await future;
+        return future;
     }
 
     async watchBalance (params = {}) {
@@ -628,8 +628,8 @@ export default class okcoin extends okcoinRest {
         //
         //     { event: 'login', success: true }
         //
-        client.resolve (message, 'authenticated');
-        return message;
+        const future = this.safeValue (client.futures, 'authenticated');
+        future.resolve (true);
     }
 
     ping (client) {
