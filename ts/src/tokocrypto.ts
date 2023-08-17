@@ -793,13 +793,18 @@ export default class tokocrypto extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['baseId'] + market['quoteId'],
-        };
+        const request = {};
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        const response = await this.binanceGetDepth (this.extend (request, params));
+        let response = undefined;
+        if (market['quote'] === 'USDT') {
+            request['symbol'] = market['baseId'] + market['quoteId'];
+            response = await this.binanceGetDepth (this.extend (request, params));
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.publicGetOpenV1MarketDepth (this.extend (request, params));
+        }
         //
         // future
         //
@@ -818,9 +823,21 @@ export default class tokocrypto extends Exchange {
         //             ["2493.71","12.054"],
         //         ]
         //     }
-        const timestamp = this.safeInteger (response, 'T');
-        const orderbook = this.parseOrderBook (response, symbol, timestamp);
-        orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
+        // type not 1
+        //     {
+        //         "code":0,
+        //         "msg":"Success",
+        //         "data":{
+        //            "lastUpdateId":3204783,
+        //            "bids":[],
+        //            "asks": []
+        //         },
+        //         "timestamp":1692262634599
+        //     }
+        const data = this.safeValue (response, 'data', response);
+        const timestamp = this.safeInteger2 (response, 'T', 'timestamp');
+        const orderbook = this.parseOrderBook (data, symbol, timestamp);
+        orderbook['nonce'] = this.safeInteger (data, 'lastUpdateId');
         return orderbook;
     }
 
