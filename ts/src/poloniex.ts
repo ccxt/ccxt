@@ -1378,13 +1378,14 @@ export default class poloniex extends Exchange {
          * @description cancel all open orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  // trigger orders
-         * @param {string} symbol *required for stop orders* unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             // 'accountTypes': 'SPOT',
+            'symbols': [ ],
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -1418,7 +1419,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        return response;
+        return this.parseOrders (response, market);
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
