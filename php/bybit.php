@@ -2073,10 +2073,10 @@ class bybit extends Exchange {
         //         "change24h" => "86"
         //     }
         //
+        $isSpot = $this->safe_string($ticker, 'openInterestValue') === null;
         $timestamp = $this->safe_integer($ticker, 'time');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($market, 'type', $defaultType);
+        $type = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, $market, null, $type);
         $symbol = $this->safe_symbol($marketId, $market, null, $type);
         $last = $this->safe_string($ticker, 'lastPrice');
