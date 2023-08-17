@@ -6154,7 +6154,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#borrowMargin
          * @description create a loan to borrow margin
-         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-borrowmarginloan
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {string} symbol not used by bybit.borrowMargin ()
@@ -6171,7 +6171,7 @@ export default class bybit extends Exchange {
             'coin': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSpotV3PrivateCrossMarginLoan (this.extend (request, query));
+        const response = await this.privatePostV5SpotCrossMarginTradeLoan (this.extend (request, query));
         //
         //     {
         //         "retCode": 0,
