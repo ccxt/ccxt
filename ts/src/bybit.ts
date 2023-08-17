@@ -5726,33 +5726,17 @@ export default class bybit extends Exchange {
         } else {
             request['symbol'] = market['id'];
         }
-        const enableUnified = await this.isUnifiedEnabled ();
-        let response = undefined;
-        if (enableUnified[1] || enableUnified[0]) {
-            if (symbol !== undefined) {
-                request['category'] = market['linear'] ? 'linear' : 'inverse';
-            } else {
-                let subType = undefined;
-                [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
-                request['category'] = subType;
-            }
-            response = await this.privatePostV5PositionSwitchMode (this.extend (request, params));
+        if (symbol !== undefined) {
+            request['category'] = market['linear'] ? 'linear' : 'inverse';
         } else {
-            response = await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
+            const type = this.safeString (params, 'type');
+            if (type === undefined) {
+                throw new ArgumentsRequired (this.id + ' setPositionMode() requires a type argument for setting category');
+            }
+            request['category'] = type;
         }
-        //
-        // contract v3
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "ok",
-        //         "ext_code": "",
-        //         "result": null,
-        //         "ext_info": null,
-        //         "time_now": "1577477968.175013",
-        //         "rate_limit_status": 74,
-        //         "rate_limit_reset_ms": 1577477968183,
-        //         "rate_limit": 75
-        //     }
+        params = this.omit (params, 'type');
+        const response = await this.privatePostV5PositionSwitchMode (this.extend (request, params));
         //
         // v5
         //     {
