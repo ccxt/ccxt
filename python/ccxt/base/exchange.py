@@ -305,7 +305,7 @@ class Exchange(object):
         'fetchClosedOrders': None,
         'fetchCurrencies': 'emulated',
         'fetchDeposit': None,
-        'fetchDepositAddress': None,
+        'fetchDepositAddress': None,s
         'fetchDepositAddresses': None,
         'fetchDepositAddressesByNetwork': None,
         'fetchDeposits': None,
