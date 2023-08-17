@@ -6196,7 +6196,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-repaymarginloan
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string} symbol not used by bybit.repayMargin ()
@@ -6213,7 +6213,7 @@ export default class bybit extends Exchange {
             'coin': currency['id'],
             'qty': this.numberToString (amount),
         };
-        const response = await this.privatePostSpotV3PrivateCrossMarginRepay (this.extend (request, query));
+        const response = await this.privatePostV5SpotCrossMarginTradeRepay (this.extend (request, query));
         //
         //     {
         //         "retCode": 0,
