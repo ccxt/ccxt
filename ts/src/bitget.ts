@@ -2225,7 +2225,7 @@ export default class bitget extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, limit: Int = undefined, since: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchTrades
