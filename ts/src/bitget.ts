@@ -1004,6 +1004,14 @@ export default class bitget extends Exchange {
                         'method': 'publicMixGetMarketCandles', // or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
                     },
                 },
+                'fetchTrades': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketFillsHistory', // or publicSpotGetMarketFills
+                    },
+                    'swap': {
+                        'method': 'publicMixGetMarketFillsHistory', // or publicMixGetMarketFills
+                    },
+                },
                 'accountsByType': {
                     'main': 'EXCHANGE',
                     'spot': 'EXCHANGE',
@@ -2134,23 +2142,23 @@ export default class bitget extends Exchange {
         // spot
         //
         //     {
-        //         symbol: 'BTCUSDT_SPBL',
-        //         tradeId: '881371996363608065',
-        //         side: 'sell',
-        //         fillPrice: '39123.05',
-        //         fillQuantity: '0.0363',
-        //         fillTime: '1645861379709'
+        //         "symbol": "BTCUSDT_SPBL",
+        //         "tradeId": "1075200479040323585",
+        //         "side": "Sell",
+        //         "fillPrice": "29381.54",
+        //         "fillQuantity": "0.0056",
+        //         "fillTime": "1692073691000"
         //     }
         //
         // swap
         //
         //     {
-        //         tradeId: '881373204067311617',
-        //         price: '39119.0',
-        //         size: '0.001',
-        //         side: 'buy',
-        //         timestamp: '1645861667648',
-        //         symbol: 'BTCUSDT_UMCBL'
+        //         "tradeId": "1075199767891652609",
+        //         "price": "29376.5",
+        //         "size": "6.035",
+        //         "side": "Buy",
+        //         "timestamp": "1692073521000",
+        //         "symbol": "BTCUSDT_UMCBL"
         //     }
         //
         // private
@@ -2185,17 +2193,12 @@ export default class bitget extends Exchange {
         //
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const id = this.safeString2 (trade, 'tradeId', 'fillId');
-        const order = this.safeString (trade, 'orderId');
-        const side = this.safeString (trade, 'side');
-        const price = this.safeString2 (trade, 'fillPrice', 'price');
         let amount = this.safeString2 (trade, 'fillQuantity', 'size');
         amount = this.safeString (trade, 'sizeQty', amount);
         let timestamp = this.safeInteger2 (trade, 'fillTime', 'timestamp');
         timestamp = this.safeInteger (trade, 'cTime', timestamp);
         let fee = undefined;
         const feeAmount = this.safeString (trade, 'fees');
-        const type = this.safeString (trade, 'orderType');
         if (feeAmount !== undefined) {
             const currencyCode = this.safeCurrencyCode (this.safeString (trade, 'feeCcy'));
             fee = {
@@ -2207,13 +2210,13 @@ export default class bitget extends Exchange {
         const datetime = this.iso8601 (timestamp);
         return this.safeTrade ({
             'info': trade,
-            'id': id,
-            'order': order,
+            'id': this.safeString2 (trade, 'tradeId', 'fillId'),
+            'order': this.safeString (trade, 'orderId'),
             'symbol': symbol,
-            'side': side,
-            'type': type,
+            'side': this.safeStringLower (trade, 'side'),
+            'type': this.safeString (trade, 'orderType'),
             'takerOrMaker': undefined,
-            'price': price,
+            'price': this.safeString2 (trade, 'fillPrice', 'price'),
             'amount': amount,
             'cost': undefined,
             'fee': fee,
@@ -2222,11 +2225,15 @@ export default class bitget extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, limit: Int = undefined, since: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-market-trades
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-fills
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-recent-trades
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-recent-fills
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -2241,28 +2248,67 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const extended = this.extend (request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const options = this.safeValue (this.options, 'fetchTrades', {});
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicSpotGetMarketFills (extended);
+            const spotOptions = this.safeValue (options, 'spot', {});
+            const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetMarketFillsHistory');
+            const spotMethod = this.safeString (params, 'method', defaultSpotMethod);
+            params = this.omit (params, 'method');
+            if (spotMethod === 'publicSpotGetMarketFillsHistory') {
+                response = await this.publicSpotGetMarketFillsHistory (this.extend (request, params));
+            } else if (spotMethod === 'publicSpotGetMarketFills') {
+                response = await this.publicSpotGetMarketFills (this.extend (request, params));
+            }
         } else {
-            response = await this.publicMixGetMarketFills (extended);
+            const swapOptions = this.safeValue (options, 'swap', {});
+            const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetMarketFillsHistory');
+            const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
+            params = this.omit (params, 'method');
+            if (swapMethod === 'publicMixGetMarketFillsHistory') {
+                response = await this.publicMixGetMarketFillsHistory (this.extend (request, params));
+            } else if (swapMethod === 'publicMixGetMarketFills') {
+                response = await this.publicMixGetMarketFills (this.extend (request, params));
+            }
         }
         //
+        // spot
+        //
         //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: '1645861382032',
-        //       data: [
-        //         {
-        //           symbol: 'BTCUSDT_SPBL',
-        //           tradeId: '881371996363608065',
-        //           side: 'sell',
-        //           fillPrice: '39123.05',
-        //           fillQuantity: '0.0363',
-        //           fillTime: '1645861379709'
-        //         }
-        //       ]
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1692073693562,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT_SPBL",
+        //                 "tradeId": "1075200479040323585",
+        //                 "side": "Sell",
+        //                 "fillPrice": "29381.54",
+        //                 "fillQuantity": "0.0056",
+        //                 "fillTime": "1692073691000"
+        //             },
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1692073522689,
+        //         "data": [
+        //             {
+        //                 "tradeId": "1075199767891652609",
+        //                 "price": "29376.5",
+        //                 "size": "6.035",
+        //                 "side": "Buy",
+        //                 "timestamp": "1692073521000",
+        //                 "symbol": "BTCUSDT_UMCBL"
+        //             },
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
