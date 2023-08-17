@@ -2502,7 +2502,7 @@ export default class bitget extends Exchange {
             }
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
-        const ommitted = this.omit (params, [ 'until', 'till' ]);
+        const ommitted = this.omit (params, [ 'until', 'till', 'method' ]);
         const extended = this.extend (request, ommitted);
         let response = undefined;
         if (market['spot']) {
