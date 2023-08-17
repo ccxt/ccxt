@@ -5976,6 +5976,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
          * @param {string} code unified currency code
          * @param {string} symbol unified market symbol when fetch interest in isolated markets
          * @param {number} [since] the earliest time in ms to fetch borrrow interest for
@@ -5985,7 +5986,7 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetSpotV3PrivateCrossMarginAccount (this.extend (request, params));
+        const response = await this.privateGetV5SpotCrossMarginTradeAccount (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
