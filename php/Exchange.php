@@ -278,7 +278,7 @@ class Exchange {
         'fetchMarkets' => true,
         'fetchMarkOHLCV' => null,
         'fetchMyTrades' => null,
-        'fetchOHLCV' => 'emulated',
+        'fetchOHLCV' => null,
         'fetchOpenOrder' => null,
         'fetchOpenOrders' => null,
         'fetchOrder' => null,
