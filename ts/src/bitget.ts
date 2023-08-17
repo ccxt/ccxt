@@ -2446,24 +2446,24 @@ export default class bitget extends Exchange {
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        //
-        // @method
-        // @name bitget#fetchOHLCV
-        // @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        // @see https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
-        // @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-data
-        // @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
-        // @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-candle-data
-        // @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-index-candle-data
-        // @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-mark-candle-data
-        // @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        // @param {string} timeframe the length of time each candle represents
-        // @param {int} [since] timestamp in ms of the earliest candle to fetch
-        // @param {int} [limit] the maximum amount of candles to fetch
-        // @param {object} [params] extra parameters specific to the bitget api endpoint
-        // @param {int} [params.until] timestamp in ms of the latest candle to fetch
-        // @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        //
+        /**
+         * @method
+         * @name bitget#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-index-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-mark-candle-data
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
