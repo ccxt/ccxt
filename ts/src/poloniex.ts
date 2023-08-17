@@ -1095,7 +1095,7 @@ export default class poloniex extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        const triggerPrice = this.safeString (order, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (order, 'triggerPrice', 'stopPrice');
         return this.safeOrder ({
             'info': order,
             'id': id,
