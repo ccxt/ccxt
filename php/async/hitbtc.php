@@ -2061,6 +2061,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://api.hitbtc.com/#create-new-spot-order
+             * @see https://api.hitbtc.com/#create-margin-order
+             * @see https://api.hitbtc.com/#create-futures-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -2069,10 +2072,12 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
              * @param {bool} [$params->margin] true for creating a margin order
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $isLimit = ($type === 'limit');
             $request = array(
                 'type' => $type,
                 'side' => $side,
@@ -2100,25 +2105,28 @@ class hitbtc extends Exchange {
                 $request['reduce_only'] = $reduceOnly;
             }
             $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
-            $expireTime = $this->safe_string($params, 'expire_time');
-            $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
-            if (($type === 'limit') || ($type === 'stopLimit') || ($type === 'takeProfitLimit')) {
+            $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+            if ($isLimit || ($type === 'stopLimit') || ($type === 'takeProfitLimit')) {
                 if ($price === null) {
                     throw new ExchangeError($this->id . ' createOrder() requires a $price argument for limit orders');
                 }
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             if (($timeInForce === 'GTD')) {
+                $expireTime = $this->safe_string($params, 'expire_time');
                 if ($expireTime === null) {
                     throw new ExchangeError($this->id . ' createOrder() requires an expire_time parameter for a GTD order');
                 }
-                $request['expire_time'] = $expireTime;
             }
-            if (($type === 'stopLimit') || ($type === 'stopMarket') || ($type === 'takeProfitLimit') || ($type === 'takeProfitMarket')) {
-                if ($stopPrice === null) {
-                    throw new ExchangeError($this->id . ' createOrder() requires a $stopPrice parameter for stop-loss and take-profit orders');
+            if ($triggerPrice !== null) {
+                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                if ($isLimit) {
+                    $request['type'] = 'stopLimit';
+                } elseif ($type === 'market') {
+                    $request['type'] = 'stopMarket';
                 }
-                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+            } elseif (($type === 'stopLimit') || ($type === 'stopMarket') || ($type === 'takeProfitLimit') || ($type === 'takeProfitMarket')) {
+                throw new ExchangeError($this->id . ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
             }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
@@ -2131,6 +2139,7 @@ class hitbtc extends Exchange {
             if ($marginMode !== null) {
                 $method = 'privatePostMarginOrder';
             }
+            $params = $this->omit($params, array( 'triggerPrice', 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'reduceOnly' ));
             $response = Async\await($this->$method (array_merge($request, $query)));
             return $this->parse_order($response, $market);
         }) ();
@@ -2238,6 +2247,7 @@ class hitbtc extends Exchange {
         $postOnly = $this->safe_value($order, 'post_only');
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $rawTrades = $this->safe_value($order, 'trades');
+        $stopPrice = $this->safe_string($order, 'stop_price');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2245,6 +2255,7 @@ class hitbtc extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'price' => $price,
             'amount' => $amount,
@@ -2260,6 +2271,10 @@ class hitbtc extends Exchange {
             'average' => $average,
             'trades' => $rawTrades,
             'fee' => null,
+            'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
+            'takeProfitPrice' => null,
+            'stopLossPrice' => null,
         ), $market);
     }
 
