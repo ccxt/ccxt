@@ -1308,12 +1308,18 @@ export default class poloniex extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request = {
+        let request = {
             'id': id,
             // 'timeInForce': timeInForce,
         };
-        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
-        let response = await this.privatePutOrdersId (this.extend (orderRequest[0], orderRequest[1]));
+        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        [ request, params ] = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = undefined;
+        if (triggerPrice !== undefined) {
+            response = await this.privatePutSmartordersId (this.extend (request, params));
+        } else {
+            response = await this.privatePutOrdersId (this.extend (request, params));
+        }
         //
         //     {
         //         "id" : "78923648051920896",
