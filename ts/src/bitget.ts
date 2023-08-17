@@ -57,14 +57,14 @@ export default class bitget extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': undefined,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -2404,8 +2404,12 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-data
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-index-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-mark-candle-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2472,15 +2476,16 @@ export default class bitget extends Exchange {
             const swapOptions = this.safeValue (options, 'swap', {});
             const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetMarketCandles');
             const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
-            params = this.omit (params, 'method');
-            if (swapMethod === 'publicMixGetMarketCandles') {
+            const priceType = this.safeString (params, 'price');
+            params = this.omit (params, [ 'method', 'price' ]);
+            if ((priceType === 'mark') || (swapMethod === 'publicMixGetMarketHistoryMarkCandles')) {
+                response = await this.publicMixGetMarketHistoryMarkCandles (this.extend (request, params));
+            } else if ((priceType === 'index') || (swapMethod === 'publicMixGetMarketHistoryIndexCandles')) {
+                response = await this.publicMixGetMarketHistoryIndexCandles (this.extend (request, params));
+            } else if (swapMethod === 'publicMixGetMarketCandles') {
                 response = await this.publicMixGetMarketCandles (this.extend (request, params));
             } else if (swapMethod === 'publicMixGetMarketHistoryCandles') {
                 response = await this.publicMixGetMarketHistoryCandles (this.extend (request, params));
-            } else if (swapMethod === 'publicMixGetMarketHistoryIndexCandles') {
-                response = await this.publicMixGetMarketHistoryIndexCandles (this.extend (request, params));
-            } else if (swapMethod === 'publicMixGetMarketHistoryMarkCandles') {
-                response = await this.publicMixGetMarketHistoryMarkCandles (this.extend (request, params));
             }
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
