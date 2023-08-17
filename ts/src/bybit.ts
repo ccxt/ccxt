@@ -5921,7 +5921,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
-         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-queryinterestquota
+         * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
@@ -5931,7 +5931,7 @@ export default class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.privateGetSpotV3PrivateCrossMarginLoanInfo (this.extend (request, params));
+        const response = await this.privateGetV5SpotCrossMarginTradeLoanInfo (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
