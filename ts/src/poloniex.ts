@@ -1345,7 +1345,13 @@ export default class poloniex extends Exchange {
         }
         request['id'] = id;
         params = this.omit (params, 'clientOrderId');
-        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateDeleteSmartordersId (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteOrdersId (this.extend (request, params));
+        }
         //
         //   {
         //       "orderId":"210832697138888704",
@@ -1380,7 +1386,13 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateDeleteSmartorders (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteOrders (this.extend (request, params));
+        }
         //
         //     [
         //         {
@@ -1421,7 +1433,7 @@ export default class poloniex extends Exchange {
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         let response = undefined;
         if (isTrigger) {
-            response = await this.privateGetSmartorders (this.extend (request, params));
+            response = await this.privateGetSmartordersId (this.extend (request, params));
         } else {
             response = await this.privateGetOrdersId (this.extend (request, params));
         }
