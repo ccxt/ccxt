@@ -2023,6 +2023,9 @@ class hitbtc extends hitbtc$1 {
          * @method
          * @name hitbtc#createOrder
          * @description create a trade order
+         * @see https://api.hitbtc.com/#create-new-spot-order
+         * @see https://api.hitbtc.com/#create-margin-order
+         * @see https://api.hitbtc.com/#create-futures-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2031,10 +2034,12 @@ class hitbtc extends hitbtc$1 {
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
          * @param {bool} [params.margin] true for creating a margin order
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        const isLimit = (type === 'limit');
         const request = {
             'type': type,
             'side': side,
@@ -2062,25 +2067,30 @@ class hitbtc extends hitbtc$1 {
             request['reduce_only'] = reduceOnly;
         }
         const timeInForce = this.safeString2(params, 'timeInForce', 'time_in_force');
-        const expireTime = this.safeString(params, 'expire_time');
-        const stopPrice = this.safeNumber2(params, 'stopPrice', 'stop_price');
-        if ((type === 'limit') || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
+        if (isLimit || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
             if (price === undefined) {
                 throw new errors.ExchangeError(this.id + ' createOrder() requires a price argument for limit orders');
             }
             request['price'] = this.priceToPrecision(symbol, price);
         }
         if ((timeInForce === 'GTD')) {
+            const expireTime = this.safeString(params, 'expire_time');
             if (expireTime === undefined) {
                 throw new errors.ExchangeError(this.id + ' createOrder() requires an expire_time parameter for a GTD order');
             }
-            request['expire_time'] = expireTime;
         }
-        if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
-            if (stopPrice === undefined) {
-                throw new errors.ExchangeError(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
+            if (isLimit) {
+                request['type'] = 'stopLimit';
             }
-            request['stop_price'] = this.priceToPrecision(symbol, stopPrice);
+            else if (type === 'market') {
+                request['type'] = 'stopMarket';
+            }
+        }
+        else if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
+            throw new errors.ExchangeError(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
@@ -2093,6 +2103,7 @@ class hitbtc extends hitbtc$1 {
         if (marginMode !== undefined) {
             method = 'privatePostMarginOrder';
         }
+        params = this.omit(params, ['triggerPrice', 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'reduceOnly']);
         const response = await this[method](this.extend(request, query));
         return this.parseOrder(response, market);
     }
@@ -2197,6 +2208,7 @@ class hitbtc extends hitbtc$1 {
         const postOnly = this.safeValue(order, 'post_only');
         const timeInForce = this.safeString(order, 'time_in_force');
         const rawTrades = this.safeValue(order, 'trades');
+        const stopPrice = this.safeString(order, 'stop_price');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -2204,6 +2216,7 @@ class hitbtc extends hitbtc$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'price': price,
             'amount': amount,
@@ -2219,6 +2232,10 @@ class hitbtc extends hitbtc$1 {
             'average': average,
             'trades': rawTrades,
             'fee': undefined,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
         }, market);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {

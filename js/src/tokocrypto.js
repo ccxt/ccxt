@@ -791,13 +791,19 @@ export default class tokocrypto extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
-            'symbol': market['baseId'] + market['quoteId'],
-        };
+        const request = {};
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        const response = await this.binanceGetDepth(this.extend(request, params));
+        let response = undefined;
+        if (market['quote'] === 'USDT') {
+            request['symbol'] = market['baseId'] + market['quoteId'];
+            response = await this.binanceGetDepth(this.extend(request, params));
+        }
+        else {
+            request['symbol'] = market['id'];
+            response = await this.publicGetOpenV1MarketDepth(this.extend(request, params));
+        }
         //
         // future
         //
@@ -816,9 +822,21 @@ export default class tokocrypto extends Exchange {
         //             ["2493.71","12.054"],
         //         ]
         //     }
-        const timestamp = this.safeInteger(response, 'T');
-        const orderbook = this.parseOrderBook(response, symbol, timestamp);
-        orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
+        // type not 1
+        //     {
+        //         "code":0,
+        //         "msg":"Success",
+        //         "data":{
+        //            "lastUpdateId":3204783,
+        //            "bids":[],
+        //            "asks": []
+        //         },
+        //         "timestamp":1692262634599
+        //     }
+        const data = this.safeValue(response, 'data', response);
+        const timestamp = this.safeInteger2(response, 'T', 'timestamp');
+        const orderbook = this.parseOrderBook(data, symbol, timestamp);
+        orderbook['nonce'] = this.safeInteger(data, 'lastUpdateId');
         return orderbook;
     }
     parseTrade(trade, market = undefined) {
@@ -984,12 +1002,20 @@ export default class tokocrypto extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': this.getMarketIdByType(market),
             // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
+        if (market['quote'] !== 'USDT') {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const responseInner = this.publicGetOpenV1MarketTrades(this.extend(request, params));
+            const data = this.safeValue(responseInner, 'data', {});
+            return this.parseTrades(data, market, since, limit);
+        }
         const defaultMethod = 'binanceGetTrades';
         const method = this.safeString(this.options, 'fetchTradesMethod', defaultMethod);
         if ((method === 'binanceGetAggTrades') && (since !== undefined)) {
@@ -1143,6 +1169,12 @@ export default class tokocrypto extends Exchange {
         const response = await this[method](params);
         return this.parseTickers(response, symbols);
     }
+    getMarketIdByType(market) {
+        if (market['quote'] === 'USDT') {
+            return market['baseId'] + market['quoteId'];
+        }
+        return market['id'];
+    }
     async fetchTicker(symbol, params = {}) {
         /**
          * @method
@@ -1256,7 +1288,7 @@ export default class tokocrypto extends Exchange {
             request['pair'] = market['id']; // Index price takes this argument instead of symbol
         }
         else {
-            request['symbol'] = market['baseId'] + market['quoteId'];
+            request['symbol'] = this.getMarketIdByType(market);
         }
         // const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
@@ -1265,7 +1297,13 @@ export default class tokocrypto extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.binanceGetKlines(this.extend(request, params));
+        let response = undefined;
+        if (market['quote'] === 'USDT') {
+            response = await this.binanceGetKlines(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetOpenV1MarketKlines(this.extend(request, params));
+        }
         //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -1273,7 +1311,8 @@ export default class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const data = this.safeValue(response, 'data', response);
+        return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchBalance(params = {}) {
         /**

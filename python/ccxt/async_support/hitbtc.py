@@ -1926,6 +1926,9 @@ class hitbtc(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://api.hitbtc.com/#create-new-spot-order
+        see https://api.hitbtc.com/#create-margin-order
+        see https://api.hitbtc.com/#create-futures-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1934,10 +1937,12 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if self is set
         :param bool [params.margin]: True for creating a margin order
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
+        isLimit = (type == 'limit')
         request = {
             'type': type,
             'side': side,
@@ -1962,20 +1967,23 @@ class hitbtc(Exchange, ImplicitAPI):
         if reduceOnly is True:
             request['reduce_only'] = reduceOnly
         timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
-        expireTime = self.safe_string(params, 'expire_time')
-        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
-        if (type == 'limit') or (type == 'stopLimit') or (type == 'takeProfitLimit'):
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
+        if isLimit or (type == 'stopLimit') or (type == 'takeProfitLimit'):
             if price is None:
                 raise ExchangeError(self.id + ' createOrder() requires a price argument for limit orders')
             request['price'] = self.price_to_precision(symbol, price)
         if (timeInForce == 'GTD'):
+            expireTime = self.safe_string(params, 'expire_time')
             if expireTime is None:
                 raise ExchangeError(self.id + ' createOrder() requires an expire_time parameter for a GTD order')
-            request['expire_time'] = expireTime
-        if (type == 'stopLimit') or (type == 'stopMarket') or (type == 'takeProfitLimit') or (type == 'takeProfitMarket'):
-            if stopPrice is None:
-                raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
-            request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+        if triggerPrice is not None:
+            request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
+            if isLimit:
+                request['type'] = 'stopLimit'
+            elif type == 'market':
+                request['type'] = 'stopMarket'
+        elif (type == 'stopLimit') or (type == 'stopMarket') or (type == 'takeProfitLimit') or (type == 'takeProfitMarket'):
+            raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
         marketType = None
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(marketType, {
@@ -1986,6 +1994,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if marginMode is not None:
             method = 'privatePostMarginOrder'
+        params = self.omit(params, ['triggerPrice', 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'reduceOnly'])
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
@@ -2089,6 +2098,7 @@ class hitbtc(Exchange, ImplicitAPI):
         postOnly = self.safe_value(order, 'post_only')
         timeInForce = self.safe_string(order, 'time_in_force')
         rawTrades = self.safe_value(order, 'trades')
+        stopPrice = self.safe_string(order, 'stop_price')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2096,6 +2106,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'price': price,
             'amount': amount,
@@ -2111,6 +2122,10 @@ class hitbtc(Exchange, ImplicitAPI):
             'average': average,
             'trades': rawTrades,
             'fee': None,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'takeProfitPrice': None,
+            'stopLossPrice': None,
         }, market)
 
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
