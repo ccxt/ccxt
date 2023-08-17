@@ -1170,6 +1170,7 @@ export default class poloniex extends Exchange {
             request['limit'] = limit;
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
         let response = undefined;
         if (isTrigger) {
             response = await this.privateGetSmartorders (this.extend (request, params));
@@ -1344,8 +1345,8 @@ export default class poloniex extends Exchange {
             id = clientOrderId;
         }
         request['id'] = id;
-        params = this.omit (params, 'clientOrderId');
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'clientOrderId', 'trigger', 'stop' ]);
         let response = undefined;
         if (isTrigger) {
             response = await this.privateDeleteSmartordersId (this.extend (request, params));
@@ -1387,6 +1388,7 @@ export default class poloniex extends Exchange {
             ];
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
         let response = undefined;
         if (isTrigger) {
             response = await this.privateDeleteSmartorders (this.extend (request, params));
@@ -1431,9 +1433,11 @@ export default class poloniex extends Exchange {
             'id': id,
         };
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
         let response = undefined;
         if (isTrigger) {
             response = await this.privateGetSmartordersId (this.extend (request, params));
+            response = this.safeValue (response, 0);
         } else {
             response = await this.privateGetOrdersId (this.extend (request, params));
         }
