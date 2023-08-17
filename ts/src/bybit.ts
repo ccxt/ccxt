@@ -3018,6 +3018,9 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
+         * @see https://bybit-exchange.github.io/docs/v5/asset/all-balance
+         * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -3425,6 +3428,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3451,9 +3455,6 @@ export default class bybit extends Exchange {
          * @name bybit#createOrder
          * @description create a trade order
          * @see https://bybit-exchange.github.io/docs/v5/order/create-order
-         * @see https://bybit-exchange.github.io/docs/spot/trade/place-order
-         * @see https://bybit-exchange.github.io/docs/derivatives/unified/place-order
-         * @see https://bybit-exchange.github.io/docs/derivatives/contract/place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -4025,6 +4026,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#cancelOrder
          * @description cancels an open order
+         * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bybit api endpoint
@@ -4052,6 +4054,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#cancelAllOrders
          * @description cancel all open orders
+         * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -4153,6 +4156,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -4277,6 +4281,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -4295,6 +4300,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
@@ -4313,6 +4319,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://bybit-exchange.github.io/docs/v5/order/open-order
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -4430,6 +4437,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://bybit-exchange.github.io/docs/v5/position/execution
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -4454,6 +4462,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/position/execution
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -5234,6 +5243,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://bybit-exchange.github.io/docs/v5/position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -5318,6 +5328,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchPositions
          * @description fetch all open positions
+         * @see https://bybit-exchange.github.io/docs/v5/position
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -5660,6 +5671,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#setLeverage
          * @description set the level of leverage for a market
+         * @see https://bybit-exchange.github.io/docs/v5/position/leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bybit api endpoint
@@ -5701,7 +5713,6 @@ export default class bybit extends Exchange {
          * @name bybit#setPositionMode
          * @description set hedged to true or false for a market
          * @see https://bybit-exchange.github.io/docs/v5/position/position-mode
-         * @see https://bybit-exchange.github.io/docs/derivatives/contract/position-mode
          * @param {bool} hedged
          * @param {string} symbol used for unified account with inverse market
          * @param {object} [params] extra parameters specific to the bybit api endpoint
