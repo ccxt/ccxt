@@ -2453,11 +2453,6 @@ export default class bitget extends Exchange {
         // @see https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
         // @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-data
         // @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
-        // <<<<<<< HEAD
-        // @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
-        // @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-data
-        // =======
-        // >>>>>>> acac971d5ccb52dd74ff645f0defb01621554406
         // @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-candle-data
         // @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-index-candle-data
         // @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-mark-candle-data
