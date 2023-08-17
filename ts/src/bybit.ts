@@ -1236,14 +1236,6 @@ export default class bybit extends Exchange {
         return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
     }
 
-    async upgradeUnifiedAccount (params = {}) {
-        const createUnifiedMarginAccount = this.safeValue (this.options, 'createUnifiedMarginAccount');
-        if (!createUnifiedMarginAccount) {
-            throw new NotSupported (this.id + ' upgradeUnifiedAccount() warning this method can only be called once, it is not reverseable and you will be stuck with a unified margin account, you also need at least 5000 USDT in your bybit account to do this. If you want to disable this warning set exchange.options["createUnifiedMarginAccount"]=true.');
-        }
-        return await this.privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount (params);
-    }
-
     async upgradeUnifiedTradeAccount (params = {}) {
         return await this.privatePostV5AccountUpgradeToUta (params);
     }
