@@ -1095,6 +1095,7 @@ export default class poloniex extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const triggerPrice = this.safeString (order, 'triggerPrice', 'stopPrice');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1109,8 +1110,8 @@ export default class poloniex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'cost': undefined,
             'average': this.safeString (order, 'avgPrice'),
             'amount': amount,
@@ -1168,7 +1169,13 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateGetSmartorders (this.extend (request, params));
+        } else {
+            response = await this.privateGetOrders (this.extend (request, params));
+        }
         //
         //     [
         //         {
@@ -1186,6 +1193,7 @@ export default class poloniex extends Exchange {
         //             "amount" : "0",
         //             "filledQuantity" : "0",
         //             "filledAmount" : "0",
+        //             "stopPrice": "3750.00",              // for trigger orders
         //             "createTime" : 16xxxxxxxxx26,
         //             "updateTime" : 16xxxxxxxxx36
         //         }
@@ -1410,7 +1418,13 @@ export default class poloniex extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateGetSmartorders (this.extend (request, params));
+        } else {
+            response = await this.privateGetOrdersId (this.extend (request, params));
+        }
         //
         //     {
         //         "id": "21934611974062080",
@@ -1427,6 +1441,7 @@ export default class poloniex extends Exchange {
         //         "amount": "0.00",
         //         "filledQuantity": "0.00",
         //         "filledAmount": "0.00",
+        //         "stopPrice": "3750.00",              // for trigger orders
         //         "createTime": 1646196019020,
         //         "updateTime": 1646196019020
         //     }
