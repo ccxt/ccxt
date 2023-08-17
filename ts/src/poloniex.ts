@@ -1218,15 +1218,21 @@ export default class poloniex extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request = {
+        let request = {
             'symbol': market['id'],
             'side': side,
             // 'timeInForce': timeInForce,
             // 'accountType': 'SPOT',
             // 'amount': amount,
         };
-        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
-        let response = await this.privatePostOrders (this.extend (orderRequest[0], orderRequest[1]));
+        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        [ request, params ] = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = undefined;
+        if (triggerPrice !== undefined) {
+            response = await this.privatePostSmartorders (this.extend (request, params));
+        } else {
+            response = await this.privatePostOrders (this.extend (request, params));
+        }
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1244,9 +1250,13 @@ export default class poloniex extends Exchange {
         let upperCaseType = type.toUpperCase ();
         const isMarket = upperCaseType === 'MARKET';
         const isPostOnly = this.isPostOnly (isMarket, upperCaseType === 'LIMIT_MAKER', params);
-        if (isPostOnly) {
+        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        params = this.omit (params, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
+        if (triggerPrice !== undefined) {
+            upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
+            request['stopPrice'] = triggerPrice;
+        } else if (isPostOnly) {
             upperCaseType = 'LIMIT_MAKER';
-            params = this.omit (params, 'postOnly');
         }
         request['type'] = upperCaseType;
         if (isMarket) {
