@@ -1000,7 +1000,7 @@ export default class bitget extends Exchange {
                     'spot': {
                         'method': 'publicSpotGetMarketCandles', // or publicSpotGetMarketHistoryCandles
                     },
-                    'swap:': {
+                    'swap': {
                         'method': 'publicMixGetMarketCandles', // or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
                     },
                 },
@@ -2456,30 +2456,31 @@ export default class bitget extends Exchange {
             }
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
-        const ommitted = this.omit (params, [ 'until', 'till' ]);
-        const extended = this.extend (request, ommitted);
+        params = this.omit (params, [ 'until', 'till' ]);
         let response = undefined;
         if (market['spot']) {
             const spotOptions = this.safeValue (options, 'spot', {});
-            const defaultSpotMethod = this.safeString (params, 'method', 'publicSpotGetMarketCandles');
-            const method = this.safeString (spotOptions, 'method', defaultSpotMethod);
+            const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetMarketCandles');
+            const method = this.safeString (params, 'method', defaultSpotMethod);
+            params = this.omit (params, 'method');
             if (method === 'publicSpotGetMarketCandles') {
-                response = await this.publicSpotGetMarketCandles (extended);
+                response = await this.publicSpotGetMarketCandles (this.extend (request, params));
             } else if (method === 'publicSpotGetMarketHistoryCandles') {
-                response = await this.publicSpotGetMarketHistoryCandles (extended);
+                response = await this.publicSpotGetMarketHistoryCandles (this.extend (request, params));
             }
         } else {
             const swapOptions = this.safeValue (options, 'swap', {});
-            const defaultSwapMethod = this.safeString (params, 'method', 'publicMixGetMarketCandles');
-            const swapMethod = this.safeString (swapOptions, 'method', defaultSwapMethod);
+            const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetMarketCandles');
+            const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
+            params = this.omit (params, 'method');
             if (swapMethod === 'publicMixGetMarketCandles') {
-                response = await this.publicMixGetMarketCandles (extended);
+                response = await this.publicMixGetMarketCandles (this.extend (request, params));
             } else if (swapMethod === 'publicMixGetMarketHistoryCandles') {
-                response = await this.publicMixGetMarketHistoryCandles (extended);
+                response = await this.publicMixGetMarketHistoryCandles (this.extend (request, params));
             } else if (swapMethod === 'publicMixGetMarketHistoryIndexCandles') {
-                response = await this.publicMixGetMarketHistoryIndexCandles (extended);
+                response = await this.publicMixGetMarketHistoryIndexCandles (this.extend (request, params));
             } else if (swapMethod === 'publicMixGetMarketHistoryMarkCandles') {
-                response = await this.publicMixGetMarketHistoryMarkCandles (extended);
+                response = await this.publicMixGetMarketHistoryMarkCandles (this.extend (request, params));
             }
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
