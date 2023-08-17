@@ -6047,8 +6047,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
-         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-createinternaltransfer
+         * @see https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -6064,27 +6063,14 @@ export default class bybit extends Exchange {
         const toId = this.safeString (accountTypes, toAccount, toAccount);
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'transfer', 'method', 'privatePostAssetV1PrivateTransfer'); // v1 preferred atm, because it supports funding
-        let request = undefined;
-        if (method === 'privatePostAssetV3PrivateTransferInterTransfer' || method === 'privatePostV5AssetTransferInterTransfer') {
-            request = {
-                'transferId': transferId,
-                'fromAccountType': fromId,
-                'toAccountType': toId,
-                'coin': currency['id'],
-                'amount': amountToPrecision,
-            };
-        } else {
-            request = {
-                'transfer_id': transferId,
-                'from_account_type': fromId,
-                'to_account_type': toId,
-                'coin': currency['id'],
-                'amount': amountToPrecision,
-            };
-        }
-        const response = await this[method] (this.extend (request, params));
+        const request = {
+            'transferId': transferId,
+            'fromAccountType': fromId,
+            'toAccountType': toId,
+            'coin': currency['id'],
+            'amount': amountToPrecision,
+        };
+        const response = await this.privatePostV5AssetTransferInterTransfer (this.extend (request, params));
         //
         // {
         //     "retCode": 0,
@@ -6096,9 +6082,9 @@ export default class bybit extends Exchange {
         //     "time": 1666875857205
         // }
         //
-        const timestamp = this.safeInteger2 (response, 'time', 'time_now');
+        const timestamp = this.safeInteger (response, 'time');
         const transfer = this.safeValue (response, 'result', {});
-        const statusRaw = this.safeStringN (response, [ 'retCode', 'retMsg', 'ret_code', 'ret_msg' ]);
+        const statusRaw = this.safeStringN (response, [ 'retCode', 'retMsg' ]);
         const status = this.parseTransferStatus (statusRaw);
         return this.extend (this.parseTransfer (transfer, currency), {
             'timestamp': timestamp,
