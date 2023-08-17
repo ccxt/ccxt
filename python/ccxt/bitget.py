@@ -2390,8 +2390,9 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         until = self.safe_integer_2(params, 'until', 'till')
+        limitIsUndefined = (limit is None)
         if limit is None:
-            limit = 1000
+            limit = 200
         request['limit'] = limit
         marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
@@ -2427,6 +2428,8 @@ class bitget(Exchange, ImplicitAPI):
             method = self.safe_string(params, 'method', defaultSpotMethod)
             params = self.omit(params, 'method')
             if method == 'publicSpotGetMarketCandles':
+                if limitIsUndefined:
+                    request['limit'] = 1000
                 response = self.publicSpotGetMarketCandles(self.extend(request, params))
             elif method == 'publicSpotGetMarketHistoryCandles':
                 response = self.publicSpotGetMarketHistoryCandles(self.extend(request, params))
@@ -2441,6 +2444,8 @@ class bitget(Exchange, ImplicitAPI):
             elif (priceType == 'index') or (swapMethod == 'publicMixGetMarketHistoryIndexCandles'):
                 response = self.publicMixGetMarketHistoryIndexCandles(self.extend(request, params))
             elif swapMethod == 'publicMixGetMarketCandles':
+                if limitIsUndefined:
+                    request['limit'] = 1000
                 response = self.publicMixGetMarketCandles(self.extend(request, params))
             elif swapMethod == 'publicMixGetMarketHistoryCandles':
                 response = self.publicMixGetMarketHistoryCandles(self.extend(request, params))

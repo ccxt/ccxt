@@ -2435,8 +2435,9 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         $until = $this->safe_integer_2($params, 'until', 'till');
+        $limitIsUndefined = ($limit === null);
         if ($limit === null) {
-            $limit = 1000;
+            $limit = 200;
         }
         $request['limit'] = $limit;
         $marketType = $market['spot'] ? 'spot' : 'swap';
@@ -2479,6 +2480,9 @@ class bitget extends Exchange {
             $method = $this->safe_string($params, 'method', $defaultSpotMethod);
             $params = $this->omit($params, 'method');
             if ($method === 'publicSpotGetMarketCandles') {
+                if ($limitIsUndefined) {
+                    $request['limit'] = 1000;
+                }
                 $response = $this->publicSpotGetMarketCandles (array_merge($request, $params));
             } elseif ($method === 'publicSpotGetMarketHistoryCandles') {
                 $response = $this->publicSpotGetMarketHistoryCandles (array_merge($request, $params));
@@ -2494,6 +2498,9 @@ class bitget extends Exchange {
             } elseif (($priceType === 'index') || ($swapMethod === 'publicMixGetMarketHistoryIndexCandles')) {
                 $response = $this->publicMixGetMarketHistoryIndexCandles (array_merge($request, $params));
             } elseif ($swapMethod === 'publicMixGetMarketCandles') {
+                if ($limitIsUndefined) {
+                    $request['limit'] = 1000;
+                }
                 $response = $this->publicMixGetMarketCandles (array_merge($request, $params));
             } elseif ($swapMethod === 'publicMixGetMarketHistoryCandles') {
                 $response = $this->publicMixGetMarketHistoryCandles (array_merge($request, $params));

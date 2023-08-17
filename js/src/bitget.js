@@ -2454,8 +2454,9 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         const until = this.safeInteger2(params, 'until', 'till');
+        const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
-            limit = 1000;
+            limit = 200;
         }
         request['limit'] = limit;
         const marketType = market['spot'] ? 'spot' : 'swap';
@@ -2501,6 +2502,9 @@ export default class bitget extends Exchange {
             const method = this.safeString(params, 'method', defaultSpotMethod);
             params = this.omit(params, 'method');
             if (method === 'publicSpotGetMarketCandles') {
+                if (limitIsUndefined) {
+                    request['limit'] = 1000;
+                }
                 response = await this.publicSpotGetMarketCandles(this.extend(request, params));
             }
             else if (method === 'publicSpotGetMarketHistoryCandles') {
@@ -2520,6 +2524,9 @@ export default class bitget extends Exchange {
                 response = await this.publicMixGetMarketHistoryIndexCandles(this.extend(request, params));
             }
             else if (swapMethod === 'publicMixGetMarketCandles') {
+                if (limitIsUndefined) {
+                    request['limit'] = 1000;
+                }
                 response = await this.publicMixGetMarketCandles(this.extend(request, params));
             }
             else if (swapMethod === 'publicMixGetMarketHistoryCandles') {
