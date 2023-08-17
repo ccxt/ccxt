@@ -5670,46 +5670,29 @@ export default class bybit extends Exchange {
         const market = this.market (symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        const isUsdcSettled = market['settle'] === 'USDC';
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        const isUsdcSettled = market['settle'] === 'USDC';
         // engage in leverage setting
         // we reuse the code here instead of having two methods
         leverage = this.numberToString (leverage);
-        let method = undefined;
-        let request = undefined;
-        if (enableUnifiedMargin || enableUnifiedAccount || !isUsdcSettled) {
-            request = {
-                'symbol': market['id'],
-                'buyLeverage': leverage,
-                'sellLeverage': leverage,
-            };
-            if (enableUnifiedAccount) {
-                if (market['linear']) {
-                    request['category'] = 'linear';
-                } else {
-                    throw new NotSupported (this.id + ' setUnifiedMarginLeverage() leverage doesn\'t support inverse and option market in unified account');
-                }
-                method = 'privatePostV5PositionSetLeverage';
-            } else if (enableUnifiedMargin) {
-                if (market['option']) {
-                    request['category'] = 'option';
-                } else if (market['linear']) {
-                    request['category'] = 'linear';
-                } else {
-                    throw new NotSupported (this.id + ' setUnifiedMarginLeverage() leverage doesn\'t support inverse market in unified margin');
-                }
-                method = 'privatePostUnifiedV3PrivatePositionSetLeverage';
-            } else {
-                method = 'privatePostContractV3PrivatePositionSetLeverage';
-            }
+        const request = {
+            'symbol': market['id'],
+            'buyLeverage': leverage,
+            'sellLeverage': leverage,
+        };
+        if (isUsdcSettled && !isUnifiedAccount) {
+            throw new NotSupported (this.id + ' createOrder() Normal Account not support USDC contract');
         } else {
-            request = {
-                'symbol': market['id'],
-                'leverage': leverage,
-            };
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
+            if (market['linear']) {
+                request['category'] = 'linear';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else {
+                throw new NotSupported (this.id + ' setLeverage() only support linear and inverse market');
+            }
         }
-        return await this[method] (this.extend (request, params));
+        return await this.privatePostV5PositionSetLeverage (this.extend (request, params));
     }
 
     async setPositionMode (hedged, symbol: string = undefined, params = {}) {
