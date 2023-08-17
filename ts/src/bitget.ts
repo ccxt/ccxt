@@ -1004,6 +1004,14 @@ export default class bitget extends Exchange {
                         'method': 'publicMixGetMarketCandles', // or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
                     },
                 },
+                'fetchTrades': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketFillsHistory', // or publicSpotGetMarketFills
+                    },
+                    'swap': {
+                        'method': 'publicMixGetMarketFillsHistory', // or publicMixGetMarketFills
+                    },
+                },
                 'accountsByType': {
                     'main': 'EXCHANGE',
                     'spot': 'EXCHANGE',
@@ -2224,9 +2232,11 @@ export default class bitget extends Exchange {
          * @description get the list of most recent trades for a particular symbol
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-market-trades
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-fills
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-recent-trades
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-recent-fills
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch, default 500, max 1000
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -2241,12 +2251,28 @@ export default class bitget extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const extended = this.extend (request, params);
+        const options = this.safeValue (this.options, 'fetchTrades', {});
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicSpotGetMarketFillsHistory (extended);
+            const spotOptions = this.safeValue (options, 'spot', {});
+            const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetMarketFillsHistory');
+            const spotMethod = this.safeString (params, 'method', defaultSpotMethod);
+            params = this.omit (params, 'method');
+            if (spotMethod === 'publicSpotGetMarketFillsHistory') {
+                response = await this.publicSpotGetMarketFillsHistory (this.extend (request, params));
+            } else if (spotMethod === 'publicSpotGetMarketFills') {
+                response = await this.publicSpotGetMarketFills (this.extend (request, params));
+            }
         } else {
-            response = await this.publicMixGetMarketFillsHistory (extended);
+            const swapOptions = this.safeValue (options, 'swap', {});
+            const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetMarketFillsHistory');
+            const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
+            params = this.omit (params, 'method');
+            if (swapMethod === 'publicMixGetMarketFillsHistory') {
+                response = await this.publicMixGetMarketFillsHistory (this.extend (request, params));
+            } else if (swapMethod === 'publicMixGetMarketFills') {
+                response = await this.publicMixGetMarketFills (this.extend (request, params));
+            }
         }
         //
         // spot
