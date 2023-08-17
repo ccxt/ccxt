@@ -91,7 +91,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactionFee': False,
                 'fetchTransactionFees': False,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
@@ -2256,13 +2256,12 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.fetch_transactions(code, since, limit, self.extend(request, params))
 
-    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the ascendex api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
@@ -2436,7 +2435,7 @@ class ascendex(Exchange, ImplicitAPI):
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -2496,6 +2495,8 @@ class ascendex(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': self.safe_integer(position, 'leverage'),
             'marginRatio': None,
+            'stopLossPrice': self.safe_number(position, 'stopLossPrice'),
+            'takeProfitPrice': self.safe_number(position, 'takeProfitPrice'),
         })
 
     def parse_funding_rate(self, contract, market=None):

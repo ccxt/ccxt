@@ -80,7 +80,7 @@ export default class novadax extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -1273,7 +1273,7 @@ export default class novadax extends Exchange {
         const request = {
             'type': 'coin_in',
         };
-        return await this.fetchTransactions(code, since, limit, this.extend(request, params));
+        return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, params));
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1290,18 +1290,17 @@ export default class novadax extends Exchange {
         const request = {
             'type': 'coin_out',
         };
-        return await this.fetchTransactions(code, since, limit, this.extend(request, params));
+        return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, params));
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name novadax#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
+         * @name novadax#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
          * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the novadax api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -1371,7 +1370,7 @@ export default class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        // fetchTransactions
+        // fetchDepositsWithdrawals
         //
         //     {
         //         "id": "DR562339304588709888",

@@ -171,6 +171,36 @@ export interface DepositAddressResponse {
     info: any;
     tag?: string;
 }
+export interface Position {
+    symbol: string;
+    id: string;
+    timestamp?: number;
+    datetime: string;
+    contracts?: number;
+    contractsSize?: number;
+    side: string;
+    notional?: number;
+    leverage?: number;
+    unrealizedPnl?: number;
+    realizedPnl?: number;
+    collateral?: number;
+    entryPrice?: number;
+    markPrice?: number;
+    liquidationPrice?: number;
+    hedged?: boolean;
+    maintenanceMargin?: number;
+    maintenanceMarginPercentage?: number;
+    initialMargin?: number;
+    initialMarginPercentage?: number;
+    marginMode: string;
+    marginRatio?: number;
+    lastUpdateTimestamp?: number;
+    lastPrice?: number;
+    percentage?: number;
+    stopLossPrice?: number;
+    takeProfitPrice?: number;
+    info: any;
+}
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [number, number, number, number, number, number];
 /** [ timestamp, open, high, low, close, volume, count ] */

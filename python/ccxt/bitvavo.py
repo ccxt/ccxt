@@ -283,12 +283,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'BITVAVO-ACCESS-WINDOW': 10000,  # default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                },
-                'networksById': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,
@@ -462,7 +457,7 @@ class bitvavo(Exchange, ImplicitAPI):
             withdrawal = (self.safe_value(currency, 'withdrawalStatus') == 'OK')
             active = deposit and withdrawal
             withdrawFee = self.safe_number(currency, 'withdrawalFee')
-            precision = self.safe_number(currency, 'decimals', 8)
+            precision = self.safe_integer(currency, 'decimals', 8)
             minWithdraw = self.safe_number(currency, 'withdrawalMinAmount')
             # absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
             if isOneNetwork:

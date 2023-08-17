@@ -109,7 +109,7 @@ class currencycom(Exchange, ImplicitAPI):
                 'fetchTradingLimits': None,
                 'fetchTransactionFee': None,
                 'fetchTransactionFees': None,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchTransfers': None,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
@@ -1486,13 +1486,12 @@ class currencycom(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
 
-    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the currencycom api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
@@ -1775,41 +1774,69 @@ class currencycom(Exchange, ImplicitAPI):
         self.load_markets()
         response = self.privateGetV2TradingPositions(params)
         #
-        # {
-        #     "positions": [
-        #       {
-        #         "accountId": "109698017416453793",
-        #         "id": "00a18490-0079-54c4-0000-0000803e73d3",
-        #         "instrumentId": "45463225268524228",
-        #         "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
-        #         "openQuantity": "13.6",
-        #         "openPrice": "0.75724",
-        #         "closeQuantity": "0.0",
-        #         "closePrice": "0",
-        #         "rpl": "-0.007723848",
-        #         "rplConverted": "0",
-        #         "upl": "-0.006664",
-        #         "uplConverted": "-0.006664",
-        #         "swap": "0",
-        #         "swapConverted": "0",
-        #         "fee": "-0.007723848",
-        #         "dividend": "0",
-        #         "margin": "0.2",
-        #         "state": "ACTIVE",
-        #         "currency": "USD",
-        #         "createdTimestamp": "1645473877236",
-        #         "openTimestamp": "1645473877193",
-        #         "type": "NET",
-        #         "cost": "2.0583600",
-        #         "symbol": "XRP/USD_LEVERAGE"
-        #       }
-        #     ]
-        # }
+        #    {
+        #        "positions": [
+        #          {
+        #            "accountId": "109698017416453793",
+        #            "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        #            "instrumentId": "45463225268524228",
+        #            "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        #            "openQuantity": "13.6",
+        #            "openPrice": "0.75724",
+        #            "closeQuantity": "0.0",
+        #            "closePrice": "0",
+        #            "rpl": "-0.007723848",
+        #            "rplConverted": "0",
+        #            "upl": "-0.006664",
+        #            "uplConverted": "-0.006664",
+        #            "swap": "0",
+        #            "swapConverted": "0",
+        #            "fee": "-0.007723848",
+        #            "dividend": "0",
+        #            "margin": "0.2",
+        #            "state": "ACTIVE",
+        #            "currency": "USD",
+        #            "createdTimestamp": "1645473877236",
+        #            "openTimestamp": "1645473877193",
+        #            "type": "NET",
+        #            "cost": "2.0583600",
+        #            "symbol": "XRP/USD_LEVERAGE"
+        #          }
+        #        ]
+        #    }
         #
         data = self.safe_value(response, 'positions', [])
         return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
+        #
+        #    {
+        #        "accountId": "109698017416453793",
+        #        "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        #        "instrumentId": "45463225268524228",
+        #        "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        #        "openQuantity": "13.6",
+        #        "openPrice": "0.75724",
+        #        "closeQuantity": "0.0",
+        #        "closePrice": "0",
+        #        "rpl": "-0.007723848",
+        #        "rplConverted": "0",
+        #        "upl": "-0.006664",
+        #        "uplConverted": "-0.006664",
+        #        "swap": "0",
+        #        "swapConverted": "0",
+        #        "fee": "-0.007723848",
+        #        "dividend": "0",
+        #        "margin": "0.2",
+        #        "state": "ACTIVE",
+        #        "currency": "USD",
+        #        "createdTimestamp": "1645473877236",
+        #        "openTimestamp": "1645473877193",
+        #        "type": "NET",
+        #        "cost": "2.0583600",
+        #        "symbol": "XRP/USD_LEVERAGE"
+        #    }
+        #
         market = self.safe_market(self.safe_string(position, 'symbol'), market)
         symbol = market['symbol']
         timestamp = self.safe_number(position, 'createdTimestamp')
@@ -1821,6 +1848,7 @@ class currencycom(Exchange, ImplicitAPI):
         marginCoeff = self.safe_string(position, 'margin')
         leverage = Precise.string_div('1', marginCoeff)
         return self.safe_position({
+            'info': position,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1844,8 +1872,11 @@ class currencycom(Exchange, ImplicitAPI):
             'maintenanceMargin': self.parse_number(marginCoeff),
             'maintenanceMarginPercentage': None,
             'marginRatio': None,
-            'info': position,
             'id': None,
+            'unrealizedPnl': None,
+            'hedged': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

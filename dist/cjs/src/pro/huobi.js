@@ -633,13 +633,14 @@ class huobi extends huobi$1 {
          * @method
          * @name huobi#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         this.checkRequiredCredentials();
+        await this.loadMarkets();
         let type = undefined;
         let marketId = '*'; // wildcard
         let market = undefined;
@@ -648,7 +649,6 @@ class huobi extends huobi$1 {
         let trades = undefined;
         let subType = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets();
             market = this.market(symbol);
             symbol = market['symbol'];
             type = market['type'];
@@ -1182,7 +1182,7 @@ class huobi extends huobi$1 {
         /**
          * @method
          * @name huobi#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -1630,7 +1630,7 @@ class huobi extends huobi$1 {
             this.handleMyTrade(client, message);
             return;
         }
-        if (privateType.indexOf('accounts.update') !== -1) {
+        if (privateType.indexOf('accounts.update') >= 0) {
             this.handleBalance(client, message);
             return;
         }
@@ -1642,10 +1642,10 @@ class huobi extends huobi$1 {
         const op = this.safeString(message, 'op');
         if (op === 'notify') {
             const topic = this.safeString(message, 'topic', '');
-            if (topic.indexOf('orders') !== -1) {
+            if (topic.indexOf('orders') >= 0) {
                 this.handleOrder(client, message);
             }
-            if (topic.indexOf('account') !== -1) {
+            if (topic.indexOf('account') >= 0) {
                 this.handleBalance(client, message);
             }
         }
@@ -1704,8 +1704,8 @@ class huobi extends huobi$1 {
         //        data: { 'user-id': '35930539' }
         //    }
         //
-        client.resolve(message, 'auth');
-        return message;
+        const promise = client.futures['authenticated'];
+        promise.resolve(message);
     }
     handleErrorMessage(client, message) {
         //
@@ -2068,7 +2068,7 @@ class huobi extends huobi$1 {
         return await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
     }
     async subscribePrivate(channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
-        const requestId = this.nonce();
+        const requestId = this.requestId();
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
@@ -2111,12 +2111,12 @@ class huobi extends huobi$1 {
             throw new errors.ArgumentsRequired(this.id + ' authenticate requires a url, hostname and type argument');
         }
         this.checkRequiredCredentials();
-        const messageHash = 'auth';
+        const messageHash = 'authenticated';
         const relativePath = url.replace('wss://' + hostname, '');
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future(messageHash);
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.ymdhms(this.milliseconds(), 'T');
             let signatureParams = undefined;
             if (type === 'spot') {
@@ -2152,12 +2152,12 @@ class huobi extends huobi$1 {
                 request = {
                     'params': params,
                     'action': 'req',
-                    'ch': messageHash,
+                    'ch': 'auth',
                 };
             }
             else {
                 request = {
-                    'op': messageHash,
+                    'op': 'auth',
                     'type': 'api',
                     'AccessKeyId': this.apiKey,
                     'SignatureMethod': 'HmacSHA256',
@@ -2166,9 +2166,15 @@ class huobi extends huobi$1 {
                     'Signature': signature,
                 };
             }
-            await this.watch(url, messageHash, request, messageHash, future);
+            const requestId = this.requestId();
+            const subscription = {
+                'id': requestId,
+                'messageHash': messageHash,
+                'params': params,
+            };
+            this.watch(url, messageHash, request, messageHash, subscription);
         }
-        return await future;
+        return future;
     }
 }
 

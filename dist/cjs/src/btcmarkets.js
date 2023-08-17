@@ -65,7 +65,7 @@ class btcmarkets extends btcmarkets$1 {
                 'fetchTicker': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -186,15 +186,14 @@ class btcmarkets extends btcmarkets$1 {
         const response = await this[method](this.extend(request, params));
         return this.parseTransactions(response, currency, since, limit);
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name btcmarkets#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name btcmarkets#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the btcmarkets api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */

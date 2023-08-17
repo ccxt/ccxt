@@ -33,7 +33,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                 'wsSessionToken' => '',
                 'watchOrderBook' => array(
                     'snapshotDelay' => 6,
-                    'maxRetries' => 3,
+                    'snapshotMaxRetries' => 3,
                 ),
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,

@@ -434,7 +434,8 @@ class bitget extends \ccxt\async\bitget {
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
             $checksum = $this->safe_value($this->options, 'checksum', true);
-            if ($checksum) {
+            $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a $checksum
+            if (!$isSnapshot && $checksum) {
                 $storedAsks = $storedOrderBook['asks'];
                 $storedBids = $storedOrderBook['bids'];
                 $asksLength = count($storedAsks);
@@ -1021,7 +1022,7 @@ class bitget extends \ccxt\async\bitget {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
              * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~

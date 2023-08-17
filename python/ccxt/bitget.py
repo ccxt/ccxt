@@ -204,8 +204,6 @@ class bitget(Exchange, ImplicitAPI):
                             'cross/public/tierData': 2,  # 10 times/1s(IP) => 20/10 = 2
                             'isolated/public/tierData': 2,  # 10 times/1s(IP) => 20/10 = 2
                             'public/currencies': 1,  # 20 times/1s(IP) => 20/20 = 1
-                            'cross/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'isolated/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
                         },
                     },
                 },
@@ -219,6 +217,8 @@ class bitget(Exchange, ImplicitAPI):
                             'account/assets': 2,
                             'account/assets-lite': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'account/transferRecords': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'convert/currencies': 2,
+                            'convert/convert-record': 2,
                         },
                         'post': {
                             'wallet/transfer': 4,
@@ -247,6 +247,8 @@ class bitget(Exchange, ImplicitAPI):
                             'plan/currentPlan': 1,
                             'plan/historyPlan': 1,
                             'plan/batchCancelPlan': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'convert/quoted-price': 4,
+                            'convert/trade': 4,
                             'trace/order/orderCurrentList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/order/orderHistoryList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/order/closeTrackingOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
@@ -260,6 +262,8 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/user/myFollowers': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/config/setProductCode': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/user/removeTrader': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/getRemovableFollower': 2,
+                            'trace/user/removeFollower': 2,
                             'trace/profit/totalProfitInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/profit/totalProfitList': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/profit/profitHisList': 2,  # 10 times/1s(UID) => 20/10 = 2
@@ -276,6 +280,7 @@ class bitget(Exchange, ImplicitAPI):
                             'position/singlePosition-v2': 2,
                             'position/allPosition': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'position/allPosition-v2': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'position/history-position': 1,
                             'account/accountBill': 2,
                             'account/accountBusinessBill': 4,
                             'order/current': 1,  # 20 times/1s(UID) => 20/20 = 1
@@ -328,6 +333,7 @@ class bitget(Exchange, ImplicitAPI):
                             'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/modifyTPSL': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/closeTrackOrderBySymbol': 2,
                             'trace/setUpCopySymbols': 2,
                             'trace/followerSetBatchTraceConfig': 2,
                             'trace/followerCloseByTrackingNo': 2,
@@ -412,6 +418,8 @@ class bitget(Exchange, ImplicitAPI):
                             'cross/interest/list': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'cross/liquidation/list': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'cross/fin/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'isolated/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
                         },
                         'post': {
                             'cross/account/borrow': 2,  # 10 times/1s(UID) => 20/10 = 2
@@ -421,6 +429,10 @@ class bitget(Exchange, ImplicitAPI):
                             'isolated/account/riskRate': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'cross/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'isolated/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/flashRepay': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/queryFlashRepayStatus': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/flashRepay': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/queryFlashRepayStatus': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'isolated/order/placeOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'isolated/order/batchPlaceOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'isolated/order/cancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
@@ -1005,6 +1017,14 @@ class bitget(Exchange, ImplicitAPI):
                 'withdraw': {
                     'fillResponseFromRequest': True,
                 },
+                'fetchOHLCV': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketCandles',  # or publicSpotGetMarketHistoryCandles
+                    },
+                    'swap:': {
+                        'method': 'publicMixGetMarketCandles',  # or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                    },
+                },
                 'accountsByType': {
                     'main': 'EXCHANGE',
                     'spot': 'EXCHANGE',
@@ -1027,6 +1047,9 @@ class bitget(Exchange, ImplicitAPI):
                 'networksById': {
                     'TRC20': 'TRX',
                     'BSC': 'BEP20',
+                },
+                'fetchPositions': {
+                    'method': 'privateMixGetPositionAllPositionV2',  # or privateMixGetPositionHistoryPosition
                 },
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             },
@@ -1351,30 +1374,48 @@ class bitget(Exchange, ImplicitAPI):
             code = self.safe_currency_code(self.safe_string(entry, 'coinName'))
             chains = self.safe_value(entry, 'chains', [])
             networks = {}
+            deposit = False
+            withdraw = False
+            minWithdrawString = None
+            minDepositString = None
+            minWithdrawFeeString = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.safe_currency_code(networkId)
                 withdrawEnabled = self.safe_string(chain, 'withdrawable')
+                canWithdraw = withdrawEnabled == 'true'
+                withdraw = canWithdraw if (canWithdraw) else withdraw
                 depositEnabled = self.safe_string(chain, 'rechargeable')
+                canDeposit = depositEnabled == 'true'
+                deposit = canDeposit if (canDeposit) else deposit
+                networkWithdrawFeeString = self.safe_string(chain, 'withdrawFee')
+                if networkWithdrawFeeString is not None:
+                    minWithdrawFeeString = networkWithdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(networkWithdrawFeeString, minWithdrawFeeString)
+                networkMinWithdrawString = self.safe_string(chain, 'minWithdrawAmount')
+                if networkMinWithdrawString is not None:
+                    minWithdrawString = networkMinWithdrawString if (minWithdrawString is None) else Precise.string_min(networkMinWithdrawString, minWithdrawString)
+                networkMinDepositString = self.safe_string(chain, 'minDepositAmount')
+                if networkMinDepositString is not None:
+                    minDepositString = networkMinDepositString if (minDepositString is None) else Precise.string_min(networkMinDepositString, minDepositString)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'limits': {
                         'withdraw': {
-                            'min': self.safe_number(chain, 'minWithdrawAmount'),
+                            'min': self.parse_number(networkMinWithdrawString),
                             'max': None,
                         },
                         'deposit': {
-                            'min': self.safe_number(chain, 'minDepositAmount'),
+                            'min': self.parse_number(networkMinDepositString),
                             'max': None,
                         },
                     },
-                    'active': None,
-                    'withdraw': withdrawEnabled == 'true',
-                    'deposit': depositEnabled == 'true',
-                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'active': canWithdraw and canDeposit,
+                    'withdraw': canWithdraw,
+                    'deposit': canDeposit,
+                    'fee': self.parse_number(networkWithdrawFeeString),
                     'precision': None,
                 }
             result[code] = {
@@ -1384,14 +1425,24 @@ class bitget(Exchange, ImplicitAPI):
                 'networks': networks,
                 'type': None,
                 'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'active': deposit and withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': self.parse_number(minWithdrawFeeString),
                 'precision': None,
                 'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.parse_number(minWithdrawString),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.parse_number(minDepositString),
+                        'max': None,
+                    },
                 },
             }
         return result
@@ -2320,13 +2371,30 @@ class bitget(Exchange, ImplicitAPI):
                     request['endTime'] = until
                 else:
                     request['endTime'] = self.sum(since, limit * duration * 1000)
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
         ommitted = self.omit(params, ['until', 'till'])
         extended = self.extend(request, ommitted)
         response = None
         if market['spot']:
-            response = self.publicSpotGetMarketCandles(extended)
+            spotOptions = self.safe_value(options, 'spot', {})
+            defaultSpotMethod = self.safe_string(params, 'method', 'publicSpotGetMarketCandles')
+            method = self.safe_string(spotOptions, 'method', defaultSpotMethod)
+            if method == 'publicSpotGetMarketCandles':
+                response = self.publicSpotGetMarketCandles(extended)
+            elif method == 'publicSpotGetMarketHistoryCandles':
+                response = self.publicSpotGetMarketHistoryCandles(extended)
         else:
-            response = self.publicMixGetMarketCandles(extended)
+            swapOptions = self.safe_value(options, 'swap', {})
+            defaultSwapMethod = self.safe_string(params, 'method', 'publicMixGetMarketCandles')
+            swapMethod = self.safe_string(swapOptions, 'method', defaultSwapMethod)
+            if swapMethod == 'publicMixGetMarketCandles':
+                response = self.publicMixGetMarketCandles(extended)
+            elif swapMethod == 'publicMixGetMarketHistoryCandles':
+                response = self.publicMixGetMarketHistoryCandles(extended)
+            elif swapMethod == 'publicMixGetMarketHistoryIndexCandles':
+                response = self.publicMixGetMarketHistoryIndexCandles(extended)
+            elif swapMethod == 'publicMixGetMarketHistoryMarkCandles':
+                response = self.publicMixGetMarketHistoryMarkCandles(extended)
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
@@ -2577,8 +2645,10 @@ class bitget(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: *swap only* The price at which a trigger order is triggered at
         :param float [params.stopLossPrice]: *swap only* The price at which a stop loss order is triggered at
         :param float [params.takeProfitPrice]: *swap only* The price at which a take profit order is triggered at
-        :param float [params.stopLoss]: *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
-        :param float [params.takeProfit]: *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
+        :param float [params.takeProfit.triggerPrice]: *swap only* take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float [params.stopLoss.triggerPrice]: *swap only* stop loss trigger price
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2590,11 +2660,11 @@ class bitget(Exchange, ImplicitAPI):
             'orderType': type,
         }
         isMarketOrder = type == 'market'
-        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
-        stopLoss = self.safe_number(params, 'stopLoss')
-        takeProfit = self.safe_number(params, 'takeProfit')
+        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
         isTriggerOrder = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
@@ -2602,8 +2672,8 @@ class bitget(Exchange, ImplicitAPI):
         isTakeProfit = takeProfit is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         isStopLossOrTakeProfit = isStopLoss or isTakeProfit
-        if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isStopLoss, isTakeProfit) > 1:
-            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, stopLoss, takeProfit')
+        if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder) > 1:
+            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
         if (type == 'limit') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
@@ -2651,47 +2721,20 @@ class bitget(Exchange, ImplicitAPI):
             if quantity is not None:
                 request[quantityKey] = quantity
         else:
+            request['marginCoin'] = market['settleId']
             if clientOrderId is not None:
                 request['clientOid'] = clientOrderId
-            if not isStopLossOrTakeProfit:
-                request['size'] = self.amount_to_precision(symbol, amount)
-            if isTriggerOrder or isStopLossOrTakeProfit:
+            if isTriggerOrder or isStopLossOrTakeProfitTrigger:
                 # default triggerType to market price for unification
                 triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
-            if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
+            if isStopLossOrTakeProfitTrigger:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
                 request['holdSide'] = 'long' if (side == 'buy') else 'short'
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
-            if isTriggerOrder:
-                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                if price is not None:
-                    request['executePrice'] = self.price_to_precision(symbol, price)
-                if side == 'buy':
-                    request['side'] = 'open_long'
-                elif side == 'sell':
-                    request['side'] = 'open_short'
-                else:
-                    request['side'] = side
-                method = 'privateMixPostPlanPlacePlan'
-            elif isStopLossOrTakeProfitTrigger:
-                if isStopLossTriggerOrder:
-                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                    request['planType'] = 'loss_plan'
-                elif isTakeProfitTriggerOrder:
-                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                    request['planType'] = 'profit_plan'
-                method = 'privateMixPostPlanPlaceTPSL'
-            elif isStopLossOrTakeProfit:
-                if isStopLoss:
-                    request['triggerPrice'] = self.price_to_precision(symbol, stopLoss)
-                    request['planType'] = 'pos_loss'
-                elif isTakeProfit:
-                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfit)
-                    request['planType'] = 'pos_profit'
-                method = 'privateMixPostPlanPlacePositionsTPSL'
             else:
+                reduceOnly = self.safe_value(params, 'reduceOnly', False)
+                request['size'] = self.amount_to_precision(symbol, amount)
                 if reduceOnly:
                     request['side'] = 'close_short' if (side == 'buy') else 'close_long'
                 else:
@@ -2701,17 +2744,35 @@ class bitget(Exchange, ImplicitAPI):
                         request['side'] = 'open_short'
                     else:
                         request['side'] = side
-            request['marginCoin'] = market['settleId']
-        if not isStopLossOrTakeProfit:
-            if postOnly:
-                request[timeInForceKey] = 'post_only'
-            elif timeInForce == 'gtc':
-                request[timeInForceKey] = 'normal'
-            elif timeInForce == 'fok':
-                request[timeInForceKey] = 'fok'
-            elif timeInForce == 'ioc':
-                request[timeInForceKey] = 'ioc'
-        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly'])
+            if isTriggerOrder:
+                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
+                method = 'privateMixPostPlanPlacePlan'
+            elif isStopLossOrTakeProfitTrigger:
+                if isStopLossTriggerOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                    request['planType'] = 'pos_loss'
+                elif isTakeProfitTriggerOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                    request['planType'] = 'pos_profit'
+                method = 'privateMixPostPlanPlacePositionsTPSL'
+            elif isStopLossOrTakeProfit:
+                if isStopLoss:
+                    stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
+                    request['presetStopLossPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                if isTakeProfit:
+                    takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
+                    request['presetTakeProfitPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+        if postOnly:
+            request[timeInForceKey] = 'post_only'
+        elif timeInForce == 'gtc':
+            request[timeInForceKey] = 'normal'
+        elif timeInForce == 'fok':
+            request[timeInForceKey] = 'fok'
+        elif timeInForce == 'ioc':
+            request[timeInForceKey] = 'ioc'
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly'])
         response = getattr(self, method)(self.extend(request, omitted))
         #
         #     {
@@ -3633,7 +3694,9 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data)
+        first = self.safe_value(data, 0, {})
+        position = self.parse_position(first, market)
+        return position
 
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -3644,6 +3707,8 @@ class bitget(Exchange, ImplicitAPI):
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         self.load_markets()
+        fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
+        method = self.safe_string(fetchPositionsOptions, 'method', 'privateMixGetPositionAllPositionV2')
         market = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
@@ -3656,7 +3721,23 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'productType': productType,
         }
-        response = self.privateMixGetPositionAllPositionV2(self.extend(request, params))
+        if method == 'privateMixGetPositionHistoryPosition':
+            # endTime and startTime mandatory
+            since = self.safe_integer_2(params, 'startTime', 'since')
+            if since is None:
+                since = self.milliseconds() - 7689600000  # 3 months ago
+            request['startTime'] = since
+            until = self.safe_integer_2(params, 'endTime', 'until')
+            if until is None:
+                until = self.milliseconds()
+            request['endTime'] = until
+        response = None
+        isHistory = False
+        if method == 'privateMixGetPositionAllPositionV2':
+            response = self.privateMixGetPositionAllPositionV2(self.extend(request, params))
+        else:
+            isHistory = True
+            response = self.privateMixGetPositionHistoryPosition(self.extend(request, params))
         #
         #     {
         #       code: '00000',
@@ -3684,13 +3765,45 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #       ]
         #     }
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 0,
+        #         "data": {
+        #           "list": [
+        #             {
+        #               "symbol": "ETHUSDT_UMCBL",
+        #               "marginCoin": "USDT",
+        #               "holdSide": "short",
+        #               "openAvgPrice": "1206.7",
+        #               "closeAvgPrice": "1206.8",
+        #               "marginMode": "fixed",
+        #               "openTotalPos": "1.15",
+        #               "closeTotalPos": "1.15",
+        #               "pnl": "-0.11",
+        #               "netProfit": "-1.780315",
+        #               "totalFunding": "0",
+        #               "openFee": "-0.83",
+        #               "closeFee": "-0.83",
+        #               "ctime": "1689300233897",
+        #               "utime": "1689300238205"
+        #             }
+        #           ],
+        #           "endId": "1062308959580516352"
+        #         }
+        #       }
         #
-        position = self.safe_value(response, 'data', [])
+        position = []
+        if not isHistory:
+            position = self.safe_value(response, 'data', [])
+        else:
+            data = self.safe_value(response, 'data', {})
+            position = self.safe_value(data, 'list', [])
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -3714,10 +3827,30 @@ class bitget(Exchange, ImplicitAPI):
         #         cTime: '1645922194988'
         #     }
         #
+        # history
+        #
+        #     {
+        #       "symbol": "ETHUSDT_UMCBL",
+        #       "marginCoin": "USDT",
+        #       "holdSide": "short",
+        #       "openAvgPrice": "1206.7",
+        #       "closeAvgPrice": "1206.8",
+        #       "marginMode": "fixed",
+        #       "openTotalPos": "1.15",
+        #       "closeTotalPos": "1.15",
+        #       "pnl": "-0.11",
+        #       "netProfit": "-1.780315",
+        #       "totalFunding": "0",
+        #       "openFee": "-0.83",
+        #       "closeFee": "-0.83",
+        #       "ctime": "1689300233897",
+        #       "utime": "1689300238205"
+        #     }
+        #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        timestamp = self.safe_integer(position, 'cTime')
+        timestamp = self.safe_integer_2(position, 'cTime', 'ctime')
         marginMode = self.safe_string(position, 'marginMode')
         collateral = None
         initialMargin = None
@@ -3740,12 +3873,14 @@ class bitget(Exchange, ImplicitAPI):
         contractSizeNumber = self.safe_value(market, 'contractSize')
         contractSize = self.number_to_string(contractSizeNumber)
         baseAmount = self.safe_string(position, 'total')
-        entryPrice = self.safe_string(position, 'averageOpenPrice')
+        entryPrice = self.safe_string_2(position, 'averageOpenPrice', 'openAvgPrice')
         maintenanceMarginPercentage = self.safe_string(position, 'keepMarginRate')
         openNotional = Precise.string_mul(entryPrice, baseAmount)
         if initialMargin is None:
             initialMargin = Precise.string_div(openNotional, leverage)
         contracts = self.parse_number(Precise.string_div(baseAmount, contractSize))
+        if contracts is None:
+            contracts = self.safe_number(position, 'closeTotalPos')
         markPrice = self.safe_string(position, 'marketPrice')
         notional = Precise.string_mul(baseAmount, markPrice)
         initialMarginPercentage = Precise.string_div(initialMargin, notional)
@@ -3778,16 +3913,17 @@ class bitget(Exchange, ImplicitAPI):
             'liquidationPrice': liquidationPrice,
             'entryPrice': self.parse_number(entryPrice),
             'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'realizedPnl': self.safe_number(position, 'pnl'),
             'percentage': self.parse_number(percentage),
             'contracts': contracts,
             'contractSize': contractSizeNumber,
             'markPrice': self.parse_number(markPrice),
-            'lastPrice': None,
+            'lastPrice': self.safe_number(position, 'closeAvgPrice'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(position, 'utime'),
             'maintenanceMargin': self.parse_number(maintenanceMargin),
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
             'collateral': self.parse_number(collateral),
@@ -3795,6 +3931,8 @@ class bitget(Exchange, ImplicitAPI):
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'leverage': self.parse_number(leverage),
             'marginRatio': self.parse_number(marginRatio),
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):

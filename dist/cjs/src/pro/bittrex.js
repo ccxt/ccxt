@@ -39,8 +39,12 @@ class bittrex extends bittrex$1 {
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds(),
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
             },
         });
     }
@@ -258,7 +262,7 @@ class bittrex extends bittrex$1 {
         /**
          * @method
          * @name bittrex#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -512,11 +516,11 @@ class bittrex extends bittrex$1 {
          * @method
          * @name bittrex#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -591,22 +595,18 @@ class bittrex extends bittrex$1 {
         //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note: for private streams, the sequence number is scoped to a single account or subaccount).
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
-        const orderbook = await this.subscribeToOrderBook(negotiation, symbol, limit, params);
-        return orderbook.limit();
-    }
-    async subscribeToOrderBook(negotiation, symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
         const market = this.market(symbol);
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'] + '_' + limit.toString();
         const subscription = {
             'symbol': symbol,
             'messageHash': messageHash,
-            'method': this.handleSubscribeToOrderBook,
+            'method': this.handleOrderBookSubscription,
             'limit': limit,
             'params': params,
         };
-        return await this.sendRequestToSubscribe(negotiation, messageHash, subscription);
+        const orderbook = await this.sendRequestToSubscribe(negotiation, messageHash, subscription);
+        return orderbook.limit();
     }
     async fetchOrderBookSnapshot(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
@@ -615,7 +615,7 @@ class bittrex extends bittrex$1 {
         try {
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBook(symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe(symbol, limit);
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
             // make sure we have at least one delta before fetching the snapshot
@@ -663,7 +663,7 @@ class bittrex extends bittrex$1 {
             client.reject(e, messageHash);
         }
     }
-    handleSubscribeToOrderBook(client, message, subscription) {
+    handleOrderBookSubscription(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
         const limit = this.safeInteger(subscription, 'limit');
         if (symbol in this.orderbooks) {

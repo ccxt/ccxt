@@ -172,6 +172,7 @@ class huobi extends huobi$1 {
                     'https://huobiapi.github.io/docs/dm/v1/en/',
                     'https://huobiapi.github.io/docs/coin_margined_swap/v1/en/',
                     'https://huobiapi.github.io/docs/usdt_swap/v1/en/',
+                    'https://www.huobi.com/en-us/opend/newApiPages/',
                 ],
                 'fees': 'https://www.huobi.com/about/fee/',
             },
@@ -596,7 +597,10 @@ class huobi extends huobi$1 {
                             'swap-api/v1/swap_api_trading_status': 1,
                             // Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
+                            'linear-swap-api/v1/swap_cross_position_side': 1,
+                            'linear-swap-api/v1/swap_position_side': 1,
                             'linear-swap-api/v3/unified_account_info': 1,
+                            'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
                         },
                         'post': {
@@ -790,6 +794,7 @@ class huobi extends huobi$1 {
                             'linear-swap-api/v3/swap_cross_hisorders': 1,
                             'linear-swap-api/v3/swap_hisorders_exact': 1,
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
+                            'linear-swap-api/v3/fix_position_margin_change': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
@@ -841,6 +846,7 @@ class huobi extends huobi$1 {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': errors.OnMaintenance,
                     'maintain': errors.OnMaintenance,
+                    'API key has no permission': errors.PermissionDenied, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: API key has no permission [API Key没有权限]","data":null}
                 },
                 'exact': {
                     // err-code
@@ -2296,8 +2302,7 @@ class huobi extends huobi$1 {
                 'currency': feeCurrency,
             };
         }
-        const tradeId = this.safeString2(trade, 'trade-id', 'tradeId');
-        const id = this.safeString2(trade, 'trade_id', 'id', tradeId);
+        const id = this.safeStringN(trade, ['trade_id', 'trade-id', 'id']);
         return this.safeTrade({
             'id': id,
             'info': trade,
@@ -6682,35 +6687,35 @@ class huobi extends huobi$1 {
     }
     parsePosition(position, market = undefined) {
         //
-        //     {
-        //       symbol: 'BTC',
-        //       contract_code: 'BTC-USDT',
-        //       volume: '1.000000000000000000',
-        //       available: '1.000000000000000000',
-        //       frozen: '0E-18',
-        //       cost_open: '47162.000000000000000000',
-        //       cost_hold: '47151.300000000000000000',
-        //       profit_unreal: '0.007300000000000000',
-        //       profit_rate: '-0.000144183876850008',
-        //       lever_rate: '2',
-        //       position_margin: '23.579300000000000000',
-        //       direction: 'buy',
-        //       profit: '-0.003400000000000000',
-        //       last_price: '47158.6',
-        //       margin_asset: 'USDT',
-        //       margin_mode: 'isolated',
-        //       margin_account: 'BTC-USDT',
-        //       margin_balance: '24.973020070000000000',
-        //       margin_position: '23.579300000000000000',
-        //       margin_frozen: '0',
-        //       margin_available: '1.393720070000000000',
-        //       profit_real: '0E-18',
-        //       risk_rate: '1.044107779705080303',
-        //       withdraw_available: '1.386420070000000000000000000000000000',
-        //       liquidation_price: '22353.229148614609571788',
-        //       adjust_factor: '0.015000000000000000',
-        //       margin_static: '24.965720070000000000'
-        //     }
+        //    {
+        //        symbol: 'BTC',
+        //        contract_code: 'BTC-USDT',
+        //        volume: '1.000000000000000000',
+        //        available: '1.000000000000000000',
+        //        frozen: '0E-18',
+        //        cost_open: '47162.000000000000000000',
+        //        cost_hold: '47151.300000000000000000',
+        //        profit_unreal: '0.007300000000000000',
+        //        profit_rate: '-0.000144183876850008',
+        //        lever_rate: '2',
+        //        position_margin: '23.579300000000000000',
+        //        direction: 'buy',
+        //        profit: '-0.003400000000000000',
+        //        last_price: '47158.6',
+        //        margin_asset: 'USDT',
+        //        margin_mode: 'isolated',
+        //        margin_account: 'BTC-USDT',
+        //        margin_balance: '24.973020070000000000',
+        //        margin_position: '23.579300000000000000',
+        //        margin_frozen: '0',
+        //        margin_available: '1.393720070000000000',
+        //        profit_real: '0E-18',
+        //        risk_rate: '1.044107779705080303',
+        //        withdraw_available: '1.386420070000000000000000000000000000',
+        //        liquidation_price: '22353.229148614609571788',
+        //        adjust_factor: '0.015000000000000000',
+        //        margin_static: '24.965720070000000000'
+        //    }
         //
         market = this.safeMarket(this.safeString(position, 'contract_code'));
         const symbol = market['symbol'];
@@ -6766,7 +6771,10 @@ class huobi extends huobi$1 {
             'marginRatio': this.parseNumber(marginRatio),
             'timestamp': undefined,
             'datetime': undefined,
+            'hedged': undefined,
             'lastUpdateTimestamp': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async fetchPositions(symbols = undefined, params = {}) {
@@ -6897,7 +6905,7 @@ class huobi extends huobi$1 {
                 'datetime': this.iso8601(timestamp),
             }));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -7441,10 +7449,7 @@ class huobi extends huobi$1 {
             '1d': '1day',
         };
         const market = this.market(symbol);
-        const amountType = this.safeNumber2(params, 'amount_type', 'amountType');
-        if (amountType === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrency)');
-        }
+        const amountType = this.safeInteger2(params, 'amount_type', 'amountType', 2);
         const request = {
             'period': timeframes[timeframe],
             'amount_type': amountType,

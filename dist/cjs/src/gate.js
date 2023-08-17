@@ -77,7 +77,6 @@ class gate extends gate$1 {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -130,11 +129,13 @@ class gate extends gate$1 {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
+                'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
                 'withdraw': true,
@@ -353,6 +354,8 @@ class gate extends gate$1 {
                     },
                     'flash_swap': {
                         'get': {
+                            'currencies': 1.5,
+                            'currency_pairs': 1.5,
                             'orders': 1.5,
                             'orders/{order_id}': 1.5,
                         },
@@ -763,6 +766,7 @@ class gate extends gate$1 {
                     'REPAY_TOO_MUCH': errors.ExchangeError,
                     'TOO_MANY_CURRENCY_PAIRS': errors.InvalidOrder,
                     'TOO_MANY_ORDERS': errors.InvalidOrder,
+                    'TOO_MANY_REQUESTS': errors.RateLimitExceeded,
                     'MIXED_ACCOUNT_TYPE': errors.InvalidOrder,
                     'AUTO_BORROW_TOO_MUCH': errors.ExchangeError,
                     'TRADE_RESTRICTED': errors.InsufficientFunds,
@@ -798,7 +802,8 @@ class gate extends gate$1 {
                     'CROSS_ACCOUNT_NOT_FOUND': errors.ExchangeError,
                     'RISK_LIMIT_TOO_LOW': errors.BadRequest,
                     'AUTO_TRIGGER_PRICE_LESS_LAST': errors.InvalidOrder,
-                    'AUTO_TRIGGER_PRICE_GREATE_LAST': errors.InvalidOrder, // {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST': errors.InvalidOrder,
+                    'POSITION_HOLDING': errors.BadRequest,
                 },
                 'broad': {},
             },
@@ -1747,18 +1752,6 @@ class gate extends gate$1 {
             };
         }
         return result;
-    }
-    async createDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name gate#createDepositAddress
-         * @description create a currency deposit address
-         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
-        return await this.fetchDepositAddress(code, params);
     }
     async fetchDepositAddress(code, params = {}) {
         /**
@@ -3997,8 +3990,8 @@ class gate extends gate$1 {
         //        "order_type": ""
         //    }
         //
-        const put = this.safeValue2(order, 'put', 'initial');
-        const trigger = this.safeValue(order, 'trigger');
+        const put = this.safeValue2(order, 'put', 'initial', {});
+        const trigger = this.safeValue(order, 'trigger', {});
         let contract = this.safeString(put, 'contract');
         let type = this.safeString(put, 'type');
         let timeInForce = this.safeStringUpper2(put, 'time_in_force', 'tif');
@@ -4016,13 +4009,12 @@ class gate extends gate$1 {
         side = this.safeString(order, 'side', side);
         price = this.safeString(order, 'price', price);
         let remainingString = this.safeString(order, 'left');
-        let filledString = Precise["default"].stringSub(amount, remainingString);
         let cost = this.safeString(order, 'filled_total');
+        const triggerPrice = this.safeNumber(trigger, 'price');
         let rawStatus = undefined;
         let average = this.safeNumber2(order, 'avg_deal_price', 'fill_price');
-        if (put) {
+        if (triggerPrice) {
             remainingString = amount;
-            filledString = '0';
             cost = '0';
         }
         if (contract) {
@@ -4071,7 +4063,6 @@ class gate extends gate$1 {
         const numFeeCurrencies = fees.length;
         const multipleFeeCurrencies = numFeeCurrencies > 1;
         const status = this.parseOrderStatus(rawStatus);
-        let filled = Precise["default"].stringAbs(filledString);
         let remaining = Precise["default"].stringAbs(remainingString);
         // handle spot market buy
         const account = this.safeString(order, 'account'); // using this instead of market type because of the conflicting ids
@@ -4079,7 +4070,6 @@ class gate extends gate$1 {
             const averageString = this.safeString(order, 'avg_deal_price');
             average = this.parseNumber(averageString);
             if ((type === 'market') && (side === 'buy')) {
-                filled = Precise["default"].stringDiv(filledString, averageString);
                 remaining = Precise["default"].stringDiv(remainingString, averageString);
                 price = undefined; // arrives as 0
                 cost = amount;
@@ -4099,13 +4089,13 @@ class gate extends gate$1 {
             'postOnly': postOnly,
             'reduceOnly': this.safeValue(order, 'is_reduce_only'),
             'side': side,
-            'price': this.parseNumber(price),
-            'stopPrice': this.safeNumber(trigger, 'price'),
-            'triggerPrice': this.safeNumber(trigger, 'price'),
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'average': average,
-            'amount': this.parseNumber(Precise["default"].stringAbs(amount)),
+            'amount': Precise["default"].stringAbs(amount),
             'cost': Precise["default"].stringAbs(cost),
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'fee': multipleFeeCurrencies ? undefined : this.safeValue(fees, 0),
             'fees': multipleFeeCurrencies ? fees : [],
@@ -4797,6 +4787,8 @@ class gate extends gate$1 {
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async fetchPosition(symbol, params = {}) {
@@ -5984,6 +5976,23 @@ class gate extends gate$1 {
             'dnw': 'deposit/withdraw',
         };
         return this.safeString(ledgerType, type, type);
+    }
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#setPositionMode
+         * @description set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
+         * @see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+         * @param {bool} hedged set to true to enable dual mode
+         * @param {string|undefined} symbol if passed, dual mode is set for all markets with the same settle currency
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @param {string} params.settle settle currency
+         * @returns {object} response from the exchange
+         */
+        const market = (symbol !== undefined) ? this.market(symbol) : undefined;
+        const [request, query] = this.prepareRequest(market, 'swap', params);
+        request['dual_mode'] = hedged;
+        return await this.privateFuturesPostSettleDualMode(this.extend(request, query));
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

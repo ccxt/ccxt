@@ -312,35 +312,6 @@ class digifinex extends Exchange {
                     'TRX' => 'TRC20',
                     'VECHAIN' => 'Vechain', // VET
                 ),
-                'networksById' => array(
-                    'Arbitrum' => 'ARBITRUM',
-                    'AVAX-CCHAIN' => 'AVALANCEC',
-                    'AVAX-XCHAIN' => 'AVALANCEX',
-                    'BEP20' => 'BEP20',
-                    'Cardano' => 'CARDANO',
-                    'Celo' => 'CELO',
-                    'Chiliz' => 'CHILIZ',
-                    'COSMOS' => 'COSMOS',
-                    'Crypto.com' => 'CRC20', // CRONOS
-                    'DogeChain' => 'DOGECOIN',
-                    'ERC20' => 'ERC20',
-                    'ETHW' => 'ETHW',
-                    'MIOTA' => 'IOTA',
-                    'KLAY' => 'KLAYTN',
-                    'Polygon' => 'POLYGON',
-                    'MetisDAO' => 'METIS',
-                    'Moonriver' => 'MOONRIVER',
-                    'GLMR' => 'MOONBEAM',
-                    'OPETH' => 'OPTIMISM',
-                    'XRP' => 'RIPPLE',
-                    'SOL' => 'SOLANA',
-                    'Stella' => 'STELLAR',
-                    'Terra' => 'TERRA',
-                    'TerraClassic' => 'TERRACLASSIC',
-                    'Ton' => 'TON',
-                    'TRC20' => 'TRC20',
-                    'Vechain' => 'VECHAIN',
-                ),
             ),
             'commonCurrencies' => array(
                 'BHT' => 'Black House Test',
@@ -3186,7 +3157,7 @@ class digifinex extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i], $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -3358,6 +3329,8 @@ class digifinex extends Exchange {
             'leverage' => $this->safe_number_2($position, 'leverage', 'leverage_ratio'),
             'marginRatio' => $this->safe_number($position, 'margin_ratio'),
             'percentage' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         );
     }
 

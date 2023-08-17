@@ -71,7 +71,7 @@ class coinmate(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -382,13 +382,12 @@ class coinmate(Exchange, ImplicitAPI):
             'info': ticker,
         }
 
-    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the coinmate api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """

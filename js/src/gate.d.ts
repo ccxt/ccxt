@@ -108,14 +108,6 @@ export default class gate extends Exchange {
         previousFundingDatetime: any;
     };
     fetchNetworkDepositAddress(code: string, params?: {}): Promise<{}>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-        code: string;
-        currency: string;
-        address: any;
-        tag: any;
-        network: any;
-    }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
         code: string;
@@ -262,9 +254,9 @@ export default class gate extends Exchange {
         info: any;
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
-    fetchPosition(symbol: string, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
     repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
@@ -369,5 +361,6 @@ export default class gate extends Exchange {
         info: any;
     };
     parseLedgerEntryType(type: any): string;
+    setPositionMode(hedged: any, symbol?: any, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

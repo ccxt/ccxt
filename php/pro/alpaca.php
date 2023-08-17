@@ -274,11 +274,11 @@ class alpaca extends \ccxt\async\alpaca {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the alpaca api endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             $url = $this->urls['api']['ws']['crypto'];
             Async\await($this->authenticate($url));
@@ -328,12 +328,12 @@ class alpaca extends \ccxt\async\alpaca {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {string} $symbol unified market $symbol of the market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the alpaca api endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             $url = $this->urls['api']['ws']['trading'];
             Async\await($this->authenticate($url));
@@ -584,32 +584,30 @@ class alpaca extends \ccxt\async\alpaca {
     }
 
     public function authenticate($url, $params = array ()) {
-        return Async\async(function () use ($url, $params) {
-            $this->check_required_credentials();
-            $messageHash = 'authenticated';
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ('authenticated');
+        $this->check_required_credentials();
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $request = array(
+                'action' => 'auth',
+                'key' => $this->apiKey,
+                'secret' => $this->secret,
+            );
+            if ($url === $this->urls['api']['ws']['trading']) {
+                // this auth $request is being deprecated in test environment
                 $request = array(
-                    'action' => 'auth',
-                    'key' => $this->apiKey,
-                    'secret' => $this->secret,
+                    'action' => 'authenticate',
+                    'data' => array(
+                        'key_id' => $this->apiKey,
+                        'secret_key' => $this->secret,
+                    ),
                 );
-                if ($url === $this->urls['api']['ws']['trading']) {
-                    // this auth $request is being deprecated in test environment
-                    $request = array(
-                        'action' => 'authenticate',
-                        'data' => array(
-                            'key_id' => $this->apiKey,
-                            'secret_key' => $this->secret,
-                        ),
-                    );
-                }
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
             }
-            return Async\await($future);
-        }) ();
+            $this->watch($url, $messageHash, $request, $messageHash, $future);
+        }
+        return $future;
     }
 
     public function handle_error_message(Client $client, $message) {
@@ -713,7 +711,8 @@ class alpaca extends \ccxt\async\alpaca {
         $data = $this->safe_value($message, 'data', array());
         $status = $this->safe_string($data, 'status');
         if ($T === 'success' || $status === 'authorized') {
-            $client->resolve ($message, 'authenticated');
+            $promise = $client->futures['authenticated'];
+            $promise->resolve ($message);
             return;
         }
         throw new AuthenticationError($this->id . ' failed to authenticate.');

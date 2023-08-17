@@ -295,6 +295,11 @@ export default class coinex extends Exchange {
                 'accountsById': {
                     'spot': '0',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -3015,7 +3020,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < position.length; i++) {
             result.push(this.parsePosition(position[i], market));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -3192,6 +3197,8 @@ export default class coinex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
+            'stopLossPrice': this.safeNumber(position, 'stop_loss_price'),
+            'takeProfitPrice': this.safeNumber(position, 'take_profit_price'),
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
@@ -3246,35 +3253,33 @@ export default class coinex extends Exchange {
         /**
          * @method
          * @name coinex#setLeverage
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('setLeverage', symbol);
         await this.loadMarkets();
-        const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode');
-        let defaultPositionType = undefined;
-        if (defaultMarginMode === 'isolated') {
-            defaultPositionType = 1;
-        }
-        else if (defaultMarginMode === 'cross') {
-            defaultPositionType = 2;
-        }
-        const positionType = this.safeInteger(params, 'position_type', defaultPositionType);
-        if (positionType === undefined) {
-            throw new ArgumentsRequired(this.id + ' setLeverage() requires a position_type parameter that will transfer margin to the specified trading pair');
-        }
         const market = this.market(symbol);
-        const maxLeverage = this.safeInteger(market['limits']['leverage'], 'max', 100);
-        if (market['type'] !== 'swap') {
+        if (!market['swap']) {
             throw new BadSymbol(this.id + ' setLeverage() supports swap contracts only');
         }
-        if ((leverage < 3) || (leverage > maxLeverage)) {
-            throw new BadRequest(this.id + ' setLeverage() leverage should be between 3 and ' + maxLeverage.toString() + ' for ' + symbol);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params, 'cross');
+        let positionType = undefined;
+        if (marginMode === 'isolated') {
+            positionType = 1;
+        }
+        else if (marginMode === 'cross') {
+            positionType = 2;
+        }
+        const minLeverage = this.safeInteger(market['limits']['leverage'], 'min', 1);
+        const maxLeverage = this.safeInteger(market['limits']['leverage'], 'max', 100);
+        if ((leverage < minLeverage) || (leverage > maxLeverage)) {
+            throw new BadRequest(this.id + ' setLeverage() leverage should be between ' + minLeverage.toString() + ' and ' + maxLeverage.toString() + ' for ' + symbol);
         }
         const request = {
             'market': market['id'],
@@ -3728,17 +3733,21 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#withdraw
          * @description make a withdrawal
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @param {string} [params.network] unified network code
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
+        const networkCode = this.safeStringUpper(params, 'network');
+        params = this.omit(params, 'network');
         if (tag) {
             address = address + ':' + tag;
         }
@@ -3748,6 +3757,9 @@ export default class coinex extends Exchange {
             'actual_amount': parseFloat(amount),
             'transfer_method': 'onchain', // onchain, local
         };
+        if (networkCode !== undefined) {
+            request['smart_contract_name'] = this.networkCodeToId(networkCode);
+        }
         const response = await this.privatePostBalanceCoinWithdraw(this.extend(request, params));
         //
         //     {

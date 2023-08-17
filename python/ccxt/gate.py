@@ -97,7 +97,6 @@ class gate(Exchange, ImplicitAPI):
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'createDepositAddress': True,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -150,11 +149,13 @@ class gate(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'setPositionMode': True,
                 'signIn': False,
                 'transfer': True,
                 'withdraw': True,
@@ -373,6 +374,8 @@ class gate(Exchange, ImplicitAPI):
                     },
                     'flash_swap': {
                         'get': {
+                            'currencies': 1.5,
+                            'currency_pairs': 1.5,
                             'orders': 1.5,
                             'orders/{order_id}': 1.5,
                         },
@@ -783,6 +786,7 @@ class gate(Exchange, ImplicitAPI):
                     'REPAY_TOO_MUCH': ExchangeError,
                     'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
                     'TOO_MANY_ORDERS': InvalidOrder,
+                    'TOO_MANY_REQUESTS': RateLimitExceeded,
                     'MIXED_ACCOUNT_TYPE': InvalidOrder,
                     'AUTO_BORROW_TOO_MUCH': ExchangeError,
                     'TRADE_RESTRICTED': InsufficientFunds,
@@ -819,6 +823,7 @@ class gate(Exchange, ImplicitAPI):
                     'RISK_LIMIT_TOO_LOW': BadRequest,  # {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
                     'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument: Trigger.Price must < last_price"}
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
+                    'POSITION_HOLDING': BadRequest,
                 },
                 'broad': {},
             },
@@ -1716,16 +1721,6 @@ class gate(Exchange, ImplicitAPI):
                 'tag': tag,
             }
         return result
-
-    def create_deposit_address(self, code: str, params={}):
-        """
-        create a currency deposit address
-        see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
-        :param str code: unified currency code of the currency for the deposit address
-        :param dict [params]: extra parameters specific to the gate api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
-        """
-        return self.fetch_deposit_address(code, params)
 
     def fetch_deposit_address(self, code: str, params={}):
         """
@@ -3801,8 +3796,8 @@ class gate(Exchange, ImplicitAPI):
         #        "order_type": ""
         #    }
         #
-        put = self.safe_value_2(order, 'put', 'initial')
-        trigger = self.safe_value(order, 'trigger')
+        put = self.safe_value_2(order, 'put', 'initial', {})
+        trigger = self.safe_value(order, 'trigger', {})
         contract = self.safe_string(put, 'contract')
         type = self.safe_string(put, 'type')
         timeInForce = self.safe_string_upper_2(put, 'time_in_force', 'tif')
@@ -3819,13 +3814,12 @@ class gate(Exchange, ImplicitAPI):
         side = self.safe_string(order, 'side', side)
         price = self.safe_string(order, 'price', price)
         remainingString = self.safe_string(order, 'left')
-        filledString = Precise.string_sub(amount, remainingString)
         cost = self.safe_string(order, 'filled_total')
+        triggerPrice = self.safe_number(trigger, 'price')
         rawStatus = None
         average = self.safe_number_2(order, 'avg_deal_price', 'fill_price')
-        if put:
+        if triggerPrice:
             remainingString = amount
-            filledString = '0'
             cost = '0'
         if contract:
             isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
@@ -3866,7 +3860,6 @@ class gate(Exchange, ImplicitAPI):
         numFeeCurrencies = len(fees)
         multipleFeeCurrencies = numFeeCurrencies > 1
         status = self.parse_order_status(rawStatus)
-        filled = Precise.string_abs(filledString)
         remaining = Precise.string_abs(remainingString)
         # handle spot market buy
         account = self.safe_string(order, 'account')  # using self instead of market type because of the conflicting ids
@@ -3874,7 +3867,6 @@ class gate(Exchange, ImplicitAPI):
             averageString = self.safe_string(order, 'avg_deal_price')
             average = self.parse_number(averageString)
             if (type == 'market') and (side == 'buy'):
-                filled = Precise.string_div(filledString, averageString)
                 remaining = Precise.string_div(remainingString, averageString)
                 price = None  # arrives
                 cost = amount
@@ -3892,13 +3884,13 @@ class gate(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'reduceOnly': self.safe_value(order, 'is_reduce_only'),
             'side': side,
-            'price': self.parse_number(price),
-            'stopPrice': self.safe_number(trigger, 'price'),
-            'triggerPrice': self.safe_number(trigger, 'price'),
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'average': average,
-            'amount': self.parse_number(Precise.string_abs(amount)),
+            'amount': Precise.string_abs(amount),
             'cost': Precise.string_abs(cost),
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'fee': None if multipleFeeCurrencies else self.safe_value(fees, 0),
             'fees': fees if multipleFeeCurrencies else [],
@@ -4551,6 +4543,8 @@ class gate(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'side': side,
             'percentage': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def fetch_position(self, symbol: str, params={}):
@@ -5665,6 +5659,21 @@ class gate(Exchange, ImplicitAPI):
             'dnw': 'deposit/withdraw',
         }
         return self.safe_string(ledgerType, type, type)
+
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        """
+        set dual/hedged mode to True or False for a swap market, make sure all positions are closed and no orders are open before setting dual mode
+        see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+        :param bool hedged: set to True to enable dual mode
+        :param str|None symbol: if passed, dual mode is set for all markets with the same settle currency
+        :param dict params: extra parameters specific to the gate api endpoint
+        :param str params['settle']: settle currency
+        :returns dict: response from the exchange
+        """
+        market = self.market(symbol) if (symbol is not None) else None
+        request, query = self.prepare_request(market, 'swap', params)
+        request['dual_mode'] = hedged
+        return self.privateFuturesPostSettleDualMode(self.extend(request, query))
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

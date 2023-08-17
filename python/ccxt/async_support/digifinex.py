@@ -336,35 +336,6 @@ class digifinex(Exchange, ImplicitAPI):
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain',  # VET
                 },
-                'networksById': {
-                    'Arbitrum': 'ARBITRUM',
-                    'AVAX-CCHAIN': 'AVALANCEC',
-                    'AVAX-XCHAIN': 'AVALANCEX',
-                    'BEP20': 'BEP20',
-                    'Cardano': 'CARDANO',
-                    'Celo': 'CELO',
-                    'Chiliz': 'CHILIZ',
-                    'COSMOS': 'COSMOS',
-                    'Crypto.com': 'CRC20',  # CRONOS
-                    'DogeChain': 'DOGECOIN',
-                    'ERC20': 'ERC20',
-                    'ETHW': 'ETHW',
-                    'MIOTA': 'IOTA',
-                    'KLAY': 'KLAYTN',
-                    'Polygon': 'POLYGON',
-                    'MetisDAO': 'METIS',
-                    'Moonriver': 'MOONRIVER',
-                    'GLMR': 'MOONBEAM',
-                    'OPETH': 'OPTIMISM',
-                    'XRP': 'RIPPLE',
-                    'SOL': 'SOLANA',
-                    'Stella': 'STELLAR',
-                    'Terra': 'TERRA',
-                    'TerraClassic': 'TERRACLASSIC',
-                    'Ton': 'TON',
-                    'TRC20': 'TRC20',
-                    'Vechain': 'VECHAIN',
-                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -3044,7 +3015,7 @@ class digifinex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i], market))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     async def fetch_position(self, symbol: str, params={}):
         """
@@ -3210,6 +3181,8 @@ class digifinex(Exchange, ImplicitAPI):
             'leverage': self.safe_number_2(position, 'leverage', 'leverage_ratio'),
             'marginRatio': self.safe_number(position, 'margin_ratio'),
             'percentage': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         }
 
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):

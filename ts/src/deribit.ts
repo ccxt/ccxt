@@ -56,7 +56,8 @@ export default class deribit extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
-                'fetchHistoricalVolatility': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -83,6 +84,7 @@ export default class deribit extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'transfer': true,
@@ -2385,6 +2387,9 @@ export default class deribit extends Exchange {
             'marginMode': undefined,
             'side': side,
             'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
 
@@ -2498,7 +2503,16 @@ export default class deribit extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    async fetchHistoricalVolatility (code: string, params = {}) {
+    async fetchVolatilityHistory (code: string, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchVolatilityHistory
+         * @description fetch the historical volatility of an option market based on an underlying asset
+         * @see https://docs.deribit.com/#public-get_historical_volatility
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -2519,13 +2533,31 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const volatilityResult = this.safeValue (response, 'result', {});
+        return this.parseVolatilityHistory (response);
+    }
+
+    parseVolatilityHistory (volatility) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn": 1641515379467734,
+        //         "usOut": 1641515379468095,
+        //         "usDiff": 361,
+        //         "testnet": false
+        //     }
+        //
+        const volatilityResult = this.safeValue (volatility, 'result', []);
         const result = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger (volatilityResult[i], 0);
             const volatility = this.safeNumber (volatilityResult[i], 1);
             result.push ({
-                'info': response,
+                'info': volatility,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'volatility': volatility,
@@ -2777,6 +2809,132 @@ export default class deribit extends Exchange {
         //
         const data = this.safeValue (response, 'result', {});
         return this.parseDepositWithdrawFees (data, codes, 'currency');
+    }
+
+    async fetchFundingRate (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.deribit.com/#public-get_funding_rate_value
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
+         * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const time = this.milliseconds ();
+        const request = {
+            'instrument_name': market['id'],
+            'start_timestamp': time - (8 * 60 * 60 * 1000), // 8h ago,
+            'end_timestamp': time,
+        };
+        const response = await this.publicGetGetFundingRateValue (this.extend (request, params));
+        //
+        //   {
+        //       "jsonrpc":"2.0",
+        //       "result":"0",
+        //       "usIn":"1691161645596519",
+        //       "usOut":"1691161645597149",
+        //       "usDiff":"630",
+        //       "testnet":false
+        //   }
+        //
+        return this.parseFundingRate (response, market);
+    }
+
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchFundingRateHistory
+         * @description fetch the current funding rate
+         * @see https://docs.deribit.com/#public-get_funding_rate_history
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const time = this.milliseconds ();
+        const month = 30 * 24 * 60 * 60 * 1000;
+        if (since === undefined) {
+            since = time - month;
+        }
+        const request = {
+            'instrument_name': market['id'],
+            'start_timestamp': since,
+            'end_timestamp': time,
+        };
+        const response = await this.publicGetGetFundingRateHistory (this.extend (request, params));
+        //
+        //    {
+        //        "jsonrpc": "2.0",
+        //        "id": 7617,
+        //        "result": [
+        //          {
+        //            "timestamp": 1569891600000,
+        //            "index_price": 8222.87,
+        //            "prev_index_price": 8305.72,
+        //            "interest_8h": -0.00009234260068476106,
+        //            "interest_1h": -4.739622041017375e-7
+        //          }
+        //        ]
+        //    }
+        //
+        const rates = [];
+        const result = this.safeValue (response, 'result', []);
+        for (let i = 0; i < result.length; i++) {
+            const fr = result[i];
+            const rate = this.parseFundingRate (fr, market);
+            rates.push (rate);
+        }
+        return this.filterBySymbolSinceLimit (rates, symbol, since, limit);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //   {
+        //       "jsonrpc":"2.0",
+        //       "result":"0",
+        //       "usIn":"1691161645596519",
+        //       "usOut":"1691161645597149",
+        //       "usDiff":"630",
+        //       "testnet":false
+        //   }
+        // history
+        //   {
+        //     "timestamp": 1569891600000,
+        //     "index_price": 8222.87,
+        //     "prev_index_price": 8305.72,
+        //     "interest_8h": -0.00009234260068476106,
+        //     "interest_1h": -4.739622041017375e-7
+        //   }
+        //
+        const timestamp = this.safeInteger (contract, 'timestamp');
+        const datetime = this.iso8601 (timestamp);
+        const result = this.safeNumber2 (contract, 'result', 'interest_8h');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': undefined,
+            'indexPrice': this.safeNumber (contract, 'index_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fundingRate': result,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     nonce () {

@@ -61,7 +61,7 @@ class poloniex extends poloniex$1 {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
@@ -217,12 +217,6 @@ class poloniex extends poloniex$1 {
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
                 },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
-                    'TRX': 'TRC20',
-                },
                 'limits': {
                     'cost': {
                         'min': {
@@ -253,7 +247,6 @@ class poloniex extends poloniex$1 {
             'exceptions': {
                 'exact': {
                     // General
-                    '200': errors.CancelPending,
                     '500': errors.ExchangeNotAvailable,
                     '603': errors.RequestTimeout,
                     '601': errors.BadRequest,
@@ -1064,7 +1057,7 @@ class poloniex extends poloniex$1 {
         const side = this.safeStringLower(order, 'side');
         const rawType = this.safeString(order, 'type');
         const type = this.parseOrderType(rawType);
-        const id = this.safeString2(order, 'orderNumber', 'id');
+        const id = this.safeStringN(order, ['orderNumber', 'id', 'orderId']);
         let fee = undefined;
         const feeCurrency = this.safeString(order, 'tokenFeeCurrency');
         let feeCost = undefined;
@@ -1309,7 +1302,17 @@ class poloniex extends poloniex$1 {
         }
         request['id'] = id;
         params = this.omit(params, 'clientOrderId');
-        return await this.privateDeleteOrdersId(this.extend(request, params));
+        const response = await this.privateDeleteOrdersId(this.extend(request, params));
+        //
+        //   {
+        //       "orderId":"210832697138888704",
+        //       "clientOrderId":"",
+        //       "state":"PENDING_CANCEL",
+        //       "code":200,
+        //       "message":""
+        //   }
+        //
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1861,16 +1864,15 @@ class poloniex extends poloniex$1 {
         //
         return response;
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
+         * @name poloniex#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -2198,7 +2200,8 @@ class poloniex extends poloniex$1 {
         //         "message" : "Low available balance"
         //     }
         //
-        if ('code' in response) {
+        const responseCode = this.safeString(response, 'code');
+        if ((responseCode !== undefined) && (responseCode !== '200')) {
             const codeInner = response['code'];
             const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + body;

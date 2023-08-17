@@ -317,35 +317,6 @@ export default class digifinex extends Exchange {
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
-                'networksById': {
-                    'Arbitrum': 'ARBITRUM',
-                    'AVAX-CCHAIN': 'AVALANCEC',
-                    'AVAX-XCHAIN': 'AVALANCEX',
-                    'BEP20': 'BEP20',
-                    'Cardano': 'CARDANO',
-                    'Celo': 'CELO',
-                    'Chiliz': 'CHILIZ',
-                    'COSMOS': 'COSMOS',
-                    'Crypto.com': 'CRC20',
-                    'DogeChain': 'DOGECOIN',
-                    'ERC20': 'ERC20',
-                    'ETHW': 'ETHW',
-                    'MIOTA': 'IOTA',
-                    'KLAY': 'KLAYTN',
-                    'Polygon': 'POLYGON',
-                    'MetisDAO': 'METIS',
-                    'Moonriver': 'MOONRIVER',
-                    'GLMR': 'MOONBEAM',
-                    'OPETH': 'OPTIMISM',
-                    'XRP': 'RIPPLE',
-                    'SOL': 'SOLANA',
-                    'Stella': 'STELLAR',
-                    'Terra': 'TERRA',
-                    'TerraClassic': 'TERRACLASSIC',
-                    'Ton': 'TON',
-                    'TRC20': 'TRC20',
-                    'Vechain': 'VECHAIN',
-                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -3238,7 +3209,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push(this.parsePosition(positions[i], market));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -3413,6 +3384,8 @@ export default class digifinex extends Exchange {
             'leverage': this.safeNumber2(position, 'leverage', 'leverage_ratio'),
             'marginRatio': this.safeNumber(position, 'margin_ratio'),
             'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {

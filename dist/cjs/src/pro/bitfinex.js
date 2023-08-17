@@ -161,16 +161,12 @@ class bitfinex extends bitfinex$1 {
             id = this.safeString(trade, tradeLength - 4);
         }
         const timestamp = this.safeTimestamp(trade, tradeLength - 3);
-        const price = this.safeFloat(trade, tradeLength - 2);
-        let amount = this.safeFloat(trade, tradeLength - 1);
+        const price = this.safeString(trade, tradeLength - 2);
+        let amount = this.safeString(trade, tradeLength - 1);
         let side = undefined;
         if (amount !== undefined) {
-            side = (amount > 0) ? 'buy' : 'sell';
-            amount = Math.abs(amount);
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+            side = Precise["default"].stringGt(amount, '0') ? 'buy' : 'sell';
+            amount = Precise["default"].stringAbs(amount);
         }
         const seq = this.safeString(trade, 2);
         const parts = seq.split('-');
@@ -181,7 +177,7 @@ class bitfinex extends bitfinex$1 {
         const symbol = this.safeSymbol(marketId, market);
         const takerOrMaker = undefined;
         const orderId = undefined;
-        return {
+        return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -193,9 +189,9 @@ class bitfinex extends bitfinex$1 {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        });
     }
     handleTicker(client, message, subscription) {
         //
@@ -349,13 +345,13 @@ class bitfinex extends bitfinex$1 {
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const id = this.safeString(message, 1);
-                const price = this.safeFloat(message, 2);
+                const price = this.safeString(message, 2);
                 const size = (message[3] < 0) ? -message[3] : message[3];
                 const side = (message[3] < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store(price, amount, id);
+                const amount = Precise["default"].stringGt(price, '0') ? size : '0';
+                bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
             }
             else {
                 const size = (message[3] < 0) ? -message[3] : message[3];

@@ -97,7 +97,7 @@ export default class currencycom extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
@@ -1569,15 +1569,14 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Withdrawals', code, since, limit, params);
     }
 
-    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name currencycom#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name currencycom#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the currencycom api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -1893,42 +1892,70 @@ export default class currencycom extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetV2TradingPositions (params);
         //
-        // {
-        //     "positions": [
-        //       {
-        //         "accountId": "109698017416453793",
-        //         "id": "00a18490-0079-54c4-0000-0000803e73d3",
-        //         "instrumentId": "45463225268524228",
-        //         "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
-        //         "openQuantity": "13.6",
-        //         "openPrice": "0.75724",
-        //         "closeQuantity": "0.0",
-        //         "closePrice": "0",
-        //         "rpl": "-0.007723848",
-        //         "rplConverted": "0",
-        //         "upl": "-0.006664",
-        //         "uplConverted": "-0.006664",
-        //         "swap": "0",
-        //         "swapConverted": "0",
-        //         "fee": "-0.007723848",
-        //         "dividend": "0",
-        //         "margin": "0.2",
-        //         "state": "ACTIVE",
-        //         "currency": "USD",
-        //         "createdTimestamp": "1645473877236",
-        //         "openTimestamp": "1645473877193",
-        //         "type": "NET",
-        //         "cost": "2.0583600",
-        //         "symbol": "XRP/USD_LEVERAGE"
-        //       }
-        //     ]
-        // }
+        //    {
+        //        "positions": [
+        //          {
+        //            "accountId": "109698017416453793",
+        //            "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        //            "instrumentId": "45463225268524228",
+        //            "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        //            "openQuantity": "13.6",
+        //            "openPrice": "0.75724",
+        //            "closeQuantity": "0.0",
+        //            "closePrice": "0",
+        //            "rpl": "-0.007723848",
+        //            "rplConverted": "0",
+        //            "upl": "-0.006664",
+        //            "uplConverted": "-0.006664",
+        //            "swap": "0",
+        //            "swapConverted": "0",
+        //            "fee": "-0.007723848",
+        //            "dividend": "0",
+        //            "margin": "0.2",
+        //            "state": "ACTIVE",
+        //            "currency": "USD",
+        //            "createdTimestamp": "1645473877236",
+        //            "openTimestamp": "1645473877193",
+        //            "type": "NET",
+        //            "cost": "2.0583600",
+        //            "symbol": "XRP/USD_LEVERAGE"
+        //          }
+        //        ]
+        //    }
         //
         const data = this.safeValue (response, 'positions', []);
         return this.parsePositions (data, symbols);
     }
 
     parsePosition (position, market = undefined) {
+        //
+        //    {
+        //        "accountId": "109698017416453793",
+        //        "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        //        "instrumentId": "45463225268524228",
+        //        "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        //        "openQuantity": "13.6",
+        //        "openPrice": "0.75724",
+        //        "closeQuantity": "0.0",
+        //        "closePrice": "0",
+        //        "rpl": "-0.007723848",
+        //        "rplConverted": "0",
+        //        "upl": "-0.006664",
+        //        "uplConverted": "-0.006664",
+        //        "swap": "0",
+        //        "swapConverted": "0",
+        //        "fee": "-0.007723848",
+        //        "dividend": "0",
+        //        "margin": "0.2",
+        //        "state": "ACTIVE",
+        //        "currency": "USD",
+        //        "createdTimestamp": "1645473877236",
+        //        "openTimestamp": "1645473877193",
+        //        "type": "NET",
+        //        "cost": "2.0583600",
+        //        "symbol": "XRP/USD_LEVERAGE"
+        //    }
+        //
         market = this.safeMarket (this.safeString (position, 'symbol'), market);
         const symbol = market['symbol'];
         const timestamp = this.safeNumber (position, 'createdTimestamp');
@@ -1940,6 +1967,7 @@ export default class currencycom extends Exchange {
         const marginCoeff = this.safeString (position, 'margin');
         const leverage = Precise.stringDiv ('1', marginCoeff);
         return this.safePosition ({
+            'info': position,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1963,8 +1991,11 @@ export default class currencycom extends Exchange {
             'maintenanceMargin': this.parseNumber (marginCoeff),
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
-            'info': position,
             'id': undefined,
+            'unrealizedPnl': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
 

@@ -101,6 +101,7 @@ class binance extends Exchange {
                 'fetchTransactionFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
@@ -381,8 +382,8 @@ class binance extends Exchange {
                         'portfolio/collateralRate' => 5,
                         'portfolio/pmLoan' => 3.3335,
                         'portfolio/interest-history' => 0.6667,
-                        'portfolio/interest-rate' => 0.6667,
                         'portfolio/asset-index-price' => 0.1,
+                        'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -503,6 +504,7 @@ class binance extends Exchange {
                         'staking/redeem' => 0.1,
                         'staking/setAutoStaking' => 0.1,
                         'portfolio/repay' => 20.001,
+                        'loan/vip/renew' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'loan/vip/borrow' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'loan/borrow' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'loan/repay' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
@@ -511,8 +513,11 @@ class binance extends Exchange {
                         'loan/vip/repay' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'convert/getQuote' => 20.001,
                         'convert/acceptQuote' => 3.3335,
-                        'portfolio/auto-collection' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
-                        'portfolio/bnb-transfer' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/auto-collection' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/asset-collection' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
+                        'portfolio/bnb-transfer' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-switch' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-negative-balance' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'lending/auto-invest/plan/add' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
@@ -785,6 +790,8 @@ class binance extends Exchange {
                         'userTrades' => 5,
                         'exerciseRecord' => 5,
                         'bill' => 1,
+                        'income/asyn' => 5,
+                        'income/asyn/id' => 5,
                         'marginAccount' => 3,
                         'mmp' => 1,
                         'countdownCancelAll' => 1,
@@ -846,9 +853,12 @@ class binance extends Exchange {
                         'myTrades' => 10,
                         'rateLimit/order' => 20,
                         'myPreventedMatches' => 1,
+                        'myAllocations' => 10,
                     ),
                     'post' => array(
                         'order/oco' => 1,
+                        'sor/order' => 1,
+                        'sor/order/test' => 1,
                         'order' => 1,
                         'order/cancelReplace' => 1,
                         'order/test' => 1,
@@ -891,6 +901,9 @@ class binance extends Exchange {
                         'cm/income ' => 30,
                         'um/account' => 5,
                         'cm/account' => 5,
+                        'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
+                        'um/adlQuantile' => 5,
+                        'cm/adlQuantile' => 5,
                         'margin/marginLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
                         'margin/repayLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
                         'margin/marginInterestHistory' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
@@ -909,7 +922,10 @@ class binance extends Exchange {
                         'cm/positionSide/dual' => 1, // 1
                         'auto-collection' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
                         'bnb-transfer' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/repay-futures-switch' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-negative-balance' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'listenKey' => 1, // 1
+                        'asset-collection' => 3,
                     ),
                     'put' => array(
                         'listenKey' => 1, // 1
@@ -3622,10 +3638,11 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @param {string} $id cancel order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -3634,30 +3651,8 @@ class binance extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' editSpotOrder() does not support ' . $market['type'] . ' orders');
         }
-        $request = array(
-            'symbol' => $market['id'],
-            'side' => strtoupper($side),
-        );
-        $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
-        $response = null;
-        if ($market['spot']) {
-            $response = $this->privatePostOrderCancelReplace (array_merge($request, $params));
-        } else {
-            $request['orderId'] = $id;
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            if ($clientOrderId !== null) {
-                $request['origClientOrderId'] = $clientOrderId;
-            }
-            $params = $this->omit($params, array( 'clientOrderId', 'newClientOrderId' ));
-            if ($market['linear']) {
-                $response = $this->fapiPrivatePutOrder (array_merge($request, $params));
-            } elseif ($market['inverse']) {
-                $response = $this->dapiPrivatePutOrder (array_merge($request, $params));
-            }
-        }
+        $payload = $this->edit_spot_order_request($id, $symbol, $type, $side, $amount, $price, $params);
+        $response = $this->privatePostOrderCancelReplace ($payload);
         //
         // spot
         //
@@ -3710,9 +3705,9 @@ class binance extends Exchange {
          * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the binance api endpoint
-         * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
@@ -3728,7 +3723,7 @@ class binance extends Exchange {
             $uppercaseType = 'LIMIT_MAKER';
         }
         $request['type'] = $uppercaseType;
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         if ($stopPrice !== null) {
             if ($uppercaseType === 'MARKET') {
                 $uppercaseType = 'STOP_LOSS';
@@ -4187,6 +4182,8 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
          * @see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-$sor-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#$test-new-order-using-$sor-trade
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} $side 'buy' or 'sell'
@@ -4194,15 +4191,21 @@ class binance extends Exchange {
          * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [$params->sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+         * @param {boolean} [$params->test] *spot only* whether to use the $test endpoint or not, default is false
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $marketType = $this->safe_string($params, 'type', $market['type']);
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
+        $sor = $this->safe_value_2($params, 'sor', 'SOR', false);
+        $params = $this->omit($params, 'sor', 'SOR');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $method = 'privatePostOrder';
-        if ($market['linear']) {
+        if ($sor) {
+            $method = 'privatePostSorOrder';
+        } elseif ($market['linear']) {
             $method = 'fapiPrivatePostOrder';
         } elseif ($market['inverse']) {
             $method = 'dapiPrivatePostOrder';
@@ -4291,13 +4294,10 @@ class binance extends Exchange {
             $request['isIsolated'] = true;
         }
         if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker');
-            if ($broker !== null) {
-                $brokerId = $this->safe_string($broker, $marketType);
-                if ($brokerId !== null) {
-                    $request['newClientOrderId'] = $brokerId . $this->uuid22();
-                }
-            }
+            $broker = $this->safe_value($this->options, 'broker', array());
+            $defaultId = ($market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+            $brokerId = $this->safe_string($broker, $marketType, $defaultId);
+            $request['newClientOrderId'] = $brokerId . $this->uuid22();
         } else {
             $request['newClientOrderId'] = $clientOrderId;
         }
@@ -6719,6 +6719,7 @@ class binance extends Exchange {
     public function parse_position_risk($position, $market = null) {
         //
         // usdm
+        //
         //     {
         //       "symbol" => "BTCUSDT",
         //       "positionAmt" => "0.001",
@@ -6738,6 +6739,7 @@ class binance extends Exchange {
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol" => "BTCUSD_PERP",
         //       "positionAmt" => "2",
@@ -6883,6 +6885,8 @@ class binance extends Exchange {
             'side' => $side,
             'hedged' => $hedged,
             'percentage' => $percentage,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         );
     }
 
@@ -7124,7 +7128,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $result[] = $this->parse_position($response[$i], $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {
@@ -7234,7 +7238,7 @@ class binance extends Exchange {
         $account = $this->$method ($query);
         $result = $this->parse_account_positions($account);
         $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function fetch_positions_risk(?array $symbols = null, $params = array ()) {
@@ -7328,7 +7332,7 @@ class binance extends Exchange {
             $result[] = $parsed;
         }
         $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -7776,14 +7780,15 @@ class binance extends Exchange {
             }
         } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
-            if ($method === 'POST' && $path === 'order') {
+            if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
                 // inject in implicit API calls
                 $newClientOrderId = $this->safe_string($params, 'newClientOrderId');
                 if ($newClientOrderId === null) {
                     $isSpotOrMargin = (mb_strpos($api, 'sapi') > -1 || $api === 'private');
                     $marketType = $isSpotOrMargin ? 'spot' : 'future';
-                    $broker = $this->safe_value($this->options, 'broker');
-                    $brokerId = $this->safe_string($broker, $marketType);
+                    $defaultId = (!$isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+                    $broker = $this->safe_value($this->options, 'broker', array());
+                    $brokerId = $this->safe_string($broker, $marketType, $defaultId);
                     $params['newClientOrderId'] = $brokerId . $this->uuid22();
                 }
             }

@@ -39,7 +39,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 'tradesLimit': 1000,
                 'watchOrderBook': {
                     'snapshotDelay': 20,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'watchTicker': {
                     'name': 'contractMarket/tickerV2',  # market/ticker
@@ -491,7 +491,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         see https://docs.kucoin.com/futures/#account-balance-events
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
@@ -632,20 +632,27 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return message
 
     def handle_error_message(self, client: Client, message):
-        return message
+        #
+        #    {
+        #        "id": "64d8732c856851144bded10d",
+        #        "type": "error",
+        #        "code": 401,
+        #        "data": "token is expired"
+        #    }
+        #
+        data = self.safe_string(message, 'data', '')
+        self.handle_errors(None, None, client.url, None, None, data, message, None, None)
 
     def handle_message(self, client: Client, message):
-        if self.handle_error_message(client, message):
-            type = self.safe_string(message, 'type')
-            methods = {
-                # 'heartbeat': self.handleHeartbeat,
-                'welcome': self.handle_system_status,
-                'ack': self.handle_subscription_status,
-                'message': self.handle_subject,
-                'pong': self.handle_pong,
-            }
-            method = self.safe_value(methods, type)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+        type = self.safe_string(message, 'type')
+        methods = {
+            # 'heartbeat': self.handleHeartbeat,
+            'welcome': self.handle_system_status,
+            'ack': self.handle_subscription_status,
+            'message': self.handle_subject,
+            'pong': self.handle_pong,
+            'error': self.handle_error_message,
+        }
+        method = self.safe_value(methods, type)
+        if method is not None:
+            return method(client, message)

@@ -138,7 +138,11 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
         $dt = $entry['datetime'];
         if ($dt !== null) {
             assert(is_string($dt), '\"datetime\" key does not have a string value' . $log_text);
-            assert($dt === $exchange->iso8601($entry['timestamp']), 'datetime is not iso8601 of timestamp' . $log_text);
+            // there are exceptional cases, like getting microsecond-targeted string '2022-08-08T22:03:19.014680Z', so parsed unified timestamp, which carries only 13 digits (millisecond precision) can not be stringified back to microsecond accuracy, causing the bellow assertion to fail
+            //    assert (dt === exchange.iso8601 (entry['timestamp']))
+            // so, we have to compare with millisecond accururacy
+            $dt_parsed = $exchange->parse8601($dt);
+            assert($exchange->iso8601($dt_parsed) === $exchange->iso8601($entry['timestamp']), 'datetime is not iso8601 of timestamp' . $log_text);
         }
     }
 }
@@ -148,7 +152,7 @@ function assert_currency_code($exchange, $skipped_properties, $method, $entry, $
     $log_text = log_template($exchange, $method, $entry);
     if ($actual_code !== null) {
         assert(is_string($actual_code), 'currency code should be either undefined or a string' . $log_text);
-        assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code should be present in exchange.currencies' . $log_text);
+        assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code (\"' . $actual_code . '\") should be present in exchange.currencies' . $log_text);
         if ($expected_code !== null) {
             assert($actual_code === $expected_code, 'currency code in response (\"' . string_value($actual_code) . '\") should be equal to expected code (\"' . string_value($expected_code) . '\")' . $log_text);
         }

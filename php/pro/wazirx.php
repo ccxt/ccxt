@@ -49,7 +49,7 @@ class wazirx extends \ccxt\async\wazirx {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.wazirx.com/#account-update
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~

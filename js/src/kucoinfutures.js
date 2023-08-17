@@ -1068,7 +1068,7 @@ export default class kucoinfutures extends kucoin {
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
             'contracts': this.parseNumber(Precise.stringAbs(size)),
             'contractSize': this.safeValue(market, 'contractSize'),
-            //     realisedPnl: position['realised_pnl'],
+            'realizedPnl': this.safeNumber(position, 'realised_pnl'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': this.safeNumber(position, 'markPrice'),
@@ -1077,6 +1077,8 @@ export default class kucoinfutures extends kucoin {
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1124,18 +1126,15 @@ export default class kucoinfutures extends kucoin {
             'size': preciseAmount,
             'leverage': 1,
         };
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(params, 'stopLossPrice');
-        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
-        const isStopLoss = stopLossPrice !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
-        if (stopPrice) {
+        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
+        params = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice']);
+        if (triggerPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['stopPriceType'] = 'MP';
         }
-        else if (isStopLoss || isTakeProfit) {
-            if (isStopLoss) {
+        else if (stopLossPrice || takeProfitPrice) {
+            if (stopLossPrice) {
                 request['stop'] = (side === 'buy') ? 'up' : 'down';
                 request['stopPrice'] = this.priceToPrecision(symbol, stopLossPrice);
             }

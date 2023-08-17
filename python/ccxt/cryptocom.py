@@ -99,6 +99,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'repayMargin': True,
@@ -337,15 +338,9 @@ class cryptocom(Exchange, ImplicitAPI):
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRX': 'TRON',
                     'TRC20': 'TRON',
                 },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
-                },
-                'broker': 'CCXT_',
+                'broker': 'CCXT',
             },
             # https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -987,11 +982,8 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
-        broker = self.safe_string(self.options, 'broker', 'CCXT_')
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
-        if clientOrderId is None:
-            clientOrderId = broker + self.uuid22()
-        request['client_oid'] = clientOrderId
+        broker = self.safe_string(self.options, 'broker', 'CCXT')
+        request['broker_id'] = broker
         marketType = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
@@ -2800,6 +2792,8 @@ class cryptocom(Exchange, ImplicitAPI):
             'marginMode': None,
             'percentage': None,
             'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def nonce(self):

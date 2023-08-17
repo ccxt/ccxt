@@ -73,7 +73,7 @@ class probit extends probit$1 {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -194,11 +194,6 @@ class probit extends probit$1 {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
-                },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
                 },
             },
             'commonCurrencies': {
@@ -1223,7 +1218,9 @@ class probit extends probit$1 {
                 if (createMarketBuyOrderRequiresPrice) {
                     if (price !== undefined) {
                         if (cost === undefined) {
-                            cost = amount * price;
+                            const amountString = this.numberToString(amount);
+                            const priceString = this.numberToString(price);
+                            cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
                         }
                     }
                     else if (cost === undefined) {

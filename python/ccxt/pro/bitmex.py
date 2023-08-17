@@ -319,7 +319,7 @@ class bitmex(ccxt.async_support.bitmex):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitmex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
@@ -789,11 +789,11 @@ class bitmex(ccxt.async_support.bitmex):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the bitmex api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
         await self.authenticate()
@@ -1126,7 +1126,7 @@ class bitmex(ccxt.async_support.bitmex):
             orderbook['symbol'] = symbol
             for i in range(0, len(data)):
                 price = self.safe_float(data[i], 'price')
-                size = self.safe_float(data[i], 'size')
+                size = self.convertFromRawQuantity(symbol, self.safe_string(data[i], 'size'))
                 id = self.safe_string(data[i], 'id')
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'
@@ -1147,8 +1147,8 @@ class bitmex(ccxt.async_support.bitmex):
                 market = self.safe_market(marketId)
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
-                price = self.safe_float(data[i], 'price')
-                size = 0 if (action == 'delete') else self.safe_float(data[i], 'size', 0)
+                price = self.safe_number(data[i], 'price')
+                size = 0 if (action == 'delete') else self.convertFromRawQuantity(symbol, self.safe_string(data[i], 'size', '0'))
                 id = self.safe_string(data[i], 'id')
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'

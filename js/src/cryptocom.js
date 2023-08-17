@@ -85,6 +85,7 @@ export default class cryptocom extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayMargin': true,
@@ -323,15 +324,9 @@ export default class cryptocom extends Exchange {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRX': 'TRON',
                     'TRC20': 'TRON',
                 },
-                'networksById': {
-                    'BSC': 'BEP20',
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
-                },
-                'broker': 'CCXT_',
+                'broker': 'CCXT',
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -1014,12 +1009,8 @@ export default class cryptocom extends Exchange {
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const broker = this.safeString(this.options, 'broker', 'CCXT_');
-        let clientOrderId = this.safeString2(params, 'clientOrderId', 'client_oid');
-        if (clientOrderId === undefined) {
-            clientOrderId = broker + this.uuid22();
-        }
-        request['client_oid'] = clientOrderId;
+        const broker = this.safeString(this.options, 'broker', 'CCXT');
+        request['broker_id'] = broker;
         let marketType = undefined;
         let marginMode = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
@@ -2977,6 +2968,8 @@ export default class cryptocom extends Exchange {
             'marginMode': undefined,
             'percentage': undefined,
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     nonce() {

@@ -58,7 +58,7 @@ class poloniex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
@@ -214,12 +214,6 @@ class poloniex extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRON',
                 ),
-                'networksById' => array(
-                    'BSC' => 'BEP20',
-                    'ETH' => 'ERC20',
-                    'TRON' => 'TRC20',
-                    'TRX' => 'TRC20',
-                ),
                 'limits' => array(
                     'cost' => array(
                         'min' => array(
@@ -250,7 +244,6 @@ class poloniex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // General
-                    '200' => '\\ccxt\\CancelPending', // array( "orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : "" )
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal System Error
                     '603' => '\\ccxt\\RequestTimeout', // Internal Request Timeout
                     '601' => '\\ccxt\\BadRequest', // Invalid Parameter
@@ -1060,7 +1053,7 @@ class poloniex extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $rawType = $this->safe_string($order, 'type');
         $type = $this->parse_order_type($rawType);
-        $id = $this->safe_string_2($order, 'orderNumber', 'id');
+        $id = $this->safe_string_n($order, array( 'orderNumber', 'id', 'orderId' ));
         $fee = null;
         $feeCurrency = $this->safe_string($order, 'tokenFeeCurrency');
         $feeCost = null;
@@ -1301,7 +1294,17 @@ class poloniex extends Exchange {
         }
         $request['id'] = $id;
         $params = $this->omit($params, 'clientOrderId');
-        return $this->privateDeleteOrdersId (array_merge($request, $params));
+        $response = $this->privateDeleteOrdersId (array_merge($request, $params));
+        //
+        //   {
+        //       "orderId":"210832697138888704",
+        //       "clientOrderId":"",
+        //       "state":"PENDING_CANCEL",
+        //       "code":200,
+        //       "message":""
+        //   }
+        //
+        return $this->parse_order($response);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1846,14 +1849,13 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @deprecated
-         * use fetchDepositsWithdrawals instead
+         * fetch history of $deposits and $withdrawals
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
-         * @param {string} $code unified $currency $code for the $currency of the $transactions, default is null
-         * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
-         * @param {int} [$limit] max number of $transactions to return, default is null
+         * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the poloniex api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
@@ -2183,7 +2185,8 @@ class poloniex extends Exchange {
         //         "message" : "Low available balance"
         //     }
         //
-        if (is_array($response) && array_key_exists('code', $response)) {
+        $responseCode = $this->safe_string($response, 'code');
+        if (($responseCode !== null) && ($responseCode !== '200')) {
             $codeInner = $response['code'];
             $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $body;

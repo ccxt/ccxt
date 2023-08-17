@@ -59,7 +59,7 @@ class bitfinex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -1362,13 +1362,12 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @deprecated
-         * use fetchDepositsWithdrawals instead
-         * @param {string} $code unified $currency $code for the $currency of the transactions, default is null
-         * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
-         * @param {int} [$limit] max number of transactions to return, default is null
+         * fetch history of deposits and withdrawals
+         * @param {string} $code unified $currency $code for the $currency of the deposit/withdrawals
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the bitfinex api endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
@@ -1378,7 +1377,7 @@ class bitfinex extends Exchange {
         $currency = null;
         if ($currencyId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency `$code` argument or a `$currency` parameter');
+                throw new ArgumentsRequired($this->id . ' fetchDepositsWithdrawals() requires a $currency `$code` argument or a `$currency` parameter');
             } else {
                 $currency = $this->currency($code);
                 $currencyId = $currency['id'];
@@ -1604,7 +1603,7 @@ class bitfinex extends Exchange {
             $body = $this->json($query);
             $payload = base64_encode($body);
             $secret = $this->encode($this->secret);
-            $signature = $this->hmac($payload, $secret, 'sha384');
+            $signature = $this->hmac($this->encode($payload), $secret, 'sha384');
             $headers = array(
                 'X-BFX-APIKEY' => $this->apiKey,
                 'X-BFX-PAYLOAD' => $payload,

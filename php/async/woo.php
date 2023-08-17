@@ -83,7 +83,7 @@ class woo extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -206,6 +206,8 @@ class woo extends Exchange {
                             'accountinfo' => 60,
                             'positions' => 3.33,
                             'buypower' => 1,
+                            'referrals' => 60,
+                            'referral_rewards' => 60,
                         ),
                         'post' => array(
                             'algo/order' => 5,
@@ -1825,7 +1827,7 @@ class woo extends Exchange {
             $request = array(
                 'token_side' => 'DEPOSIT',
             );
-            return Async\await($this->fetch_transactions($code, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params)));
         }) ();
     }
 
@@ -1842,18 +1844,17 @@ class woo extends Exchange {
             $request = array(
                 'token_side' => 'WITHDRAW',
             );
-            return Async\await($this->fetch_transactions($code, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params)));
         }) ();
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @deprecated
-             * use fetchDepositsWithdrawals instead
-             * @param {string} $code unified $currency $code for the $currency of the transactions, default is null
-             * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
-             * @param {int} [$limit] max number of transactions to return, default is null
+             * fetch history of deposits and withdrawals
+             * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+             * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the woo api endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
@@ -2617,6 +2618,9 @@ class woo extends Exchange {
             'marginType' => null,
             'side' => $side,
             'percentage' => null,
+            'hedged' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

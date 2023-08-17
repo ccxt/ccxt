@@ -55,12 +55,13 @@ class kucoin(Exchange, ImplicitAPI):
                 'margin': True,
                 'swap': False,
                 'future': False,
-                'option': None,
+                'option': False,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -86,15 +87,19 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
+                'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderBooks': False,
                 'fetchOrdersByStatus': True,
                 'fetchOrderTrades': True,
                 'fetchPositionMode': False,
@@ -107,9 +112,13 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactionFee': True,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
                 'repayMargin': True,
+                'setLeverage': False,
                 'setMarginMode': False,
+                'setPositionMode': False,
+                'signIn': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -221,6 +230,11 @@ class kucoin(Exchange, ImplicitAPI):
                         'hf/orders/{orderId}': 1,  # didn't find rate limit
                         'hf/orders/client-order/{clientOid}': 2,  # 30 times/3s = 10/s => cost = 20 / 10 = 2
                         'hf/fills': 6.67,  # 9 times/3s = 3/s => cost = 20 / 3 = 6.67
+                        'margin/repay': 1,
+                        'project/list': 1,
+                        'project/marketInterestRate': 1,
+                        'redeem/orders': 1,
+                        'purchase/orders': 1,
                     },
                     'post': {
                         'accounts': 1,
@@ -249,6 +263,10 @@ class kucoin(Exchange, ImplicitAPI):
                         'hf/orders/multi': 20,  # 3 times/3s = 1/s => cost = 20 / 1 = 20
                         'hf/orders/multi/sync': 20,  # 3 times/3s = 1/s => cost = 20 / 1 = 20
                         'hf/orders/alter': 1,  # 60 times/3s = 20/s => cost = 20/20 = 1
+                        'margin/repay': 1,
+                        'purchase': 1,
+                        'redeem': 1,
+                        'lend/purchase/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -367,11 +385,24 @@ class kucoin(Exchange, ImplicitAPI):
                     '403': NotSupported,
                     '404': NotSupported,
                     '405': NotSupported,
+                    '415': NotSupported,
                     '429': RateLimitExceeded,
                     '500': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied,  # {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '103000': InvalidOrder,  # {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
+                    '130101': BadRequest,  # Parameter error
+                    '130102': ExchangeError,  # Maximum subscription amount has been exceeded.
+                    '130103': OrderNotFound,  # Subscription order does not exist.
+                    '130104': ExchangeError,  # Maximum number of subscription orders has been exceeded.
+                    '130105': InsufficientFunds,  # Insufficient balance.
+                    '130106': NotSupported,  # The currency does not support redemption.
+                    '130107': ExchangeError,  # Redemption amount exceeds subscription amount.
+                    '130108': OrderNotFound,  # Redemption order does not exist.
+                    '130201': PermissionDenied,  # Your account has restricted access to certain features. Please contact customer service for further assistance
+                    '130202': ExchangeError,  # The system is renewing the loan automatically. Please try again later
+                    '130203': InsufficientFunds,  # Insufficient account balance
+                    '130204': BadRequest,  # As the total lending amount for platform leverage reaches the platform's maximum position limit, the system suspends the borrowing function of leverage
                     '200004': InsufficientFunds,
                     '210014': InvalidOrder,  # {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
                     '210021': InsufficientFunds,  # {"code":"210021","msg":"Balance not enough"}
@@ -392,12 +423,14 @@ class kucoin(Exchange, ImplicitAPI):
                     '400200': InvalidOrder,  # {"code":"400200","msg":"Forbidden to place an order"}
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
+                    '400400': BadRequest,  # Parameter error
                     '400500': InvalidOrder,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
                     '400600': BadSymbol,  # {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
                     '400760': InvalidOrder,  # {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
+                    '400303': PermissionDenied,  # {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
                     '500000': ExchangeNotAvailable,  # {"code":"500000","msg":"Internal Server Error"}
                     '260220': InvalidAddress,  # {"code": "260220", "msg": "deposit.address.not.exists"}
                     '900014': BadRequest,  # {"code":"900014","msg":"Invalid chainId"}
@@ -467,7 +500,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchCurrencies': {
                     'webApiEnable': True,  # fetches from WEB
-                    'webApiRetries': 5,
+                    'webApiRetries': 1,
                     'webApiMuteFailure': True,
                 },
                 'fetchMarkets': {
@@ -500,6 +533,12 @@ class kucoin(Exchange, ImplicitAPI):
                             'hf/orders/{orderId}': 'v1',
                             'hf/orders/client-order/{clientOid}': 'v1',
                             'hf/fills': 'v1',
+                            'margin/borrow': 'v3',
+                            'margin/repay': 'v3',
+                            'project/list': 'v3',
+                            'project/marketInterestRate': 'v3',
+                            'redeem/orders': 'v3',
+                            'purchase/orders': 'v3',
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
@@ -510,6 +549,11 @@ class kucoin(Exchange, ImplicitAPI):
                             'hf/orders/multi': 'v1',
                             'hf/orders/multi/sync': 'v1',
                             'hf/orders/alter': 'v1',
+                            'margin/borrow': 'v3',
+                            'margin/repay': 'v3',
+                            'purchase': 'v3',
+                            'redeem': 'v3',
+                            'lend/purchase/update': 'v3',
                         },
                         'DELETE': {
                             'hf/orders/{orderId}': 'v1',
@@ -564,321 +608,209 @@ class kucoin(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
-                    'KCC': 'kcc',  # kucoin community chain
-                    'SOLANA': 'sol',
-                    'ALGORAND': 'algo',
-                    'EOS': 'eos',
                     'HRC20': 'heco',
-                    'POLYGON': 'matic',
+                    'MATIC': 'matic',
+                    'KCC': 'kcc',  # kucoin community chain
+                    'SOL': 'sol',
+                    'ALGO': 'algo',
+                    'EOS': 'eos',
                     'BEP20': 'bsc',
                     'BEP2': 'bnb',
-                    'ARBITRUM_ONE': 'arbitrum',
-                    'TELOS': 'tlos',  # tlosevm is different
-                    'CONFLUX': 'cfx',
-                    'ACALA': 'aca',
+                    'ARBONE': 'arbitrum',
+                    'AVAXX': 'avax',
+                    'AVAXC': 'avaxc',
+                    'TLOS': 'tlos',  # tlosevm is different
+                    'CFX': 'cfx',
+                    'ACA': 'aca',
                     'OPTIMISM': 'optimism',
-                    'ONTOLOGY': 'ont',
-                    'MOONBEAM': 'glmr',
-                    'CASPER': 'cspr',
-                    'KLAYTN': 'klay',
-                    'RADIX': 'xrd',
-                    'RAVENCOIN': 'rvn',
+                    'ONT': 'ont',
+                    'GLMR': 'glmr',
+                    'CSPR': 'cspr',
+                    'KLAY': 'klay',
+                    'XRD': 'xrd',
+                    'RVN': 'rvn',
                     'NEAR': 'near',
-                    'APTOS': 'aptos',
+                    'APT': 'aptos',
                     'ETHW': 'ethw',
                     'TON': 'ton',
                     'BCH': 'bch',
                     'BSV': 'bchsv',
                     'BCHA': 'bchabc',
-                    'OSMOSIS': 'osmo',
+                    'OSMO': 'osmo',
                     'NANO': 'nano',
-                    'STELLAR': 'xlm',
-                    'VECHAIN': 'vet',
+                    'XLM': 'xlm',
+                    'VET': 'vet',
                     'IOST': 'iost',
-                    'ZILLIQA': 'zil',
-                    'RIPPLE': 'xrp',
-                    'TOMOCHAIN': 'tomo',
-                    'MONERO': 'xmr',
+                    'ZIL': 'zil',
+                    'XRP': 'xrp',
+                    'TOMO': 'tomo',
+                    'XMR': 'xmr',
                     'COTI': 'coti',
-                    'TEZOS': 'xtz',
-                    'CARDANO': 'ada',
+                    'XTZ': 'xtz',
+                    'ADA': 'ada',
                     'WAX': 'waxp',
                     'THETA': 'theta',
-                    'HARMONY': 'one',
+                    'ONE': 'one',
                     'IOTEX': 'iotx',
                     'NULS': 'nuls',
-                    'KUSAMA': 'ksm',
+                    'KSM': 'ksm',
                     'LTC': 'ltc',
                     'WAVES': 'waves',
-                    'POLKADOT': 'dot',
+                    'DOT': 'dot',
                     'STEEM': 'steem',
                     'QTUM': 'qtum',
-                    'DOGECOIN': 'doge',
-                    'FILECOIN': 'fil',
-                    'AVALANCHE_X': 'avax',
-                    'AVALANCHE_C': 'avaxc',
-                    'SYMBOL': 'xym',
+                    'DOGE': 'doge',
+                    'FIL': 'fil',
+                    'XYM': 'xym',
                     'FLUX': 'flux',
-                    'COSMOS': 'atom',
+                    'ATOM': 'atom',
                     'XDC': 'xdc',
-                    'KADENA': 'kda',
-                    'INTERNETCOMPUTER': 'icp',
+                    'KDA': 'kda',
+                    'ICP': 'icp',
                     'CELO': 'celo',
-                    'LISK': 'lsk',
-                    'VSYSTEMS': 'vsys',
-                    'KARURA': 'kar',
-                    'CHIA': 'xch',
+                    'LSK': 'lsk',
+                    'VSYS': 'vsys',
+                    'KAR': 'kar',
+                    'XCH': 'xch',
                     'FLOW': 'flow',
                     'BAND': 'band',
-                    'ELROND': 'egld',
-                    'HEDERA': 'hbar',
-                    'PROTON': 'xpr',
-                    'ARWEAVE': 'ar',
-                    'FANTOM': 'ftm',
+                    'EGLD': 'egld',
+                    'HBAR': 'hbar',
+                    'XPR': 'xpr',
+                    'AR': 'ar',
+                    'FTM': 'ftm',
                     'KAVA': 'kava',
-                    'CALAMARI': 'kma',
-                    'ECASH': 'xec',
+                    'KMA': 'kma',
+                    'XEC': 'xec',
                     'IOTA': 'iota',
-                    'HELIUM': 'hnt',
-                    'ASTAR': 'astr',
-                    'POLKADEX': 'pdex',
+                    'HNT': 'hnt',
+                    'ASTR': 'astr',
+                    'PDEX': 'pdex',
                     'METIS': 'metis',
-                    'ZCASH': 'zec',
-                    'POCKET': 'pokt',
+                    'ZEC': 'zec',
+                    'POKT': 'pokt',
                     'OASYS': 'oas',
-                    'ETC': 'etc',
-                    'AKASH': 'akt',
-                    'FUSION': 'fsn',
-                    'SECRET': 'scrt',
-                    'CENTRIFUGE': 'cfg',
-                    'ICON': 'icx',
-                    'KOMODO': 'kmd',
-                    'NEM': 'NEM',
-                    'STACKS': 'stx',
-                    'DIGIBYTE': 'dgb',
-                    'DECRED': 'dcr',
-                    'NERVOS': 'ckb',  # ckb2 is just odd entry
-                    'ELASTOS': 'ela',  # esc is another chain
-                    'HYDRA': 'hydra',
-                    'BYTOM': 'btm',
                     'OASIS': 'oasis',  # a.k.a. ROSE
-                    'KARDIACHAIN': 'kai',
-                    'SOLAR': 'sxp',  # a.k.a. solar swipe
-                    'NEBLIO': 'nebl',
-                    'HORIZEN': 'zen',
-                    'SHIDEN': 'sdn',
-                    'AURORA': 'aurora',
+                    'ETC': 'etc',
+                    'AKT': 'akt',
+                    'FSN': 'fsn',
+                    'SCRT': 'scrt',
+                    'CFG': 'cfg',
+                    'ICX': 'icx',
+                    'KMD': 'kmd',
+                    'NEM': 'NEM',
+                    'STX': 'stx',
+                    'DGB': 'dgb',
+                    'DCR': 'dcr',
+                    'CKB': 'ckb',  # ckb2 is just odd entry
+                    'ELA': 'ela',  # esc might be another chain elastos smart chain
+                    'HYDRA': 'hydra',
+                    'BTM': 'btm',
+                    'KARDIA': 'kai',
+                    'SXP': 'sxp',  # a.k.a. solar swipe
+                    'NEBL': 'nebl',
+                    'ZEN': 'zen',
+                    'SDN': 'sdn',
                     'LTO': 'lto',
-                    # below will be uncommented after unification
-                    # 'ORAICHAIN': 'orai',
-                    # 'JUPITER': 'jup',
-                    #  # 'terra' luna lunc TBD
+                    'WEMIX': 'wemix',
+                    # 'BOBA': 'boba',  # tbd
+                    'EVER': 'ever',
+                    'BNC': 'bnc',
+                    'BNCDOT': 'bncdot',
+                    # 'CMP': 'cmp',  # todo: after consensus
+                    'AION': 'aion',
+                    'GRIN': 'grin',
+                    'LOKI': 'loki',
+                    'QKC': 'qkc',
+                    'TT': 'TT',
+                    'PIVX': 'pivx',
+                    'SERO': 'sero',
+                    'METER': 'meter',
+                    'STATEMINE': 'statemine',  # a.k.a. RMRK
+                    'DVPN': 'dvpn',
+                    'XPRT': 'xprt',
+                    'MOVR': 'movr',
+                    'ERGO': 'ergo',
+                    'ABBC': 'abbc',
+                    'DIVI': 'divi',
+                    'PURA': 'pura',
+                    'DFI': 'dfi',
+                    # 'NEO': 'neo',  # tbd neo legacy
+                    'NEON3': 'neon3',
+                    'DOCK': 'dock',
+                    'TRUE': 'true',
+                    'CS': 'cs',
+                    'ORAI': 'orai',
+                    # below will be uncommented after consensus
+                    # 'BITCOINDIAMON': 'bcd',
+                    # 'BITCOINGOLD': 'btg',
+                    # 'HTR': 'htr',
                     # 'DEROHE': 'derohe',
-                    # 'BIFROST': 'bnc',
-                    # 'BIFROSTPOLKADOT': 'bncdot',
+                    # 'NDAU': 'ndau',
+                    # 'HPB': 'hpb',
+                    # 'AXE': 'axe',
+                    # 'BITCOINPRIVATE': 'btcp',
+                    # 'EDGEWARE': 'edg',
+                    # 'JUPITER': 'jup',
+                    # 'VELAS': 'vlx',  # vlxevm is different
+                    #  # 'terra' luna lunc TBD
+                    # 'DIGITALBITS': 'xdb',
                     #  # fra is fra-emv on kucoin
                     # 'PASTEL': 'psl',
                     #  # sysevm
                     # 'CONCORDIUM': 'ccd',
+                    # 'AURORA': 'aurora',
+                    # 'PHA': 'pha',  # a.k.a. khala
+                    # 'PAL': 'pal',
+                    # 'RSK': 'rbtc',
+                    # 'NIX': 'nix',
+                    # 'NIM': 'nim',
+                    # 'NRG': 'nrg',
+                    # 'RFOX': 'rfox',
                     # 'PIONEER': 'neer',
-                    # 'CADUCEUS': 'cmp',
                     # 'PIXIE': 'pix',
                     # 'ALEPHZERO': 'azero',
                     # 'ACHAIN': 'act',  # actevm is different
                     # 'BOSCOIN': 'bos',
                     # 'ELECTRONEUM': 'etn',
                     # 'GOCHAIN': 'go',
-                    # 'HPB': 'hpb',
-                    #  # 'NEO': 'neo', tbd neo legacy
                     # 'SOPHIATX': 'sphtx',
                     # 'WANCHAIN': 'wan',
                     # 'ZEEPIN': 'zpt',
                     # 'MATRIXAI': 'man',
                     # 'METADIUM': 'meta',
-                    # 'BITCOINDIAMON': 'bcd',
-                    # 'AION': 'aion',
-                    # 'PAL': 'pal',
-                    # 'GRIN': 'grin',
                     # 'METAHASH': 'mhc',
-                    # 'LOKI': 'loki',
-                    # 'NIMIQ': 'nim',
-                    # 'QUARKCHAIN': 'qkc',
-                    # 'ENERGI': 'nrg',
-                    # 'RSK': 'rbtc',
-                    # 'RFOX': 'rfox',
-                    # 'THUNDERCORE': 'TT',
-                    # 'NIX': 'nix',
-                    # 'PIVX': 'pivx',
-                    # 'SERO': 'sero',
                     #  # eosc --"eosforce" tbd
                     # 'IOTCHAIN': 'itc',
-                    # 'TRUECHAIN': 'true',
                     # 'CONTENTOS': 'cos',
-                    # 'CREDITS': 'cs',
                     # 'CPCHAIN': 'cpc',
                     # 'INTCHAIN': 'int',
                     #  # 'DASH': 'dash', tbd digita-cash
                     # 'WALTONCHAIN': 'wtc',
-                    # 'AXE': 'axe',
                     # 'CONSTELLATION': 'dag',
                     # 'ONELEDGER': 'olt',
                     # 'AIRDAO': 'amb',  # a.k.a. AMBROSUS
                     # 'ENERGYWEB': 'ewt',
                     # 'WAVESENTERPRISE': 'west',
                     # 'HYPERCASH': 'hc',
-                    # 'BITCOINGOLD': 'btg',
                     # 'ENECUUM': 'enq',
                     # 'HAVEN': 'xhv',
-                    # 'DOCK': 'dock',
-                    # 'HATHOR': 'htr',
-                    # 'DEFICHAIN': 'dfi',
                     # 'CHAINX': 'pcx',
                     #  # 'FLUXOLD': 'zel',  # zel seems old chain(with uppercase FLUX in kucoin UI and with id 'zel')
-                    # 'BITCOINPRIVATE': 'btcp',
                     # 'BUMO': 'bu',
                     # 'DEEPONION': 'onion',
-                    # 'PURA': 'pura',
                     # 'ULORD': 'ut',
                     # 'ASCH': 'xas',
                     # 'SOLARIS': 'xlr',
                     # 'APOLLO': 'apl',
-                    # 'DIVI': 'divi',
                     # 'PIRATECHAIN': 'arrr',
-                    # 'ERGO': 'ergo',
-                    # 'ABBC': 'abbc',
                     # 'ULTRA': 'uos',
-                    # 'MOONRIVE': 'movr',
-                    # 'NDAU': 'ndau',
-                    # 'PERSISTENCE': 'xprt',
-                    # 'SENTINEL': 'dvpn',
-                    # 'EDGEWARE': 'edg',
-                    # 'STATEMINE': 'statemine',  # a.k.a. RMRK
-                    # 'VELAS': 'vlx',  # vlxevm is different
                     # 'EMONEY': 'ngm',
-                    # 'PHALA': 'pha',  # a.k.a. khala
-                    # 'METER': 'meter',
                     # 'AURORACHAIN': 'aoa',
-                    # 'EVERSCALE': 'ever',
-                    #  # 'BOBA': 'boba',  # tbd
-                    # 'DIGITALBITS': 'xdb',
-                    # 'WEMIX': 'wemix',
                     # 'KLEVER': 'klv',
-                    # undetermined: xns(insolar), rhoc, luk(luniverse), kts(klimatas), bchn(bitcoin cash node), god(shallow entry), lit(litmus), neon3(NEO N3),
-                },
-                'networksById': {
-                    'btc': 'BTC',
-                    'bech32': 'BTCNATIVESEGWIT',
-                    'eth': 'ERC20',
-                    'trx': 'TRC20',
-                    'kcc': 'KCC',
-                    'sol': 'SOLANA',
-                    'algo': 'ALGORAND',
-                    'eos': 'EOS',
-                    'heco': 'HRC20',
-                    'matic': 'POLYGON',
-                    'bsc': 'BEP20',
-                    'bnb': 'BEP2',
-                    'arbitrum': 'ARBITRUM_ONE',
-                    'tlos': 'TELOS',
-                    'cfx': 'CONFLUX',
-                    'aca': 'ACALA',
-                    'optimism': 'OPTIMISM',
-                    'ont': 'ONTOLOGY',
-                    'glmr': 'MOONBEAM',
-                    'cspr': 'CASPER',
-                    'klay': 'KLAYTN',
-                    'xrd': 'RADIX',
-                    'rvn': 'RAVENCOIN',
-                    'near': 'NEAR',
-                    'aptos': 'APTOS',
-                    'ethw': 'ETHW',
-                    'ton': 'TON',
-                    'bch': 'BCH',
-                    'bchsv': 'BSV',
-                    'bchabc': 'BCHA',
-                    'osmo': 'OSMOSIS',
-                    'nano': 'NANO',
-                    'xlm': 'STELLAR',
-                    'vet': 'VECHAIN',
-                    'iost': 'IOST',
-                    'zil': 'ZILLIQA',
-                    'xrp': 'RIPPLE',
-                    'tomo': 'TOMOCHAIN',
-                    'xmr': 'MONERO',
-                    'coti': 'COTI',
-                    'xtz': 'TEZOS',
-                    'ada': 'CARDANO',
-                    'waxp': 'WAX',
-                    'theta': 'THETA',
-                    'one': 'HARMONY',
-                    'iotx': 'IOTEX',
-                    'nuls': 'NULS',
-                    'ksm': 'KUSAMA',
-                    'ltc': 'LTC',
-                    'waves': 'WAVES',
-                    'dot': 'POLKADOT',
-                    'steem': 'STEEM',
-                    'qtum': 'QTUM',
-                    'doge': 'DOGECOIN',
-                    'fil': 'FILECOIN',
-                    'avax': 'AVALANCHE_X',
-                    'avaxc': 'AVALANCHE_C',
-                    'xym': 'SYMBOL',
-                    'flux': 'FLUX',
-                    'atom': 'COSMOS',
-                    'xdc': 'XDC',
-                    'kda': 'KADENA',
-                    'icp': 'INTERNETCOMPUTER',
-                    'celo': 'CELO',
-                    'lsk': 'LISK',
-                    'vsys': 'VSYSTEMS',
-                    'kar': 'KARURA',
-                    'xch': 'CHIA',
-                    'flow': 'FLOW',
-                    'band': 'BAND',
-                    'egld': 'ELROND',
-                    'hbar': 'HEDERA',
-                    'xpr': 'PROTON',
-                    'ar': 'ARWEAVE',
-                    'ftm': 'FANTOM',
-                    'kava': 'KAVA',
-                    'kma': 'CALAMARI',
-                    'xec': 'ECASH',
-                    'iota': 'IOTA',
-                    'hnt': 'HELIUM',
-                    'astr': 'ASTAR',
-                    'pdex': 'POLKADEX',
-                    'metis': 'METIS',
-                    'zec': 'ZCASH',
-                    'pokt': 'POCKET',
-                    'oas': 'OASYS',
-                    'etc': 'ETC',
-                    'akt': 'AKASH',
-                    'fsn': 'FUSION',
-                    'scrt': 'SECRET',
-                    'cfg': 'CENTRIFUGE',
-                    'icx': 'ICON',
-                    'kmd': 'KOMODO',
-                    'NEM': 'NEM',
-                    'stx': 'STACKS',
-                    'dgb': 'DIGIBYTE',
-                    'dcr': 'DECRED',
-                    'ckb': 'NERVOS',
-                    'ela': 'ELASTOS',
-                    'hydra': 'HYDRA',
-                    'btm': 'BYTOM',
-                    'oasis': 'OASIS',
-                    'kai': 'KARDIACHAIN',
-                    'nebl': 'NEBLIO',
-                    'zen': 'HORIZEN',
-                    'sdn': 'SHIDEN',
-                    'aurora': 'AURORA',
-                    'lto': 'LTO',
-                    'sxp': 'SOLAR',
+                    # undetermined: xns(insolar), rhoc, luk(luniverse), kts(klimatas), bchn(bitcoin cash node), god(shallow entry), lit(litmus),
                 },
                 'marginModes': {
                     'cross': 'MARGIN_TRADE',
@@ -1782,6 +1714,16 @@ class kucoin(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
+    def handle_trigger_prices(self, params):
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        if (isStopLoss and isTakeProfit) or (triggerPrice and stopLossPrice) or (triggerPrice and isTakeProfit):
+            raise ExchangeError(self.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice')
+        return [triggerPrice, stopLossPrice, takeProfitPrice]
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
@@ -1795,13 +1737,17 @@ class kucoin(Exchange, ImplicitAPI):
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict [params]:  Extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.marginMode]: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+        :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
         :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
         :param str [params.tradeType]: 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
          * limit orders ---------------------------------------------------
-        :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param float [params.cancelAfter]: long,  # cancel after n seconds, requires timeInForce to be GTT
-        :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
         :param bool [params.hidden]: False,  # Order will not be displayed in the order book
         :param bool [params.iceberg]: False,  # Only a portion of the order is displayed in the order book
         :param str [params.visibleSize]: self.amount_to_precision(symbol, visibleSize),  # The maximum visible size of an iceberg order
@@ -1809,11 +1755,9 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.funds]:  # Amount of quote currency to use
          * stop orders ----------------------------------------------------
         :param str [params.stop]:  Either loss or entry, the default is loss. Requires stopPrice to be defined
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
          * margin orders --------------------------------------------------
         :param float [params.leverage]: Leverage size of the order
         :param str [params.stp]: '',  # self trade prevention, CN, CO, CB or DC
-        :param str [params.marginMode]: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
         :param bool [params.autoBorrow]: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         :param bool [params.hf]: False,  # True for hf order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1847,23 +1791,23 @@ class kucoin(Exchange, ImplicitAPI):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        # default is take profit
-        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'stopPrice')
-        isStopLoss = stopLossPrice is not None
-        isTakeProfit = takeProfitPrice is not None
-        if isStopLoss and isTakeProfit:
-            raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
-        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'stopPrice'])
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
+        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
         tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
         method = 'privatePostOrders'
         isHf = self.safe_value(params, 'hf', False)
         if isHf:
             method = 'privatePostHfOrders'
-        elif isStopLoss or isTakeProfit:
-            request['stop'] = 'entry' if isStopLoss else 'loss'
-            triggerPrice = stopLossPrice if isStopLoss else takeProfitPrice
-            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+        elif triggerPrice or stopLossPrice or takeProfitPrice:
+            if triggerPrice:
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+            elif stopLossPrice or takeProfitPrice:
+                if stopLossPrice:
+                    request['stop'] = 'entry' if (side == 'buy') else 'loss'
+                    request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                else:
+                    request['stop'] = 'loss' if (side == 'buy') else 'entry'
+                    request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
             method = 'privatePostStopOrder'
             if marginMode == 'isolated':
                 raise BadRequest(self.id + ' createOrder does not support isolated margin for stop orders')
@@ -2353,8 +2297,6 @@ class kucoin(Exchange, ImplicitAPI):
                 status = 'cancelled'
         if cancelExist:
             status = 'canceled'
-        if status is None:
-            status = 'closed'
         stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,
@@ -3713,8 +3655,7 @@ class kucoin(Exchange, ImplicitAPI):
     async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
-        see https://docs.kucoin.com/#post-borrow-order
-        see https://docs.kucoin.com/#isolated-margin-borrowing
+        see https://docs.kucoin.com/#1-margin-borrowing
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str symbol: unified market symbol, required for isolated margin
@@ -3724,6 +3665,7 @@ class kucoin(Exchange, ImplicitAPI):
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        isIsolated = marginMode == 'isolated'
         params = self.omit(params, 'marginMode')
         self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         await self.load_markets()
@@ -3732,39 +3674,25 @@ class kucoin(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
         }
-        method = None
         timeInForce = self.safe_string_n(params, ['timeInForce', 'type', 'borrowStrategy'], 'IOC')
-        timeInForceRequest = None
-        if symbol is None:
-            method = 'privatePostMarginBorrow'
-            timeInForceRequest = 'type'
-        else:
+        if isIsolated:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol parameter for isolated margin')
             market = self.market(symbol)
             request['symbol'] = market['id']
-            timeInForceRequest = 'borrowStrategy'
-            method = 'privatePostIsolatedBorrow'
-        request[timeInForceRequest] = timeInForce
+            request['isIsolated'] = True
         params = self.omit(params, ['timeInForce', 'type', 'borrowStrategy'])
-        response = await getattr(self, method)(self.extend(request, params))
-        #
-        # Cross
-        #
-        #     {
-        #         "code": "200000",
-        #         "data": {
-        #             "orderId": "62df422ccde938000115290a",
-        #             "currency": "USDT"
-        #         }
-        #     }
-        #
-        # Isolated
+        request['timeInForce'] = timeInForce
+        response = await self.privatePostMarginBorrow(self.extend(request, params))
         #
         #     {
-        #         "code": "200000",
+        #         "success": True,
+        #         "code": "200",
+        #         "msg": "success",
+        #         "retry": False,
         #         "data": {
-        #             "orderId": "62df44a1c65f300001bc32a8",
-        #             "currency": "USDT",
-        #             "actualSize": "100"
+        #             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        #             "actualSize": 10
         #         }
         #     }
         #
@@ -3774,18 +3702,16 @@ class kucoin(Exchange, ImplicitAPI):
     async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        see https://docs.kucoin.com/#one-click-repayment
-        see https://docs.kucoin.com/#quick-repayment
+        see https://docs.kucoin.com/#2-repayment
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the kucoin api endpoints
-        :param str [params.sequence]: cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
-        :param str [params.seqStrategy]: isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
         :param str [params.marginMode]: 'cross' or 'isolated' default is 'cross'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        isIsolated = marginMode == 'isolated'
         params = self.omit(params, 'marginMode')
         self.check_required_margin_argument('repayMargin', symbol, marginMode)
         await self.load_markets()
@@ -3793,59 +3719,40 @@ class kucoin(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
-            # 'sequence': 'RECENTLY_EXPIRE_FIRST',  # Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-            # 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  # Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         }
-        method = None
-        sequence = self.safe_string_2(params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST')
-        sequenceRequest = None
-        if symbol is None:
-            method = 'privatePostMarginRepayAll'
-            sequenceRequest = 'sequence'
-        else:
+        if isIsolated:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol parameter for isolated margin')
             market = self.market(symbol)
             request['symbol'] = market['id']
-            sequenceRequest = 'seqStrategy'
-            method = 'privatePostIsolatedRepayAll'
-        request[sequenceRequest] = sequence
-        params = self.omit(params, ['sequence', 'seqStrategy'])
-        response = await getattr(self, method)(self.extend(request, params))
+            request['isIsolated'] = True
+        response = await self.privatePostMarginRepay(self.extend(request, params))
         #
         #     {
-        #         "code": "200000",
-        #         "data": null
+        #         "success": True,
+        #         "code": "200",
+        #         "msg": "success",
+        #         "retry": False,
+        #         "data": {
+        #             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        #             "actualSize": 10
+        #         }
         #     }
         #
-        return self.parse_margin_loan(response, currency)
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
 
     def parse_margin_loan(self, info, currency=None):
         #
-        # borrowMargin cross
-        #
         #     {
-        #         "orderId": "62df422ccde938000115290a",
-        #         "currency": "USDT"
-        #     }
-        #
-        # borrowMargin isolated
-        #
-        #     {
-        #         "orderId": "62df44a1c65f300001bc32a8",
-        #         "currency": "USDT",
-        #         "actualSize": "100"
-        #     }
-        #
-        # repayMargin
-        #
-        #     {
-        #         "code": "200000",
-        #         "data": null
+        #         "orderNo": "5da6dba0f943c0c81f5d5db5",
+        #         "actualSize": 10
         #     }
         #
         timestamp = self.milliseconds()
         currencyId = self.safe_string(info, 'currency')
         return {
-            'id': self.safe_string(info, 'orderId'),
+            'id': self.safe_string(info, 'orderNo'),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(info, 'actualSize'),
             'symbol': None,
@@ -3956,9 +3863,11 @@ class kucoin(Exchange, ImplicitAPI):
         #     {code: '200000', data: {...}}
         #
         errorCode = self.safe_string(response, 'code')
-        message = self.safe_string(response, 'msg', '')
+        message = self.safe_string_2(response, 'msg', 'data', '')
         feedback = self.id + ' ' + message
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+        if errorCode != '200000':
+            raise ExchangeError(feedback)
         return None

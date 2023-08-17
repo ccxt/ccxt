@@ -411,7 +411,8 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
             checksum = self.safe_value(self.options, 'checksum', True)
-            if checksum:
+            isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
+            if not isSnapshot and checksum:
                 storedAsks = storedOrderBook['asks']
                 storedBids = storedOrderBook['bids']
                 asksLength = len(storedAsks)
@@ -952,7 +953,7 @@ class bitget(ccxt.async_support.bitget):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`

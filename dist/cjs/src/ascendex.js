@@ -80,7 +80,7 @@ class ascendex extends ascendex$1 {
                 'fetchTradingFees': true,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -2361,15 +2361,14 @@ class ascendex extends ascendex$1 {
         };
         return await this.fetchTransactions(code, since, limit, this.extend(request, params));
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name ascendex#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name ascendex#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -2549,7 +2548,7 @@ class ascendex extends ascendex$1 {
             result.push(this.parsePosition(position[i]));
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2611,6 +2610,8 @@ class ascendex extends ascendex$1 {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger(position, 'leverage'),
             'marginRatio': undefined,
+            'stopLossPrice': this.safeNumber(position, 'stopLossPrice'),
+            'takeProfitPrice': this.safeNumber(position, 'takeProfitPrice'),
         });
     }
     parseFundingRate(contract, market = undefined) {

@@ -6,7 +6,6 @@
 
 // ----------------------------------------------------------------------------
 import fs from 'fs';
-import assert from 'assert';
 import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
@@ -22,6 +21,12 @@ process.on('unhandledRejection', (e) => {
 });
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter((x) => !x.startsWith('--'));
 const AuthenticationError = ccxt.AuthenticationError;
+const RateLimitExceeded = ccxt.RateLimitExceeded;
+const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
+const NetworkError = ccxt.NetworkError;
+const DDoSProtection = ccxt.DDoSProtection;
+const OnMaintenance = ccxt.OnMaintenance;
+const RequestTimeout = ccxt.RequestTimeout;
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
     constructor() {
@@ -184,18 +189,9 @@ export default class testMainClass extends baseMainTestClass {
         const skippedSettings = ioFileRead(skippedFile);
         const skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, {});
         // others
-        const skipReason = exchange.safeValue(skippedSettingsForExchange, 'skip');
         const timeout = exchange.safeValue(skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
             exchange.timeout = timeout;
-        }
-        if (skipReason !== undefined) {
-            dump('[SKIPPED] exchange', exchangeId, skipReason);
-            exitScript();
-        }
-        if (exchange.alias) {
-            dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
-            exitScript();
         }
         exchange.httpsProxy = exchange.safeString(skippedSettingsForExchange, 'httpsProxy');
         this.skippedMethods = exchange.safeValue(skippedSettingsForExchange, 'skipMethods', {});
@@ -213,6 +209,7 @@ export default class testMainClass extends baseMainTestClass {
         return message + res;
     }
     async testMethod(methodName, exchange, args, isPublic) {
+        const isLoadMarkets = (methodName === 'loadMarkets');
         const methodNameInTest = getTestName(methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
@@ -220,7 +217,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         let skipMessage = undefined;
         const isFetchOhlcvEmulated = (methodName === 'fetchOHLCV' && exchange.has['fetchOHLCV'] === 'emulated'); // todo: remove emulation from base
-        if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
+        if (!isLoadMarkets && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         }
         else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
@@ -229,45 +226,94 @@ export default class testMainClass extends baseMainTestClass {
         else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
-        if (skipMessage) {
-            if (this.info) {
-                dump(this.addPadding(skipMessage, 25), exchange.id, methodNameInTest);
-            }
-            return;
-        }
         const argsStringified = '(' + args.join(',') + ')';
-        if (this.info) {
-            dump(this.addPadding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
-        }
-        let result = null;
         try {
+            // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
+            if (isLoadMarkets) {
+                await exchange.loadMarkets();
+            }
+            if (skipMessage) {
+                if (this.info) {
+                    dump(this.addPadding(skipMessage, 25), exchange.id, methodNameInTest);
+                }
+                return;
+            }
+            if (this.info) {
+                dump(this.addPadding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+            }
             const skippedProperties = exchange.safeValue(this.skippedMethods, methodName, {});
-            result = await callMethod(this.testFiles, methodNameInTest, exchange, skippedProperties, args);
+            await callMethod(this.testFiles, methodNameInTest, exchange, skippedProperties, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
         }
         catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
-            if (!(isPublic && isAuthError)) {
-                dump('[TEST_FAILURE]', exceptionMessage(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
+            // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+            if (isPublic && isAuthError) {
+                if (this.info) {
+                    dump('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage(e), exchange.id, methodNameInTest, argsStringified);
+                }
+            }
+            else {
                 throw e;
             }
         }
-        return result;
     }
-    async testSafe(methodName, exchange, args, isPublic) {
-        try {
-            await this.testMethod(methodName, exchange, args, isPublic);
-            return true;
-        }
-        catch (e) {
-            return false;
+    async testSafe(methodName, exchange, args = [], isPublic = false) {
+        // `testSafe` method does not throw an exception, instead mutes it.
+        // The reason we mute the thrown exceptions here is because if this test is part
+        // of "runPublicTests", then we don't want to stop the whole test if any single
+        // test-method fails. For example, if "fetchOrderBook" public test fails, we still
+        // want to run "fetchTickers" and other methods. However, independently this fact,
+        // from those test-methods we still echo-out (console.log/print...) the exception
+        // messages with specific formatted message "[TEST_FAILURE] ..." and that output is
+        // then regex-parsed by run-tests.js, so the exceptions are still printed out to
+        // console from there. So, even if some public tests fail, the script will continue
+        // doing other things (testing other spot/swap or private tests ...)
+        const maxRetries = 3;
+        const argsStringified = '(' + args.join(',') + ')';
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                await this.testMethod(methodName, exchange, args, isPublic);
+                return true;
+            }
+            catch (e) {
+                const isRateLimitExceeded = (e instanceof RateLimitExceeded);
+                const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
+                const isNetworkError = (e instanceof NetworkError);
+                const isDDoSProtection = (e instanceof DDoSProtection);
+                const isRequestTimeout = (e instanceof RequestTimeout);
+                const tempFailure = (isRateLimitExceeded || isExchangeNotAvailable || isNetworkError || isDDoSProtection || isRequestTimeout);
+                if (tempFailure) {
+                    // wait and retry again
+                    await exchange.sleep(i * 1000); // increase wait seconds on every retry
+                    // if last retry was gone with same `tempFailure` error, then let's eventually return false
+                    if (i === maxRetries - 1) {
+                        dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified);
+                        if (methodName === 'loadMarkets') {
+                            // in case of loadMarkets, we completely stop test for current exchange
+                            exitScript();
+                        }
+                        return false;
+                    }
+                    continue;
+                }
+                else if (e instanceof OnMaintenance) {
+                    // in case of maintenance, skip exchange (don't fail the test)
+                    dump('[TEST_WARNING] Exchange is on maintenance', exchange.id);
+                    exitScript();
+                }
+                else {
+                    // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
+                    dump('[TEST_FAILURE]', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                    return false;
+                }
+            }
         }
     }
     async runPublicTests(exchange, symbol) {
         const tests = {
-            'loadMarkets': [],
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
@@ -303,21 +349,25 @@ export default class testMainClass extends baseMainTestClass {
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        await Promise.all(promises);
+        const results = await Promise.all(promises);
+        // now count which test-methods retuned `false` from "testSafe" and dump that info below
         if (this.info) {
-            dump(this.addPadding('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
+            const errors = [];
+            for (let i = 0; i < testNames.length; i++) {
+                if (!results[i]) {
+                    errors.push(testNames[i]);
+                }
+            }
+            // we don't throw exception for public-tests, see comments under 'testSafe' method
+            let failedMsg = '';
+            if (errors.length) {
+                failedMsg = ' | Failed methods: ' + errors.join(', ');
+            }
+            dump(this.addPadding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id);
         }
     }
     async loadExchange(exchange) {
-        await exchange.loadMarkets();
-        assert(typeof exchange.markets === 'object', '.markets is not an object');
-        assert(Array.isArray(exchange.symbols), '.symbols is not an array');
-        const symbolsLength = exchange.symbols.length;
-        const marketKeys = Object.keys(exchange.markets);
-        const marketKeysLength = marketKeys.length;
-        assert(symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
-        assert(marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
-        assert(symbolsLength === marketKeysLength, 'number of .symbols is not equal to the number of .markets');
+        await this.testSafe('loadMarkets', exchange, [], true);
         const symbols = [
             'BTC/CNY',
             'BTC/USD',

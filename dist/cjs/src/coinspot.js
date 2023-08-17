@@ -18,6 +18,7 @@ class coinspot extends coinspot$1 {
             'name': 'CoinSpot',
             'countries': ['AU'],
             'rateLimit': 1000,
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -64,6 +65,7 @@ class coinspot extends coinspot$1 {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
