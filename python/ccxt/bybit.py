@@ -4146,6 +4146,8 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     def edit_unified_account_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        if amount is None and price is None:
+            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4153,7 +4155,6 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': self.amount_to_precision(symbol, amount),
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
@@ -4170,6 +4171,8 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'linear'
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
@@ -4212,6 +4215,8 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     def edit_unified_margin_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+        if amount is None and price is None:
+            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4225,7 +4230,6 @@ class bybit(Exchange, ImplicitAPI):
             'side': self.capitalize(side),
             'orderType': self.capitalize(lowerCaseType),  # limit or market
             'timeInForce': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
-            'qty': self.amount_to_precision(symbol, amount),
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
@@ -4239,6 +4243,8 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'linear'
         else:
             request['category'] = 'option'
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
         if isLimit:
@@ -4291,12 +4297,13 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     def edit_contract_v3_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        if amount is None and price is None:
+            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': self.amount_to_precision(symbol, amount),
             # 'orderLinkId': '',  # User customised order id. Either orderId or orderLinkId is required
             # 'triggerPrice': '',  # Trigger price. Don't pass it if not modify the qty
             # 'takeProfit': '',  # Take profit price after modification. Don't pass it if not modify the take profit
@@ -4307,6 +4314,8 @@ class bybit(Exchange, ImplicitAPI):
         }
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
@@ -4351,6 +4360,20 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        see https://bybit-exchange.github.io/docs/v5/order/amend-order
+        see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+        see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an symbol argument')
         self.load_markets()

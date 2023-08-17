@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.61'
+__version__ = '4.0.65'
 
 # -----------------------------------------------------------------------------
 
@@ -324,7 +324,7 @@ class Exchange(object):
         'fetchMarkets': True,
         'fetchMarkOHLCV': None,
         'fetchMyTrades': None,
-        'fetchOHLCV': 'emulated',
+        'fetchOHLCV': None,
         'fetchOpenOrder': None,
         'fetchOpenOrders': None,
         'fetchOrder': None,

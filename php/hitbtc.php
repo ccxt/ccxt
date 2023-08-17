@@ -20,7 +20,6 @@ class hitbtc extends Exchange {
             // 20 requests per second => ( 1000ms / rateLimit ) / 20 = cost = 15 (All Other)
             'rateLimit' => 3.333, // TODO => optimize https://api.hitbtc.com/#rate-limiting
             'version' => '3',
-            'pro' => false,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
