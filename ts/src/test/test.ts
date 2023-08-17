@@ -277,11 +277,10 @@ export default class testMainClass extends baseMainTestClass {
             } catch (e) {
                 const isAuthError = (e instanceof AuthenticationError);
                 const isRateLimitExceeded = (e instanceof RateLimitExceeded);
-                const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
                 const isNetworkError = (e instanceof NetworkError);
                 const isDDoSProtection = (e instanceof DDoSProtection);
                 const isRequestTimeout = (e instanceof RequestTimeout);
-                const tempFailure = (isRateLimitExceeded || isExchangeNotAvailable || isNetworkError || isDDoSProtection || isRequestTimeout);
+                const tempFailure = (isRateLimitExceeded || isNetworkError || isDDoSProtection || isRequestTimeout);
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
@@ -303,10 +302,6 @@ export default class testMainClass extends baseMainTestClass {
                 } else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
                     dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
-                }
-                if (methodName === 'loadMarkets') {
-                    // we throw exception only for `loadMarkets` failed test
-                    throw e;
                 }
                 return false;
             }
@@ -368,7 +363,10 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        await this.testSafe ('loadMarkets', exchange, [], true);
+        const result = await this.testSafe ('loadMarkets', exchange, [], true);
+        if (!result) {
+            return false;
+        }
         const symbols = [
             'BTC/CNY',
             'BTC/USD',
@@ -411,6 +409,7 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         dump ('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
+        return true;
     }
 
     getTestSymbol (exchange, isSpot, symbols) {
@@ -715,12 +714,17 @@ export default class testMainClass extends baseMainTestClass {
         if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
+        // because of python-async, we need proper `.close()` handling
         try {
-            await this.loadExchange (exchange);
+            const result = await this.loadExchange (exchange);
+            if (!result) {
+                await close (exchange);
+                return;
+            }
             await this.testExchange (exchange, symbol);
             await close (exchange);
         } catch (e) {
-            await close (exchange); // close for async-python
+            await close (exchange);
             throw e;
         }
     }
