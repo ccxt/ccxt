@@ -17,7 +17,6 @@ class bitbns extends Exchange {
             'countries' => array( 'IN' ), // India
             'rateLimit' => 1000,
             'certified' => false,
-            'pro' => false,
             'version' => 'v2',
             // new metainfo interface
             'has' => array(

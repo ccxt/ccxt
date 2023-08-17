@@ -111,6 +111,7 @@ class coinsph extends coinsph$1 {
                 'signIn': false,
                 'transfer': false,
                 'withdraw': true,
+                'ws': false,
             },
             'timeframes': {
                 '1m': '1m',

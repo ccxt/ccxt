@@ -800,12 +800,16 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['baseId'] + market['quoteId'],
-        }
+        request = {}
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
-        response = await self.binanceGetDepth(self.extend(request, params))
+        response = None
+        if market['quote'] == 'USDT':
+            request['symbol'] = market['baseId'] + market['quoteId']
+            response = await self.binanceGetDepth(self.extend(request, params))
+        else:
+            request['symbol'] = market['id']
+            response = await self.publicGetOpenV1MarketDepth(self.extend(request, params))
         #
         # future
         #
@@ -824,9 +828,21 @@ class tokocrypto(Exchange, ImplicitAPI):
         #             ["2493.71","12.054"],
         #         ]
         #     }
-        timestamp = self.safe_integer(response, 'T')
-        orderbook = self.parse_order_book(response, symbol, timestamp)
-        orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
+        # type not 1
+        #     {
+        #         "code":0,
+        #         "msg":"Success",
+        #         "data":{
+        #            "lastUpdateId":3204783,
+        #            "bids":[],
+        #            "asks": []
+        #         },
+        #         "timestamp":1692262634599
+        #     }
+        data = self.safe_value(response, 'data', response)
+        timestamp = self.safe_integer_2(response, 'T', 'timestamp')
+        orderbook = self.parse_order_book(data, symbol, timestamp)
+        orderbook['nonce'] = self.safe_integer(data, 'lastUpdateId')
         return orderbook
 
     def parse_trade(self, trade, market=None):
@@ -983,12 +999,18 @@ class tokocrypto(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': self.get_market_id_by_type(market),
             # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
             # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             # 'limit': 500,     # default = 500, maximum = 1000
         }
+        if market['quote'] != 'USDT':
+            if limit is not None:
+                request['limit'] = limit
+            responseInner = self.publicGetOpenV1MarketTrades(self.extend(request, params))
+            data = self.safe_value(responseInner, 'data', {})
+            return self.parse_trades(data, market, since, limit)
         defaultMethod = 'binanceGetTrades'
         method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
         if (method == 'binanceGetAggTrades') and (since is not None):
@@ -1136,6 +1158,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         response = await getattr(self, method)(params)
         return self.parse_tickers(response, symbols)
 
+    def get_market_id_by_type(self, market):
+        if market['quote'] == 'USDT':
+            return market['baseId'] + market['quoteId']
+        return market['id']
+
     async def fetch_ticker(self, symbol: str, params={}):
         """
         see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
@@ -1241,13 +1268,17 @@ class tokocrypto(Exchange, ImplicitAPI):
         if price == 'index':
             request['pair'] = market['id']   # Index price takes self argument instead of symbol
         else:
-            request['symbol'] = market['baseId'] + market['quoteId']
+            request['symbol'] = self.get_market_id_by_type(market)
         # duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
         if until is not None:
             request['endTime'] = until
-        response = await self.binanceGetKlines(self.extend(request, params))
+        response = None
+        if market['quote'] == 'USDT':
+            response = await self.binanceGetKlines(self.extend(request, params))
+        else:
+            response = await self.publicGetOpenV1MarketKlines(self.extend(request, params))
         #
         #     [
         #         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -1255,7 +1286,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', response)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
         """

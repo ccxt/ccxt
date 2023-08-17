@@ -83,6 +83,7 @@ export default class wavesexchange extends Exchange {
                 'signIn': true,
                 'transfer': false,
                 'withdraw': true,
+                'ws': false,
             },
             'timeframes': {
                 '1m': '1m',

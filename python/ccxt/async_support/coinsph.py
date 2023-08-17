@@ -132,6 +132,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'signIn': False,
                 'transfer': False,
                 'withdraw': True,
+                'ws': False,
             },
             'timeframes': {
                 '1m': '1m',

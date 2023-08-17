@@ -23,6 +23,7 @@ export default class yobit extends Exchange {
             'countries': ['RU'],
             'rateLimit': 2000,
             'version': '3',
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -83,6 +84,7 @@ export default class yobit extends Exchange {
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',

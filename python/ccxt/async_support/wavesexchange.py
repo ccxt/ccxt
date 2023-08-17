@@ -95,6 +95,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'signIn': True,
                 'transfer': False,
                 'withdraw': True,
+                'ws': False,
             },
             'timeframes': {
                 '1m': '1m',

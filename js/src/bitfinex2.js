@@ -23,7 +23,7 @@ export default class bitfinex2 extends Exchange {
             'countries': ['VG'],
             'version': 'v2',
             'certified': false,
-            'pro': false,
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': undefined,

@@ -17,6 +17,7 @@ class yobit extends Exchange {
             'countries' => array( 'RU' ),
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => '3',
+            'pro' => false,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -77,6 +78,7 @@ class yobit extends Exchange {
                 'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => true,
+                'ws' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
