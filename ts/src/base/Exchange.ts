@@ -3723,18 +3723,11 @@ export default class Exchange {
             precision = this.safeValue (networkItem, 'precision', precision);
         }
         if (precision === undefined) {
-            return this.forceString (fee);
+            return fee;
         } else {
             const roundingMode = this.safeValue (this.options, 'currencyToPrecisionRoundingMode', ROUND);
             return this.decimalToPrecision (fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
-    }
-
-    forceString (value) {
-        if (typeof value !== 'string') {
-            return this.numberToString (value);
-        }
-        return value;
     }
 
     isTickPrecision () {
