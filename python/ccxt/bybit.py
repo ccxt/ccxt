@@ -1381,6 +1381,13 @@ class bybit(Exchange, ImplicitAPI):
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
                 markets = self.markets_by_id[symbol]
+                defaultType = self.safe_string_2(self.options, 'defaultType', 'defaultSubType', 'spot')
+                if defaultType == 'future':
+                    defaultType = 'contract'
+                for i in range(0, len(markets)):
+                    market = markets[i]
+                    if market[defaultType]:
+                        return market
                 return markets[0]
             elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):
                 return self.create_expired_option_market(symbol)
