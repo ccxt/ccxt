@@ -1226,12 +1226,12 @@ export default class wavesexchange extends Exchange {
     }
 
     customAmountToPrecision (symbol, amount) {
-        const amountPrecision = this.toPrecision (amount, this.numberToString (this.markets[symbol]['precision']['amount'])).toString ();
+        const amountPrecision = this.numberToString (this.toPrecision (amount, this.numberToString (this.markets[symbol]['precision']['amount'])));
         return this.parseToInt (parseFloat (amountPrecision));
     }
 
     currencyToPrecision (code, amount, networkCode = undefined) {
-        const amountPrecision = this.toPrecision (amount, this.currencies[code]['precision']).toString ();
+        const amountPrecision = this.numberToString (this.toPrecision (amount, this.currencies[code]['precision']));
         return this.parseToInt (parseFloat (amountPrecision));
     }
 
@@ -1246,7 +1246,7 @@ export default class wavesexchange extends Exchange {
     }
 
     toPrecision (amount, scale) {
-        const amountString = amount.toString ();
+        const amountString = this.numberToString (amount);
         const precise = new Precise (amountString);
         precise.decimals = Precise.stringSub (precise.decimals, scale);
         precise.reduce ();
