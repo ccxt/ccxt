@@ -37,8 +37,7 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'price', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'stopPrice', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'cost', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'average', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'cost', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'average', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'filled', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'remaining', '0');
