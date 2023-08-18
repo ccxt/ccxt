@@ -705,7 +705,7 @@ export default class testMainClass extends baseMainTestClass {
             throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
         } else {
             if (this.info) {
-                dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
+                dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id, market['type']);
             }
         }
     }
