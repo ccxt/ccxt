@@ -54,6 +54,8 @@ export default class bitget extends bitgetRest {
                     'exact': {
                         '30001': BadRequest, // {"event":"error","code":30001,"msg":"instType:sp,channel:candleundefined,instId:BTCUSDT doesn't exist"}
                         '30015': AuthenticationError, // { event: 'error', code: 30015, msg: 'Invalid sign' }
+                        '30016': BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
+                        '30011': AuthenticationError, // { event: 'error', code: 30011, msg: 'Invalid ACCESS_KEY' }
                     },
                 },
             },
