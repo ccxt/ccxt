@@ -366,7 +366,6 @@ async function tryFetchBestBidAsk (exchange, method, symbol) {
 
 async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
     let fetchedOrder = undefined;
-    let usedMethod = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
     const sinceTime = Date.now () - 1000 * 60 * 5;
@@ -375,7 +374,6 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
     // eslint-disable-next-line no-restricted-syntax
     for (const singularFetchName of [ 'fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder' ]) {
         if (exchange.has[singularFetchName]) {
-            usedMethod = singularFetchName;
             const currentOrder = await exchange[singularFetchName] (originalId, symbol);
             // if there is an id inside the order, it means the order was fetched successfully
             if (currentOrder.id === originalId) {
@@ -390,7 +388,6 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
         // eslint-disable-next-line no-restricted-syntax
         for (const pluralFetchName of [ 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders' ]) {
             if (exchange.has[pluralFetchName]) {
-                usedMethod = pluralFetchName;
                 const orders = await exchange[pluralFetchName] (symbol, sinceTime);
                 let found = false;
                 for (let i = 0; i < orders.length; i++) {
