@@ -3323,6 +3323,7 @@ class phemex(Exchange, ImplicitAPI):
                 priceDiff = Precise.string_sub(Precise.string_div('1', markPriceString), Precise.string_div('1', entryPriceString))
         unrealizedPnl = Precise.string_mul(Precise.string_mul(priceDiff, contracts), contractSizeString)
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
+        isCross = self.safe_value(position, 'crossMargin')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -3345,7 +3346,7 @@ class phemex(Exchange, ImplicitAPI):
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
             'marginRatio': self.parse_number(marginRatio),
             'datetime': None,
-            'marginMode': None,
+            'marginMode': 'cross' if isCross else 'isolated',
             'side': side,
             'hedged': False,
             'percentage': None,

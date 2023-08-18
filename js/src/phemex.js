@@ -3551,6 +3551,7 @@ export default class phemex extends Exchange {
         }
         const unrealizedPnl = Precise.stringMul(Precise.stringMul(priceDiff, contracts), contractSizeString);
         const marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
+        const isCross = this.safeValue(position, 'crossMargin');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -3573,7 +3574,7 @@ export default class phemex extends Exchange {
             'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentageString),
             'marginRatio': this.parseNumber(marginRatio),
             'datetime': undefined,
-            'marginMode': undefined,
+            'marginMode': isCross ? 'cross' : 'isolated',
             'side': side,
             'hedged': false,
             'percentage': undefined,
