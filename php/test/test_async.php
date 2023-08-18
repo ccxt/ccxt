@@ -18,8 +18,7 @@ assert_options (ASSERT_CALLBACK, function(){
         $message = $args[3];
         var_dump("[ASSERT_ERROR] - $message [ $file : $line ]");
     } catch (\Exception $exc) {
-        var_dump("[ASSERT_ERROR] -");
-        var_dump($args);
+        var_dump("[ASSERT_ERROR] -" . json_encode($args));
     }
     exit;
 });
@@ -83,10 +82,27 @@ function call_method($testFiles, $methodName, $exchange, $skippedProperties, $ar
     return $testFiles[$methodName]($exchange, $skippedProperties, ... $args);
 }
 
-function exception_message ($exc) {
-    $inner_message = $exc->getMessage();
-    return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
+function exception_message($exc) {
+    $items = array_slice($exc->getTrace(), 0, 12); // 12 members are enough for proper trace 
+    $output = '';
+    foreach ($items as $item) {
+        if (array_key_exists('file', $item)) {
+            $output .= $item['file'];
+            if (array_key_exists('line', $item)) {
+                $output .= ':' . $item['line'];
+            }
+            if (array_key_exists('class', $item)) {
+                $output .= ' ::: ' . $item['class'];
+            }
+            if (array_key_exists('function', $item)) {
+                $output .= ' > ' . $item['function'];
+            }
+            $output .= "\n";
+        }
+    }
+    return '[' . get_class($exc) . '] ' . $output . "\n\n";
 }
+
 
 function exit_script() {
     exit(0);

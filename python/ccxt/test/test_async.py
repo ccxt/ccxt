@@ -6,7 +6,7 @@ import json
 import os
 import sys
 import time  # noqa: F401
-from traceback import format_tb
+from traceback import format_tb, format_exception
 
 import importlib  # noqa: E402
 import glob  # noqa: E402
@@ -129,7 +129,7 @@ async def call_method(testFiles, methodName, exchange, skippedProperties, args):
 
 
 def exception_message(exc):
-    return '[' + type(exc).__name__ + '] ' + str(exc)[0:500]
+    return '[' + type(exc).__name__ + '] ' + "".join(format_exception(exc, limit=6))
 
 
 def exit_script():
