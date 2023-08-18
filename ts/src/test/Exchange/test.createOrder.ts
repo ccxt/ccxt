@@ -81,7 +81,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         // @ts-ignore
         const buyOrder_fillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_fillable, {}, skippedProperties);
         // try to cancel remnant (if any) of order
-        testCreateOrder_tryCancelOrder (exchange, symbol, buyOrder_fillable, skippedProperties);
+        await testCreateOrder_tryCancelOrder (exchange, symbol, buyOrder_fillable, skippedProperties);
         // now, as order is closed/canceled, we can reliably fetch the order information
         const buyOrder_filled_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, buyOrder_fillable['id'], skippedProperties);
         // we need to find out the amount of base asset that was bought
@@ -162,7 +162,7 @@ async function testCreateOrder_submitSafeOrder (exchange, symbol, orderType, sid
         // if test failed for some reason, then we stop any futher testing and throw exception. However, before it, we should try to cancel that order, if possible.
         if (orderType !== 'market') // market order is not cancelable
         {
-            testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedProperties);
+            await testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedProperties);
         }
         // now, we can throw the initial error
         throw e;
@@ -186,7 +186,7 @@ function getMinimumMarketCostAndAmountForBuy (exchange, market, askPrice) {
         minimumAmountLimitForBuy = amountMin + fractionalAddition;
     }
     assert (minimumAmountLimitForBuy !== undefined || minimumCostLimitForBuy !== undefined, exchange.id + ' can not determine minimum amount/cost of order for ' + market['symbol']);
-    verboseOutput (exchange, 'found market minimums - amount:', amountMin, ',  cost :', costMin);
+    verboseOutput (exchange, market['symbol'], 'found market minimums - amount:', amountMin, ',  cost :', costMin);
     return [ minimumAmountLimitForBuy, minimumCostLimitForBuy ];
 }
 
