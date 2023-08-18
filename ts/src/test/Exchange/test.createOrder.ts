@@ -40,9 +40,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     const balance = await exchange.fetchBalance ();
     const initialBaseBalance = balance[market['base']]['free'];
     const initialQuoteBalance = balance[market['quote']]['free'];
-    if (initialQuoteBalance === undefined) {
-        assert (false, logPrefix + ' - testing account not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
-    }
+    assert (initialQuoteBalance !== undefined, logPrefix + ' - testing account not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
     verboseOutput (exchange, symbol, 'fetched balance for', symbol, ':', initialBaseBalance, market['base'], '/', initialQuoteBalance, market['quote']);
     // get best bid & ask
     const [ bestBid, bestAsk ] = await testSharedMethods.tryFetchBestBidAsk (exchange, 'createOrder', symbol);
@@ -118,7 +116,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         assert (isClosedFetched || isOpenFetched === undefined, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should be filled, but it is not. ' + exchange.json (sellOrder_fetched));
         verboseOutput (exchange, symbol, 'SCENARIO 2 PASSED !!!');
     } catch (e) {
-        assert (false, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 2: ' + e.toString ());
+        throw new Error ('failed for Scenario 2: ' + e.toString ());
     }
     // *********** [Scenario 2 - END ] *********** //
 
@@ -169,7 +167,7 @@ async function testCreateOrder_submitSafeOrder (exchange, symbol, orderType, sid
             testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedProperties);
         }
         // now, we can throw the initial error
-        assert (false, warningPrefix + ' ' +  exchange.id + ' failed to createOrder: ' + e.toString ());
+        throw e;
     }
     return order;
 }
@@ -178,12 +176,16 @@ function getMinimumMarketCostAndAmountForBuy (exchange, market, askPrice) {
     let minimumCostLimitForBuy = undefined;
     let minimumAmountLimitForBuy = undefined;
     // Intentionally add a tiny increment to the minimum amount/cost, to test & ensure that it will not cause precision issues (thus we ensure that implementation handles them)
-    const fractionalAddition = 0.000000000000000001;
-    if (market['limits']['cost']['min']) {
-        minimumCostLimitForBuy = market['limits']['cost']['min'] + fractionalAddition;
+    const fractionalAddition = 1e-14; // smaller than this causes precision issues in JS, i.e. 10 + 1e-16 = 10
+    const costValues = exchange.safeValue (market['limits'], 'cost', {});
+    const costMin = exchange.safeNumber (costValues, 'min');
+    if (costMin !== undefined) {
+        minimumCostLimitForBuy = costMin + fractionalAddition;
     }
-    if (market['limits']['amount']['min']) {
-        minimumAmountLimitForBuy = market['limits']['amount']['min'] + fractionalAddition;
+    const amountValues = exchange.safeValue (market['limits'], 'amount', {});
+    const amountMin = exchange.safeNumber (amountValues, 'min');
+    if (amountMin !== undefined) {
+        minimumAmountLimitForBuy = amountMin + fractionalAddition;
     }
     return [ minimumAmountLimitForBuy, minimumCostLimitForBuy ];
 }
@@ -204,7 +206,7 @@ function getMinimumAmountForLimitPrice (exchange, market, amount, cost, price) {
     finalAmountToBuy = finalAmountToBuy * orderAmountSafetyMultiplier;
     const ROUND_UP = 2; // temp avoid import "numbers"
     finalAmountToBuy = exchange.decimalToPrecision (finalAmountToBuy, ROUND_UP, market['precision']['amount'], exchange.precisionMode);
-    return finalAmountToBuy;
+    return parseFloat (finalAmountToBuy);
 }
 
 async function testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedProperties) {
