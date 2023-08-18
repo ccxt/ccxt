@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import huobiRest from '../huobi.js';
-import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
@@ -86,8 +86,10 @@ export default class huobi extends huobiRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchOrderBook': {
+                    'snapshotMaxRetries': 3,
+                },
                 'api': 'api', // or api-aws for clients hosted on AWS
-                'maxOrderBookSyncAttempts': 3,
                 'ws': {
                     'gunzip': true,
                 },
@@ -392,32 +394,7 @@ export default class huobi extends huobiRest {
             const snapshotLimit = this.safeInteger (subscription, 'limit');
             const snapshotOrderBook = this.orderBook (snapshot, snapshotLimit);
             client.resolve (snapshotOrderBook, id);
-            if ((sequence !== undefined) && (nonce < sequence)) {
-                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
-                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-                // retry to synchronize if we have not reached maxAttempts yet
-                if (numAttempts < maxAttempts) {
-                    // safety guard
-                    if (messageHash in client.subscriptions) {
-                        numAttempts = this.sum (numAttempts, 1);
-                        subscription['numAttempts'] = numAttempts;
-                        client.subscriptions[messageHash] = subscription;
-                        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
-                    }
-                } else {
-                    // throw upon failing to synchronize in maxAttempts
-                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
-                }
-            } else {
-                orderbook.reset (snapshot);
-                // unroll the accumulated deltas
-                for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
-                }
-                this.orderbooks[symbol] = orderbook;
-                client.resolve (orderbook, messageHash);
-            }
+            this.spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot);
         } catch (e) {
             client.reject (e, messageHash);
         }
