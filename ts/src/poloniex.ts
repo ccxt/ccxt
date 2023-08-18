@@ -1219,9 +1219,6 @@ export default class poloniex extends Exchange {
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // if (type === 'market') {
-        //     throw new ExchangeError (this.id + ' createOrder() does not accept market orders');
-        // }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
