@@ -478,6 +478,7 @@ export default class mexc extends mexcRest {
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         } catch (e) {
+            storedOrderBook.nonce = undefined; // Reset nonce to re-trigger snapshot fetching
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
         }
