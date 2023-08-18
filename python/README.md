@@ -210,22 +210,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-<<<<<<< HEAD
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.0.66/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.0.66/dist/ccxt.browser.js
-=======
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.0.66/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.0.66/dist/ccxt.browser.js
->>>>>>> e74b18a3a8a8cbcfe45ce4c1d32b9c03d4fae41c
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.0.67/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.0.67/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<<<<<<< HEAD
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.0.66/dist/ccxt.browser.js"></script>
-=======
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.0.66/dist/ccxt.browser.js"></script>
->>>>>>> e74b18a3a8a8cbcfe45ce4c1d32b9c03d4fae41c
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.0.67/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
