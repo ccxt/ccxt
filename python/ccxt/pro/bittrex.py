@@ -49,7 +49,7 @@ class bittrex(ccxt.async_support.bittrex):
                 'hub': 'c3',
                 'I': self.milliseconds(),
                 'watchOrderBook': {
-                    'snapshotMaxRetries': 3,
+                    'maxRetries': 3,
                 },
             },
         })
@@ -606,8 +606,7 @@ class bittrex(ccxt.async_support.bittrex):
             # then we cannot align it with the cached deltas and we need to
             # retry synchronizing in maxAttempts
             if (sequence is not None) and (nonce < sequence):
-                options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
-                maxAttempts = self.safe_integer(options, 'maxAttempts', 3)
+                maxAttempts = self.handle_option('watchOrderBook', 'maxRetries', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to syncrhonize if we haven't reached maxAttempts yet
                 if numAttempts < maxAttempts:

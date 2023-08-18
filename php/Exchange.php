@@ -2326,7 +2326,7 @@ class Exchange {
     }
 
     public function fetch_rest_order_book_safe($symbol, $limit = null, $params = array ()) {
-        $fetchSnapshotMaxRetries = $this->handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
+        $fetchSnapshotMaxRetries = $this->handleOption ('watchOrderBook', 'maxRetries', 3);
         for ($i = 0; $i < $fetchSnapshotMaxRetries; $i++) {
             try {
                 $orderBook = $this->fetch_order_book($symbol, $limit, $params);

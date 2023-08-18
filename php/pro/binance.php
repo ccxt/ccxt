@@ -90,7 +90,7 @@ class binance extends \ccxt\async\binance {
                     'name' => 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
                 ),
                 'watchOrderBook' => array(
-                    'snapshotMaxRetries' => 3,
+                    'maxRetries' => 3,
                 ),
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => false, // or true

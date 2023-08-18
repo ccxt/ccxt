@@ -39,7 +39,7 @@ class idex(ccxt.async_support.idex):
                 'orderBookSubscriptions': {},
                 'token': None,
                 'watchOrderBook': {
-                    'snapshotMaxRetries': 3,
+                    'maxRetries': 3,
                 },
                 'fetchOrderBookSnapshotMaxAttempts': 10,
                 'fetchOrderBookSnapshotMaxDelay': 10000,  # raise if there are no orders in 10 seconds

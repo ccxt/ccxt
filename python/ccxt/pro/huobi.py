@@ -95,7 +95,9 @@ class huobi(ccxt.async_support.huobi):
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api',  # or api-aws for clients hosted on AWS
-                'maxOrderBookSyncAttempts': 3,
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
                 'ws': {
                     'gunzip': True,
                 },
@@ -374,7 +376,7 @@ class huobi(ccxt.async_support.huobi):
             snapshotOrderBook = self.order_book(snapshot, snapshotLimit)
             client.resolve(snapshotOrderBook, id)
             if (sequence is not None) and (nonce < sequence):
-                maxAttempts = self.safe_integer(self.options, 'maxOrderBookSyncAttempts', 3)
+                maxAttempts = self.handle_option('watchOrderBook', 'maxRetries', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to synchronize if we have not reached maxAttempts yet
                 if numAttempts < maxAttempts:

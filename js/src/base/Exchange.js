@@ -1295,7 +1295,7 @@ export default class Exchange {
         throw new NotSupported(this.id + ' fetchOrderBook() is not supported yet');
     }
     async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
-        const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'snapshotMaxRetries', 3);
+        const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {
                 const orderBook = await this.fetchOrderBook(symbol, limit, params);
