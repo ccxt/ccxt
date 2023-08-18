@@ -135,6 +135,12 @@ namespace ccxt;
         public DuplicateOrderId(string message) : base(message) { }
         public DuplicateOrderId(string message, InvalidOrder inner) : base(message, inner) { }
     }
+   public class ContractUnavailable : InvalidOrder
+    {
+        public ContractUnavailable() : base() { }
+        public ContractUnavailable(string message) : base(message) { }
+        public ContractUnavailable(string message, InvalidOrder inner) : base(message, inner) { }
+    }
    public class NotSupported : ExchangeError
     {
         public NotSupported() : base() { }

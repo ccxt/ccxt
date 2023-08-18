@@ -71,6 +71,12 @@ public partial class Exchange
         return binaryToHex(buff);
     }
 
+    public string binaryToBase58(object buff2)
+    {
+        var buff = (byte[])buff2;
+        return binaryToHex(buff);
+    }
+
     public static string binaryToBase64(byte[] buff)
     {
         return Convert.ToBase64String(buff);

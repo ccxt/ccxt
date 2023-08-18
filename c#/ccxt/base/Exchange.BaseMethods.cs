@@ -7,6 +7,43 @@ public partial class Exchange
 {
 
 
+    public virtual void handleDeltas(object orderbook, object deltas)
+    {
+        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        {
+            this.handleDelta(orderbook, getValue(deltas, i));
+        }
+    }
+
+    public virtual void handleDelta(object bookside, object delta)
+    {
+        throw new NotSupported ((string)add(this.id, " handleDelta not supported yet")) ;
+    }
+
+    public virtual object getCacheIndex(object orderbook, object deltas)
+    {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
+    }
+
+    public virtual object findTimeframe(object timeframe, object timeframes = null)
+    {
+        if (isTrue(isEqual(timeframes, null)))
+        {
+            timeframes = this.timeframes;
+        }
+        object keys = new List<object>(((Dictionary<string,object>)timeframes).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            if (isTrue(isEqual(getValue(timeframes, key), timeframe)))
+            {
+                return key;
+            }
+        }
+        return null;
+    }
+
     public virtual object checkProxySettings(object url, object method, object headers, object body)
     {
         object proxyUrl = ((bool) isTrue((!isEqual(this.proxyUrl, null)))) ? this.proxyUrl : this.proxy_url;
@@ -258,6 +295,27 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchRestOrderBookSafe(object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
+        for (object i = 0; isLessThan(i, fetchSnapshotMaxRetries); postFixIncrement(ref i))
+        {
+            try
+            {
+                object orderBook = await this.fetchOrderBook(symbol, limit, parameters);
+                return orderBook;
+            } catch(Exception e)
+            {
+                if (isTrue(isEqual((add(i, 1)), fetchSnapshotMaxRetries)))
+                {
+                    throw e;
+                }
+            }
+        }
+        return null;
     }
 
     public async virtual Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -1830,7 +1888,7 @@ public partial class Exchange
             object percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
             ((Dictionary<string, object>)position)["percentage"] = this.parseNumber(percentageString);
         }
-        return position;
+        return ((object)position);
     }
 
     public virtual object parsePositions(object positions, object symbols = null, object parameters = null)
@@ -1844,7 +1902,7 @@ public partial class Exchange
             object position = this.extend(this.parsePosition(getValue(positions, i), null), parameters);
             ((List<object>)result).Add(position);
         }
-        return this.filterByArray(result, "symbol", symbols, false);
+        return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
 
     public virtual object parseAccounts(object accounts, object parameters = null)
@@ -2125,6 +2183,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPosition() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchPositionsBySymbol(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositionsBySymbol() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -3851,6 +3915,17 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchTransactions () is not supported yet")) ;
         }
+    }
+
+    public virtual object filterByArrayPositions(object objects, object key, object values = null, object indexed = null)
+    {
+        /**
+        * @ignore
+        * @method
+        * @description Typed wrapper for filterByArray that returns a list of positions
+        */
+        indexed ??= true;
+        return this.filterByArray(objects, key, values, indexed);
     }
 }
 

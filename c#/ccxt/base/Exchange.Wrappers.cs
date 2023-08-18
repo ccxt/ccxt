@@ -40,6 +40,11 @@ public partial class Exchange
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
+    public async Task<OrderBook> FetchRestOrderBookSafe(object symbol, object limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
+        return new OrderBook(res);
+    }
     public async Task<float> FetchTime(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTime(parameters);
@@ -166,6 +171,11 @@ public partial class Exchange
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
+    }
+    public async Task<List<Position>> FetchPositionsBySymbol(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsBySymbol(symbol, parameters);
+        return ((List<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     public async Task<List<Position>> FetchPositions(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
