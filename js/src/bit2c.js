@@ -16,6 +16,7 @@ export default class bit2c extends Exchange {
             'name': 'Bit2C',
             'countries': ['IL'],
             'rateLimit': 3000,
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -64,6 +65,7 @@ export default class bit2c extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',

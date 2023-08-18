@@ -218,17 +218,17 @@ class idex extends \ccxt\async\idex {
         $marketId = $this->safe_string($trade, 'm');
         $symbol = $this->safe_symbol($marketId);
         $id = $this->safe_string($trade, 'i');
-        $price = $this->safe_float($trade, 'p');
-        $amount = $this->safe_float($trade, 'q');
-        $cost = $this->safe_float($trade, 'Q');
+        $price = $this->safe_string($trade, 'p');
+        $amount = $this->safe_string($trade, 'q');
+        $cost = $this->safe_string($trade, 'Q');
         $timestamp = $this->safe_integer($trade, 't');
         $side = $this->safe_string($trade, 's');
         $fee = array(
             'currency' => $this->safe_string($trade, 'a'),
-            'cost' => $this->safe_float($trade, 'f'),
+            'cost' => $this->safe_string($trade, 'f'),
         );
         $takerOrMarker = $this->safe_string($trade, 'l');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -242,7 +242,7 @@ class idex extends \ccxt\async\idex {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -601,7 +601,7 @@ class idex extends \ccxt\async\idex {
         $marketId = $this->safe_string($order, 'm');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($order, 't');
-        $fills = $this->safe_value($order, 'F');
+        $fills = $this->safe_value($order, 'F', array());
         $trades = array();
         for ($i = 0; $i < count($fills); $i++) {
             $trades[] = $this->parse_ws_trade($fills[$i]);
@@ -609,18 +609,10 @@ class idex extends \ccxt\async\idex {
         $id = $this->safe_string($order, 'i');
         $side = $this->safe_string($order, 's');
         $orderType = $this->safe_string($order, 'o');
-        $amount = $this->safe_float($order, 'q');
-        $filled = $this->safe_float($order, 'z');
-        $remaining = null;
-        if (($amount !== null) && ($filled !== null)) {
-            $remaining = $amount - $filled;
-        }
-        $average = $this->safe_float($order, 'v');
-        $price = $this->safe_float($order, 'price', $average);  // for market $orders
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $amount = $this->safe_string($order, 'q');
+        $filled = $this->safe_string($order, 'z');
+        $average = $this->safe_string($order, 'v');
+        $price = $this->safe_string($order, 'price', $average);  // for market $orders
         $rawStatus = $this->safe_string($order, 'X');
         $status = $this->parse_order_status($rawStatus);
         $fee = array(
@@ -631,10 +623,11 @@ class idex extends \ccxt\async\idex {
         for ($i = 0; $i < count($trades); $i++) {
             $lastTrade = $trades[$i];
             $fee['currency'] = $lastTrade['fee']['currency'];
-            $fee['cost'] = $this->sum($fee['cost'], $lastTrade['fee']['cost']);
+            $stringLastTradeFee = $lastTrade['fee']['cost'];
+            $fee['cost'] = Precise::string_add($fee['cost'], $stringLastTradeFee);
         }
         $lastTradeTimestamp = $this->safe_integer($lastTrade, 'timestamp');
-        $parsedOrder = array(
+        $parsedOrder = $this->safe_order(array(
             'info' => $message,
             'id' => $id,
             'clientOrderId' => null,
@@ -644,18 +637,18 @@ class idex extends \ccxt\async\idex {
             'symbol' => $symbol,
             'type' => $orderType,
             'side' => $side,
-            'price' => $price,
+            'price' => $this->parse_number($price),
             'stopPrice' => null,
             'triggerPrice' => null,
-            'amount' => $amount,
-            'cost' => $cost,
-            'average' => $average,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'amount' => $this->parse_number($amount),
+            'cost' => null,
+            'average' => $this->parse_number($average),
+            'filled' => $this->parse_number($filled),
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);

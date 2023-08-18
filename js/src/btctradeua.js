@@ -16,6 +16,7 @@ export default class btctradeua extends Exchange {
             'name': 'BTC Trade UA',
             'countries': ['UA'],
             'rateLimit': 3000,
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -59,6 +60,7 @@ export default class btctradeua extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': true,
+                'ws': false,
             },
             'urls': {
                 'referral': 'https://btc-trade.com.ua/registration/22689',

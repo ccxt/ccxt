@@ -108,6 +108,7 @@ export default class coinsph extends Exchange {
                 'signIn': false,
                 'transfer': false,
                 'withdraw': true,
+                'ws': false,
             },
             'timeframes': {
                 '1m': '1m',

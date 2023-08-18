@@ -289,7 +289,8 @@ class bybit extends \ccxt\async\bybit {
         $topic = $this->safe_string($message, 'topic', '');
         $updateType = $this->safe_string($message, 'type', '');
         $data = $this->safe_value($message, 'data', array());
-        $isSpot = $this->safe_string($data, 's') !== null;
+        $isSpot = $this->safe_string($data, 'openInterestValue') === null;
+        $type = $isSpot ? 'spot' : 'contract';
         $symbol = null;
         $parsed = null;
         if (($updateType === 'snapshot') || $isSpot) {
@@ -299,7 +300,7 @@ class bybit extends \ccxt\async\bybit {
             $topicParts = explode('.', $topic);
             $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
-            $market = $this->market($marketId);
+            $market = $this->safe_market($marketId, null, null, $type);
             $symbol = $market['symbol'];
             // update the info in place
             $ticker = $this->safe_value($this->tickers, $symbol, array());

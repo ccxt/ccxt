@@ -61,14 +61,14 @@ class bitget extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
-                'fetchIndexOHLCV' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => null,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
-                'fetchMarkOHLCV' => false,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -1004,8 +1004,16 @@ class bitget extends Exchange {
                     'spot' => array(
                         'method' => 'publicSpotGetMarketCandles', // or publicSpotGetMarketHistoryCandles
                     ),
-                    'swap:' => array(
+                    'swap' => array(
                         'method' => 'publicMixGetMarketCandles', // or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                    ),
+                ),
+                'fetchTrades' => array(
+                    'spot' => array(
+                        'method' => 'publicSpotGetMarketFillsHistory', // or publicSpotGetMarketFills
+                    ),
+                    'swap' => array(
+                        'method' => 'publicMixGetMarketFillsHistory', // or publicMixGetMarketFills
                     ),
                 ),
                 'accountsByType' => array(
@@ -2140,23 +2148,23 @@ class bitget extends Exchange {
         // spot
         //
         //     {
-        //         $symbol => 'BTCUSDT_SPBL',
-        //         tradeId => '881371996363608065',
-        //         $side => 'sell',
-        //         fillPrice => '39123.05',
-        //         fillQuantity => '0.0363',
-        //         fillTime => '1645861379709'
+        //         "symbol" => "BTCUSDT_SPBL",
+        //         "tradeId" => "1075200479040323585",
+        //         "side" => "Sell",
+        //         "fillPrice" => "29381.54",
+        //         "fillQuantity" => "0.0056",
+        //         "fillTime" => "1692073691000"
         //     }
         //
         // swap
         //
         //     {
-        //         tradeId => '881373204067311617',
-        //         $price => '39119.0',
-        //         size => '0.001',
-        //         $side => 'buy',
-        //         $timestamp => '1645861667648',
-        //         $symbol => 'BTCUSDT_UMCBL'
+        //         "tradeId" => "1075199767891652609",
+        //         "price" => "29376.5",
+        //         "size" => "6.035",
+        //         "side" => "Buy",
+        //         "timestamp" => "1692073521000",
+        //         "symbol" => "BTCUSDT_UMCBL"
         //     }
         //
         // private
@@ -2167,7 +2175,7 @@ class bitget extends Exchange {
         //         orderId => '1009402341131468800',
         //         fillId => '1009402351489581068',
         //         orderType => 'limit',
-        //         $side => 'sell',
+        //         side => 'sell',
         //         fillPrice => '0.06997800',
         //         fillQuantity => '0.04120000',
         //         fillTotalAmount => '0.00288309',
@@ -2180,10 +2188,10 @@ class bitget extends Exchange {
         //         tradeId => '881640729552281602',
         //         $symbol => 'BTCUSDT_UMCBL',
         //         orderId => '881640729145409536',
-        //         $price => '38429.50',
+        //         price => '38429.50',
         //         sizeQty => '0.001',
         //         $fee => '0',
-        //         $side => 'open_long',
+        //         side => 'open_long',
         //         fillAmount => '38.4295',
         //         profit => '0',
         //         cTime => '1645925450694'
@@ -2191,17 +2199,12 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $id = $this->safe_string_2($trade, 'tradeId', 'fillId');
-        $order = $this->safe_string($trade, 'orderId');
-        $side = $this->safe_string($trade, 'side');
-        $price = $this->safe_string_2($trade, 'fillPrice', 'price');
         $amount = $this->safe_string_2($trade, 'fillQuantity', 'size');
         $amount = $this->safe_string($trade, 'sizeQty', $amount);
         $timestamp = $this->safe_integer_2($trade, 'fillTime', 'timestamp');
         $timestamp = $this->safe_integer($trade, 'cTime', $timestamp);
         $fee = null;
         $feeAmount = $this->safe_string($trade, 'fees');
-        $type = $this->safe_string($trade, 'orderType');
         if ($feeAmount !== null) {
             $currencyCode = $this->safe_currency_code($this->safe_string($trade, 'feeCcy'));
             $fee = array(
@@ -2213,13 +2216,13 @@ class bitget extends Exchange {
         $datetime = $this->iso8601($timestamp);
         return $this->safe_trade(array(
             'info' => $trade,
-            'id' => $id,
-            'order' => $order,
+            'id' => $this->safe_string_2($trade, 'tradeId', 'fillId'),
+            'order' => $this->safe_string($trade, 'orderId'),
             'symbol' => $symbol,
-            'side' => $side,
-            'type' => $type,
+            'side' => $this->safe_string_lower($trade, 'side'),
+            'type' => $this->safe_string($trade, 'orderType'),
             'takerOrMaker' => null,
-            'price' => $price,
+            'price' => $this->safe_string_2($trade, 'fillPrice', 'price'),
             'amount' => $amount,
             'cost' => null,
             'fee' => $fee,
@@ -2228,10 +2231,14 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $limit = null, ?int $since = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $limit, $since, $params) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-$market-trades
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-fills
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-recent-trades
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-recent-fills
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -2246,28 +2253,67 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $extended = array_merge($request, $params);
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            $options = $this->safe_value($this->options, 'fetchTrades', array());
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->publicSpotGetMarketFills ($extended));
+                $spotOptions = $this->safe_value($options, 'spot', array());
+                $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetMarketFillsHistory');
+                $spotMethod = $this->safe_string($params, 'method', $defaultSpotMethod);
+                $params = $this->omit($params, 'method');
+                if ($spotMethod === 'publicSpotGetMarketFillsHistory') {
+                    $response = Async\await($this->publicSpotGetMarketFillsHistory (array_merge($request, $params)));
+                } elseif ($spotMethod === 'publicSpotGetMarketFills') {
+                    $response = Async\await($this->publicSpotGetMarketFills (array_merge($request, $params)));
+                }
             } else {
-                $response = Async\await($this->publicMixGetMarketFills ($extended));
+                $swapOptions = $this->safe_value($options, 'swap', array());
+                $defaultSwapMethod = $this->safe_string($swapOptions, 'method', 'publicMixGetMarketFillsHistory');
+                $swapMethod = $this->safe_string($params, 'method', $defaultSwapMethod);
+                $params = $this->omit($params, 'method');
+                if ($swapMethod === 'publicMixGetMarketFillsHistory') {
+                    $response = Async\await($this->publicMixGetMarketFillsHistory (array_merge($request, $params)));
+                } elseif ($swapMethod === 'publicMixGetMarketFills') {
+                    $response = Async\await($this->publicMixGetMarketFills (array_merge($request, $params)));
+                }
             }
             //
+            // spot
+            //
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => '1645861382032',
-            //       $data => array(
-            //         {
-            //           $symbol => 'BTCUSDT_SPBL',
-            //           tradeId => '881371996363608065',
-            //           side => 'sell',
-            //           fillPrice => '39123.05',
-            //           fillQuantity => '0.0363',
-            //           fillTime => '1645861379709'
-            //         }
-            //       )
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1692073693562,
+            //         "data" => array(
+            //             array(
+            //                 "symbol" => "BTCUSDT_SPBL",
+            //                 "tradeId" => "1075200479040323585",
+            //                 "side" => "Sell",
+            //                 "fillPrice" => "29381.54",
+            //                 "fillQuantity" => "0.0056",
+            //                 "fillTime" => "1692073691000"
+            //             ),
+            //         )
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1692073522689,
+            //         "data" => array(
+            //             array(
+            //                 "tradeId" => "1075199767891652609",
+            //                 "price" => "29376.5",
+            //                 "size" => "6.035",
+            //                 "side" => "Buy",
+            //                 "timestamp" => "1692073521000",
+            //                 "symbol" => "BTCUSDT_UMCBL"
+            //             ),
+            //         )
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
@@ -2409,8 +2455,12 @@ class bitget extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-$data
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-$data
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-$data
-             * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-$timeframe
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-candle-$data
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-index-candle-$data
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-mark-candle-$data
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -2425,8 +2475,9 @@ class bitget extends Exchange {
                 'symbol' => $market['id'],
             );
             $until = $this->safe_integer_2($params, 'until', 'till');
+            $limitIsUndefined = ($limit === null);
             if ($limit === null) {
-                $limit = 1000;
+                $limit = 200;
             }
             $request['limit'] = $limit;
             $marketType = $market['spot'] ? 'spot' : 'swap';
@@ -2461,30 +2512,38 @@ class bitget extends Exchange {
                 }
             }
             $options = $this->safe_value($this->options, 'fetchOHLCV', array());
-            $ommitted = $this->omit($params, array( 'until', 'till' ));
-            $extended = array_merge($request, $ommitted);
+            $params = $this->omit($params, array( 'until', 'till' ));
             $response = null;
             if ($market['spot']) {
                 $spotOptions = $this->safe_value($options, 'spot', array());
-                $defaultSpotMethod = $this->safe_string($params, 'method', 'publicSpotGetMarketCandles');
-                $method = $this->safe_string($spotOptions, 'method', $defaultSpotMethod);
+                $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetMarketCandles');
+                $method = $this->safe_string($params, 'method', $defaultSpotMethod);
+                $params = $this->omit($params, 'method');
                 if ($method === 'publicSpotGetMarketCandles') {
-                    $response = Async\await($this->publicSpotGetMarketCandles ($extended));
+                    if ($limitIsUndefined) {
+                        $request['limit'] = 1000;
+                    }
+                    $response = Async\await($this->publicSpotGetMarketCandles (array_merge($request, $params)));
                 } elseif ($method === 'publicSpotGetMarketHistoryCandles') {
-                    $response = Async\await($this->publicSpotGetMarketHistoryCandles ($extended));
+                    $response = Async\await($this->publicSpotGetMarketHistoryCandles (array_merge($request, $params)));
                 }
             } else {
                 $swapOptions = $this->safe_value($options, 'swap', array());
-                $defaultSwapMethod = $this->safe_string($params, 'method', 'publicMixGetMarketCandles');
-                $swapMethod = $this->safe_string($swapOptions, 'method', $defaultSwapMethod);
-                if ($swapMethod === 'publicMixGetMarketCandles') {
-                    $response = Async\await($this->publicMixGetMarketCandles ($extended));
+                $defaultSwapMethod = $this->safe_string($swapOptions, 'method', 'publicMixGetMarketCandles');
+                $swapMethod = $this->safe_string($params, 'method', $defaultSwapMethod);
+                $priceType = $this->safe_string($params, 'price');
+                $params = $this->omit($params, array( 'method', 'price' ));
+                if (($priceType === 'mark') || ($swapMethod === 'publicMixGetMarketHistoryMarkCandles')) {
+                    $response = Async\await($this->publicMixGetMarketHistoryMarkCandles (array_merge($request, $params)));
+                } elseif (($priceType === 'index') || ($swapMethod === 'publicMixGetMarketHistoryIndexCandles')) {
+                    $response = Async\await($this->publicMixGetMarketHistoryIndexCandles (array_merge($request, $params)));
+                } elseif ($swapMethod === 'publicMixGetMarketCandles') {
+                    if ($limitIsUndefined) {
+                        $request['limit'] = 1000;
+                    }
+                    $response = Async\await($this->publicMixGetMarketCandles (array_merge($request, $params)));
                 } elseif ($swapMethod === 'publicMixGetMarketHistoryCandles') {
-                    $response = Async\await($this->publicMixGetMarketHistoryCandles ($extended));
-                } elseif ($swapMethod === 'publicMixGetMarketHistoryIndexCandles') {
-                    $response = Async\await($this->publicMixGetMarketHistoryIndexCandles ($extended));
-                } elseif ($swapMethod === 'publicMixGetMarketHistoryMarkCandles') {
-                    $response = Async\await($this->publicMixGetMarketHistoryMarkCandles ($extended));
+                    $response = Async\await($this->publicMixGetMarketHistoryCandles (array_merge($request, $params)));
                 }
             }
             //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]

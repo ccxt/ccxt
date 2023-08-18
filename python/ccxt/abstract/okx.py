@@ -250,6 +250,7 @@ class ImplicitAPI:
     private_post_broker_nd_subaccount_delete_apikey = privatePostBrokerNdSubaccountDeleteApikey = Entry('broker/nd/subaccount/delete-apikey', 'private', 'POST', {'cost': 1})
     private_post_broker_nd_set_subaccount_level = privatePostBrokerNdSetSubaccountLevel = Entry('broker/nd/set-subaccount-level', 'private', 'POST', {'cost': 4})
     private_post_broker_nd_set_subaccount_fee_rate = privatePostBrokerNdSetSubaccountFeeRate = Entry('broker/nd/set-subaccount-fee-rate', 'private', 'POST', {'cost': 4})
+    private_post_broker_nd_set_subaccount_assets = privatePostBrokerNdSetSubaccountAssets = Entry('broker/nd/set-subaccount-assets', 'private', 'POST', {'cost': 0.25})
     private_post_asset_broker_nd_subaccount_deposit_address = privatePostAssetBrokerNdSubaccountDepositAddress = Entry('asset/broker/nd/subaccount-deposit-address', 'private', 'POST', {'cost': 1})
     private_post_asset_broker_nd_modify_subaccount_deposit_address = privatePostAssetBrokerNdModifySubaccountDepositAddress = Entry('asset/broker/nd/modify-subaccount-deposit-address', 'private', 'POST', {'cost': 1.6666666666666667})
     private_post_broker_nd_rebate_per_orders = privatePostBrokerNdRebatePerOrders = Entry('broker/nd/rebate-per-orders', 'private', 'POST', {'cost': 36000})

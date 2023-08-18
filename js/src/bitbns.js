@@ -17,7 +17,6 @@ export default class bitbns extends Exchange {
             'countries': ['IN'],
             'rateLimit': 1000,
             'certified': false,
-            'pro': false,
             'version': 'v2',
             // new metainfo interface
             'has': {

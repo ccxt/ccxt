@@ -1161,6 +1161,7 @@ class exmo(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1173,9 +1174,7 @@ class exmo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         prefix = (type + '_') if (type == 'market') else ''
         orderType = prefix + side
-        orderPrice = price
-        if (type == 'market') and (price is None):
-            orderPrice = 0
+        isMarket = (type == 'market') and (price is None)
         request = {
             'pair': market['id'],
             # 'leverage': 2,
@@ -1183,7 +1182,7 @@ class exmo(Exchange, ImplicitAPI):
             # spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             # margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type': orderType,
-            'price': self.price_to_precision(market['symbol'], orderPrice),
+            'price': 0 if isMarket else self.price_to_precision(market['symbol'], price),
             # 'stop_price': self.price_to_precision(symbol, stopPrice),
             # 'distance': 0,  # distance for trailing stop orders
             # 'expire': 0,  # expiration timestamp in UTC timezone for the order, unless expire is 0
@@ -1208,29 +1207,7 @@ class exmo(Exchange, ImplicitAPI):
                 request['stop_price'] = self.price_to_precision(symbol, stopPrice)
                 method = 'privatePostMarginUserOrderCreate'
         response = await getattr(self, method)(self.extend(request, params))
-        id = self.safe_string(response, 'order_id')
-        timestamp = self.milliseconds()
-        status = 'open'
-        return {
-            'id': id,
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'status': status,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': None,
-            'amount': amount,
-            'remaining': amount,
-            'filled': 0.0,
-            'fee': None,
-            'trades': None,
-            'clientOrderId': clientOrderId,
-            'average': None,
-        }
+        return self.parse_order(response, market)
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -1418,7 +1395,7 @@ class exmo(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'status': None,
             'symbol': symbol,
-            'type': 'limit',
+            'type': None,
             'timeInForce': None,
             'postOnly': None,
             'side': side,

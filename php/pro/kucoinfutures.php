@@ -700,25 +700,31 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
     }
 
     public function handle_error_message(Client $client, $message) {
-        return $message;
+        //
+        //    {
+        //        "id" => "64d8732c856851144bded10d",
+        //        "type" => "error",
+        //        "code" => 401,
+        //        "data" => "token is expired"
+        //    }
+        //
+        $data = $this->safe_string($message, 'data', '');
+        $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
     }
 
     public function handle_message(Client $client, $message) {
-        if ($this->handle_error_message($client, $message)) {
-            $type = $this->safe_string($message, 'type');
-            $methods = array(
-                // 'heartbeat' => $this->handleHeartbeat,
-                'welcome' => array($this, 'handle_system_status'),
-                'ack' => array($this, 'handle_subscription_status'),
-                'message' => array($this, 'handle_subject'),
-                'pong' => array($this, 'handle_pong'),
-            );
-            $method = $this->safe_value($methods, $type);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
-            }
+        $type = $this->safe_string($message, 'type');
+        $methods = array(
+            // 'heartbeat' => $this->handleHeartbeat,
+            'welcome' => array($this, 'handle_system_status'),
+            'ack' => array($this, 'handle_subscription_status'),
+            'message' => array($this, 'handle_subject'),
+            'pong' => array($this, 'handle_pong'),
+            'error' => array($this, 'handle_error_message'),
+        );
+        $method = $this->safe_value($methods, $type);
+        if ($method !== null) {
+            return $method($client, $message);
         }
     }
 }

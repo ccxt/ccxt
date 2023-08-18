@@ -366,6 +366,7 @@ export default class kucoin extends Exchange {
                     '403': NotSupported,
                     '404': NotSupported,
                     '405': NotSupported,
+                    '415': NotSupported,
                     '429': RateLimitExceeded,
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
@@ -4119,7 +4120,7 @@ export default class kucoin extends Exchange {
         //     { code: '200000', data: { ... }}
         //
         const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'msg', '');
+        const message = this.safeString2 (response, 'msg', 'data', '');
         const feedback = this.id + ' ' + message;
         this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

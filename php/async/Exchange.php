@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.59';
+$version = '4.0.67';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.59';
+    const VERSION = '4.0.67';
 
     public $browser;
     public $marketsLoading = null;
@@ -224,6 +224,12 @@ class Exchange extends \ccxt\Exchange {
 
     public function loadAccounts($reload = false, $params = array()) {
         return $this->load_accounts($reload, $params);
+    }
+
+    public function fetch_markets($params = array()) {
+        return Async\async(function () use ($params) {
+            return parent::fetch_markets($params);
+        }) ();
     }
 
     public function sleep($milliseconds) {

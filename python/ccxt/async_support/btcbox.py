@@ -31,6 +31,7 @@ class btcbox(Exchange, ImplicitAPI):
             'countries': ['JP'],
             'rateLimit': 1000,
             'version': 'v1',
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -79,6 +80,7 @@ class btcbox(Exchange, ImplicitAPI):
                 'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
+                'ws': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg',
