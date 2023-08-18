@@ -26,7 +26,7 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
         'fee': {},
         'trades': [],
     };
-    const emptyAllowedFor = [ 'clientOrderId', 'stopPrice', 'trades' ]; // todo: we need more detailed property to skip the exchanges, that return only order id when executing order (in createOrder)
+    const emptyAllowedFor = [ 'clientOrderId', 'stopPrice', 'trades', 'lastTradeTimestamp' ]; // todo: we need more detailed property to skip the exchanges, that return only order id when executing order (in createOrder)
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
     //
