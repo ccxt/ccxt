@@ -1501,6 +1501,7 @@ class binance extends binance$1 {
                     '-4045': errors.ExchangeError,
                     '-4046': errors.AuthenticationError,
                     '-4047': errors.BadRequest,
+                    '-4054': errors.BadRequest,
                     '-5001': errors.BadRequest,
                     '-5002': errors.InsufficientFunds,
                     '-5003': errors.InsufficientFunds,
