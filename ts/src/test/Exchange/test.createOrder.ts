@@ -46,8 +46,6 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     const [ bestBid, bestAsk ] = await testSharedMethods.tryFetchBestBidAsk (exchange, 'createOrder', symbol);
     // get minimum order amount & cost
     const [ minimumAmountForBuy, minimumCostForBuy ] = getMinimumMarketCostAndAmountForBuy (exchange, market, bestAsk);
-    assert (minimumAmountForBuy !== undefined || minimumCostForBuy !== undefined, logPrefix + ' can not determine minimum amount/cost of order for ' + symbol + ' market');
-    verboseOutput (exchange, symbol, 'found minimums - amount:', minimumAmountForBuy, ',  cost :', minimumCostForBuy);
 
     // ****************************************** //
     // ************** [Scenario 1] ************** //
@@ -187,6 +185,8 @@ function getMinimumMarketCostAndAmountForBuy (exchange, market, askPrice) {
     if (amountMin !== undefined) {
         minimumAmountLimitForBuy = amountMin + fractionalAddition;
     }
+    assert (minimumAmountLimitForBuy !== undefined || minimumCostLimitForBuy !== undefined, exchange.id + ' can not determine minimum amount/cost of order for ' + market['symbol']);
+    verboseOutput (exchange, 'found market minimums - amount:', amountMin, ',  cost :', costMin);
     return [ minimumAmountLimitForBuy, minimumCostLimitForBuy ];
 }
 
