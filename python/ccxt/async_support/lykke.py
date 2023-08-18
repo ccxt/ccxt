@@ -63,7 +63,7 @@ class lykke(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': None,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,

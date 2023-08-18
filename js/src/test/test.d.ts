@@ -19,7 +19,7 @@ export default class testMainClass extends baseMainTestClass {
     testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<void>;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;
     runPublicTests(exchange: any, symbol: any): Promise<void>;
-    loadExchange(exchange: any): Promise<void>;
+    loadExchange(exchange: any): Promise<boolean>;
     getTestSymbol(exchange: any, isSpot: any, symbols: any): any;
     getExchangeCode(exchange: any, codes?: any): any;
     getMarketsFromExchange(exchange: any, spot?: boolean): {};

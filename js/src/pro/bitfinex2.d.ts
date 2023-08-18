@@ -23,7 +23,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     parseWsBalance(balance: any): import("../base/types.js").Balance;
     handleSystemStatus(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
-    authenticate(params?: {}): any;
+    authenticate(params?: {}): Promise<any>;
     handleAuthenticationMessage(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription: any): void;

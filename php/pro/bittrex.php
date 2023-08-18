@@ -46,7 +46,7 @@ class bittrex extends \ccxt\async\bittrex {
                 'hub' => 'c3',
                 'I' => $this->milliseconds(),
                 'watchOrderBook' => array(
-                    'snapshotMaxRetries' => 3,
+                    'maxRetries' => 3,
                 ),
             ),
         ));
@@ -701,8 +701,7 @@ class bittrex extends \ccxt\async\bittrex {
                 // then we cannot align it with the cached deltas and we need to
                 // retry synchronizing in $maxAttempts
                 if (($sequence !== null) && ($nonce < $sequence)) {
-                    $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
-                    $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
+                    $maxAttempts = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                     $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
                     // retry to syncrhonize if we haven't reached $maxAttempts yet
                     if ($numAttempts < $maxAttempts) {

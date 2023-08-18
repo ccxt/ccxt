@@ -61,6 +61,8 @@ class bitget(ccxt.async_support.bitget):
                     'exact': {
                         '30001': BadRequest,  # {"event":"error","code":30001,"msg":"instType:sp,channel:candleNone,instId:BTCUSDT doesn't exist"}
                         '30015': AuthenticationError,  # {event: 'error', code: 30015, msg: 'Invalid sign'}
+                        '30016': BadRequest,  # {event: 'error', code: 30016, msg: 'Param error'}
+                        '30011': AuthenticationError,  # {event: 'error', code: 30011, msg: 'Invalid ACCESS_KEY'}
                     },
                 },
             },
@@ -1032,13 +1034,14 @@ class bitget(ccxt.async_support.bitget):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             timestamp = str(self.seconds())
             auth = timestamp + 'GET' + '/user/verify'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
@@ -1055,8 +1058,7 @@ class bitget(ccxt.async_support.bitget):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
@@ -1074,7 +1076,8 @@ class bitget(ccxt.async_support.bitget):
         #  {event: 'login', code: 0}
         #
         messageHash = 'authenticated'
-        client.resolve(message, messageHash)
+        future = self.safe_value(client.futures, messageHash)
+        future.resolve(True)
 
     def handle_error_message(self, client: Client, message):
         #
