@@ -1,3 +1,4 @@
+/* eslint no-restricted-syntax: ["error", "FunctionExpression", "WithStatement"] */
 
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
@@ -368,11 +369,11 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
     let fetchedOrder = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
-    const sinceTime = Date.now () - 1000 * 60 * 5;
-    //
-    // search through singular methods
-    // eslint-disable-next-line no-restricted-syntax
-    for (const singularFetchName of [ 'fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder' ]) {
+    const sinceTime = exchange.milliseconds () - 1000 * 60 * 5;
+    // iterate
+    const methods_singular = [ 'fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder' ];
+    for (let i = 0; i < methods_singular.length; i++) {
+        const singularFetchName = methods_singular[i];
         if (exchange.has[singularFetchName]) {
             const currentOrder = await exchange[singularFetchName] (originalId, symbol);
             // if there is an id inside the order, it means the order was fetched successfully
@@ -385,8 +386,9 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
     //
     // search through plural methods
     if (fetchedOrder === undefined) {
-        // eslint-disable-next-line no-restricted-syntax
-        for (const pluralFetchName of [ 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders' ]) {
+        const methods_plural = [ 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders' ];
+        for (let i = 0; i < methods_plural.length; i++) {
+            const pluralFetchName = methods_plural[i];
             if (exchange.has[pluralFetchName]) {
                 const orders = await exchange[pluralFetchName] (symbol, sinceTime);
                 let found = false;
@@ -406,7 +408,7 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
     }
     // test fetched order object
     if (fetchedOrder !== undefined) {
-        testOrder (exchange, skippedProperties, 'createOrder', fetchedOrder, symbol, Date.now ());
+        testOrder (exchange, skippedProperties, 'createOrder', fetchedOrder, symbol, exchange.milliseconds ());
     }
     return fetchedOrder;
 }
