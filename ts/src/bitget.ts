@@ -4604,6 +4604,12 @@ export default class bitget extends Exchange {
          */
         this.checkRequiredSymbol ('setMarginMode', symbol);
         marginMode = marginMode.toLowerCase ();
+        if (marginMode === 'isolated') {
+            marginMode = 'fixed';
+        }
+        if (marginMode === 'cross') {
+            marginMode = 'crossed';
+        }
         if ((marginMode !== 'fixed') && (marginMode !== 'crossed')) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be "fixed" or "crossed"');
         }
