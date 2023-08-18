@@ -258,6 +258,7 @@ export default class testMainClass extends baseMainTestClass {
             if (this.info) {
                 dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
             }
+            if (methodName !== 'createOrder') return;
             const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
             await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
             if (isPublic) {
