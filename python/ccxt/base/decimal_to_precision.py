@@ -35,7 +35,7 @@ PAD_WITH_ZERO = 6
 
 def decimal_to_precision(n, rounding_mode=ROUND, numPrecisionDigits=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
     assert numPrecisionDigits is not None, 'numPrecisionDigits should not be None'
-    
+
     if isinstance(numPrecisionDigits, str):
         numPrecisionDigits = float(numPrecisionDigits)
     assert isinstance(numPrecisionDigits, float) or isinstance(numPrecisionDigits, decimal.Decimal) or isinstance(numPrecisionDigits, numbers.Integral), 'numPrecisionDigits has an invalid number'
@@ -49,7 +49,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, numPrecisionDigits=None, counti
     assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE], 'invalid counting_mode provided'
     assert padding_mode in [NO_PADDING, PAD_WITH_ZERO], 'invalid padding_mode provided'
     # end of checks
-    precision = numPrecisionDigits # just temporary variable name for clarity comparison between js/php/py, after review you can rename the argument back
+
+    precision = numPrecisionDigits  # "precision" variable name was in signature, but to make function signature similar to php/js, I had to change the argument name to "numPrecisionDigits". however, the below codes use "precision" variable name, so we have to assign that name here (you can change the usage of 'precision' variable name below everywhere, but i've refrained to do that to avoid many changes)
 
     context = decimal.getcontext()
 
