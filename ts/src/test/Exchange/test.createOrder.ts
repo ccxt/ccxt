@@ -29,7 +29,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     assert (exchange.has['cancelOrder'] || exchange.has['cancelOrders'] || exchange.has['cancelAllOrders'], logPrefix + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
 
     // pre-define some coefficients, which will be used down below
-    const limitPriceSafetyMultiplierFromMedian = 1.15;
+    const limitPriceSafetyMultiplierFromMedian = 1.045; // todo: in future, if ccxt would have "maximum limit price diapason" precisions unified, we can use those coefficients, but at this moment, differet exchanges have different coefficients. for example, unlike spot-market, binance's future market has 5% boundary for limit order prices, which means you can't place limit order higher than current price * 5% (i.e. for BTC/USDT market). So, at this moment, around 5% is acceptable guaranteed price where order will get filled like market order.
     const market = exchange.market (symbol);
 
     // we need fetchBalance method to test out orders correctly
@@ -146,7 +146,7 @@ async function testCreateOrder_cancelOrder (exchange, symbol, orderId = undefine
 // ----------------------------------------------------------------------------
 
 async function testCreateOrder_submitSafeOrder (exchange, symbol, orderType, side, amount, price = undefined, params = {}, skippedProperties = {}) {
-    verboseOutput (exchange, symbol, 'Executing createOrder', symbol, orderType, side, amount, price, params);
+    verboseOutput (exchange, symbol, 'Executing createOrder', orderType, side, amount, price, params);
     const order = await exchange.createOrder (symbol, orderType, side, amount, price, params);
     try {
         // test through regular order object test
