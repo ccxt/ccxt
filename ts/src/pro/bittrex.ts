@@ -46,7 +46,7 @@ export default class bittrex extends bittrexRest {
                 'hub': 'c3',
                 'I': this.milliseconds (),
                 'watchOrderBook': {
-                    'snapshotSyncMaxRetries': 3,
+                    'maxRetries': 3,
                 },
             },
         });
@@ -670,7 +670,7 @@ export default class bittrex extends bittrexRest {
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const maxAttempts = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
+                const maxAttempts = this.handleOption ('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
                 if (numAttempts < maxAttempts) {

@@ -37,7 +37,7 @@ export default class idex extends idexRest {
                 'orderBookSubscriptions': {},
                 'token': undefined,
                 'watchOrderBook': {
-                    'snapshotMaxRetries': 3,
+                    'maxRetries': 3,
                 },
                 'fetchOrderBookSnapshotMaxAttempts': 10,
                 'fetchOrderBookSnapshotMaxDelay': 10000, // throw if there are no orders in 10 seconds

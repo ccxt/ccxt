@@ -88,7 +88,7 @@ export default class huobi extends huobiRest {
                 'OHLCVLimit': 1000,
                 'api': 'api', // or api-aws for clients hosted on AWS
                 'watchOrderBook': {
-                    'snapshotSyncMaxRetries': 3,
+                    'maxRetries': 3,
                 },
                 'ws': {
                     'gunzip': true,
@@ -395,7 +395,7 @@ export default class huobi extends huobiRest {
             const snapshotOrderBook = this.orderBook (snapshot, snapshotLimit);
             client.resolve (snapshotOrderBook, id);
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const maxAttempts = this.handleOption ('watchOrderBook', 'snapshotSyncMaxRetries', 3);
+                const maxAttempts = this.handleOption ('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
