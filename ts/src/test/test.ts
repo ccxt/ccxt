@@ -30,7 +30,6 @@ class baseMainTestClass {
     debug = false;
     privateTest = false;
     privateTestOnly = false;
-    createOrderTest = false;
     sandbox = false;
     skippedMethods = {};
     checkedPublicTests = {};
@@ -128,7 +127,6 @@ export default class testMainClass extends baseMainTestClass {
         this.debug = getCliArgValue ('--debug');
         this.privateTest = getCliArgValue ('--private');
         this.privateTestOnly = getCliArgValue ('--privateOnly');
-        this.createOrderTest = getCliArgValue ('--createOrderTest');
         this.sandbox = getCliArgValue ('--sandbox');
     }
 
@@ -242,6 +240,7 @@ export default class testMainClass extends baseMainTestClass {
         if (isLoadMarkets) {
             await exchange.loadMarkets (true);
         }
+        if (methodName !== 'createOrder') return;
         if (skipMessage) {
             if (this.info) {
                 dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
@@ -666,7 +665,7 @@ export default class testMainClass extends baseMainTestClass {
             // 'transfer': [ ],
             // 'withdraw': [ ],
         };
-        if (this.createOrderTest) {
+        if (getCliArgValue ('--createOrder')) {
             tests['createOrder'] = [ symbol ];
         }
         const market = exchange.market (symbol);

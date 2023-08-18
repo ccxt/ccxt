@@ -47,7 +47,7 @@
         }
     },
     "binance": {
-        "httpsProxy": "http://51.83.140.52:11230",
+        "xhttpsProxy": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
