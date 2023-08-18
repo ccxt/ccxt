@@ -611,19 +611,32 @@ class wavesexchange extends Exchange {
 
     public function parse_order_book_side($bookSide, $market = null, ?int $limit = null) {
         $precision = $market['precision'];
-        $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
-        $amountPrecision = pow(10, $precision['amount']);
-        $difference = $precision['amount'] - $precision['price'];
-        $pricePrecision = pow(10, $wavesPrecision - $difference);
+        $wavesPrecision = $this->safe_string($this->options, 'wavesPrecision', '8');
+        $amountPrecision = '1e' . $this->number_to_string($precision['amount']);
+        $amountPrecisionString = $this->number_to_string($precision['amount']);
+        $pricePrecisionString = $this->number_to_string($precision['price']);
+        $difference = Precise::string_sub($amountPrecisionString, $pricePrecisionString);
+        $pricePrecision = '1e' . Precise::string_sub($wavesPrecision, $difference);
         $result = array();
         for ($i = 0; $i < count($bookSide); $i++) {
             $entry = $bookSide[$i];
-            $price = $this->safe_integer($entry, 'price', 0) / $pricePrecision;
-            $amount = $this->safe_integer($entry, 'amount', 0) / $amountPrecision;
+            $entryPrice = $this->safe_string($entry, 'price', '0');
+            $entryAmount = $this->safe_string($entry, 'amount', '0');
+            $price = null;
+            $amount = null;
+            if (($pricePrecision !== null) && ($entryPrice !== null)) {
+                $price = Precise::string_div($entryPrice, $pricePrecision);
+            }
+            if (($amountPrecision !== null) && ($entryAmount !== null)) {
+                $amount = Precise::string_div($entryAmount, $amountPrecision);
+            }
             if (($limit !== null) && ($i > $limit)) {
                 break;
             }
-            $result[] = array( $price, $amount );
+            $result[] = array(
+                $this->parse_number($price),
+                $this->parse_number($amount),
+            );
         }
         return $result;
     }
@@ -1195,17 +1208,23 @@ class wavesexchange extends Exchange {
 
     public function custom_price_to_precision($symbol, $price) {
         $market = $this->markets[$symbol];
-        $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
-        $difference = $market['precision']['amount'] - $market['precision']['price'];
-        return $this->parse_to_int(floatval($this->to_precision($price, $wavesPrecision - $difference)));
+        $wavesPrecision = $this->safe_string($this->options, 'wavesPrecision', '8');
+        $amount = $this->number_to_string($market['precision']['amount']);
+        $precisionPrice = $this->number_to_string($market['precision']['price']);
+        $difference = Precise::string_sub($amount, $precisionPrice);
+        $precision = Precise::string_sub($wavesPrecision, $difference);
+        $pricePrecision = $this->to_precision($price, (string) $precision);
+        return $this->parse_to_int(floatval($pricePrecision));
     }
 
     public function custom_amount_to_precision($symbol, $amount) {
-        return $this->parse_to_int(floatval($this->to_precision($amount, $this->markets[$symbol]['precision']['amount'])));
+        $amountPrecision = $this->number_to_string($this->to_precision($amount, $this->number_to_string($this->markets[$symbol]['precision']['amount'])));
+        return $this->parse_to_int(floatval($amountPrecision));
     }
 
     public function currency_to_precision($code, $amount, $networkCode = null) {
-        return $this->parse_to_int(floatval($this->to_precision($amount, $this->currencies[$code]['precision'])));
+        $amountPrecision = $this->number_to_string($this->to_precision($amount, $this->currencies[$code]['precision']));
+        return $this->parse_to_int(floatval($amountPrecision));
     }
 
     public function from_precision($amount, $scale) {
@@ -1219,11 +1238,11 @@ class wavesexchange extends Exchange {
     }
 
     public function to_precision($amount, $scale) {
-        $amountString = (string) $amount;
+        $amountString = $this->number_to_string($amount);
         $precise = new Precise ($amountString);
-        $precise->decimals = $precise->decimals - $scale;
+        $precise->decimals = Precise::string_sub($precise->decimals, $scale);
         $precise->reduce ();
-        return (string) $precise;
+        return $precise;
     }
 
     public function currency_from_precision($currency, $amount) {
