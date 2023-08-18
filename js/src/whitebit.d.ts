@@ -1,5 +1,9 @@
 import Exchange from './abstract/whitebit.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class whitebit
+ * @extends Exchange
+ */
 export default class whitebit extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -9,7 +13,7 @@ export default class whitebit extends Exchange {
         deposit: {};
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
@@ -130,6 +134,26 @@ export default class whitebit extends Exchange {
         timestamp: number;
         datetime: string;
         info: any;
+    };
+    fetchFundingRate(symbol: string, params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: number;
+        timestamp: any;
+        datetime: any;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: string;
+        nextFundingRate: any;
+        nextFundingTimestamp: number;
+        nextFundingDatetime: string;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
     };
     isFiat(currency: any): any;
     nonce(): number;

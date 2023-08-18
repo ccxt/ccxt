@@ -125,8 +125,8 @@ class poloniex extends poloniex$1 {
          * @description Connects to a websocket channel
          * @param {string} name name of the channel
          * @param {boolean} isPrivate true for the authenticated url, false for the public url
-         * @param {[string]|undefined} symbols CCXT market symbols
-         * @param {object} params extra parameters specific to the poloniex api
+         * @param {string[]|undefined} symbols CCXT market symbols
+         * @param {object} [params] extra parameters specific to the poloniex api
          * @returns {object} data from the websocket stream
          */
         const publicOrPrivate = isPrivate ? 'private' : 'public';
@@ -137,29 +137,19 @@ class poloniex extends poloniex$1 {
                 name,
             ],
         };
-        const marketIds = [];
-        if (symbols !== undefined) {
-            if (symbols.length === 1) {
-                const symbol = symbols[0];
-                const marketId = this.marketId(symbol);
-                marketIds.push(marketId);
-                messageHash = messageHash + ':' + symbol;
-            }
-            else {
-                for (let i = 0; i < symbols.length; i++) {
-                    const symbol = symbols[i];
-                    marketIds.push(this.marketId(symbol));
-                }
-            }
+        let marketIds = [];
+        if (this.isEmpty(symbols)) {
+            marketIds.push('all');
         }
         else {
-            marketIds.push('all');
+            messageHash = messageHash + '::' + symbols.join(',');
+            marketIds = this.marketIds(symbols);
         }
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
         }
         const request = this.extend(subscribe, params);
-        return await this.watch(url, messageHash, request, name);
+        return await this.watch(url, messageHash, request, messageHash);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -169,10 +159,10 @@ class poloniex extends poloniex$1 {
          * @see https://docs.poloniex.com/#public-channels-market-data-candlesticks
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns [[int]] A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const timeframes = this.safeValue(this.options, 'timeframes', {});
@@ -193,12 +183,13 @@ class poloniex extends poloniex$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets();
-        const name = 'ticker';
-        return await this.subscribe(name, name, false, [symbol], params);
+        symbol = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbol], params);
+        return this.safeValue(tickers, symbol);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -207,12 +198,17 @@ class poloniex extends poloniex$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets();
         const name = 'ticker';
-        return await this.subscribe(name, name, false, symbols, params);
+        symbols = this.marketSymbols(symbols);
+        const newTickers = await this.subscribe(name, name, false, symbols, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -221,10 +217,10 @@ class poloniex extends poloniex$1 {
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs.poloniex.com/#public-channels-market-data-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -242,8 +238,8 @@ class poloniex extends poloniex$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.poloniex.com/#public-channels-market-data-book-level-2
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit not used by poloniex watchOrderBook
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {int} [limit] not used by poloniex watchOrderBook
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -259,11 +255,11 @@ class poloniex extends poloniex$1 {
          * @name poloniex#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since not used by poloniex watchOrders
-         * @param {int|undefined} limit not used by poloniex watchOrders
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] not used by poloniex watchOrders
+         * @param {int} [limit] not used by poloniex watchOrders
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
@@ -284,11 +280,11 @@ class poloniex extends poloniex$1 {
          * @name poloniex#watchMyTrades
          * @description watches information on multiple trades made by the user using orders stream
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since not used by poloniex watchMyTrades
-         * @param {int|undefined} limit not used by poloniex watchMyTrades
-         * @param {object} params extra parameters specific to the poloniex strean
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] not used by poloniex watchMyTrades
+         * @param {int} [limit] not used by poloniex watchMyTrades
+         * @param {object} [params] extra parameters specific to the poloniex strean
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
@@ -307,14 +303,11 @@ class poloniex extends poloniex$1 {
     async watchBalance(params = {}) {
         /**
          * @method
-         * @name poloniex#watchOrders
-         * @description watches information on multiple orders made by the user
+         * @name poloniex#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
-         * @param {string|undefined} symbol not used by poloniex watchBalance
-         * @param {int|undefined} since not used by poloniex watchBalance
-         * @param {int|undefined} limit not used by poloniex watchBalance
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
         const name = 'balances';
@@ -374,7 +367,7 @@ class poloniex extends poloniex$1 {
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(symbol);
         const timeframe = this.findTimeframe(channel);
-        const messageHash = channel + ':' + symbol;
+        const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
@@ -415,7 +408,7 @@ class poloniex extends poloniex$1 {
                 const trade = this.parseWsTrade(item);
                 const symbol = trade['symbol'];
                 const type = 'trades';
-                const messageHash = type + ':' + symbol;
+                const messageHash = type + '::' + symbol;
                 let tradesArray = this.safeValue(this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -673,7 +666,7 @@ class poloniex extends poloniex$1 {
             const marketId = marketIds[i];
             const market = this.market(marketId);
             const symbol = market['symbol'];
-            const messageHash = 'orders:' + symbol;
+            const messageHash = 'orders::' + symbol;
             client.resolve(orders[symbol], messageHash);
         }
         client.resolve(orders, 'orders');
@@ -773,6 +766,7 @@ class poloniex extends poloniex$1 {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
+        const newTickers = [];
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString(item, 'symbol');
@@ -780,11 +774,21 @@ class poloniex extends poloniex$1 {
                 const ticker = this.parseTicker(item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                const messageHash = 'ticker:' + symbol;
-                client.resolve(ticker, messageHash);
+                newTickers.push(ticker);
             }
         }
-        client.resolve(this.tickers, 'ticker');
+        const messageHashes = this.findMessageHashes(client, 'ticker::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
+            if (!this.isEmpty(tickers)) {
+                client.resolve(tickers, messageHash);
+            }
+        }
+        client.resolve(newTickers, 'ticker');
         return message;
     }
     handleOrderBook(client, message) {
@@ -845,7 +849,7 @@ class poloniex extends poloniex$1 {
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             const name = 'book_lv2';
-            const messageHash = name + ':' + symbol;
+            const messageHash = name + '::' + symbol;
             const subscription = this.safeValue(client.subscriptions, messageHash, {});
             const limit = this.safeInteger(subscription, 'limit');
             const timestamp = this.safeInteger(item, 'ts');

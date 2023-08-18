@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitbank.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitbank
+ * @extends Exchange
+ */
 export default class bitbank extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

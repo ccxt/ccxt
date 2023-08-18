@@ -1,5 +1,9 @@
 import Exchange from './abstract/huobi.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class huobi
+ * @extends Exchange
+ */
 export default class huobi extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{
@@ -49,7 +53,7 @@ export default class huobi extends Exchange {
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchSpotOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: number, params?: {}): Promise<any>;
@@ -62,7 +66,7 @@ export default class huobi extends Exchange {
         type: any;
         code: any;
     };
-    fetchAccountIdByType(type: any, params?: {}): Promise<any>;
+    fetchAccountIdByType(type: any, marginMode?: any, symbol?: any, params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
     networkIdToCode(networkId: any, currencyCode?: any): string;
     networkCodeToId(networkCode: any, currencyCode?: any): any;
@@ -263,8 +267,8 @@ export default class huobi extends Exchange {
         id: string;
         amount: number;
     };
-    parsePosition(position: any, market?: any): any;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
@@ -312,7 +316,7 @@ export default class huobi extends Exchange {
         info: any;
     };
     fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     parseSettlements(settlements: any, market: any): any[];
     parseSettlement(settlement: any, market: any): {

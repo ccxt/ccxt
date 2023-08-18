@@ -11,6 +11,10 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class bitget
+ * @extends Exchange
+ */
 export default class bitget extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -48,18 +52,20 @@ export default class bitget extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': undefined,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -89,7 +95,7 @@ export default class bitget extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -132,6 +138,7 @@ export default class bitget extends Exchange {
                 'public': {
                     'spot': {
                         'get': {
+                            'notice/queryAllNotices': 1,
                             'public/time': 1,
                             'public/currencies': 6.6667,
                             'public/products': 1,
@@ -143,6 +150,7 @@ export default class bitget extends Exchange {
                             'market/candles': 1,
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
+                            'market/history-candles': 1,
                         },
                     },
                     'mix': {
@@ -163,6 +171,10 @@ export default class bitget extends Exchange {
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
                             'market/queryPositionLever': 1,
+                            'market/open-limit': 1,
+                            'market/history-candles': 1,
+                            'market/history-index-candles': 1,
+                            'market/history-mark-candles': 1,
                         },
                     },
                     'margin': {
@@ -171,9 +183,7 @@ export default class bitget extends Exchange {
                             'isolated/public/interestRateAndLimit': 2,
                             'cross/public/tierData': 2,
                             'isolated/public/tierData': 2,
-                            'public/currencies': 1,
-                            'cross/account/assets': 2,
-                            'isolated/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'public/currencies': 1, // 20 times/1s (IP) => 20/20 = 1
                         },
                     },
                 },
@@ -185,7 +195,10 @@ export default class bitget extends Exchange {
                             'wallet/deposit-list': 1,
                             'account/getInfo': 20,
                             'account/assets': 2,
-                            'account/transferRecords': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'account/assets-lite': 2,
+                            'account/transferRecords': 1,
+                            'convert/currencies': 2,
+                            'convert/convert-record': 2,
                         },
                         'post': {
                             'wallet/transfer': 4,
@@ -214,6 +227,8 @@ export default class bitget extends Exchange {
                             'plan/currentPlan': 1,
                             'plan/historyPlan': 1,
                             'plan/batchCancelPlan': 2,
+                            'convert/quoted-price': 4,
+                            'convert/trade': 4,
                             'trace/order/orderCurrentList': 2,
                             'trace/order/orderHistoryList': 2,
                             'trace/order/closeTrackingOrder': 2,
@@ -227,6 +242,8 @@ export default class bitget extends Exchange {
                             'trace/user/myFollowers': 2,
                             'trace/config/setProductCode': 2,
                             'trace/user/removeTrader': 2,
+                            'trace/getRemovableFollower': 2,
+                            'trace/user/removeFollower': 2,
                             'trace/profit/totalProfitInfo': 2,
                             'trace/profit/totalProfitList': 2,
                             'trace/profit/profitHisList': 2,
@@ -243,6 +260,7 @@ export default class bitget extends Exchange {
                             'position/singlePosition-v2': 2,
                             'position/allPosition': 4,
                             'position/allPosition-v2': 4,
+                            'position/history-position': 1,
                             'account/accountBill': 2,
                             'account/accountBusinessBill': 4,
                             'order/current': 1,
@@ -295,6 +313,7 @@ export default class bitget extends Exchange {
                             'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/modifyTPSL': 2,
+                            'trace/closeTrackOrderBySymbol': 2,
                             'trace/setUpCopySymbols': 2,
                             'trace/followerSetBatchTraceConfig': 2,
                             'trace/followerCloseByTrackingNo': 2,
@@ -305,7 +324,11 @@ export default class bitget extends Exchange {
                             'trace/myTraderList': 2,
                             'trace/myFollowerList': 2,
                             'trace/removeFollower': 2,
-                            'trace/public/getFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/public/getFollowerConfig': 2,
+                            'trace/report/order/historyList': 2,
+                            'trace/report/order/currentList': 2,
+                            'trace/queryTraderTpslRatioConfig': 2,
+                            'trace/traderUpdateTpslRatioConfig': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                     },
                     'user': {
@@ -313,6 +336,10 @@ export default class bitget extends Exchange {
                             'fee/query': 2,
                             'sub/virtual-list': 2,
                             'sub/virtual-api-list': 2,
+                            'tax/spot-record': 1,
+                            'tax/future-record': 1,
+                            'tax/margin-record': 1,
+                            'tax/p2p-record': 1,
                         },
                         'post': {
                             'sub/virtual-create': 4,
@@ -370,7 +397,9 @@ export default class bitget extends Exchange {
                             'cross/repay/list': 2,
                             'cross/interest/list': 2,
                             'cross/liquidation/list': 2,
-                            'cross/fin/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/fin/list': 2,
+                            'cross/account/assets': 2,
+                            'isolated/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
                         },
                         'post': {
                             'cross/account/borrow': 2,
@@ -380,6 +409,10 @@ export default class bitget extends Exchange {
                             'isolated/account/riskRate': 2,
                             'cross/account/maxBorrowableAmount': 2,
                             'isolated/account/maxBorrowableAmount': 2,
+                            'isolated/account/flashRepay': 2,
+                            'isolated/account/queryFlashRepayStatus': 2,
+                            'cross/account/flashRepay': 2,
+                            'cross/account/queryFlashRepayStatus': 2,
                             'isolated/order/placeOrder': 4,
                             'isolated/order/batchPlaceOrder': 4,
                             'isolated/order/cancelOrder': 2,
@@ -846,6 +879,7 @@ export default class bitget extends Exchange {
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
                     '43025': InvalidOrder,
+                    '43115': OnMaintenance,
                     '45110': InvalidOrder,
                     // spot
                     'invalid sign': AuthenticationError,
@@ -963,6 +997,22 @@ export default class bitget extends Exchange {
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchOHLCV': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketCandles', // or publicSpotGetMarketHistoryCandles
+                    },
+                    'swap': {
+                        'method': 'publicMixGetMarketCandles', // or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                    },
+                },
+                'fetchTrades': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketFillsHistory', // or publicSpotGetMarketFills
+                    },
+                    'swap': {
+                        'method': 'publicMixGetMarketFillsHistory', // or publicMixGetMarketFills
+                    },
+                },
                 'accountsByType': {
                     'main': 'EXCHANGE',
                     'spot': 'EXCHANGE',
@@ -986,6 +1036,9 @@ export default class bitget extends Exchange {
                     'TRC20': 'TRX',
                     'BSC': 'BEP20',
                 },
+                'fetchPositions': {
+                    'method': 'privateMixGetPositionAllPositionV2', // or privateMixGetPositionHistoryPosition
+                },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
         });
@@ -998,7 +1051,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicSpotGetPublicTime(params);
@@ -1017,8 +1070,8 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchMarkets
          * @description retrieves data on all markets for bitget
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         let types = this.safeValue(this.options, 'fetchMarkets', ['spot', 'swap']);
@@ -1290,7 +1343,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicSpotGetPublicCurrencies(params);
@@ -1330,30 +1383,51 @@ export default class bitget extends Exchange {
             const code = this.safeCurrencyCode(this.safeString(entry, 'coinName'));
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
+            let deposit = false;
+            let withdraw = false;
+            let minWithdrawString = undefined;
+            let minDepositString = undefined;
+            let minWithdrawFeeString = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 const network = this.safeCurrencyCode(networkId);
                 const withdrawEnabled = this.safeString(chain, 'withdrawable');
+                const canWithdraw = withdrawEnabled === 'true';
+                withdraw = (canWithdraw) ? canWithdraw : withdraw;
                 const depositEnabled = this.safeString(chain, 'rechargeable');
+                const canDeposit = depositEnabled === 'true';
+                deposit = (canDeposit) ? canDeposit : deposit;
+                const networkWithdrawFeeString = this.safeString(chain, 'withdrawFee');
+                if (networkWithdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? networkWithdrawFeeString : Precise.stringMin(networkWithdrawFeeString, minWithdrawFeeString);
+                }
+                const networkMinWithdrawString = this.safeString(chain, 'minWithdrawAmount');
+                if (networkMinWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? networkMinWithdrawString : Precise.stringMin(networkMinWithdrawString, minWithdrawString);
+                }
+                const networkMinDepositString = this.safeString(chain, 'minDepositAmount');
+                if (networkMinDepositString !== undefined) {
+                    minDepositString = (minDepositString === undefined) ? networkMinDepositString : Precise.stringMin(networkMinDepositString, minDepositString);
+                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'limits': {
                         'withdraw': {
-                            'min': this.safeNumber(chain, 'minWithdrawAmount'),
+                            'min': this.parseNumber(networkMinWithdrawString),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber(chain, 'minDepositAmount'),
+                            'min': this.parseNumber(networkMinDepositString),
                             'max': undefined,
                         },
                     },
-                    'active': undefined,
-                    'withdraw': withdrawEnabled === 'true',
-                    'deposit': depositEnabled === 'true',
-                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'active': canWithdraw && canDeposit,
+                    'withdraw': canWithdraw,
+                    'deposit': canDeposit,
+                    'fee': this.parseNumber(networkWithdrawFeeString),
                     'precision': undefined,
                 };
             }
@@ -1364,14 +1438,24 @@ export default class bitget extends Exchange {
                 'networks': networks,
                 'type': undefined,
                 'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'active': deposit && withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': this.parseNumber(minWithdrawFeeString),
                 'precision': undefined,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.parseNumber(minWithdrawString),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.parseNumber(minDepositString),
+                        'max': undefined,
+                    },
                 },
             };
         }
@@ -1384,7 +1468,7 @@ export default class bitget extends Exchange {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
          */
         await this.loadMarkets();
@@ -1451,13 +1535,13 @@ export default class bitget extends Exchange {
          * @name bitget#fetchDeposits
          * @description fetch all deposits made to an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
-         * @param {string|undefined} code unified currency code
-         * @param {int} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @param {string|undefined} params.pageNo pageNo default 1
-         * @param {string|undefined} params.pageSize pageSize default 20. Max 100
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.pageNo] pageNo default 1
+         * @param {string} [params.pageSize] pageSize default 20. Max 100
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         if (code === undefined) {
@@ -1509,9 +1593,9 @@ export default class bitget extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @param {string} params.chain the chain to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.chain] the chain to withdraw to
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         this.checkAddress(address);
@@ -1581,13 +1665,13 @@ export default class bitget extends Exchange {
          * @name bitget#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
-         * @param {string|undefined} code unified currency code
-         * @param {int} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @param {string|undefined} params.pageNo pageNo default 1
-         * @param {string|undefined} params.pageSize pageSize default 20. Max 100
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.pageNo] pageNo default 1
+         * @param {string} [params.pageSize] pageSize default 20. Max 100
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         if (code === undefined) {
@@ -1640,37 +1724,48 @@ export default class bitget extends Exchange {
         //         "amount": "19.44800000",
         //         "status": "success",
         //         "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
-        //         "fee": null,
+        //         "fee": "-3.06388160",
         //         "chain": "TRC20",
         //         "confirm": null,
+        //         "tag": null,
         //         "cTime": "1656407912259",
         //         "uTime": "1656407940148"
         //     }
         //
+        const currencyId = this.safeString(transaction, 'coin');
+        const code = this.safeCurrencyCode(currencyId);
+        let amountString = this.safeString(transaction, 'amount');
         const timestamp = this.safeInteger(transaction, 'cTime');
         const networkId = this.safeString(transaction, 'chain');
-        const currencyId = this.safeString(transaction, 'coin');
         const status = this.safeString(transaction, 'status');
+        const tag = this.safeString(transaction, 'tag');
+        const feeCostString = this.safeString(transaction, 'fee');
+        const feeCostAbsString = Precise.stringAbs(feeCostString);
+        let fee = undefined;
+        if (feeCostAbsString !== undefined) {
+            fee = { 'currency': code, 'cost': this.parseNumber(feeCostAbsString) };
+            amountString = Precise.stringSub(amountString, feeCostAbsString);
+        }
         return {
             'id': this.safeString(transaction, 'id'),
             'info': transaction,
             'txid': this.safeString(transaction, 'txId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': networkId,
+            'network': this.networkIdToCode(networkId),
             'addressFrom': undefined,
             'address': this.safeString(transaction, 'toAddress'),
             'addressTo': this.safeString(transaction, 'toAddress'),
-            'amount': this.safeNumber(transaction, 'amount'),
+            'amount': this.parseNumber(amountString),
             'type': this.safeString(transaction, 'type'),
-            'currency': this.safeCurrencyCode(currencyId),
+            'currency': code,
             'status': this.parseTransactionStatus(status),
-            'updated': this.safeNumber(transaction, 'uTime'),
+            'updated': this.safeInteger(transaction, 'uTime'),
             'tagFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
+            'tag': tag,
+            'tagTo': tag,
             'comment': undefined,
-            'fee': undefined,
+            'fee': fee,
         };
     }
     parseTransactionStatus(status) {
@@ -1689,7 +1784,7 @@ export default class bitget extends Exchange {
          * @name bitget#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
@@ -1746,8 +1841,8 @@ export default class bitget extends Exchange {
          * @name bitget#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -1904,7 +1999,7 @@ export default class bitget extends Exchange {
          * @name bitget#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -1949,8 +2044,8 @@ export default class bitget extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
@@ -2034,23 +2129,23 @@ export default class bitget extends Exchange {
         // spot
         //
         //     {
-        //         symbol: 'BTCUSDT_SPBL',
-        //         tradeId: '881371996363608065',
-        //         side: 'sell',
-        //         fillPrice: '39123.05',
-        //         fillQuantity: '0.0363',
-        //         fillTime: '1645861379709'
+        //         "symbol": "BTCUSDT_SPBL",
+        //         "tradeId": "1075200479040323585",
+        //         "side": "Sell",
+        //         "fillPrice": "29381.54",
+        //         "fillQuantity": "0.0056",
+        //         "fillTime": "1692073691000"
         //     }
         //
         // swap
         //
         //     {
-        //         tradeId: '881373204067311617',
-        //         price: '39119.0',
-        //         size: '0.001',
-        //         side: 'buy',
-        //         timestamp: '1645861667648',
-        //         symbol: 'BTCUSDT_UMCBL'
+        //         "tradeId": "1075199767891652609",
+        //         "price": "29376.5",
+        //         "size": "6.035",
+        //         "side": "Buy",
+        //         "timestamp": "1692073521000",
+        //         "symbol": "BTCUSDT_UMCBL"
         //     }
         //
         // private
@@ -2085,17 +2180,12 @@ export default class bitget extends Exchange {
         //
         const marketId = this.safeString(trade, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
-        const id = this.safeString2(trade, 'tradeId', 'fillId');
-        const order = this.safeString(trade, 'orderId');
-        const side = this.safeString(trade, 'side');
-        const price = this.safeString2(trade, 'fillPrice', 'price');
         let amount = this.safeString2(trade, 'fillQuantity', 'size');
         amount = this.safeString(trade, 'sizeQty', amount);
         let timestamp = this.safeInteger2(trade, 'fillTime', 'timestamp');
         timestamp = this.safeInteger(trade, 'cTime', timestamp);
         let fee = undefined;
         const feeAmount = this.safeString(trade, 'fees');
-        const type = this.safeString(trade, 'orderType');
         if (feeAmount !== undefined) {
             const currencyCode = this.safeCurrencyCode(this.safeString(trade, 'feeCcy'));
             fee = {
@@ -2107,13 +2197,13 @@ export default class bitget extends Exchange {
         const datetime = this.iso8601(timestamp);
         return this.safeTrade({
             'info': trade,
-            'id': id,
-            'order': order,
+            'id': this.safeString2(trade, 'tradeId', 'fillId'),
+            'order': this.safeString(trade, 'orderId'),
             'symbol': symbol,
-            'side': side,
-            'type': type,
+            'side': this.safeStringLower(trade, 'side'),
+            'type': this.safeString(trade, 'orderType'),
             'takerOrMaker': undefined,
-            'price': price,
+            'price': this.safeString2(trade, 'fillPrice', 'price'),
             'amount': amount,
             'cost': undefined,
             'fee': fee,
@@ -2121,16 +2211,20 @@ export default class bitget extends Exchange {
             'datetime': datetime,
         }, market);
     }
-    async fetchTrades(symbol, limit = undefined, since = undefined, params = {}) {
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-market-trades
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-fills
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-recent-trades
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-recent-fills
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2140,29 +2234,70 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const extended = this.extend(request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const options = this.safeValue(this.options, 'fetchTrades', {});
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicSpotGetMarketFills(extended);
+            const spotOptions = this.safeValue(options, 'spot', {});
+            const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetMarketFillsHistory');
+            const spotMethod = this.safeString(params, 'method', defaultSpotMethod);
+            params = this.omit(params, 'method');
+            if (spotMethod === 'publicSpotGetMarketFillsHistory') {
+                response = await this.publicSpotGetMarketFillsHistory(this.extend(request, params));
+            }
+            else if (spotMethod === 'publicSpotGetMarketFills') {
+                response = await this.publicSpotGetMarketFills(this.extend(request, params));
+            }
         }
         else {
-            response = await this.publicMixGetMarketFills(extended);
+            const swapOptions = this.safeValue(options, 'swap', {});
+            const defaultSwapMethod = this.safeString(swapOptions, 'method', 'publicMixGetMarketFillsHistory');
+            const swapMethod = this.safeString(params, 'method', defaultSwapMethod);
+            params = this.omit(params, 'method');
+            if (swapMethod === 'publicMixGetMarketFillsHistory') {
+                response = await this.publicMixGetMarketFillsHistory(this.extend(request, params));
+            }
+            else if (swapMethod === 'publicMixGetMarketFills') {
+                response = await this.publicMixGetMarketFills(this.extend(request, params));
+            }
         }
         //
+        // spot
+        //
         //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: '1645861382032',
-        //       data: [
-        //         {
-        //           symbol: 'BTCUSDT_SPBL',
-        //           tradeId: '881371996363608065',
-        //           side: 'sell',
-        //           fillPrice: '39123.05',
-        //           fillQuantity: '0.0363',
-        //           fillTime: '1645861379709'
-        //         }
-        //       ]
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1692073693562,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT_SPBL",
+        //                 "tradeId": "1075200479040323585",
+        //                 "side": "Sell",
+        //                 "fillPrice": "29381.54",
+        //                 "fillQuantity": "0.0056",
+        //                 "fillTime": "1692073691000"
+        //             },
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1692073522689,
+        //         "data": [
+        //             {
+        //                 "tradeId": "1075199767891652609",
+        //                 "price": "29376.5",
+        //                 "size": "6.035",
+        //                 "side": "Buy",
+        //                 "timestamp": "1692073521000",
+        //                 "symbol": "BTCUSDT_UMCBL"
+        //             },
+        //         ]
         //     }
         //
         const data = this.safeValue(response, 'data', []);
@@ -2174,7 +2309,7 @@ export default class bitget extends Exchange {
          * @name bitget#fetchTradingFee
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -2211,7 +2346,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -2299,15 +2434,19 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-data
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-index-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-mark-candle-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2315,8 +2454,9 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         const until = this.safeInteger2(params, 'until', 'till');
+        const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
-            limit = 1000;
+            limit = 200;
         }
         request['limit'] = limit;
         const marketType = market['spot'] ? 'spot' : 'swap';
@@ -2353,14 +2493,45 @@ export default class bitget extends Exchange {
                 }
             }
         }
-        const ommitted = this.omit(params, ['until', 'till']);
-        const extended = this.extend(request, ommitted);
+        const options = this.safeValue(this.options, 'fetchOHLCV', {});
+        params = this.omit(params, ['until', 'till']);
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicSpotGetMarketCandles(extended);
+            const spotOptions = this.safeValue(options, 'spot', {});
+            const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetMarketCandles');
+            const method = this.safeString(params, 'method', defaultSpotMethod);
+            params = this.omit(params, 'method');
+            if (method === 'publicSpotGetMarketCandles') {
+                if (limitIsUndefined) {
+                    request['limit'] = 1000;
+                }
+                response = await this.publicSpotGetMarketCandles(this.extend(request, params));
+            }
+            else if (method === 'publicSpotGetMarketHistoryCandles') {
+                response = await this.publicSpotGetMarketHistoryCandles(this.extend(request, params));
+            }
         }
         else {
-            response = await this.publicMixGetMarketCandles(extended);
+            const swapOptions = this.safeValue(options, 'swap', {});
+            const defaultSwapMethod = this.safeString(swapOptions, 'method', 'publicMixGetMarketCandles');
+            const swapMethod = this.safeString(params, 'method', defaultSwapMethod);
+            const priceType = this.safeString(params, 'price');
+            params = this.omit(params, ['method', 'price']);
+            if ((priceType === 'mark') || (swapMethod === 'publicMixGetMarketHistoryMarkCandles')) {
+                response = await this.publicMixGetMarketHistoryMarkCandles(this.extend(request, params));
+            }
+            else if ((priceType === 'index') || (swapMethod === 'publicMixGetMarketHistoryIndexCandles')) {
+                response = await this.publicMixGetMarketHistoryIndexCandles(this.extend(request, params));
+            }
+            else if (swapMethod === 'publicMixGetMarketCandles') {
+                if (limitIsUndefined) {
+                    request['limit'] = 1000;
+                }
+                response = await this.publicMixGetMarketCandles(this.extend(request, params));
+            }
+            else if (swapMethod === 'publicMixGetMarketHistoryCandles') {
+                response = await this.publicMixGetMarketHistoryCandles(this.extend(request, params));
+            }
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
         const data = this.safeValue(response, 'data', response);
@@ -2371,7 +2542,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
@@ -2546,6 +2717,7 @@ export default class bitget extends Exchange {
         const average = this.safeString2(order, 'fillPrice', 'priceAvg');
         const type = this.safeString(order, 'orderType');
         const timestamp = this.safeInteger(order, 'cTime');
+        const lastUpdatetimestamp = this.safeInteger(order, 'uTime');
         let side = this.safeString2(order, 'side', 'posSide');
         if ((side === 'open_long') || (side === 'close_short')) {
             side = 'buy';
@@ -2583,6 +2755,7 @@ export default class bitget extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdatetimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
@@ -2616,14 +2789,16 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @param {float} params.triggerPrice *swap only* The price at which a trigger order is triggered at
-         * @param {float|undefined} params.stopLossPrice *swap only* The price at which a stop loss order is triggered at
-         * @param {float|undefined} params.takeProfitPrice *swap only* The price at which a take profit order is triggered at
-         * @param {float|undefined} params.stopLoss *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
-         * @param {float|undefined} params.takeProfit *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
-         * @param {string|undefined} params.timeInForce "GTC", "IOC", "FOK", or "PO"
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2634,11 +2809,11 @@ export default class bitget extends Exchange {
             'orderType': type,
         };
         const isMarketOrder = type === 'market';
-        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-        const stopLoss = this.safeNumber(params, 'stopLoss');
-        const takeProfit = this.safeNumber(params, 'takeProfit');
+        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
+        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
@@ -2646,8 +2821,8 @@ export default class bitget extends Exchange {
         const isTakeProfit = takeProfit !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const isStopLossOrTakeProfit = isStopLoss || isTakeProfit;
-        if (this.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isStopLoss, isTakeProfit) > 1) {
-            throw new ExchangeError(this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, stopLoss, takeProfit');
+        if (this.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder) > 1) {
+            throw new ExchangeError(this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice');
         }
         if ((type === 'limit') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -2707,63 +2882,24 @@ export default class bitget extends Exchange {
             }
         }
         else {
+            request['marginCoin'] = market['settleId'];
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
-            if (!isStopLossOrTakeProfit) {
-                request['size'] = this.amountToPrecision(symbol, amount);
-            }
-            if (isTriggerOrder || isStopLossOrTakeProfit) {
+            if (isTriggerOrder || isStopLossOrTakeProfitTrigger) {
                 // default triggerType to market price for unification
                 const triggerType = this.safeString(params, 'triggerType', 'market_price');
                 request['triggerType'] = triggerType;
             }
-            if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
+            if (isStopLossOrTakeProfitTrigger) {
                 if (!isMarketOrder) {
                     throw new ExchangeError(this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
                 }
                 request['holdSide'] = (side === 'buy') ? 'long' : 'short';
             }
-            const reduceOnly = this.safeValue(params, 'reduceOnly', false);
-            if (isTriggerOrder) {
-                request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-                if (price !== undefined) {
-                    request['executePrice'] = this.priceToPrecision(symbol, price);
-                }
-                if (side === 'buy') {
-                    request['side'] = 'open_long';
-                }
-                else if (side === 'sell') {
-                    request['side'] = 'open_short';
-                }
-                else {
-                    request['side'] = side;
-                }
-                method = 'privateMixPostPlanPlacePlan';
-            }
-            else if (isStopLossOrTakeProfitTrigger) {
-                if (isStopLossTriggerOrder) {
-                    request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                    request['planType'] = 'loss_plan';
-                }
-                else if (isTakeProfitTriggerOrder) {
-                    request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                    request['planType'] = 'profit_plan';
-                }
-                method = 'privateMixPostPlanPlaceTPSL';
-            }
-            else if (isStopLossOrTakeProfit) {
-                if (isStopLoss) {
-                    request['triggerPrice'] = this.priceToPrecision(symbol, stopLoss);
-                    request['planType'] = 'pos_loss';
-                }
-                else if (isTakeProfit) {
-                    request['triggerPrice'] = this.priceToPrecision(symbol, takeProfit);
-                    request['planType'] = 'pos_profit';
-                }
-                method = 'privateMixPostPlanPlacePositionsTPSL';
-            }
             else {
+                const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+                request['size'] = this.amountToPrecision(symbol, amount);
                 if (reduceOnly) {
                     request['side'] = (side === 'buy') ? 'close_short' : 'close_long';
                 }
@@ -2779,23 +2915,48 @@ export default class bitget extends Exchange {
                     }
                 }
             }
-            request['marginCoin'] = market['settleId'];
+            if (isTriggerOrder) {
+                request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                }
+                method = 'privateMixPostPlanPlacePlan';
+            }
+            else if (isStopLossOrTakeProfitTrigger) {
+                if (isStopLossTriggerOrder) {
+                    request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                    request['planType'] = 'pos_loss';
+                }
+                else if (isTakeProfitTriggerOrder) {
+                    request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                    request['planType'] = 'pos_profit';
+                }
+                method = 'privateMixPostPlanPlacePositionsTPSL';
+            }
+            else if (isStopLossOrTakeProfit) {
+                if (isStopLoss) {
+                    const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
+                    request['presetStopLossPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                }
+                if (isTakeProfit) {
+                    const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
+                    request['presetTakeProfitPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                }
+            }
         }
-        if (!isStopLossOrTakeProfit) {
-            if (postOnly) {
-                request[timeInForceKey] = 'post_only';
-            }
-            else if (timeInForce === 'gtc') {
-                request[timeInForceKey] = 'normal';
-            }
-            else if (timeInForce === 'fok') {
-                request[timeInForceKey] = 'fok';
-            }
-            else if (timeInForce === 'ioc') {
-                request[timeInForceKey] = 'ioc';
-            }
+        if (postOnly) {
+            request[timeInForceKey] = 'post_only';
         }
-        const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly']);
+        else if (timeInForce === 'gtc') {
+            request[timeInForceKey] = 'normal';
+        }
+        else if (timeInForce === 'fok') {
+            request[timeInForceKey] = 'fok';
+        }
+        else if (timeInForce === 'ioc') {
+            request[timeInForceKey] = 'ioc';
+        }
+        const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly']);
         const response = await this[method](this.extend(request, omitted));
         //
         //     {
@@ -2821,8 +2982,8 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2921,7 +3082,7 @@ export default class bitget extends Exchange {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredSymbol('cancelOrder', symbol);
@@ -2963,9 +3124,9 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#cancelOrders
          * @description cancel multiple orders
-         * @param {[string]} ids order ids
+         * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredSymbol('cancelOrders', symbol);
@@ -3032,10 +3193,10 @@ export default class bitget extends Exchange {
          * @description cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
-         * @param {string|undefined} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @param {string} params.code marginCoin unified currency code
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.code] marginCoin unified currency code
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         await this.loadMarkets();
@@ -3102,7 +3263,7 @@ export default class bitget extends Exchange {
          * @name bitget#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredSymbol('fetchOrder', symbol);
@@ -3188,10 +3349,10 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of open order structures to retrieve
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -3359,10 +3520,10 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
          * @param {string} symbol unified market symbol of the closed orders
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the max number of closed orders to return
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] timestamp in ms of the earliest order
+         * @param {int} [limit] the max number of closed orders to return
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         this.checkRequiredSymbol('fetchClosedOrders', symbol);
@@ -3386,9 +3547,9 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
          * @param {string} symbol unified market symbol of the canceled orders
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the max number of canceled orders to return
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {int} [since] timestamp in ms of the earliest order
+         * @param {int} [limit] the max number of canceled orders to return
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3568,10 +3729,10 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -3657,10 +3818,10 @@ export default class bitget extends Exchange {
          * @name bitget#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
@@ -3708,10 +3869,10 @@ export default class bitget extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredSymbol('fetchOrderTrades', symbol);
         await this.loadMarkets();
@@ -3759,7 +3920,7 @@ export default class bitget extends Exchange {
          * @name bitget#fetchPosition
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
@@ -3798,19 +3959,23 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        return this.parsePositions(data);
+        const first = this.safeValue(data, 0, {});
+        const position = this.parsePosition(first, market);
+        return position;
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchPositions
          * @description fetch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         await this.loadMarkets();
+        const fetchPositionsOptions = this.safeValue(this.options, 'fetchPositions', {});
+        const method = this.safeString(fetchPositionsOptions, 'method', 'privateMixGetPositionAllPositionV2');
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString(symbols, 0);
@@ -3825,7 +3990,28 @@ export default class bitget extends Exchange {
         const request = {
             'productType': productType,
         };
-        const response = await this.privateMixGetPositionAllPositionV2(this.extend(request, params));
+        if (method === 'privateMixGetPositionHistoryPosition') {
+            // endTime and startTime mandatory
+            let since = this.safeInteger2(params, 'startTime', 'since');
+            if (since === undefined) {
+                since = this.milliseconds() - 7689600000; // 3 months ago
+            }
+            request['startTime'] = since;
+            let until = this.safeInteger2(params, 'endTime', 'until');
+            if (until === undefined) {
+                until = this.milliseconds();
+            }
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        let isHistory = false;
+        if (method === 'privateMixGetPositionAllPositionV2') {
+            response = await this.privateMixGetPositionAllPositionV2(this.extend(request, params));
+        }
+        else {
+            isHistory = true;
+            response = await this.privateMixGetPositionHistoryPosition(this.extend(request, params));
+        }
         //
         //     {
         //       code: '00000',
@@ -3853,14 +4039,48 @@ export default class bitget extends Exchange {
         //         }
         //       ]
         //     }
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 0,
+        //         "data": {
+        //           "list": [
+        //             {
+        //               "symbol": "ETHUSDT_UMCBL",
+        //               "marginCoin": "USDT",
+        //               "holdSide": "short",
+        //               "openAvgPrice": "1206.7",
+        //               "closeAvgPrice": "1206.8",
+        //               "marginMode": "fixed",
+        //               "openTotalPos": "1.15",
+        //               "closeTotalPos": "1.15",
+        //               "pnl": "-0.11",
+        //               "netProfit": "-1.780315",
+        //               "totalFunding": "0",
+        //               "openFee": "-0.83",
+        //               "closeFee": "-0.83",
+        //               "ctime": "1689300233897",
+        //               "utime": "1689300238205"
+        //             }
+        //           ],
+        //           "endId": "1062308959580516352"
+        //         }
+        //       }
         //
-        const position = this.safeValue(response, 'data', []);
+        let position = [];
+        if (!isHistory) {
+            position = this.safeValue(response, 'data', []);
+        }
+        else {
+            const data = this.safeValue(response, 'data', {});
+            position = this.safeValue(data, 'list', []);
+        }
         const result = [];
         for (let i = 0; i < position.length; i++) {
             result.push(this.parsePosition(position[i]));
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -3884,10 +4104,30 @@ export default class bitget extends Exchange {
         //         cTime: '1645922194988'
         //     }
         //
+        // history
+        //
+        //     {
+        //       "symbol": "ETHUSDT_UMCBL",
+        //       "marginCoin": "USDT",
+        //       "holdSide": "short",
+        //       "openAvgPrice": "1206.7",
+        //       "closeAvgPrice": "1206.8",
+        //       "marginMode": "fixed",
+        //       "openTotalPos": "1.15",
+        //       "closeTotalPos": "1.15",
+        //       "pnl": "-0.11",
+        //       "netProfit": "-1.780315",
+        //       "totalFunding": "0",
+        //       "openFee": "-0.83",
+        //       "closeFee": "-0.83",
+        //       "ctime": "1689300233897",
+        //       "utime": "1689300238205"
+        //     }
+        //
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger(position, 'cTime');
+        const timestamp = this.safeInteger2(position, 'cTime', 'ctime');
         let marginMode = this.safeString(position, 'marginMode');
         let collateral = undefined;
         let initialMargin = undefined;
@@ -3914,13 +4154,16 @@ export default class bitget extends Exchange {
         const contractSizeNumber = this.safeValue(market, 'contractSize');
         const contractSize = this.numberToString(contractSizeNumber);
         const baseAmount = this.safeString(position, 'total');
-        const entryPrice = this.safeString(position, 'averageOpenPrice');
+        const entryPrice = this.safeString2(position, 'averageOpenPrice', 'openAvgPrice');
         const maintenanceMarginPercentage = this.safeString(position, 'keepMarginRate');
         const openNotional = Precise.stringMul(entryPrice, baseAmount);
         if (initialMargin === undefined) {
             initialMargin = Precise.stringDiv(openNotional, leverage);
         }
-        const contracts = this.parseNumber(Precise.stringDiv(baseAmount, contractSize));
+        let contracts = this.parseNumber(Precise.stringDiv(baseAmount, contractSize));
+        if (contracts === undefined) {
+            contracts = this.safeNumber(position, 'closeTotalPos');
+        }
         const markPrice = this.safeString(position, 'marketPrice');
         const notional = Precise.stringMul(baseAmount, markPrice);
         const initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
@@ -3957,16 +4200,17 @@ export default class bitget extends Exchange {
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber(entryPrice),
             'unrealizedPnl': this.parseNumber(unrealizedPnl),
+            'realizedPnl': this.safeNumber(position, 'pnl'),
             'percentage': this.parseNumber(percentage),
             'contracts': contracts,
             'contractSize': contractSizeNumber,
             'markPrice': this.parseNumber(markPrice),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(position, 'closeAvgPrice'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(position, 'utime'),
             'maintenanceMargin': this.parseNumber(maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentage),
             'collateral': this.parseNumber(collateral),
@@ -3974,6 +4218,8 @@ export default class bitget extends Exchange {
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'leverage': this.parseNumber(leverage),
             'marginRatio': this.parseNumber(marginRatio),
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3981,11 +4227,11 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchFundingRateHistory
          * @description fetches historical funding rate prices
-         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
@@ -4038,7 +4284,7 @@ export default class bitget extends Exchange {
          * @name bitget#fetchFundingRate
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
@@ -4100,10 +4346,10 @@ export default class bitget extends Exchange {
          * @description fetch the funding history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the starting timestamp in milliseconds
-         * @param {int|undefined} limit the number of entries to return
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @param {int} [since] the starting timestamp in milliseconds
+         * @param {int} [limit] the number of entries to return
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -4242,7 +4488,7 @@ export default class bitget extends Exchange {
          * @description remove margin from a position
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
         if (amount > 0) {
@@ -4261,7 +4507,7 @@ export default class bitget extends Exchange {
          * @description add margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         const holdSide = this.safeString(params, 'holdSide');
@@ -4276,7 +4522,7 @@ export default class bitget extends Exchange {
          * @name bitget#fetchLeverage
          * @description fetch the set leverage for a market
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets();
@@ -4321,7 +4567,7 @@ export default class bitget extends Exchange {
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} response from the exchange
          */
         this.checkRequiredSymbol('setLeverage', symbol);
@@ -4342,7 +4588,7 @@ export default class bitget extends Exchange {
          * @description set margin mode to 'cross' or 'isolated'
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} response from the exchange
          */
         this.checkRequiredSymbol('setMarginMode', symbol);
@@ -4365,8 +4611,8 @@ export default class bitget extends Exchange {
          * @name bitget#setPositionMode
          * @description set hedged to true or false for a market
          * @param {bool} hedged set to true to use dualSidePosition
-         * @param {string|undefined} symbol not used by bitget setPositionMode ()
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string} symbol not used by bitget setPositionMode ()
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} response from the exchange
          *
          */
@@ -4405,7 +4651,7 @@ export default class bitget extends Exchange {
          * @description Retrieves the open interest of a currency
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
          * @param {string} symbol Unified CCXT market symbol
-         * @param {object} params exchange specific parameters
+         * @param {object} [params] exchange specific parameters
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
          */
         await this.loadMarkets();
@@ -4438,11 +4684,11 @@ export default class bitget extends Exchange {
          * @name bitget#fetchTransfers
          * @description fetch a history of internal transfers made on an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
-         * @param {string|undefined} code unified currency code of the currency transferred
-         * @param {int|undefined} since the earliest time in ms to fetch transfers for
-         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -4496,10 +4742,10 @@ export default class bitget extends Exchange {
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
          *
          * EXCHANGE SPECIFIC PARAMS
-         * @param {string} params.clientOid custom id
+         * @param {string} [params.clientOid] custom id
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
@@ -4580,6 +4826,87 @@ export default class bitget extends Exchange {
             'toAccount': toAccount,
             'status': this.parseTransferStatus(msg),
         };
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        // {
+        //     "chains": [
+        //       {
+        //         "browserUrl": "https://bscscan.com/tx/",
+        //         "chain": "BEP20",
+        //         "depositConfirm": "15",
+        //         "extraWithDrawFee": "0",
+        //         "minDepositAmount": "0.000001",
+        //         "minWithdrawAmount": "0.0000078",
+        //         "needTag": "false",
+        //         "rechargeable": "true",
+        //         "withdrawConfirm": "15",
+        //         "withdrawFee": "0.0000051",
+        //         "withdrawable": "true"
+        //       },
+        //       {
+        //         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+        //         "chain": "BTC",
+        //         "depositConfirm": "1",
+        //         "extraWithDrawFee": "0",
+        //         "minDepositAmount": "0.0001",
+        //         "minWithdrawAmount": "0.002",
+        //         "needTag": "false",
+        //         "rechargeable": "true",
+        //         "withdrawConfirm": "1",
+        //         "withdrawFee": "0.0005",
+        //         "withdrawable": "true"
+        //       }
+        //     ],
+        //     "coinId": "1",
+        //     "coinName": "BTC",
+        //     "transfer": "true"
+        // }
+        //
+        const chains = this.safeValue(fee, 'chains', []);
+        const chainsLength = chains.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        for (let i = 0; i < chainsLength; i++) {
+            const chain = chains[i];
+            const networkId = this.safeString(chain, 'chain');
+            const currencyCode = this.safeString(currency, 'code');
+            const networkCode = this.networkIdToCode(networkId, currencyCode);
+            result['networks'][networkCode] = {
+                'deposit': { 'fee': undefined, 'percentage': undefined },
+                'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
+            };
+            if (chainsLength === 1) {
+                result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
+                result['withdraw']['percentage'] = false;
+            }
+        }
+        return result;
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicSpotGetPublicCurrencies(params);
+        const data = this.safeValue(response, 'data');
+        return this.parseDepositWithdrawFees(data, codes, 'coinName');
     }
     parseTransferStatus(status) {
         const statuses = {

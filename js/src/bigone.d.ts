@@ -1,7 +1,12 @@
 import Exchange from './abstract/bigone.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bigone
+ * @extends Exchange
+ */
 export default class bigone extends Exchange {
     describe(): any;
+    fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Market>>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
@@ -36,7 +41,7 @@ export default class bigone extends Exchange {
         currency: string;
         address: string;
         tag: string;
-        network: any;
+        network: string;
         info: any;
     }>;
     parseTransactionStatus(status: any): string;

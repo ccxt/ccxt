@@ -1,5 +1,9 @@
 import Exchange from './abstract/mexc.js';
 import { IndexType, Int, OrderSide, Balances, OrderType } from './base/types.js';
+/**
+ * @class mexc
+ * @extends Exchange
+ */
 export default class mexc extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{
@@ -22,10 +26,10 @@ export default class mexc extends Exchange {
     syntheticTradeId(market?: any, timestamp?: any, side?: any, amount?: any, price?: any, orderType?: any, takerOrMaker?: any): string;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchBidsAsks(symbols?: string[], params?: {}): Promise<any>;
+    fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     createSpotOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<any>;
     createSwapOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<import("./base/types.js").Order>;
@@ -138,8 +142,8 @@ export default class mexc extends Exchange {
     };
     parseTransactionStatusByType(status: any, type?: any): string;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     fetchTransfer(id: string, since?: Int, limit?: Int, params?: {}): Promise<{
         info: any;
         id: string;
@@ -204,7 +208,7 @@ export default class mexc extends Exchange {
         info: any;
     };
     parseTransactionFee(transaction: any, currency?: any): {};
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     parseMarginLoan(info: any, currency?: any): {
         id: string;

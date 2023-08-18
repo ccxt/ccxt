@@ -38,7 +38,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'tradesLimit' => 1000,
                 'watchOrderBook' => array(
                     'snapshotDelay' => 20,
-                    'maxRetries' => 3,
+                    'snapshotMaxRetries' => 3,
                 ),
                 'watchTicker' => array(
                     'name' => 'contractMarket/tickerV2', // market/ticker
@@ -144,7 +144,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://docs.kucoin.com/futures/#get-real-time-$symbol-ticker-v2
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
+             * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -194,10 +194,10 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
              * get the list of most recent $trades for a particular $symbol
              * @see https://docs.kucoin.com/futures/#execution-data
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(false));
@@ -261,8 +261,8 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
              *   6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
              * @see https://docs.kucoin.com/futures/#level-2-$market-data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             if ($limit !== null) {
@@ -419,11 +419,11 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             /**
              * watches information on multiple $orders made by the user
              * @see https://docs.kucoin.com/futures/#trade-$orders-according-to-the-$market
-             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
@@ -441,7 +441,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -458,8 +458,8 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
 
     public function parse_ws_order($order, $market = null) {
         //
-        //     {
         //         'symbol' => 'XCAD-USDT',
+        //     {
         //         'orderType' => 'limit',
         //         'side' => 'buy',
         //         'orderId' => '6249167327218b000135e749',
@@ -546,9 +546,9 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.kucoin.com/futures/#account-balance-events
-             * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
+             * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             $url = Async\await($this->negotiate(true));
@@ -700,25 +700,31 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
     }
 
     public function handle_error_message(Client $client, $message) {
-        return $message;
+        //
+        //    {
+        //        "id" => "64d8732c856851144bded10d",
+        //        "type" => "error",
+        //        "code" => 401,
+        //        "data" => "token is expired"
+        //    }
+        //
+        $data = $this->safe_string($message, 'data', '');
+        $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
     }
 
     public function handle_message(Client $client, $message) {
-        if ($this->handle_error_message($client, $message)) {
-            $type = $this->safe_string($message, 'type');
-            $methods = array(
-                // 'heartbeat' => $this->handleHeartbeat,
-                'welcome' => array($this, 'handle_system_status'),
-                'ack' => array($this, 'handle_subscription_status'),
-                'message' => array($this, 'handle_subject'),
-                'pong' => array($this, 'handle_pong'),
-            );
-            $method = $this->safe_value($methods, $type);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
-            }
+        $type = $this->safe_string($message, 'type');
+        $methods = array(
+            // 'heartbeat' => $this->handleHeartbeat,
+            'welcome' => array($this, 'handle_system_status'),
+            'ack' => array($this, 'handle_subscription_status'),
+            'message' => array($this, 'handle_subject'),
+            'pong' => array($this, 'handle_pong'),
+            'error' => array($this, 'handle_error_message'),
+        );
+        $method = $this->safe_value($methods, $type);
+        if ($method !== null) {
+            return $method($client, $message);
         }
     }
 }

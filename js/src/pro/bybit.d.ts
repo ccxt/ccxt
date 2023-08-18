@@ -10,7 +10,7 @@ export default class bybit extends bybitRest {
     handleTicker(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any): number[];
+    parseWsOHLCV(ohlcv: any, market?: any): number[];
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;

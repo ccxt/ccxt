@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitfinex2.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitfinex2
+ * @extends Exchange
+ */
 export default class bitfinex2 extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;
@@ -104,9 +108,10 @@ export default class bitfinex2 extends Exchange {
         };
     };
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
@@ -134,4 +139,45 @@ export default class bitfinex2 extends Exchange {
         info: any;
     };
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<{}>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<{}>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: number;
+        nextFundingTimestamp: number;
+        nextFundingDatetime: string;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
+    parseFundingRateHistory(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: number;
+        nextFundingTimestamp: number;
+        nextFundingDatetime: string;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
 }

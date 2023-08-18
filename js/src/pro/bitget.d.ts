@@ -28,7 +28,7 @@ export default class bitget extends bitgetRest {
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     watchPublic(messageHash: any, args: any, params?: {}): Promise<any>;
-    authenticate(params?: {}): any;
+    authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, subscriptionHash: any, args: any, params?: {}): Promise<any>;
     handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;

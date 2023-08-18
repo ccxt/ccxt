@@ -29,6 +29,9 @@ function testOrderBook(exchange, skippedProperties, method, entry, symbol) {
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);
     const logText = testSharedMethods.logTemplate(exchange, method, entry);
     //
+    if (('bid' in skippedProperties) || ('ask' in skippedProperties)) {
+        return;
+    }
     const bids = entry['bids'];
     const bidsLength = bids.length;
     for (let i = 0; i < bidsLength; i++) {
@@ -52,6 +55,9 @@ function testOrderBook(exchange, skippedProperties, method, entry, symbol) {
         }
         testSharedMethods.assertGreater(exchange, skippedProperties, method, asks[i], 0, '0');
         testSharedMethods.assertGreater(exchange, skippedProperties, method, asks[i], 1, '0');
+    }
+    if ('spread' in skippedProperties) {
+        return;
     }
     if (bidsLength && asksLength) {
         const firstBid = exchange.safeString(bids[0], 0);

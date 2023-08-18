@@ -1,5 +1,9 @@
 import Exchange from './abstract/woo.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class woo
+ * @extends Exchange
+ */
 export default class woo extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -62,7 +66,7 @@ export default class woo extends Exchange {
     getCurrencyFromChaincode(networkizedCode: any, currency: any): any;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -202,8 +206,8 @@ export default class woo extends Exchange {
         leverage: number;
     }>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    fetchPosition(symbol?: string, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPosition(symbol?: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     defaultNetworkCodeForCurrency(code: any): any;
 }
