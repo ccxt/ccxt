@@ -33,6 +33,7 @@ class yobit(Exchange, ImplicitAPI):
             'countries': ['RU'],
             'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': '3',
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -93,6 +94,7 @@ class yobit(Exchange, ImplicitAPI):
                 'setPositionMode': False,
                 'transfer': False,
                 'withdraw': True,
+                'ws': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',

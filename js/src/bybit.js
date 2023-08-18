@@ -2084,10 +2084,10 @@ export default class bybit extends Exchange {
         //         "change24h": "86"
         //     }
         //
+        const isSpot = this.safeString(ticker, 'openInterestValue') === undefined;
         const timestamp = this.safeInteger(ticker, 'time');
         const marketId = this.safeString(ticker, 'symbol');
-        const defaultType = this.safeString(this.options, 'defaultType', 'spot');
-        const type = this.safeString(market, 'type', defaultType);
+        const type = isSpot ? 'spot' : 'contract';
         market = this.safeMarket(marketId, market, undefined, type);
         const symbol = this.safeSymbol(marketId, market, undefined, type);
         const last = this.safeString(ticker, 'lastPrice');

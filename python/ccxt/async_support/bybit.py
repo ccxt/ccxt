@@ -2042,10 +2042,10 @@ class bybit(Exchange, ImplicitAPI):
         #         "change24h": "86"
         #     }
         #
+        isSpot = self.safe_string(ticker, 'openInterestValue') is None
         timestamp = self.safe_integer(ticker, 'time')
         marketId = self.safe_string(ticker, 'symbol')
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(market, 'type', defaultType)
+        type = 'spot' if isSpot else 'contract'
         market = self.safe_market(marketId, market, None, type)
         symbol = self.safe_symbol(marketId, market, None, type)
         last = self.safe_string(ticker, 'lastPrice')

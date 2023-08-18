@@ -321,7 +321,7 @@ class cryptocom extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRON',
                 ),
-                'broker' => 'CCXT_',
+                'broker' => 'CCXT',
             ),
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies' => array(
@@ -993,12 +993,8 @@ class cryptocom extends Exchange {
         if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-        if ($clientOrderId === null) {
-            $clientOrderId = $broker . $this->uuid22();
-        }
-        $request['client_oid'] = $clientOrderId;
+        $broker = $this->safe_string($this->options, 'broker', 'CCXT');
+        $request['broker_id'] = $broker;
         $marketType = null;
         $marginMode = null;
         list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);

@@ -78,14 +78,14 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
+                'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': None,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -1021,8 +1021,16 @@ class bitget(Exchange, ImplicitAPI):
                     'spot': {
                         'method': 'publicSpotGetMarketCandles',  # or publicSpotGetMarketHistoryCandles
                     },
-                    'swap:': {
+                    'swap': {
                         'method': 'publicMixGetMarketCandles',  # or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                    },
+                },
+                'fetchTrades': {
+                    'spot': {
+                        'method': 'publicSpotGetMarketFillsHistory',  # or publicSpotGetMarketFills
+                    },
+                    'swap': {
+                        'method': 'publicMixGetMarketFillsHistory',  # or publicMixGetMarketFills
                     },
                 },
                 'accountsByType': {
@@ -2075,23 +2083,23 @@ class bitget(Exchange, ImplicitAPI):
         # spot
         #
         #     {
-        #         symbol: 'BTCUSDT_SPBL',
-        #         tradeId: '881371996363608065',
-        #         side: 'sell',
-        #         fillPrice: '39123.05',
-        #         fillQuantity: '0.0363',
-        #         fillTime: '1645861379709'
+        #         "symbol": "BTCUSDT_SPBL",
+        #         "tradeId": "1075200479040323585",
+        #         "side": "Sell",
+        #         "fillPrice": "29381.54",
+        #         "fillQuantity": "0.0056",
+        #         "fillTime": "1692073691000"
         #     }
         #
         # swap
         #
         #     {
-        #         tradeId: '881373204067311617',
-        #         price: '39119.0',
-        #         size: '0.001',
-        #         side: 'buy',
-        #         timestamp: '1645861667648',
-        #         symbol: 'BTCUSDT_UMCBL'
+        #         "tradeId": "1075199767891652609",
+        #         "price": "29376.5",
+        #         "size": "6.035",
+        #         "side": "Buy",
+        #         "timestamp": "1692073521000",
+        #         "symbol": "BTCUSDT_UMCBL"
         #     }
         #
         # private
@@ -2126,17 +2134,12 @@ class bitget(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        id = self.safe_string_2(trade, 'tradeId', 'fillId')
-        order = self.safe_string(trade, 'orderId')
-        side = self.safe_string(trade, 'side')
-        price = self.safe_string_2(trade, 'fillPrice', 'price')
         amount = self.safe_string_2(trade, 'fillQuantity', 'size')
         amount = self.safe_string(trade, 'sizeQty', amount)
         timestamp = self.safe_integer_2(trade, 'fillTime', 'timestamp')
         timestamp = self.safe_integer(trade, 'cTime', timestamp)
         fee = None
         feeAmount = self.safe_string(trade, 'fees')
-        type = self.safe_string(trade, 'orderType')
         if feeAmount is not None:
             currencyCode = self.safe_currency_code(self.safe_string(trade, 'feeCcy'))
             fee = {
@@ -2147,13 +2150,13 @@ class bitget(Exchange, ImplicitAPI):
         datetime = self.iso8601(timestamp)
         return self.safe_trade({
             'info': trade,
-            'id': id,
-            'order': order,
+            'id': self.safe_string_2(trade, 'tradeId', 'fillId'),
+            'order': self.safe_string(trade, 'orderId'),
             'symbol': symbol,
-            'side': side,
-            'type': type,
+            'side': self.safe_string_lower(trade, 'side'),
+            'type': self.safe_string(trade, 'orderType'),
             'takerOrMaker': None,
-            'price': price,
+            'price': self.safe_string_2(trade, 'fillPrice', 'price'),
             'amount': amount,
             'cost': None,
             'fee': fee,
@@ -2161,9 +2164,13 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': datetime,
         }, market)
 
-    def fetch_trades(self, symbol: str, limit: Optional[int] = None, since: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-market-trades
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-fills
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-recent-trades
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-recent-fills
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -2177,27 +2184,63 @@ class bitget(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        extended = self.extend(request, params)
+        if since is not None:
+            request['startTime'] = since
+        options = self.safe_value(self.options, 'fetchTrades', {})
         response = None
         if market['spot']:
-            response = self.publicSpotGetMarketFills(extended)
+            spotOptions = self.safe_value(options, 'spot', {})
+            defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetMarketFillsHistory')
+            spotMethod = self.safe_string(params, 'method', defaultSpotMethod)
+            params = self.omit(params, 'method')
+            if spotMethod == 'publicSpotGetMarketFillsHistory':
+                response = self.publicSpotGetMarketFillsHistory(self.extend(request, params))
+            elif spotMethod == 'publicSpotGetMarketFills':
+                response = self.publicSpotGetMarketFills(self.extend(request, params))
         else:
-            response = self.publicMixGetMarketFills(extended)
+            swapOptions = self.safe_value(options, 'swap', {})
+            defaultSwapMethod = self.safe_string(swapOptions, 'method', 'publicMixGetMarketFillsHistory')
+            swapMethod = self.safe_string(params, 'method', defaultSwapMethod)
+            params = self.omit(params, 'method')
+            if swapMethod == 'publicMixGetMarketFillsHistory':
+                response = self.publicMixGetMarketFillsHistory(self.extend(request, params))
+            elif swapMethod == 'publicMixGetMarketFills':
+                response = self.publicMixGetMarketFills(self.extend(request, params))
+        #
+        # spot
         #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: '1645861382032',
-        #       data: [
-        #         {
-        #           symbol: 'BTCUSDT_SPBL',
-        #           tradeId: '881371996363608065',
-        #           side: 'sell',
-        #           fillPrice: '39123.05',
-        #           fillQuantity: '0.0363',
-        #           fillTime: '1645861379709'
-        #         }
-        #       ]
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1692073693562,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT_SPBL",
+        #                 "tradeId": "1075200479040323585",
+        #                 "side": "Sell",
+        #                 "fillPrice": "29381.54",
+        #                 "fillQuantity": "0.0056",
+        #                 "fillTime": "1692073691000"
+        #             },
+        #         ]
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1692073522689,
+        #         "data": [
+        #             {
+        #                 "tradeId": "1075199767891652609",
+        #                 "price": "29376.5",
+        #                 "size": "6.035",
+        #                 "side": "Buy",
+        #                 "timestamp": "1692073521000",
+        #                 "symbol": "BTCUSDT_UMCBL"
+        #             },
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -2327,8 +2370,12 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-data
         see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
-        see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-candle-data
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-index-candle-data
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-mark-candle-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -2343,8 +2390,9 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         until = self.safe_integer_2(params, 'until', 'till')
+        limitIsUndefined = (limit is None)
         if limit is None:
-            limit = 1000
+            limit = 200
         request['limit'] = limit
         marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
@@ -2372,29 +2420,35 @@ class bitget(Exchange, ImplicitAPI):
                 else:
                     request['endTime'] = self.sum(since, limit * duration * 1000)
         options = self.safe_value(self.options, 'fetchOHLCV', {})
-        ommitted = self.omit(params, ['until', 'till'])
-        extended = self.extend(request, ommitted)
+        params = self.omit(params, ['until', 'till'])
         response = None
         if market['spot']:
             spotOptions = self.safe_value(options, 'spot', {})
-            defaultSpotMethod = self.safe_string(params, 'method', 'publicSpotGetMarketCandles')
-            method = self.safe_string(spotOptions, 'method', defaultSpotMethod)
+            defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetMarketCandles')
+            method = self.safe_string(params, 'method', defaultSpotMethod)
+            params = self.omit(params, 'method')
             if method == 'publicSpotGetMarketCandles':
-                response = self.publicSpotGetMarketCandles(extended)
+                if limitIsUndefined:
+                    request['limit'] = 1000
+                response = self.publicSpotGetMarketCandles(self.extend(request, params))
             elif method == 'publicSpotGetMarketHistoryCandles':
-                response = self.publicSpotGetMarketHistoryCandles(extended)
+                response = self.publicSpotGetMarketHistoryCandles(self.extend(request, params))
         else:
             swapOptions = self.safe_value(options, 'swap', {})
-            defaultSwapMethod = self.safe_string(params, 'method', 'publicMixGetMarketCandles')
-            swapMethod = self.safe_string(swapOptions, 'method', defaultSwapMethod)
-            if swapMethod == 'publicMixGetMarketCandles':
-                response = self.publicMixGetMarketCandles(extended)
+            defaultSwapMethod = self.safe_string(swapOptions, 'method', 'publicMixGetMarketCandles')
+            swapMethod = self.safe_string(params, 'method', defaultSwapMethod)
+            priceType = self.safe_string(params, 'price')
+            params = self.omit(params, ['method', 'price'])
+            if (priceType == 'mark') or (swapMethod == 'publicMixGetMarketHistoryMarkCandles'):
+                response = self.publicMixGetMarketHistoryMarkCandles(self.extend(request, params))
+            elif (priceType == 'index') or (swapMethod == 'publicMixGetMarketHistoryIndexCandles'):
+                response = self.publicMixGetMarketHistoryIndexCandles(self.extend(request, params))
+            elif swapMethod == 'publicMixGetMarketCandles':
+                if limitIsUndefined:
+                    request['limit'] = 1000
+                response = self.publicMixGetMarketCandles(self.extend(request, params))
             elif swapMethod == 'publicMixGetMarketHistoryCandles':
-                response = self.publicMixGetMarketHistoryCandles(extended)
-            elif swapMethod == 'publicMixGetMarketHistoryIndexCandles':
-                response = self.publicMixGetMarketHistoryIndexCandles(extended)
-            elif swapMethod == 'publicMixGetMarketHistoryMarkCandles':
-                response = self.publicMixGetMarketHistoryMarkCandles(extended)
+                response = self.publicMixGetMarketHistoryCandles(self.extend(request, params))
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)

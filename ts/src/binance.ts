@@ -1503,6 +1503,7 @@ export default class binance extends Exchange {
                     '-4045': ExchangeError, // {"code":-4045,"msg":"Failure to acquire assets."}
                     '-4046': AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
                     '-4047': BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                    '-4054': BadRequest, // {"code":-4054,"msg":"Cannot add position margin: position is 0."}
                     '-5001': BadRequest, // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
                     '-5002': InsufficientFunds, // {"code":-5002,"msg":"You have insufficient balance."}
                     '-5003': InsufficientFunds, // {"code":-5003,"msg":"You don't have this asset."}
