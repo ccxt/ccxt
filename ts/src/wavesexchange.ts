@@ -610,9 +610,9 @@ export default class wavesexchange extends Exchange {
     parseOrderBookSide (bookSide, market = undefined, limit: Int = undefined) {
         const precision = market['precision'];
         const wavesPrecision = this.safeString (this.options, 'wavesPrecision', '8');
-        const amountPrecision = '1e' + precision['amount'].toString ();
-        const amountPrecisionString = precision['amount'].toString ();
-        const pricePrecisionString = precision['price'].toString ();
+        const amountPrecision = '1e' + this.numberToString (precision['amount']);
+        const amountPrecisionString = this.numberToString (precision['amount']);
+        const pricePrecisionString = this.numberToString (precision['price']);
         const difference = Precise.stringSub (amountPrecisionString, pricePrecisionString);
         const pricePrecision = '1e' + Precise.stringSub (wavesPrecision, difference);
         const result = [];
