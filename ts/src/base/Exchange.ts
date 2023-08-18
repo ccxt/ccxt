@@ -1157,7 +1157,7 @@ export default class Exchange {
                     'agent': this.agent,
                 }
             }, wsOptions);
-            this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
+            return new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
         return this.clients[url];
     }
@@ -1214,6 +1214,7 @@ export default class Exchange {
         // (connection established successfully)
         if (!clientSubscription) {
             connected.then (() => {
+                    this.clients[url] = client;
                     const options = this.safeValue (this.options, 'ws');
                     const cost = this.safeValue (options, 'cost', 1);
                     if (message) {
