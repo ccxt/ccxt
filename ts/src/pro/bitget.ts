@@ -270,6 +270,48 @@ export default class bitget extends bitgetRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const topics = [];
+        const hashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            const symbol = this.safeString (data, 0);
+            const timeframe = this.safeString (data, 1);
+            const market = this.market (symbol);
+            const interval = this.safeString (this.options['timeframes'], timeframe);
+            const instType = market['spot'] ? 'sp' : 'mc';
+            const args = {
+                'instType': instType,
+                'channel': 'candle' + interval,
+                'instId': this.getWsMarketId (market),
+            };
+            topics.push (args);
+            hashes.push (symbol + '#' + timeframe);
+        }
+        const messageHash = 'multipleOHLCV::' + hashes.join (',');
+        const [ symbol, timeframe, stored ] = await this.watchPublicMultiple (messageHash, topics, params);
+        if (this.newUpdates) {
+            limit = stored.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const res = {};
+        res[symbol] = {};
+        res[symbol][timeframe] = filtered;
+        return res; // check this out
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //   {
@@ -321,6 +363,7 @@ export default class bitget extends bitgetRest {
         }
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve (stored, messageHash);
+        this.resolveMultipleOHLCV (client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
