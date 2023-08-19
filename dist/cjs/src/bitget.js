@@ -4601,8 +4601,14 @@ class bitget extends bitget$1 {
          */
         this.checkRequiredSymbol('setMarginMode', symbol);
         marginMode = marginMode.toLowerCase();
+        if (marginMode === 'isolated') {
+            marginMode = 'fixed';
+        }
+        if (marginMode === 'cross') {
+            marginMode = 'crossed';
+        }
         if ((marginMode !== 'fixed') && (marginMode !== 'crossed')) {
-            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() marginMode must be "fixed" or "crossed"');
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() marginMode must be either fixed (isolated) or crossed (cross)');
         }
         await this.loadMarkets();
         const market = this.market(symbol);

@@ -4624,8 +4624,14 @@ class bitget extends Exchange {
              */
             $this->check_required_symbol('setMarginMode', $symbol);
             $marginMode = strtolower($marginMode);
+            if ($marginMode === 'isolated') {
+                $marginMode = 'fixed';
+            }
+            if ($marginMode === 'cross') {
+                $marginMode = 'crossed';
+            }
             if (($marginMode !== 'fixed') && ($marginMode !== 'crossed')) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be "fixed" or "crossed"');
+                throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be either fixed (isolated) or crossed (cross)');
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);

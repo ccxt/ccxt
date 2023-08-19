@@ -4343,8 +4343,12 @@ class bitget(Exchange, ImplicitAPI):
         """
         self.check_required_symbol('setMarginMode', symbol)
         marginMode = marginMode.lower()
+        if marginMode == 'isolated':
+            marginMode = 'fixed'
+        if marginMode == 'cross':
+            marginMode = 'crossed'
         if (marginMode != 'fixed') and (marginMode != 'crossed'):
-            raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be "fixed" or "crossed"')
+            raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be either fixed(isolated) or crossed(cross)')
         await self.load_markets()
         market = self.market(symbol)
         request = {
