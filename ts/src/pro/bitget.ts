@@ -556,7 +556,6 @@ export default class bitget extends bitgetRest {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
-        symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');

@@ -280,6 +280,45 @@ export default class coinbasepro extends coinbaseproRest {
         return orderbook.limit ();
     }
 
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new BadRequest (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        const name = 'level2';
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const messageHash = 'multipleOrderbooks' + '::' + symbols.join (',');
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'type': 'subscribe',
+            'product_ids': marketIds,
+            'channels': [
+                name,
+            ],
+        };
+        const request = this.extend (subscribe, params);
+        const subscription = {
+            'messageHash': messageHash,
+            'symbols': symbols,
+            'marketIds': marketIds,
+            'limit': limit,
+        };
+        const authentication = this.authenticate ();
+        const orderbook = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
+        return orderbook.limit ();
+    }
+
     handleTrade (client: Client, message) {
         //
         //     {
@@ -789,6 +828,7 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['datetime'] = undefined;
             orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbooks::', symbol, orderbook);
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
             const timestamp = this.parse8601 (this.safeString (message, 'time'));
@@ -809,6 +849,7 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             client.resolve (orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbooks::', symbol, orderbook);
         }
     }
 
