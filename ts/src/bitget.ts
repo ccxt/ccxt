@@ -2249,10 +2249,14 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        const until = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
             request['startTime'] = since;
+            if (until === undefined) {
+                const now = this.milliseconds ();
+                request['endTime'] = now;
+            }
         }
-        const until = this.safeInteger2 (params, 'until', 'endTime');
         if (until !== undefined) {
             this.checkRequiredArgument ('fetchTrades', since, 'since');
             request['endTime'] = until;
