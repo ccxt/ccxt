@@ -249,6 +249,7 @@ interface okx {
     privatePostBrokerNdSubaccountDeleteApikey(params?: {}): Promise<implicitReturnType>;
     privatePostBrokerNdSetSubaccountLevel(params?: {}): Promise<implicitReturnType>;
     privatePostBrokerNdSetSubaccountFeeRate(params?: {}): Promise<implicitReturnType>;
+    privatePostBrokerNdSetSubaccountAssets(params?: {}): Promise<implicitReturnType>;
     privatePostAssetBrokerNdSubaccountDepositAddress(params?: {}): Promise<implicitReturnType>;
     privatePostAssetBrokerNdModifySubaccountDepositAddress(params?: {}): Promise<implicitReturnType>;
     privatePostBrokerNdRebatePerOrders(params?: {}): Promise<implicitReturnType>;

@@ -286,7 +286,8 @@ export default class bybit extends bybitRest {
         const topic = this.safeString(message, 'topic', '');
         const updateType = this.safeString(message, 'type', '');
         const data = this.safeValue(message, 'data', {});
-        const isSpot = this.safeString(data, 's') !== undefined;
+        const isSpot = this.safeString(data, 'openInterestValue') === undefined;
+        const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
         let parsed = undefined;
         if ((updateType === 'snapshot') || isSpot) {
@@ -297,7 +298,7 @@ export default class bybit extends bybitRest {
             const topicParts = topic.split('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString(topicParts, topicLength - 1);
-            const market = this.market(marketId);
+            const market = this.safeMarket(marketId, undefined, undefined, type);
             symbol = market['symbol'];
             // update the info in place
             const ticker = this.safeValue(this.tickers, symbol, {});

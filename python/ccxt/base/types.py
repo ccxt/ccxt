@@ -88,4 +88,6 @@ class Position(TypedDict):
     lastUpdateTimestamp: int
     lastPrice: Numeric
     percentage: Numeric
+    stopLossPrice: Numeric
+    takeProfitPrice: Numeric
     info: TypedDict

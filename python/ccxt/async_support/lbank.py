@@ -765,10 +765,10 @@ class lbank(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            queryInner = self.keysort(self.extend({
+            query = self.keysort(self.extend({
                 'api_key': self.apiKey,
-            }, params))
-            queryString = self.rawencode(queryInner)
+            }, query))
+            queryString = self.rawencode(query)
             message = self.hash(self.encode(queryString), 'md5').upper()
             cacheSecretAsPem = self.safe_value(self.options, 'cacheSecretAsPem', True)
             pem = None

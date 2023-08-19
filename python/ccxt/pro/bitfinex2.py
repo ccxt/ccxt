@@ -585,21 +585,21 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             deltas = message[1]
             orderbook = self.orderbooks[symbol]
             if isRaw:
-                price = self.safe_float(deltas, 1)
+                price = self.safe_string(deltas, 1)
                 size = -deltas[2] if (deltas[2] < 0) else deltas[2]
                 side = 'asks' if (deltas[2] < 0) else 'bids'
                 bookside = orderbook[side]
                 # price = 0 means that you have to remove the order from your book
-                amount = size if (price > 0) else 0
-                bookside.store(price, amount, id)
+                amount = size if Precise.string_gt(price, '0') else '0'
+                bookside.store(self.parse_number(price), self.parse_number(amount), id)
             else:
-                amount = self.safe_number(deltas, 2)
-                counter = self.safe_number(deltas, 1)
-                price = self.safe_number(deltas, 0)
-                size = -amount if (amount < 0) else amount
-                side = 'asks' if (amount < 0) else 'bids'
+                amount = self.safe_string(deltas, 2)
+                counter = self.safe_string(deltas, 1)
+                price = self.safe_string(deltas, 0)
+                size = Precise.string_neg(amount) if Precise.string_lt(amount, '0') else amount
+                side = 'asks' if Precise.string_lt(amount, '0') else 'bids'
                 bookside = orderbook[side]
-                bookside.store(price, size, counter)
+                bookside.store(self.parse_number(price), self.parse_number(size), self.parse_number(counter))
             client.resolve(orderbook, messageHash)
 
     def handle_checksum(self, client: Client, message, subscription):
@@ -782,12 +782,13 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         client.subscriptions[channelId] = message
         return message
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             nonce = self.milliseconds()
             payload = 'AUTH' + str(nonce)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
@@ -800,8 +801,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 'event': event,
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     def handle_authentication_message(self, client: Client, message):
@@ -809,7 +809,8 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         status = self.safe_string(message, 'status')
         if status == 'OK':
             # we resolve the future here permanently so authentication only happens once
-            client.resolve(message, messageHash)
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
         else:
             error = AuthenticationError(self.json(message))
             client.reject(error, messageHash)
@@ -958,11 +959,11 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         clientOrderId = self.safe_string(order, 1)
         marketId = self.safe_string(order, 3)
         symbol = self.safe_symbol(marketId)
-        market = self.safe_market(marketId)
-        amount = self.safe_number(order, 7)
+        market = self.safe_market(symbol)
+        amount = self.safe_string(order, 7)
         side = 'buy'
-        if amount < 0:
-            amount = abs(amount)
+        if Precise.string_lt(amount, '0'):
+            amount = Precise.string_abs(amount)
             side = 'sell'
         remaining = Precise.string_abs(self.safe_string(order, 6))
         type = self.safe_string(order, 8)

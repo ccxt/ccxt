@@ -58,6 +58,8 @@ class bitget extends \ccxt\async\bitget {
                     'exact' => array(
                         '30001' => '\\ccxt\\BadRequest', // array("event":"error","code":30001,"msg":"instType:sp,channel:candlenull,instId:BTCUSDT doesn't exist")
                         '30015' => '\\ccxt\\AuthenticationError', // array( event => 'error', code => 30015, msg => 'Invalid sign' )
+                        '30016' => '\\ccxt\\BadRequest', // array( event => 'error', code => 30016, msg => 'Param error' )
+                        '30011' => '\\ccxt\\AuthenticationError', // array( event => 'error', code => 30011, msg => 'Invalid ACCESS_KEY' )
                     ),
                 ),
             ),
@@ -434,7 +436,8 @@ class bitget extends \ccxt\async\bitget {
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
             $checksum = $this->safe_value($this->options, 'checksum', true);
-            if ($checksum) {
+            $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a $checksum
+            if (!$isSnapshot && $checksum) {
                 $storedAsks = $storedOrderBook['asks'];
                 $storedBids = $storedOrderBook['bids'];
                 $asksLength = count($storedAsks);
@@ -1114,8 +1117,9 @@ class bitget extends \ccxt\async\bitget {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $timestamp = (string) $this->seconds();
             $auth = $timestamp . 'GET' . '/user/verify';
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
@@ -1132,8 +1136,7 @@ class bitget extends \ccxt\async\bitget {
                 ),
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -1156,7 +1159,8 @@ class bitget extends \ccxt\async\bitget {
         //  array( event => 'login', code => 0 )
         //
         $messageHash = 'authenticated';
-        $client->resolve ($message, $messageHash);
+        $future = $this->safe_value($client->futures, $messageHash);
+        $future->resolve (true);
     }
 
     public function handle_error_message(Client $client, $message) {

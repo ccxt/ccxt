@@ -638,7 +638,7 @@ class coinex(ccxt.async_support.coinex):
         symbol = market['symbol']
         name = 'orderbook'
         messageHash = name + ':' + symbol
-        timestamp = self.safe_number(orderBook, 'time')
+        timestamp = self.safe_integer(orderBook, 'time')
         currentOrderBook = self.safe_value(self.orderbooks, symbol)
         if fullOrderBook:
             snapshot = self.parse_order_book(orderBook, symbol, timestamp)

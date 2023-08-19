@@ -15,6 +15,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -272,6 +273,7 @@ class bkex(Exchange, ImplicitAPI):
                     'Not Enough balance': InsufficientFunds,
                     'Order does not exist': InvalidOrder,
                     'System busy, please try again later': BadRequest,  # in my tests, self was thrown mostly when request was bad, not the problem of exchange. It is easily reproduced in 'cancelOrders'
+                    'System busy. Please try again later': ExchangeNotAvailable,  # https://app.travis-ci.com/github/ccxt/ccxt/builds/265039537#L2152
                 },
             },
         })

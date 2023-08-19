@@ -42,8 +42,12 @@ export default class bittrex extends bittrexRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds (),
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
             },
         });
     }
@@ -631,23 +635,18 @@ export default class bittrex extends bittrexRest {
         //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note: for private streams, the sequence number is scoped to a single account or subaccount).
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
-        const orderbook = await this.subscribeToOrderBook (negotiation, symbol, limit, params);
-        return orderbook.limit ();
-    }
-
-    async subscribeToOrderBook (negotiation, symbol, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'] + '_' + limit.toString ();
         const subscription = {
             'symbol': symbol,
             'messageHash': messageHash,
-            'method': this.handleSubscribeToOrderBook,
+            'method': this.handleOrderBookSubscription,
             'limit': limit,
             'params': params,
         };
-        return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
+        const orderbook = await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -657,7 +656,7 @@ export default class bittrex extends bittrexRest {
         try {
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit);
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
             // make sure we have at least one delta before fetching the snapshot
@@ -671,8 +670,7 @@ export default class bittrex extends bittrexRest {
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+                const maxAttempts = this.handleOption ('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
@@ -703,7 +701,7 @@ export default class bittrex extends bittrexRest {
         }
     }
 
-    handleSubscribeToOrderBook (client: Client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
