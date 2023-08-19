@@ -18,7 +18,7 @@ export default class coinbasepro extends coinbaseproRest {
                 'watchOHLCV': false, // missing on the exchange side
                 'watchOrderBook': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchBalance': false,
                 'watchStatus': false, // for now
@@ -55,10 +55,16 @@ export default class coinbasepro extends coinbaseproRest {
         };
     }
 
-    async subscribe (name, symbol, messageHashStart, params = {}) {
+    async subscribe (name, symbol = undefined, messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = messageHashStart + ':' + market['id'];
+        let market = undefined;
+        let messageHash = messageHashStart;
+        const productIds = [];
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            messageHash += ':' + market['id'];
+            productIds.push (market['id']);
+        }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
             // need to distinguish between public trades and user trades
@@ -66,9 +72,34 @@ export default class coinbasepro extends coinbaseproRest {
         }
         const subscribe = {
             'type': 'subscribe',
-            'product_ids': [
-                market['id'],
+            'product_ids': productIds,
+            'channels': [
+                name,
             ],
+        };
+        const request = this.extend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        symbols = this.marketSymbols (symbols);
+        const messageHash = messageHashStart + symbols.join (',');
+        const productIds = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            market = this.market (symbol);
+            productIds.push (market['id']);
+        }
+        let url = this.urls['api']['ws'];
+        if ('signature' in params) {
+            // need to distinguish between public trades and user trades
+            url = url + '?';
+        }
+        const subscribe = {
+            'type': 'subscribe',
+            'product_ids': productIds,
             'channels': [
                 name,
             ],
@@ -88,6 +119,31 @@ export default class coinbasepro extends coinbaseproRest {
          */
         const name = 'ticker';
         return await this.subscribe (name, symbol, name, params);
+    }
+
+    async watchTickers (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchTickers
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new BadSymbol (this.id + ' watchTickers requires a non-empty symbols array');
+        }
+        const channel = 'ticker';
+        const messageHash = 'tickers::';
+        const newTickers = await this.subscribeMultiple (channel, symbols, messageHash, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -122,9 +178,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
-        if (symbol === undefined) {
-            throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
-        }
+        this.checkRequiredSymbol ('watchMyTrades', symbol);
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const name = 'user';
@@ -585,6 +639,16 @@ export default class coinbasepro extends coinbaseproRest {
             const type = this.safeString (message, 'type');
             const messageHash = type + ':' + marketId;
             client.resolve (ticker, messageHash);
+            const messageHashes = this.findMessageHashes (client, 'tickers::');
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const parts = messageHash.split ('::');
+                const symbolsString = parts[1];
+                const symbols = symbolsString.split (',');
+                if (this.inArray (symbol, symbols)) {
+                    client.resolve (ticker, messageHash);
+                }
+            }
         }
         return message;
     }
