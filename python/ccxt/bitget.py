@@ -2175,6 +2175,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param int [params.until]: the latest time in ms to fetch deposits for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
@@ -2184,8 +2185,16 @@ class bitget(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
+        until = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
             request['startTime'] = since
+            if until is None:
+                now = self.milliseconds()
+                request['endTime'] = now
+        if until is not None:
+            self.check_required_argument('fetchTrades', since, 'since')
+            request['endTime'] = until
+        params = self.omit(params, 'until')
         options = self.safe_value(self.options, 'fetchTrades', {})
         response = None
         if market['spot']:

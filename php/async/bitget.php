@@ -2243,6 +2243,7 @@ class bitget extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch deposits for
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
@@ -2253,9 +2254,19 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            $until = $this->safe_integer_2($params, 'until', 'endTime');
             if ($since !== null) {
                 $request['startTime'] = $since;
+                if ($until === null) {
+                    $now = $this->milliseconds();
+                    $request['endTime'] = $now;
+                }
             }
+            if ($until !== null) {
+                $this->check_required_argument('fetchTrades', $since, 'since');
+                $request['endTime'] = $until;
+            }
+            $params = $this->omit($params, 'until');
             $options = $this->safe_value($this->options, 'fetchTrades', array());
             $response = null;
             if ($market['spot']) {
