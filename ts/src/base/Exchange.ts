@@ -1573,9 +1573,9 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
     }
 
-    // async watchOHLCVForSymbols (symbols: string[], timeframes = [ '1m' ], since: Int = undefined, limit: Int = undefined, params = {}) {
-    //     throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
-    // }
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
+    }
 
     async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchDepositAddresses() is not supported yet');
@@ -4450,6 +4450,20 @@ export default class Exchange {
             const symbols = symbolsString.split (',');
             if (this.inArray (symbol, symbols)) {
                 client.resolve (data, messageHash);
+            }
+        }
+    }
+
+    resolveMultipleOHLCV (client, prefix: string, symbol: string, timeframe: string, data) {
+        const messageHashes = this.findMessageHashes (client, 'multipleOHLCV::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsAndTimeframes = parts[1];
+            const splitted = symbolsAndTimeframes.split (',');
+            const id = symbol + '#' + timeframe;
+            if (this.inArray (id, splitted)) {
+                client.resolve ([ symbol, timeframe, data ], messageHash);
             }
         }
     }

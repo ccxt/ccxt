@@ -803,12 +803,12 @@ export default class binance extends binanceRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchOHLCVForSymbols (symbols: string[], timeframes = [ '1m' ], since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
@@ -816,35 +816,33 @@ export default class binance extends binanceRest {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'watchOHLCV', {});
         const nameOption = this.safeString (options, 'name', 'kline');
         const name = this.safeString (params, 'name', nameOption);
         params = this.omit (params, 'name');
-        const firstMarket = this.market (symbols[0]);
+        const firstMarket = this.market (symbolsAndTimeframes[0][0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const subParams = [];
-        const unifiedTimeframes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const hashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            const symbol = data[0];
+            const timeframe = data[1];
+            const interval = this.safeString (this.timeframes, timeframe, timeframe);
             const market = this.market (symbol);
             let marketId = market['lowercaseId'];
             if (name === 'indexPriceKline') {
             // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
             }
-            for (let j = 0; j < timeframes.length; j++) {
-                const timeframe = timeframes[j];
-                const interval = this.safeString (this.timeframes, timeframe, timeframe);
-                const messageHash = marketId + '@' + name + '_' + interval;
-                subParams.push (messageHash);
-                unifiedTimeframes.push (interval);
-            }
+            const topic = marketId + '@' + name + '_' + interval;
+            subParams.push (topic);
+            hashes.push (symbol + '#' + timeframe);
         }
-        const messageHash = 'multipleOHLCV::' + symbols.join (',') + '::' + name + '::' + unifiedTimeframes.join (',');
+        const messageHash = 'multipleOHLCV::' + hashes.join (',');
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
@@ -931,17 +929,7 @@ export default class binance extends binanceRest {
         stored.append (parsed);
         client.resolve (stored, messageHash);
         // watchOHLCVForSymbols part
-        const messageHashes = this.findMessageHashes (client, 'multipleOHLCV::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const intervals = parts[3].split (',');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            if ((this.inArray (interval, intervals)) && this.inArray (symbol, symbols)) {
-                client.resolve ([ symbol, interval, stored ], messageHash);
-            }
-        }
+        this.resolveMultipleOHLCV (client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
 
     async watchTicker (symbol: string, params = {}) {
