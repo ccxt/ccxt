@@ -344,6 +344,51 @@ export default class bybit extends bybitRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const topics = [];
+        const hashes = [];
+        let firstSymbol = undefined;
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            let symbol = this.safeString (data, 0);
+            const timeframe = this.safeString (data, 1);
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            if (i === 0) {
+                firstSymbol = market['symbol'];
+            }
+            const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
+            const topic = 'kline.' + timeframeId + '.' + market['id'];
+            topics.push (topic);
+            hashes.push (symbol + '#' + timeframe);
+        }
+        const messageHash = 'multipleOHLCV::' + hashes.join (',');
+        const url = this.getUrlByMarketType (firstSymbol, false, params);
+        const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHash, topics, params);
+        if (this.newUpdates) {
+            limit = stored.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const res = {};
+        res[symbol] = {};
+        res[symbol][timeframe] = filtered;
+        return res; // check this out
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //     {
@@ -372,6 +417,7 @@ export default class bybit extends bybitRest {
         const topicParts = topic.split ('.');
         const topicLength = topicParts.length;
         const timeframeId = this.safeString (topicParts, 1);
+        const timeframe = this.findTimeframe (timeframeId);
         const marketId = this.safeString (topicParts, topicLength - 1);
         const isSpot = client.url.indexOf ('spot') > -1;
         const marketType = isSpot ? 'spot' : 'contract';
@@ -381,11 +427,11 @@ export default class bybit extends bybitRest {
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue (ohlcvsByTimeframe, timeframeId);
+        let stored = this.safeValue (ohlcvsByTimeframe, timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframeId] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
@@ -393,6 +439,7 @@ export default class bybit extends bybitRest {
         }
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
         client.resolve (stored, messageHash);
+        this.resolveMultipleOHLCV (client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
