@@ -4611,7 +4611,7 @@ export default class bitget extends Exchange {
             marginMode = 'crossed';
         }
         if ((marginMode !== 'fixed') && (marginMode !== 'crossed')) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be "fixed" or "crossed"');
+            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either fixed (isolated) or crossed (cross)');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
