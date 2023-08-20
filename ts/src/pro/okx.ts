@@ -31,16 +31,10 @@ export default class okx extends okxRest {
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://ws.okx.com:8443/ws/v5/public', // wss://wsaws.okx.com:8443/ws/v5/public
-                        'private': 'wss://ws.okx.com:8443/ws/v5/private', // wss://wsaws.okx.com:8443/ws/v5/private
-                    },
+                    'ws': 'wss://ws.okx.com:8443/ws/v5',
                 },
                 'test': {
-                    'ws': {
-                        'public': 'wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999',
-                        'private': 'wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999',
-                    },
+                    'ws': 'wss://wspap.okx.com:8443/ws/v5',
                 },
             },
             'options': {
@@ -103,13 +97,24 @@ export default class okx extends okxRest {
         });
     }
 
+    getUrl (channel: string, access = 'public') {
+        const isPublic = (access === 'public');
+        const url = this.urls['api']['ws'];
+        if ((channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
+            return url + '/business';
+        } else if (isPublic) {
+            return url + '/public';
+        }
+        return url + '/private';
+    }
+
     async subscribeMultiple (access, channel, symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbols === undefined) {
             symbols = this.symbols;
         }
         symbols = this.marketSymbols (symbols);
-        const url = this.urls['api']['ws'][access];
+        const url = this.getUrl (channel, access);
         let messageHash = channel;
         const args = [];
         messageHash += '::' + symbols.join (',');
@@ -130,7 +135,7 @@ export default class okx extends okxRest {
 
     async subscribe (access, messageHash, channel, symbol, params = {}) {
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'][access];
+        const url = this.getUrl (channel, access);
         const firstArgument = {
             'channel': channel,
         };
