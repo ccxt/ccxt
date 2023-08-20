@@ -110,6 +110,7 @@ class coinsph extends Exchange {
                 'signIn' => false,
                 'transfer' => false,
                 'withdraw' => true,
+                'ws' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',

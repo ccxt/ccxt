@@ -87,6 +87,9 @@ export default class binance extends binanceRest {
                 'watchOHLCV': {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
                 },
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false,
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
@@ -216,9 +219,9 @@ export default class binance extends binanceRest {
             const limit = this.safeInteger(subscription, 'limit', defaultLimit);
             const params = this.safeValue(subscription, 'params');
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-            // todo: this is a synch blocking call in ccxt.php - make it async
+            // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            const snapshot = await this.fetchOrderBook(symbol, limit, params);
+            const snapshot = await this.fetchRestOrderBookSafe(symbol, limit, params);
             const orderbook = this.safeValue(this.orderbooks, symbol);
             if (orderbook === undefined) {
                 // if the orderbook is dropped before the snapshot is received
@@ -1177,7 +1180,7 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchBalanceWs
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description fetch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -1258,7 +1261,7 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -1820,7 +1823,6 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('fetchOpenOrdersWs', symbol);
         await this.loadMarkets();
         this.checkIsSpot('fetchOpenOrdersWs', symbol);
         const url = this.urls['api']['ws']['ws'];
@@ -1829,9 +1831,11 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [returnRateLimits, params] = this.handleOptionAndParams(params, 'fetchOrderWs', 'returnRateLimits', false);
         const payload = {
-            'symbol': this.marketId(symbol),
             'returnRateLimits': returnRateLimits,
         };
+        if (symbol !== undefined) {
+            payload['symbol'] = this.marketId(symbol);
+        }
         const message = {
             'id': messageHash,
             'method': 'openOrders.status',
@@ -2211,7 +2215,7 @@ export default class binance extends binanceRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         const defaultType = this.safeString2(this.options, 'watchMyTrades', 'defaultType', 'spot');
@@ -2247,7 +2251,8 @@ export default class binance extends binanceRest {
         if (executionType === 'TRADE') {
             const trade = this.parseTrade(message);
             const orderId = this.safeString(trade, 'order');
-            const tradeFee = this.safeValue(trade, 'fee');
+            let tradeFee = this.safeValue(trade, 'fee');
+            tradeFee = this.extend({}, tradeFee);
             const symbol = this.safeString(trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
@@ -2258,7 +2263,7 @@ export default class binance extends binanceRest {
                         // accumulate order fees
                         const fees = this.safeValue(order, 'fees');
                         const fee = this.safeValue(order, 'fee');
-                        if (fees !== undefined) {
+                        if (!this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
                                 const orderFee = fees[i];

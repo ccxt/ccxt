@@ -26,7 +26,7 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
         'fee': {},
         'trades': [],
     };
-    const emptyAllowedFor = [ 'clientOrderId', 'stopPrice', 'trades' ]; // todo: we need more detailed property to skip the exchanges, that return only order id when executing order (in createOrder)
+    const emptyAllowedFor = [ 'clientOrderId', 'stopPrice', 'trades', 'timestamp', 'datetime', 'lastTradeTimestamp', 'average', 'type', 'timeInForce', 'postOnly', 'side', 'price', 'amount', 'cost', 'filled', 'remaining', 'status', 'fee' ]; // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
     //
@@ -37,8 +37,7 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'price', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'stopPrice', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'cost', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'average', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'cost', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'average', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'filled', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'remaining', '0');

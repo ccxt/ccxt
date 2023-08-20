@@ -1841,42 +1841,70 @@ class currencycom extends Exchange {
         $this->load_markets();
         $response = $this->privateGetV2TradingPositions ($params);
         //
-        // {
-        //     "positions" => array(
-        //       {
-        //         "accountId" => "109698017416453793",
-        //         "id" => "00a18490-0079-54c4-0000-0000803e73d3",
-        //         "instrumentId" => "45463225268524228",
-        //         "orderId" => "00a18490-0079-54c4-0000-0000803e73d2",
-        //         "openQuantity" => "13.6",
-        //         "openPrice" => "0.75724",
-        //         "closeQuantity" => "0.0",
-        //         "closePrice" => "0",
-        //         "rpl" => "-0.007723848",
-        //         "rplConverted" => "0",
-        //         "upl" => "-0.006664",
-        //         "uplConverted" => "-0.006664",
-        //         "swap" => "0",
-        //         "swapConverted" => "0",
-        //         "fee" => "-0.007723848",
-        //         "dividend" => "0",
-        //         "margin" => "0.2",
-        //         "state" => "ACTIVE",
-        //         "currency" => "USD",
-        //         "createdTimestamp" => "1645473877236",
-        //         "openTimestamp" => "1645473877193",
-        //         "type" => "NET",
-        //         "cost" => "2.0583600",
-        //         "symbol" => "XRP/USD_LEVERAGE"
-        //       }
-        //     )
-        // }
+        //    {
+        //        "positions" => array(
+        //          {
+        //            "accountId" => "109698017416453793",
+        //            "id" => "00a18490-0079-54c4-0000-0000803e73d3",
+        //            "instrumentId" => "45463225268524228",
+        //            "orderId" => "00a18490-0079-54c4-0000-0000803e73d2",
+        //            "openQuantity" => "13.6",
+        //            "openPrice" => "0.75724",
+        //            "closeQuantity" => "0.0",
+        //            "closePrice" => "0",
+        //            "rpl" => "-0.007723848",
+        //            "rplConverted" => "0",
+        //            "upl" => "-0.006664",
+        //            "uplConverted" => "-0.006664",
+        //            "swap" => "0",
+        //            "swapConverted" => "0",
+        //            "fee" => "-0.007723848",
+        //            "dividend" => "0",
+        //            "margin" => "0.2",
+        //            "state" => "ACTIVE",
+        //            "currency" => "USD",
+        //            "createdTimestamp" => "1645473877236",
+        //            "openTimestamp" => "1645473877193",
+        //            "type" => "NET",
+        //            "cost" => "2.0583600",
+        //            "symbol" => "XRP/USD_LEVERAGE"
+        //          }
+        //        )
+        //    }
         //
         $data = $this->safe_value($response, 'positions', array());
         return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
+        //
+        //    {
+        //        "accountId" => "109698017416453793",
+        //        "id" => "00a18490-0079-54c4-0000-0000803e73d3",
+        //        "instrumentId" => "45463225268524228",
+        //        "orderId" => "00a18490-0079-54c4-0000-0000803e73d2",
+        //        "openQuantity" => "13.6",
+        //        "openPrice" => "0.75724",
+        //        "closeQuantity" => "0.0",
+        //        "closePrice" => "0",
+        //        "rpl" => "-0.007723848",
+        //        "rplConverted" => "0",
+        //        "upl" => "-0.006664",
+        //        "uplConverted" => "-0.006664",
+        //        "swap" => "0",
+        //        "swapConverted" => "0",
+        //        "fee" => "-0.007723848",
+        //        "dividend" => "0",
+        //        "margin" => "0.2",
+        //        "state" => "ACTIVE",
+        //        "currency" => "USD",
+        //        "createdTimestamp" => "1645473877236",
+        //        "openTimestamp" => "1645473877193",
+        //        "type" => "NET",
+        //        "cost" => "2.0583600",
+        //        "symbol" => "XRP/USD_LEVERAGE"
+        //    }
+        //
         $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_number($position, 'createdTimestamp');
@@ -1888,6 +1916,7 @@ class currencycom extends Exchange {
         $marginCoeff = $this->safe_string($position, 'margin');
         $leverage = Precise::string_div('1', $marginCoeff);
         return $this->safe_position(array(
+            'info' => $position,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1911,8 +1940,11 @@ class currencycom extends Exchange {
             'maintenanceMargin' => $this->parse_number($marginCoeff),
             'maintenanceMarginPercentage' => null,
             'marginRatio' => null,
-            'info' => $position,
             'id' => null,
+            'unrealizedPnl' => null,
+            'hedged' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

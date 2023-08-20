@@ -2548,7 +2548,7 @@ class ascendex extends ascendex$1 {
             result.push(this.parsePosition(position[i]));
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2610,6 +2610,8 @@ class ascendex extends ascendex$1 {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger(position, 'leverage'),
             'marginRatio': undefined,
+            'stopLossPrice': this.safeNumber(position, 'stopLossPrice'),
+            'takeProfitPrice': this.safeNumber(position, 'takeProfitPrice'),
         });
     }
     parseFundingRate(contract, market = undefined) {

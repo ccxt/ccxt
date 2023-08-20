@@ -3014,7 +3014,7 @@ class digifinex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i], market))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def fetch_position(self, symbol: str, params={}):
         """
@@ -3180,6 +3180,8 @@ class digifinex(Exchange, ImplicitAPI):
             'leverage': self.safe_number_2(position, 'leverage', 'leverage_ratio'),
             'marginRatio': self.safe_number(position, 'margin_ratio'),
             'percentage': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         }
 
     def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):

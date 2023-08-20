@@ -482,13 +482,14 @@ class bitmart extends bitmart$1 {
         }
         return message;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.implodeHostname(this.urls['api']['ws']['private']);
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.milliseconds().toString();
             const memo = this.uid;
             const path = 'bitmart.WebSocket';
@@ -504,8 +505,7 @@ class bitmart extends bitmart$1 {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -520,7 +520,8 @@ class bitmart extends bitmart$1 {
         //     { event: 'login' }
         //
         const messageHash = 'authenticated';
-        client.resolve(message, messageHash);
+        const future = this.safeValue(client.futures, messageHash);
+        future.resolve(true);
     }
     handleErrorMessage(client, message) {
         //

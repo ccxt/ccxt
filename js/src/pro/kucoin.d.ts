@@ -36,6 +36,6 @@ export default class kucoin extends kucoinRest {
         type: string;
     };
     handlePong(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;
 }

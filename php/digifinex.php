@@ -3157,7 +3157,7 @@ class digifinex extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i], $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -3329,6 +3329,8 @@ class digifinex extends Exchange {
             'leverage' => $this->safe_number_2($position, 'leverage', 'leverage_ratio'),
             'marginRatio' => $this->safe_number($position, 'margin_ratio'),
             'percentage' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         );
     }
 

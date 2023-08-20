@@ -127,11 +127,13 @@ class gate extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
+                'setPositionMode' => true,
                 'signIn' => false,
                 'transfer' => true,
                 'withdraw' => true,
@@ -350,6 +352,8 @@ class gate extends Exchange {
                     ),
                     'flash_swap' => array(
                         'get' => array(
+                            'currencies' => 1.5,
+                            'currency_pairs' => 1.5,
                             'orders' => 1.5,
                             'orders/{order_id}' => 1.5,
                         ),
@@ -760,6 +764,7 @@ class gate extends Exchange {
                     'REPAY_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TOO_MANY_CURRENCY_PAIRS' => '\\ccxt\\InvalidOrder',
                     'TOO_MANY_ORDERS' => '\\ccxt\\InvalidOrder',
+                    'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded',
                     'MIXED_ACCOUNT_TYPE' => '\\ccxt\\InvalidOrder',
                     'AUTO_BORROW_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TRADE_RESTRICTED' => '\\ccxt\\InsufficientFunds',
@@ -796,6 +801,7 @@ class gate extends Exchange {
                     'RISK_LIMIT_TOO_LOW' => '\\ccxt\\BadRequest', // array("label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000")
                     'AUTO_TRIGGER_PRICE_LESS_LAST' => '\\ccxt\\InvalidOrder',  // array("label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument => Trigger.Price must < last_price")
                     'AUTO_TRIGGER_PRICE_GREATE_LAST' => '\\ccxt\\InvalidOrder', // array("label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument => Trigger.Price must > last_price")
+                    'POSITION_HOLDING' => '\\ccxt\\BadRequest',
                 ),
                 'broad' => array(),
             ),
@@ -3953,8 +3959,8 @@ class gate extends Exchange {
         //        "order_type" => ""
         //    }
         //
-        $put = $this->safe_value_2($order, 'put', 'initial');
-        $trigger = $this->safe_value($order, 'trigger');
+        $put = $this->safe_value_2($order, 'put', 'initial', array());
+        $trigger = $this->safe_value($order, 'trigger', array());
         $contract = $this->safe_string($put, 'contract');
         $type = $this->safe_string($put, 'type');
         $timeInForce = $this->safe_string_upper_2($put, 'time_in_force', 'tif');
@@ -3972,13 +3978,12 @@ class gate extends Exchange {
         $side = $this->safe_string($order, 'side', $side);
         $price = $this->safe_string($order, 'price', $price);
         $remainingString = $this->safe_string($order, 'left');
-        $filledString = Precise::string_sub($amount, $remainingString);
         $cost = $this->safe_string($order, 'filled_total');
+        $triggerPrice = $this->safe_number($trigger, 'price');
         $rawStatus = null;
         $average = $this->safe_number_2($order, 'avg_deal_price', 'fill_price');
-        if ($put) {
+        if ($triggerPrice) {
             $remainingString = $amount;
-            $filledString = '0';
             $cost = '0';
         }
         if ($contract) {
@@ -4026,7 +4031,6 @@ class gate extends Exchange {
         $numFeeCurrencies = count($fees);
         $multipleFeeCurrencies = $numFeeCurrencies > 1;
         $status = $this->parse_order_status($rawStatus);
-        $filled = Precise::string_abs($filledString);
         $remaining = Precise::string_abs($remainingString);
         // handle spot $market buy
         $account = $this->safe_string($order, 'account'); // using this instead of $market $type because of the conflicting ids
@@ -4034,7 +4038,6 @@ class gate extends Exchange {
             $averageString = $this->safe_string($order, 'avg_deal_price');
             $average = $this->parse_number($averageString);
             if (($type === 'market') && ($side === 'buy')) {
-                $filled = Precise::string_div($filledString, $averageString);
                 $remaining = Precise::string_div($remainingString, $averageString);
                 $price = null; // arrives
                 $cost = $amount;
@@ -4054,13 +4057,13 @@ class gate extends Exchange {
             'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_value($order, 'is_reduce_only'),
             'side' => $side,
-            'price' => $this->parse_number($price),
-            'stopPrice' => $this->safe_number($trigger, 'price'),
-            'triggerPrice' => $this->safe_number($trigger, 'price'),
+            'price' => $price,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
             'average' => $average,
-            'amount' => $this->parse_number(Precise::string_abs($amount)),
+            'amount' => Precise::string_abs($amount),
             'cost' => Precise::string_abs($cost),
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'fee' => $multipleFeeCurrencies ? null : $this->safe_value($fees, 0),
             'fees' => $multipleFeeCurrencies ? $fees : array(),
@@ -4743,6 +4746,8 @@ class gate extends Exchange {
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 
@@ -5916,6 +5921,22 @@ class gate extends Exchange {
             'dnw' => 'deposit/withdraw',
         );
         return $this->safe_string($ledgerType, $type, $type);
+    }
+
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        /**
+         * set dual/hedged mode to true or false for a swap $market, make sure all positions are closed and no orders are open before setting dual mode
+         * @see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+         * @param {bool} $hedged set to true to enable dual mode
+         * @param {string|null} $symbol if passed, dual mode is set for all markets with the same settle currency
+         * @param {array} $params extra parameters specific to the gate api endpoint
+         * @param {string} $params->settle settle currency
+         * @return {array} response from the exchange
+         */
+        $market = ($symbol !== null) ? $this->market($symbol) : null;
+        list($request, $query) = $this->prepare_request($market, 'swap', $params);
+        $request['dual_mode'] = $hedged;
+        return $this->privateFuturesPostSettleDualMode (array_merge($request, $query));
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

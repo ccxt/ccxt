@@ -22,6 +22,7 @@ export default class btcturk extends Exchange {
             'name': 'BTCTurk',
             'countries': ['TR'],
             'rateLimit': 100,
+            'pro': false,
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -66,6 +67,7 @@ export default class btcturk extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'ws': false,
             },
             'timeframes': {
                 '1m': 1,

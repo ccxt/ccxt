@@ -53,6 +53,8 @@ class ImplicitAPI:
     v3_private_get_accountinfo = v3PrivateGetAccountinfo = Entry('accountinfo', ['v3', 'private'], 'GET', {'cost': 60})
     v3_private_get_positions = v3PrivateGetPositions = Entry('positions', ['v3', 'private'], 'GET', {'cost': 3.33})
     v3_private_get_buypower = v3PrivateGetBuypower = Entry('buypower', ['v3', 'private'], 'GET', {'cost': 1})
+    v3_private_get_referrals = v3PrivateGetReferrals = Entry('referrals', ['v3', 'private'], 'GET', {'cost': 60})
+    v3_private_get_referral_rewards = v3PrivateGetReferralRewards = Entry('referral_rewards', ['v3', 'private'], 'GET', {'cost': 60})
     v3_private_post_algo_order = v3PrivatePostAlgoOrder = Entry('algo/order', ['v3', 'private'], 'POST', {'cost': 5})
     v3_private_put_order_oid = v3PrivatePutOrderOid = Entry('order/{oid}', ['v3', 'private'], 'PUT', {'cost': 2})
     v3_private_put_order_client_client_order_id = v3PrivatePutOrderClientClientOrderId = Entry('order/client/{client_order_id}', ['v3', 'private'], 'PUT', {'cost': 2})

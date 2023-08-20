@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.30'
+__version__ = '4.0.69'
 
 # -----------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BaseError, BadSymbol, BadRequest, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress
+from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
 from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
 
@@ -116,6 +116,7 @@ class Exchange(BaseExchange):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
+        await self.ws_close()
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
@@ -437,7 +438,6 @@ class Exchange(BaseExchange):
             await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
             for url in self.clients.copy():
                 del self.clients[url]
-        await super(Exchange, self).close()
 
     async def load_order_book(self, client, messageHash, symbol, limit=None, params={}):
         if symbol not in self.orderbooks:
@@ -463,20 +463,6 @@ class Exchange(BaseExchange):
         except BaseError as e:
             client.reject(e, messageHash)
             await self.load_order_book(client, messageHash, symbol, limit, params)
-
-    def handle_deltas(self, orderbook, deltas):
-        for delta in deltas:
-            self.handle_delta(orderbook, delta)
-
-    def handle_delta(self, orderbook, delta):
-        raise NotSupported(self.id + ' handleDelta() is not supported')
-
-    def find_timeframe(self, timeframe, timeframes=None):
-        timeframes = timeframes if timeframes else self.timeframes
-        for key, value in timeframes.items():
-            if value == timeframe:
-                return key
-        return None
 
     def format_scientific_notation_ftx(self, n):
         if n == 0:
@@ -521,6 +507,27 @@ class Exchange(BaseExchange):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def handle_deltas(self, orderbook, deltas):
+        for i in range(0, len(deltas)):
+            self.handle_delta(orderbook, deltas[i])
+
+    def handle_delta(self, bookside, delta):
+        raise NotSupported(self.id + ' handleDelta not supported yet')
+
+    def get_cache_index(self, orderbook, deltas):
+        # return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1
+
+    def find_timeframe(self, timeframe, timeframes=None):
+        if timeframes is None:
+            timeframes = self.timeframes
+        keys = list(timeframes.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if timeframes[key] == timeframe:
+                return key
+        return None
 
     def check_proxy_settings(self, url, method, headers, body):
         proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
@@ -599,7 +606,7 @@ class Exchange(BaseExchange):
                 value = self.safe_value(entry, key)
                 if value and (value >= since):
                     result.append(entry)
-        if tail:
+        if tail and limit is not None:
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
@@ -620,7 +627,7 @@ class Exchange(BaseExchange):
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
-        if tail:
+        if tail and limit is not None:
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key)
 
@@ -663,6 +670,17 @@ class Exchange(BaseExchange):
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
+
+    async def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
+        fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
+        for i in range(0, fetchSnapshotMaxRetries):
+            try:
+                orderBook = await self.fetch_order_book(symbol, limit, params)
+                return orderBook
+            except Exception as e:
+                if (i + 1) == fetchSnapshotMaxRetries:
+                    raise e
+        return None
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
@@ -952,6 +970,7 @@ class Exchange(BaseExchange):
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
         symbol = self.safe_string(order, 'symbol')
         side = self.safe_string(order, 'side')
+        status = self.safe_string(order, 'status')
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
@@ -1035,14 +1054,18 @@ class Exchange(BaseExchange):
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
                 amount = Precise.string_add(filled, remaining)
-            elif self.safe_string(order, 'status') == 'closed':
+            elif status == 'closed':
                 amount = filled
         if filled is None:
             if amount is not None and remaining is not None:
                 filled = Precise.string_sub(amount, remaining)
+            elif status == 'closed' and amount is not None:
+                filled = amount
         if remaining is None:
             if amount is not None and filled is not None:
                 remaining = Precise.string_sub(amount, filled)
+            elif status == 'closed':
+                remaining = '0'
         # ensure that the average field is calculated correctly
         inverse = self.safe_value(market, 'inverse', False)
         contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
@@ -1137,7 +1160,7 @@ class Exchange(BaseExchange):
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'status': self.safe_string(order, 'status'),
+            'status': status,
             'fee': self.safe_value(order, 'fee'),
         })
 
@@ -1717,7 +1740,7 @@ class Exchange(BaseExchange):
         for i in range(0, len(positions)):
             position = self.extend(self.parse_position(positions[i], None), params)
             result.append(position)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filterByArrayPositions(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts, params={}):
         accounts = self.to_array(accounts)
@@ -1896,6 +1919,15 @@ class Exchange(BaseExchange):
 
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def fetch_positions_by_symbol(self, symbol: str, params={}):
+        """
+        specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        """
+        raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
@@ -2281,6 +2313,9 @@ class Exchange(BaseExchange):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet')
+
     async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
@@ -2459,7 +2494,7 @@ class Exchange(BaseExchange):
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         if self.has['fetchLeverageTiers']:
-            market = await self.market(symbol)
+            market = self.market(symbol)
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
@@ -2807,9 +2842,9 @@ class Exchange(BaseExchange):
     def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """
          * @ignore
-        :param str argument: the argument to check
-        :param str argumentName: the name of the argument to check
         :param str methodName: the name of the method that the argument is being checked for
+        :param str argument: the argument's actual value provided
+        :param str argumentName: the name of the argument being checked(for logging purposes)
         :param str[] options: a list of options that the argument can be
         :returns None:
         """
@@ -2946,3 +2981,10 @@ class Exchange(BaseExchange):
             return await self.fetchDepositsWithdrawals(code, since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
+
+    def filter_by_array_positions(self, objects, key: IndexType, values=None, indexed=True):
+        """
+         * @ignore
+        Typed wrapper for filterByArray that returns a list of positions
+        """
+        return self.filter_by_array(objects, key, values, indexed)

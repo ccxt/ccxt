@@ -28,6 +28,7 @@ class bit2c(Exchange, ImplicitAPI):
             'name': 'Bit2C',
             'countries': ['IL'],  # Israel
             'rateLimit': 3000,
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -76,6 +77,7 @@ class bit2c(Exchange, ImplicitAPI):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
+                'ws': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -414,7 +416,9 @@ class bit2c(Exchange, ImplicitAPI):
             method += 'MarketPrice' + self.capitalize(side)
         else:
             request['Price'] = price
-            request['Total'] = amount * price
+            amountString = self.number_to_string(amount)
+            priceString = self.number_to_string(price)
+            request['Total'] = self.parse_number(Precise.string_mul(amountString, priceString))
             request['IsBid'] = (side == 'buy')
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)

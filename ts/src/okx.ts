@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -108,6 +108,7 @@ export default class okx extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -247,7 +248,7 @@ export default class okx extends Exchange {
                         'trade/orders-history': 1 / 2,
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
-                        'trade/fills-history': 2,
+                        'trade/fills-history': 2.2,
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -398,6 +399,7 @@ export default class okx extends Exchange {
                         'account/set-riskOffset-type': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
+                        'account/set-account-level': 4,
                         'account/mmp-reset': 4,
                         'account/mmp-config': 100,
                         // subaccount
@@ -437,6 +439,7 @@ export default class okx extends Exchange {
                         'broker/nd/subaccount/delete-apikey': 1,
                         'broker/nd/set-subaccount-level': 4,
                         'broker/nd/set-subaccount-fee-rate': 4,
+                        'broker/nd/set-subaccount-assets': 0.25,
                         'asset/broker/nd/subaccount-deposit-address': 1,
                         'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3,
                         'broker/nd/rebate-per-orders': 36000,
@@ -542,16 +545,16 @@ export default class okx extends Exchange {
                     '51018': ExchangeError, // User with option account can not hold net short positions
                     '51019': ExchangeError, // No net long positions can be held under isolated margin mode in options
                     '51020': InvalidOrder, // Order amount should be greater than the min available amount
-                    '51021': BadSymbol, // Contract to be listed
-                    '51022': BadSymbol, // Contract suspended
+                    '51021': ContractUnavailable, // Contract to be listed
+                    '51022': ContractUnavailable, // Contract suspended
                     '51023': ExchangeError, // Position does not exist
                     '51024': AccountSuspended, // Unified accountblocked
                     '51025': ExchangeError, // Order count exceeds the limit
                     '51026': BadSymbol, // Instrument type does not match underlying index
-                    '51027': BadSymbol, // Contract expired
-                    '51028': BadSymbol, // Contract under delivery
-                    '51029': BadSymbol, // Contract is being settled
-                    '51030': BadSymbol, // Funding fee is being settled
+                    '51027': ContractUnavailable, // Contract expired
+                    '51028': ContractUnavailable, // Contract under delivery
+                    '51029': ContractUnavailable, // Contract is being settled
+                    '51030': ContractUnavailable, // Funding fee is being settled
                     '51046': InvalidOrder, // The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder, // The stop loss trigger price must be lower than the order price
                     '51031': InvalidOrder, // This order price is not within the closing price range
@@ -598,6 +601,7 @@ export default class okx extends Exchange {
                     '51162': InvalidOrder, // You have {instrument} open orders. Cancel these orders and try again
                     '51163': InvalidOrder, // You hold {instrument} positions. Close these positions and try again
                     '51166': InvalidOrder, // Currently, we don't support leading trades with this instrument
+                    '51174': InvalidOrder, // The number of {param0} pending orders reached the upper limit of {param1} (orders).
                     '51201': InvalidOrder, // Value of per market order cannot exceed 100,000 USDT
                     '51202': InvalidOrder, // Market - order amount exceeds the max amount
                     '51203': InvalidOrder, // Order amount exceeds the limit {0}
@@ -1246,6 +1250,7 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchMarkets
          * @description retrieves data on all markets for okx
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -1362,12 +1367,10 @@ export default class okx extends Exchange {
             }
         }
         const tickSize = this.safeString (market, 'tickSz');
-        const minAmountString = this.safeString (market, 'minSz');
-        const minAmount = this.parseNumber (minAmountString);
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        const precisionPrice = this.parseNumber (tickSize);
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
+        const maxSpotCost = this.safeNumber (market, 'maxMktSz');
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -1394,7 +1397,7 @@ export default class okx extends Exchange {
             'optionType': optionType,
             'precision': {
                 'amount': this.safeNumber (market, 'lotSz'),
-                'price': precisionPrice,
+                'price': this.parseNumber (tickSize),
             },
             'limits': {
                 'leverage': {
@@ -1402,16 +1405,16 @@ export default class okx extends Exchange {
                     'max': this.parseNumber (maxLeverage),
                 },
                 'amount': {
-                    'min': minAmount,
+                    'min': this.safeNumber (market, 'minSz'),
                     'max': undefined,
                 },
                 'price': {
-                    'min': precisionPrice,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
@@ -4118,6 +4121,7 @@ export default class okx extends Exchange {
         //
         //     {
         //        "chain": "ETH-OKExChain",
+        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field,
         //        "ctAddr": "72315c",
         //        "ccy": "ETH",
         //        "to": "6",
@@ -4126,8 +4130,11 @@ export default class okx extends Exchange {
         //     }
         //
         const address = this.safeString (depositAddress, 'addr');
-        let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
-        tag = this.safeString (depositAddress, 'memo', tag);
+        let tag = this.safeStringN (depositAddress, [ 'tag', 'pmtId', 'memo' ]);
+        if (tag === undefined) {
+            const addrEx = this.safeValue (depositAddress, 'addrEx', {});
+            tag = this.safeString (addrEx, 'comment');
+        }
         const currencyId = this.safeString (depositAddress, 'ccy');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
@@ -4810,7 +4817,7 @@ export default class okx extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const position = this.safeValue (data, 0);
         if (position === undefined) {
-            return position;
+            return undefined;
         }
         return this.parsePosition (position);
     }
@@ -4898,7 +4905,7 @@ export default class okx extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
@@ -5039,6 +5046,8 @@ export default class okx extends Exchange {
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'leverage': this.parseNumber (leverageString),
             'marginRatio': marginRatio,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
 
@@ -6461,7 +6470,7 @@ export default class okx extends Exchange {
         const id = this.safeString (interest, 'instId');
         market = this.safeMarket (id, market);
         const time = this.safeInteger (interest, 'ts');
-        const timestamp = this.safeNumber (interest, 0, time);
+        const timestamp = this.safeInteger (interest, 0, time);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         let openInterestAmount = undefined;

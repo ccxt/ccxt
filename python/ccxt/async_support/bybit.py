@@ -15,6 +15,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -101,6 +102,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
@@ -1245,6 +1247,160 @@ class bybit(Exchange, ImplicitAPI):
     async def upgrade_unified_trade_account(self, params={}):
         return await self.privatePostV5AccountUpgradeToUta(params)
 
+    def convert_expire_date(self, date):
+        # parse YYMMDD to timestamp
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
+    def convert_expire_date_to_market_id_date(self, date):
+        # parse 231229 to 29DEC23
+        year = date[0:2]
+        monthRaw = date[2:4]
+        month = None
+        day = date[4:6]
+        if monthRaw == '01':
+            month = 'JAN'
+        elif monthRaw == '02':
+            month = 'FEB'
+        elif monthRaw == '03':
+            month = 'MAR'
+        elif monthRaw == '04':
+            month = 'APR'
+        elif monthRaw == '05':
+            month = 'MAY'
+        elif monthRaw == '06':
+            month = 'JUN'
+        elif monthRaw == '07':
+            month = 'JUL'
+        elif monthRaw == '08':
+            month = 'AUG'
+        elif monthRaw == '09':
+            month = 'SEP'
+        elif monthRaw == '10':
+            month = 'OCT'
+        elif monthRaw == '11':
+            month = 'NOV'
+        elif monthRaw == '12':
+            month = 'DEC'
+        reconstructedDate = day + month + year
+        return reconstructedDate
+
+    def convert_market_id_expire_date(self, date):
+        # parse 22JAN23 to 230122
+        monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        }
+        year = date[0:2]
+        monthName = date[2:5]
+        month = self.safe_string(monthMappping, monthName)
+        day = date[5:7]
+        reconstructedDate = day + month + year
+        return reconstructedDate
+
+    def create_expired_option_market(self, symbol):
+        # support expired option contracts
+        quote = 'USD'
+        settle = 'USDC'
+        optionParts = symbol.split('-')
+        symbolBase = symbol.split('/')
+        base = None
+        expiry = None
+        if symbol.find('/') > -1:
+            base = self.safe_string(symbolBase, 0)
+            expiry = self.safe_string(optionParts, 1)
+        else:
+            base = self.safe_string(optionParts, 0)
+            expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
+        strike = self.safe_string(optionParts, 2)
+        optionType = self.safe_string(optionParts, 3)
+        datetime = self.convert_expire_date(expiry)
+        timestamp = self.parse8601(datetime)
+        return {
+            'id': base + '-' + self.convert_expire_date_to_market_id_date(expiry) + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': False,
+            'type': 'option',
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': True,
+            'margin': False,
+            'contract': True,
+            'contractSize': None,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': 'call' if (optionType == 'C') else 'put',
+            'strike': self.parse_number(strike),
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
+
+    def market(self, symbol):
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if isinstance(symbol, str):
+            if symbol in self.markets:
+                return self.markets[symbol]
+            elif symbol in self.markets_by_id:
+                markets = self.markets_by_id[symbol]
+                defaultType = self.safe_string_2(self.options, 'defaultType', 'defaultSubType', 'spot')
+                if defaultType == 'future':
+                    defaultType = 'contract'
+                for i in range(0, len(markets)):
+                    market = markets[i]
+                    if market[defaultType]:
+                        return market
+                return markets[0]
+            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):
+                return self.create_expired_option_market(symbol)
+        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
+
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
+        if isOption and not (marketId in self.markets_by_id):
+            # handle expired option contracts
+            return self.create_expired_option_market(marketId)
+        return super(bybit, self).safe_market(marketId, market, delimiter, marketType)
+
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
@@ -1893,10 +2049,10 @@ class bybit(Exchange, ImplicitAPI):
         #         "change24h": "86"
         #     }
         #
+        isSpot = self.safe_string(ticker, 'openInterestValue') is None
         timestamp = self.safe_integer(ticker, 'time')
         marketId = self.safe_string(ticker, 'symbol')
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(market, 'type', defaultType)
+        type = 'spot' if isSpot else 'contract'
         market = self.safe_market(marketId, market, None, type)
         symbol = self.safe_symbol(marketId, market, None, type)
         last = self.safe_string(ticker, 'lastPrice')
@@ -3163,13 +3319,13 @@ class bybit(Exchange, ImplicitAPI):
             'PENDING_CANCEL': 'open',
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
-            'PARTIALLY_FILLED_CANCELLED': 'canceled',
+            'PARTIALLY_FILLED_CANCELLED': 'closed',  # context: https://github.com/ccxt/ccxt/issues/18685
             # v3 contract / unified margin / unified account
             'Created': 'open',
             'New': 'open',
             'Rejected': 'rejected',  # order is triggered but failed upon being placed
             'PartiallyFilled': 'open',
-            'PartiallyFilledCanceled': 'canceled',
+            'PartiallyFilledCanceled': 'closed',  # context: https://github.com/ccxt/ccxt/issues/18685
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -3204,7 +3360,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "symbol": "XRPUSDT",
         #         "side": "Buy",
         #         "orderType": "Market",
-        #         "price": "0.3431",
+        #         "price": "0.3432",
         #         "qty": "65",
         #         "reduceOnly": True,
         #         "timeInForce": "ImmediateOrCancel",
@@ -3518,7 +3674,7 @@ class bybit(Exchange, ImplicitAPI):
             #  closeOnTrigger to avoid failing due to insufficient available margin
             # 'closeOnTrigger': False, required for linear orders
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
-            # 'triggerPrice': 123.45,  # trigger price, required for conditional orders
+            # 'triggerPrice': 123.46,  # trigger price, required for conditional orders
             # 'triggerBy': 'MarkPrice',  # IndexPrice, MarkPrice, LastPrice
             # 'tpTriggerby': 'MarkPrice',  # IndexPrice, MarkPrice, LastPrice
             # 'slTriggerBy': 'MarkPrice',  # IndexPrice, MarkPrice, LastPrice
@@ -3562,7 +3718,7 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same specific param
         postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3741,7 +3897,7 @@ class bybit(Exchange, ImplicitAPI):
         exchangeSpecificParam = self.safe_string(params, 'time_in_force')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'postonly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3833,7 +3989,7 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         timeInForce = self.safe_string_lower(params, 'timeInForce')  # same specific param
         postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3998,6 +4154,8 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     async def edit_unified_account_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        if amount is None and price is None:
+            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         await self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4005,7 +4163,6 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': self.amount_to_precision(symbol, amount),
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
@@ -4022,6 +4179,8 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'linear'
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
@@ -4064,6 +4223,8 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     async def edit_unified_margin_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+        if amount is None and price is None:
+            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         await self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4077,7 +4238,6 @@ class bybit(Exchange, ImplicitAPI):
             'side': self.capitalize(side),
             'orderType': self.capitalize(lowerCaseType),  # limit or market
             'timeInForce': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
-            'qty': self.amount_to_precision(symbol, amount),
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
@@ -4091,6 +4251,8 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'linear'
         else:
             request['category'] = 'option'
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
         if isLimit:
@@ -4143,12 +4305,13 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     async def edit_contract_v3_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        if amount is None and price is None:
+            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': self.amount_to_precision(symbol, amount),
             # 'orderLinkId': '',  # User customised order id. Either orderId or orderLinkId is required
             # 'triggerPrice': '',  # Trigger price. Don't pass it if not modify the qty
             # 'takeProfit': '',  # Take profit price after modification. Don't pass it if not modify the take profit
@@ -4159,6 +4322,8 @@ class bybit(Exchange, ImplicitAPI):
         }
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
@@ -4203,6 +4368,20 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        see https://bybit-exchange.github.io/docs/v5/order/amend-order
+        see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+        see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an symbol argument')
         await self.load_markets()
@@ -6145,7 +6324,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(transaction, 'createTime', 'successAt')
         updated = self.safe_integer(transaction, 'updateTime')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee', 0)
+        feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee')
         type = 'deposit' if ('depositFee' in transaction) else 'withdrawal'
         fee = None
         if feeCost is not None:
@@ -6657,37 +6836,39 @@ class bybit(Exchange, ImplicitAPI):
     async def fetch_unified_positions(self, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
         request = {}
-        type = None
         settle = None
+        market = None
         enableUnified = await self.is_unified_enabled()
         if isinstance(symbols, list):
             symbolsLength = len(symbols)
             if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
-            market = self.market(symbols[0])
-            settle = market['settle']
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
         elif symbols is not None:
             symbols = [symbols]
+            market = self.market(symbols)
         symbols = self.market_symbols(symbols)
-        if symbols is None:
+        if market is None:
             settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', 'USDT')
         else:
-            first = self.safe_value(symbols, 0)
-            market = self.market(first)
             settle = market['settle']
             request['symbol'] = market['id']
         if enableUnified[1]:
             request['settleCoin'] = settle
             request['limit'] = 200
-        # market None
-        type, params = self.handle_market_type_and_params('fetchPositions', None, params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchPositions', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchPositions', None, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
         request['category'] = subType
         if type == 'option':
             request['category'] = 'option'
-        method = 'privateGetV5PositionList' if (enableUnified[1]) else 'privateGetUnifiedV3PrivatePositionList'
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if enableUnified[1]:
+            response = await self.privateGetV5PositionList(self.extend(request, params))
+        else:
+            response = await self.privateGetUnifiedV3PrivatePositionList(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
@@ -6731,7 +6912,7 @@ class bybit(Exchange, ImplicitAPI):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition))
-        return self.filter_by_array(results, 'symbol', symbols, False)
+        return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
     async def fetch_usdc_positions(self, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
@@ -6801,7 +6982,7 @@ class bybit(Exchange, ImplicitAPI):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
-        return self.filter_by_array(results, 'symbol', symbols, False)
+        return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
     async def fetch_derivatives_positions(self, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
@@ -7094,6 +7275,8 @@ class bybit(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'side': side,
             'percentage': None,
+            'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
+            'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
         })
 
     async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
@@ -8124,7 +8307,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'list', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_settlement(self, settlement, market):
         #
@@ -8157,6 +8340,59 @@ class bybit(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
+        return result
+
+    async def fetch_volatility_history(self, code: str, params={}):
+        """
+        fetch the historical volatility of an option market based on an underlying asset
+        see https://bybit-exchange.github.io/docs/v5/market/iv
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param int [params.period]: the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
+        :returns dict[]: a list of `volatility history objects <https://docs.ccxt.com/#/?id=volatility-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'category': 'option',
+            'baseCoin': currency['id'],
+        }
+        response = await self.publicGetV5MarketHistoricalVolatility(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "SUCCESS",
+        #         "category": "option",
+        #         "result": [
+        #             {
+        #                 "period": 7,
+        #                 "value": "0.23854072",
+        #                 "time": "1690574400000"
+        #             }
+        #         ]
+        #     }
+        #
+        volatility = self.safe_value(response, 'result', [])
+        return self.parse_volatility_history(volatility)
+
+    def parse_volatility_history(self, volatility):
+        #
+        #     {
+        #         "period": 7,
+        #         "value": "0.23854072",
+        #         "time": "1690574400000"
+        #     }
+        #
+        result = []
+        for i in range(0, len(volatility)):
+            entry = volatility[i]
+            timestamp = self.safe_integer(entry, 'time')
+            result.append({
+                'info': volatility,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'volatility': self.safe_number(entry, 'value'),
+            })
         return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

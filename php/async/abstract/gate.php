@@ -409,6 +409,12 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_margin_delete_loans_loan_id($params = array()) {
         return $this->request('loans/{loan_id}', array('private', 'margin'), 'DELETE', $params, null, null, array("cost" => 1.5));
     }
+    public function private_flash_swap_get_currencies($params = array()) {
+        return $this->request('currencies', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_flash_swap_get_currency_pairs($params = array()) {
+        return $this->request('currency_pairs', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function private_flash_swap_get_orders($params = array()) {
         return $this->request('orders', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
     }
@@ -1056,6 +1062,12 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateMarginDeleteLoansLoanId($params = array()) {
         return $this->request('loans/{loan_id}', array('private', 'margin'), 'DELETE', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFlash_swapGetCurrencies($params = array()) {
+        return $this->request('currencies', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privateFlash_swapGetCurrencyPairs($params = array()) {
+        return $this->request('currency_pairs', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privateFlash_swapGetOrders($params = array()) {
         return $this->request('orders', array('private', 'flash_swap'), 'GET', $params, null, null, array("cost" => 1.5));

@@ -209,11 +209,11 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @method
          * @name bitfinex2#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         let messageHash = 'myTrade';
@@ -622,22 +622,22 @@ export default class bitfinex2 extends bitfinex2Rest {
             const deltas = message[1];
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
-                const price = this.safeFloat(deltas, 1);
+                const price = this.safeString(deltas, 1);
                 const size = (deltas[2] < 0) ? -deltas[2] : deltas[2];
                 const side = (deltas[2] < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store(price, amount, id);
+                const amount = Precise.stringGt(price, '0') ? size : '0';
+                bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
             }
             else {
-                const amount = this.safeNumber(deltas, 2);
-                const counter = this.safeNumber(deltas, 1);
-                const price = this.safeNumber(deltas, 0);
-                const size = (amount < 0) ? -amount : amount;
-                const side = (amount < 0) ? 'asks' : 'bids';
+                const amount = this.safeString(deltas, 2);
+                const counter = this.safeString(deltas, 1);
+                const price = this.safeString(deltas, 0);
+                const size = Precise.stringLt(amount, '0') ? Precise.stringNeg(amount) : amount;
+                const side = Precise.stringLt(amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbook[side];
-                bookside.store(price, size, counter);
+                bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
             }
             client.resolve(orderbook, messageHash);
         }
@@ -683,7 +683,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         /**
          * @method
          * @name bitfinex2#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
@@ -834,12 +834,13 @@ export default class bitfinex2 extends bitfinex2Rest {
         client.subscriptions[channelId] = message;
         return message;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const nonce = this.milliseconds();
             const payload = 'AUTH' + nonce.toString();
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384, 'hex');
@@ -852,8 +853,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 'event': event,
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -862,7 +862,8 @@ export default class bitfinex2 extends bitfinex2Rest {
         const status = this.safeString(message, 'status');
         if (status === 'OK') {
             // we resolve the future here permanently so authentication only happens once
-            client.resolve(message, messageHash);
+            const future = this.safeValue(client.futures, messageHash);
+            future.resolve(true);
         }
         else {
             const error = new AuthenticationError(this.json(message));
@@ -1024,11 +1025,11 @@ export default class bitfinex2 extends bitfinex2Rest {
         const clientOrderId = this.safeString(order, 1);
         const marketId = this.safeString(order, 3);
         const symbol = this.safeSymbol(marketId);
-        market = this.safeMarket(marketId);
-        let amount = this.safeNumber(order, 7);
+        market = this.safeMarket(symbol);
+        let amount = this.safeString(order, 7);
         let side = 'buy';
-        if (amount < 0) {
-            amount = Math.abs(amount);
+        if (Precise.stringLt(amount, '0')) {
+            amount = Precise.stringAbs(amount);
             side = 'sell';
         }
         const remaining = Precise.stringAbs(this.safeString(order, 6));

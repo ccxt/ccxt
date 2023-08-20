@@ -71,6 +71,7 @@ const {
     , safeStringLower2
     , yymmdd
     , base58ToBinary
+    , binaryToBase58
     , safeTimestamp2
     , rawencode
     , keysort
@@ -139,8 +140,8 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
-export {Market, Trade, Fee, Ticker} from './types'
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position } from './types.js';
+export {Market, Trade, Fee, Ticker} from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -393,6 +394,7 @@ export default class Exchange {
     uuid22 = uuid22
     safeIntegerProduct2 = safeIntegerProduct2
     safeIntegerProduct = safeIntegerProduct
+    binaryToBase58 = binaryToBase58
     base58ToBinary = base58ToBinary
     base64ToBinary = base64ToBinary
     safeTimestamp2 = safeTimestamp2
@@ -514,6 +516,7 @@ export default class Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
+                'fetchPositionsBySymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
@@ -1103,20 +1106,6 @@ export default class Exchange {
         }
     }
 
-    // method to override
-
-    findTimeframe (timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
-        const keys = Object.keys (timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
-
     spawn (method, ... args): Future {
         const future = createFuture ()
         method.apply (this, args).then (future.resolve).catch (future.reject)
@@ -1279,22 +1268,18 @@ export default class Exchange {
         }
     }
 
-    handleDelta(bookside, delta, nonce = undefined) {
-        //stub
-    }
-
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
-        const maxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        const maxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
         try {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
                 const cache = stored.cache;
-                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                const orderBook = await this.fetchRestOrderBookSafe (symbol, limit, params);
                 const index = this.getCacheIndex (orderBook, cache);
                 if (index >= 0) {
                     stored.reset (orderBook);
@@ -1311,18 +1296,6 @@ export default class Exchange {
             client.reject (e, messageHash);
             await this.loadOrderBook (client, messageHash, symbol, limit, params);
         }
-    }
-
-    handleDeltas (orderbook, deltas, nonce = undefined) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
-        }
-    }
-
-    // eslint-disable-next-line no-unused-vars
-    getCacheIndex (orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        return -1;
     }
 
     convertToBigInt(value: string) {
@@ -1386,6 +1359,35 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    handleDeltas (orderbook, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (orderbook, deltas[i]);
+        }
+    }
+
+    handleDelta (bookside, delta) {
+        throw new NotSupported (this.id + ' handleDelta not supported yet');
+    }
+
+    getCacheIndex (orderbook, deltas) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
+    }
+
+    findTimeframe (timeframe, timeframes = undefined) {
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
+        const keys = Object.keys (timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
 
     checkProxySettings (url, method, headers, body) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
@@ -1491,7 +1493,7 @@ export default class Exchange {
                 }
             }
         }
-        if (tail) {
+        if (tail && limit !== undefined) {
             return this.arraySlice (result, -limit);
         }
         return this.filterByLimit (result, limit, key);
@@ -1517,7 +1519,7 @@ export default class Exchange {
                 }
             }
         }
-        if (tail) {
+        if (tail && limit !== undefined) {
             return this.arraySlice (result, -limit);
         }
         return this.filterByLimit (result, limit, key);
@@ -1573,6 +1575,21 @@ export default class Exchange {
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
+    }
+
+    async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
+        const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
+            try {
+                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                return orderBook;
+            } catch (e) {
+                if ((i + 1) === fetchSnapshotMaxRetries) {
+                    throw e;
+                }
+            }
+        }
+        return undefined;
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -1919,6 +1936,7 @@ export default class Exchange {
         let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
         let symbol = this.safeString (order, 'symbol');
         let side = this.safeString (order, 'side');
+        const status = this.safeString (order, 'status');
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
         const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
@@ -2028,18 +2046,22 @@ export default class Exchange {
             // ensure amount = filled + remaining
             if (filled !== undefined && remaining !== undefined) {
                 amount = Precise.stringAdd (filled, remaining);
-            } else if (this.safeString (order, 'status') === 'closed') {
+            } else if (status === 'closed') {
                 amount = filled;
             }
         }
         if (filled === undefined) {
             if (amount !== undefined && remaining !== undefined) {
                 filled = Precise.stringSub (amount, remaining);
+            } else if (status === 'closed' && amount !== undefined) {
+                filled = amount;
             }
         }
         if (remaining === undefined) {
             if (amount !== undefined && filled !== undefined) {
                 remaining = Precise.stringSub (amount, filled);
+            } else if (status === 'closed') {
+                remaining = '0';
             }
         }
         // ensure that the average field is calculated correctly
@@ -2149,7 +2171,7 @@ export default class Exchange {
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'status': this.safeString (order, 'status'),
+            'status': status,
             'fee': this.safeValue (order, 'fee'),
         });
     }
@@ -2826,7 +2848,7 @@ export default class Exchange {
         return this.markets;
     }
 
-    safePosition (position) {
+    safePosition (position): Position {
         // simplified version of: /pull/12765/
         const unrealizedPnlString = this.safeString (position, 'unrealisedPnl');
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -2839,10 +2861,10 @@ export default class Exchange {
             const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber (percentageString);
         }
-        return position;
+        return position as any;
     }
 
-    parsePositions (positions, symbols: string[] = undefined, params = {}) {
+    parsePositions (positions, symbols: string[] = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
         const result = [];
@@ -2850,7 +2872,7 @@ export default class Exchange {
             const position = this.extend (this.parsePosition (positions[i], undefined), params);
             result.push (position);
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parseAccounts (accounts, params = {}) {
@@ -3068,23 +3090,31 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 
-    async fetchPosition (symbol: string, params = {}): Promise<any> {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
-    async watchPosition (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchPosition (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         return this.watchPositions ([ symbol ], since, limit, params);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<any> {
-        throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
-    }
-
-    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' watchPositions() is not supported yet');
     }
 
-    async fetchPositionsRisk (symbols: string[] = undefined, params = {}) {
+    async fetchPositionsBySymbol (symbol: string, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsBySymbol
+         * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not supported yet');
+    }
+
+    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
@@ -3565,6 +3595,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
     }
 
+    async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        throw new NotSupported (this.id + ' fetchOHLCVWs() is not supported yet');
+    }
+
     async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         /**
          * @method
@@ -3797,7 +3831,7 @@ export default class Exchange {
 
     async fetchMarketLeverageTiers (symbol: string, params = {}) {
         if (this.has['fetchLeverageTiers']) {
-            const market = await this.market (symbol);
+            const market = this.market (symbol);
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
@@ -4229,9 +4263,9 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * @param {string} argument the argument to check
-         * @param {string} argumentName the name of the argument to check
          * @param {string} methodName the name of the method that the argument is being checked for
+         * @param {string} argument the argument's actual value provided
+         * @param {string} argumentName the name of the argument being checked (for logging purposes)
          * @param {string[]} options a list of options that the argument can be
          * @returns {undefined}
          */
@@ -4397,6 +4431,15 @@ export default class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchTransactions () is not supported yet');
         }
+    }
+
+    filterByArrayPositions (objects, key: IndexType, values = undefined, indexed = true): Position[] {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of positions
+         */
+        return this.filterByArray (objects, key, values, indexed) as Position[];
     }
 }
 

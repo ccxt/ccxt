@@ -917,9 +917,9 @@ class bitflyer extends Exchange {
         if (is_array($transaction) && array_key_exists('fee', $transaction)) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
-            $feeCost = $this->safe_number($transaction, 'fee');
-            $additionalFee = $this->safe_number($transaction, 'additional_fee');
-            $fee = array( 'currency' => $code, 'cost' => $feeCost . $additionalFee );
+            $feeCost = $this->safe_string($transaction, 'fee');
+            $additionalFee = $this->safe_string($transaction, 'additional_fee');
+            $fee = array( 'currency' => $code, 'cost' => $this->parse_number(Precise::string_add($feeCost, $additionalFee)) );
         } else {
             $type = 'deposit';
             $status = $this->parse_deposit_status($rawStatus);

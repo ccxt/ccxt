@@ -2522,7 +2522,7 @@ class ascendex extends Exchange {
             $result[] = $this->parse_position($position[$i]);
         }
         $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {
@@ -2585,6 +2585,8 @@ class ascendex extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_integer($position, 'leverage'),
             'marginRatio' => null,
+            'stopLossPrice' => $this->safe_number($position, 'stopLossPrice'),
+            'takeProfitPrice' => $this->safe_number($position, 'takeProfitPrice'),
         ));
     }
 

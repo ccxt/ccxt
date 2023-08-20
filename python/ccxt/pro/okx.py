@@ -38,16 +38,10 @@ class okx(ccxt.async_support.okx):
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://ws.okx.com:8443/ws/v5/public',  # wss://wsaws.okx.com:8443/ws/v5/public
-                        'private': 'wss://ws.okx.com:8443/ws/v5/private',  # wss://wsaws.okx.com:8443/ws/v5/private
-                    },
+                    'ws': 'wss://ws.okx.com:8443/ws/v5',
                 },
                 'test': {
-                    'ws': {
-                        'public': 'wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999',
-                        'private': 'wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999',
-                    },
+                    'ws': 'wss://wspap.okx.com:8443/ws/v5',
                 },
             },
             'options': {
@@ -109,12 +103,22 @@ class okx(ccxt.async_support.okx):
             },
         })
 
+    def get_url(self, channel: str, access='public'):
+        # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
+        isPublic = (access == 'public')
+        url = self.urls['api']['ws']
+        if (channel.find('candle') > -1) or (channel == 'orders-algo'):
+            return url + '/business'
+        elif isPublic:
+            return url + '/public'
+        return url + '/private'
+
     async def subscribe_multiple(self, access, channel, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
         if symbols is None:
             symbols = self.symbols
         symbols = self.market_symbols(symbols)
-        url = self.urls['api']['ws'][access]
+        url = self.get_url(channel, access)
         messageHash = channel
         args = []
         messageHash += '::' + ','.join(symbols)
@@ -133,7 +137,7 @@ class okx(ccxt.async_support.okx):
 
     async def subscribe(self, access, messageHash, channel, symbol, params={}):
         await self.load_markets()
-        url = self.urls['api']['ws'][access]
+        url = self.get_url(channel, access)
         firstArgument = {
             'channel': channel,
         }
@@ -569,7 +573,7 @@ class okx(ccxt.async_support.okx):
         self.check_required_credentials()
         access = self.safe_string(params, 'access', 'private')
         params = self.omit(params, ['access'])
-        url = self.urls['api']['ws'][access]
+        url = self.get_url('users', access)
         messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)
@@ -598,7 +602,7 @@ class okx(ccxt.async_support.okx):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the okx api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
@@ -687,12 +691,12 @@ class okx(ccxt.async_support.okx):
         """
         see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple trades made by the user
-        :param str [symbol]: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param str [symbol]: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param bool [params.stop]: True if fetching trigger or conditional trades
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
         await self.authenticate()
@@ -935,7 +939,7 @@ class okx(ccxt.async_support.okx):
         """
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         op = None
         op, params = self.handle_option_and_params(params, 'createOrderWs', 'op', 'batch-orders')
@@ -999,7 +1003,7 @@ class okx(ccxt.async_support.okx):
         """
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         op = None
         op, params = self.handle_option_and_params(params, 'editOrderWs', 'op', 'amend-order')
@@ -1025,7 +1029,7 @@ class okx(ccxt.async_support.okx):
             raise BadRequest(self.id + ' cancelOrderWs() requires a symbol argument')
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         params = self.omit(params, ['clientOrderId', 'clOrdId'])
@@ -1059,7 +1063,7 @@ class okx(ccxt.async_support.okx):
             raise BadRequest(self.id + ' cancelOrdersWs() requires a symbol argument')
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         args = []
         for i in range(0, idsLength):
@@ -1090,7 +1094,7 @@ class okx(ccxt.async_support.okx):
         market = self.market(symbol)
         if market['type'] != 'option':
             raise BadRequest(self.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         request = {
             'id': messageHash,

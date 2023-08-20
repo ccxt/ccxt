@@ -20,7 +20,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'watchOHLCV' => false, // missing on the exchange side
                 'watchOrderBook' => true,
                 'watchTicker' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchBalance' => false,
                 'watchStatus' => false, // for now
@@ -30,6 +30,9 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             'urls' => array(
                 'api' => array(
                     'ws' => 'wss://ws-feed.pro.coinbase.com',
+                ),
+                'test' => array(
+                    'ws' => 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
                 ),
             ),
             'options' => array(
@@ -54,11 +57,17 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         );
     }
 
-    public function subscribe($name, $symbol, $messageHashStart, $params = array ()) {
+    public function subscribe($name, $symbol = null, $messageHashStart = null, $params = array ()) {
         return Async\async(function () use ($name, $symbol, $messageHashStart, $params) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = $messageHashStart . ':' . $market['id'];
+            $market = null;
+            $messageHash = $messageHashStart;
+            $productIds = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $messageHash .= ':' . $market['id'];
+                $productIds[] = $market['id'];
+            }
             $url = $this->urls['api']['ws'];
             if (is_array($params) && array_key_exists('signature', $params)) {
                 // need to distinguish between public trades and user trades
@@ -66,9 +75,36 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             }
             $subscribe = array(
                 'type' => 'subscribe',
-                'product_ids' => [
-                    $market['id'],
-                ],
+                'product_ids' => $productIds,
+                'channels' => array(
+                    $name,
+                ),
+            );
+            $request = array_merge($subscribe, $params);
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        }) ();
+    }
+
+    public function subscribe_multiple($name, $symbols = [], $messageHashStart = null, $params = array ()) {
+        return Async\async(function () use ($name, $symbols, $messageHashStart, $params) {
+            Async\await($this->load_markets());
+            $market = null;
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = $messageHashStart . implode(',', $symbols);
+            $productIds = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $productIds[] = $market['id'];
+            }
+            $url = $this->urls['api']['ws'];
+            if (is_array($params) && array_key_exists('signature', $params)) {
+                // need to distinguish between public trades and user trades
+                $url = $url . '?';
+            }
+            $subscribe = array(
+                'type' => 'subscribe',
+                'product_ids' => $productIds,
                 'channels' => array(
                     $name,
                 ),
@@ -88,6 +124,31 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              */
             $name = 'ticker';
             return Async\await($this->subscribe($name, $symbol, $name, $params));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-$channel
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                throw new BadSymbol($this->id . ' watchTickers requires a non-empty $symbols array');
+            }
+            $channel = 'ticker';
+            $messageHash = 'tickers::';
+            $newTickers = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
+            if ($this->newUpdates) {
+                return $newTickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -116,15 +177,13 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {string} $symbol unified market $symbol of the market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
-            if ($symbol === null) {
-                throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
-            }
+            $this->check_required_symbol('watchMyTrades', $symbol);
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
             $name = 'user';
@@ -195,7 +254,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'marketId' => $market['id'],
                 'limit' => $limit,
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+            $authentication = $this->authenticate();
+            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $authentication), $messageHash, $subscription));
             return $orderbook->limit ();
         }) ();
     }
@@ -585,6 +645,16 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $type = $this->safe_string($message, 'type');
             $messageHash = $type . ':' . $marketId;
             $client->resolve ($ticker, $messageHash);
+            $messageHashes = $this->find_message_hashes($client, 'tickers::');
+            for ($i = 0; $i < count($messageHashes); $i++) {
+                $messageHash = $messageHashes[$i];
+                $parts = explode('::', $messageHash);
+                $symbolsString = $parts[1];
+                $symbols = explode(',', $symbolsString);
+                if ($this->in_array($symbol, $symbols)) {
+                    $client->resolve ($ticker, $messageHash);
+                }
+            }
         }
         return $message;
     }

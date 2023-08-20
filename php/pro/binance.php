@@ -89,6 +89,9 @@ class binance extends \ccxt\async\binance {
                 'watchOHLCV' => array(
                     'name' => 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
                 ),
+                'watchOrderBook' => array(
+                    'maxRetries' => 3,
+                ),
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => false, // or true
                     'awaitBalanceSnapshot' => true, // whether to wait for the balance snapshot before providing updates
@@ -223,9 +226,9 @@ class binance extends \ccxt\async\binance {
                 $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
                 $params = $this->safe_value($subscription, 'params');
                 // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
-                // todo => this is a synch blocking call in ccxt.php - make it async
+                // todo => this is a synch blocking call - make it async
                 // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-                $snapshot = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
                 $orderbook = $this->safe_value($this->orderbooks, $symbol);
                 if ($orderbook === null) {
                     // if the $orderbook is dropped before the $snapshot is received
@@ -1190,7 +1193,7 @@ class binance extends \ccxt\async\binance {
     public function fetch_balance_ws($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * fetch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {string|null} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -1273,7 +1276,7 @@ class binance extends \ccxt\async\binance {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
@@ -1841,7 +1844,6 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $this->check_required_symbol('fetchOpenOrdersWs', $symbol);
             Async\await($this->load_markets());
             $this->check_is_spot('fetchOpenOrdersWs', $symbol);
             $url = $this->urls['api']['ws']['ws'];
@@ -1850,9 +1852,11 @@ class binance extends \ccxt\async\binance {
             $returnRateLimits = false;
             list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrderWs', 'returnRateLimits', false);
             $payload = array(
-                'symbol' => $this->market_id($symbol),
                 'returnRateLimits' => $returnRateLimits,
             );
+            if ($symbol !== null) {
+                $payload['symbol'] = $this->market_id($symbol);
+            }
             $message = array(
                 'id' => $messageHash,
                 'method' => 'openOrders.status',
@@ -2236,7 +2240,7 @@ class binance extends \ccxt\async\binance {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             $defaultType = $this->safe_string_2($this->options, 'watchMyTrades', 'defaultType', 'spot');
@@ -2274,6 +2278,7 @@ class binance extends \ccxt\async\binance {
             $trade = $this->parse_trade($message);
             $orderId = $this->safe_string($trade, 'order');
             $tradeFee = $this->safe_value($trade, 'fee');
+            $tradeFee = array_merge(array(), $tradeFee);
             $symbol = $this->safe_string($trade, 'symbol');
             if ($orderId !== null && $tradeFee !== null && $symbol !== null) {
                 $cachedOrders = $this->orders;
@@ -2284,7 +2289,7 @@ class binance extends \ccxt\async\binance {
                         // accumulate $order $fees
                         $fees = $this->safe_value($order, 'fees');
                         $fee = $this->safe_value($order, 'fee');
-                        if ($fees !== null) {
+                        if (!$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
                             for ($i = 0; $i < count($fees); $i++) {
                                 $orderFee = $fees[$i];

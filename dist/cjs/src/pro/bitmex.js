@@ -316,7 +316,7 @@ class bitmex extends bitmex$1 {
         /**
          * @method
          * @name bitmex#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -807,11 +807,11 @@ class bitmex extends bitmex$1 {
          * @method
          * @name bitmex#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -1165,7 +1165,7 @@ class bitmex extends bitmex$1 {
             orderbook['symbol'] = symbol;
             for (let i = 0; i < data.length; i++) {
                 const price = this.safeFloat(data[i], 'price');
-                const size = this.safeFloat(data[i], 'size');
+                const size = this.convertFromRawQuantity(symbol, this.safeString(data[i], 'size'));
                 const id = this.safeString(data[i], 'id');
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
@@ -1189,8 +1189,8 @@ class bitmex extends bitmex$1 {
                 const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
-                const price = this.safeFloat(data[i], 'price');
-                const size = (action === 'delete') ? 0 : this.safeFloat(data[i], 'size', 0);
+                const price = this.safeNumber(data[i], 'price');
+                const size = (action === 'delete') ? 0 : this.convertFromRawQuantity(symbol, this.safeString(data[i], 'size', '0'));
                 const id = this.safeString(data[i], 'id');
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
