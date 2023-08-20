@@ -98,6 +98,7 @@ export default class okx extends okxRest {
     }
 
     getUrl (channel: string, access = 'public') {
+        // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         const isPublic = (access === 'public');
         const url = this.urls['api']['ws'];
         if ((channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
