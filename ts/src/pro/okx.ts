@@ -1017,7 +1017,7 @@ export default class okx extends okxRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'op', 'batch-orders');
@@ -1088,7 +1088,7 @@ export default class okx extends okxRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
@@ -1118,7 +1118,7 @@ export default class okx extends okxRest {
         }
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
@@ -1158,7 +1158,7 @@ export default class okx extends okxRest {
         }
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
@@ -1195,7 +1195,7 @@ export default class okx extends okxRest {
         if (market['type'] !== 'option') {
             throw new BadRequest (this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         const request = {
             'id': messageHash,
