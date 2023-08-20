@@ -33,16 +33,10 @@ class okx extends \ccxt\async\okx {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => array(
-                        'public' => 'wss://ws.okx.com:8443/ws/v5/public', // wss://wsaws.okx.com:8443/ws/v5/public
-                        'private' => 'wss://ws.okx.com:8443/ws/v5/private', // wss://wsaws.okx.com:8443/ws/v5/private
-                    ),
+                    'ws' => 'wss://ws.okx.com:8443/ws/v5',
                 ),
                 'test' => array(
-                    'ws' => array(
-                        'public' => 'wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999',
-                        'private' => 'wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999',
-                    ),
+                    'ws' => 'wss://wspap.okx.com:8443/ws/v5',
                 ),
             ),
             'options' => array(
@@ -105,6 +99,18 @@ class okx extends \ccxt\async\okx {
         ));
     }
 
+    public function get_url(string $channel, $access = 'public') {
+        // for context => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-$url
+        $isPublic = ($access === 'public');
+        $url = $this->urls['api']['ws'];
+        if ((mb_strpos($channel, 'candle') > -1) || ($channel === 'orders-algo')) {
+            return $url . '/business';
+        } elseif ($isPublic) {
+            return $url . '/public';
+        }
+        return $url . '/private';
+    }
+
     public function subscribe_multiple($access, $channel, ?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($access, $channel, $symbols, $params) {
             Async\await($this->load_markets());
@@ -112,7 +118,7 @@ class okx extends \ccxt\async\okx {
                 $symbols = $this->symbols;
             }
             $symbols = $this->market_symbols($symbols);
-            $url = $this->urls['api']['ws'][$access];
+            $url = $this->get_url($channel, $access);
             $messageHash = $channel;
             $args = array();
             $messageHash .= '::' . implode(',', $symbols);
@@ -135,7 +141,7 @@ class okx extends \ccxt\async\okx {
     public function subscribe($access, $messageHash, $channel, $symbol, $params = array ()) {
         return Async\async(function () use ($access, $messageHash, $channel, $symbol, $params) {
             Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'][$access];
+            $url = $this->get_url($channel, $access);
             $firstArgument = array(
                 'channel' => $channel,
             );
@@ -619,7 +625,7 @@ class okx extends \ccxt\async\okx {
         $this->check_required_credentials();
         $access = $this->safe_string($params, 'access', 'private');
         $params = $this->omit($params, array( 'access' ));
-        $url = $this->urls['api']['ws'][$access];
+        $url = $this->get_url('users', $access);
         $messageHash = 'authenticated';
         $client = $this->client($url);
         $future = $this->safe_value($client->subscriptions, $messageHash);
@@ -1017,7 +1023,7 @@ class okx extends \ccxt\async\okx {
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->get_url('private', 'private');
             $messageHash = (string) $this->nonce();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'op', 'batch-orders');
@@ -1088,7 +1094,7 @@ class okx extends \ccxt\async\okx {
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->get_url('private', 'private');
             $messageHash = (string) $this->nonce();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'op', 'amend-order');
@@ -1118,7 +1124,7 @@ class okx extends \ccxt\async\okx {
             }
             Async\await($this->load_markets());
             Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->get_url('private', 'private');
             $messageHash = (string) $this->nonce();
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
@@ -1158,7 +1164,7 @@ class okx extends \ccxt\async\okx {
             }
             Async\await($this->load_markets());
             Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->get_url('private', 'private');
             $messageHash = (string) $this->nonce();
             $args = array();
             for ($i = 0; $i < $idsLength; $i++) {
@@ -1195,7 +1201,7 @@ class okx extends \ccxt\async\okx {
             if ($market['type'] !== 'option') {
                 throw new BadRequest($this->id . 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
             }
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->get_url('private', 'private');
             $messageHash = (string) $this->nonce();
             $request = array(
                 'id' => $messageHash,
