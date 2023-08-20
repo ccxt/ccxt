@@ -618,7 +618,7 @@ export default class okx extends okxRest {
         this.checkRequiredCredentials ();
         const access = this.safeString (params, 'access', 'private');
         params = this.omit (params, [ 'access' ]);
-        const url = this.urls['api']['ws'][access];
+        const url = this.getUrl ('users', access);
         const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
