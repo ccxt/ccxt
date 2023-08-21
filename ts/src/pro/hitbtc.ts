@@ -809,7 +809,7 @@ export default class hitbtc extends hitbtcRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const data = this.safeValue (message, 'params', []);
-        if (this.isArray (data)) {
+        if (Array.isArray (data)) {
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
                 this.handleOrderHelper (client, message, order);
