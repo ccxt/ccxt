@@ -879,6 +879,21 @@ class binance extends Exchange {
                         'cm/openOrder' => 1, // 1
                         'cm/openOrders' => 1, // 1
                         'cm/allOrders' => 20, // 20
+                        'um/conditional/openOrder' => 1,
+                        'um/conditional/openOrders' => 40,
+                        'um/conditional/orderHistory' => 1,
+                        'um/conditional/allOrders' => 40,
+                        'cm/conditional/openOrder' => 1,
+                        'cm/conditional/openOrders' => 40,
+                        'cm/conditional/orderHistory' => 1,
+                        'cm/conditional/allOrders' => 40,
+                        'margin/order' => 5,
+                        'margin/openOrders' => 5,
+                        'margin/allOrders' => 100,
+                        'margin/orderList' => 5,
+                        'margin/allOrderList' => 100,
+                        'margin/openOrderList' => 5,
+                        'margin/myTrades' => 5,
                         'balance' => 20, // 20
                         'account' => 20, // 20
                         'margin/maxBorrowable' => 5, // 5
@@ -897,6 +912,10 @@ class binance extends Exchange {
                         'um/apiTradingStatus' => 1, // 1
                         'um/commissionRate' => 20, // 20
                         'cm/commissionRate' => 20, // 20
+                        'margin/marginLoan' => 10,
+                        'margin/repayLoan' => 10,
+                        'margin/marginInterestHistory' => 1,
+                        'portfolio/interest-history' => 50, // 50
                         'um/income' => 30,
                         'cm/income ' => 30,
                         'um/account' => 5,
@@ -904,10 +923,6 @@ class binance extends Exchange {
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
                         'um/adlQuantile' => 5,
                         'cm/adlQuantile' => 5,
-                        'margin/marginLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/repayLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/marginInterestHistory' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
-                        'portfolio/interest-history' => 50, // 50
                     ),
                     'post' => array(
                         'um/order' => 1, // 0
