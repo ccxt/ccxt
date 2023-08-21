@@ -91,22 +91,19 @@ export default class hitbtc extends hitbtcRest {
             future = await this.watch (url, messageHash, request);
             //
             //    {
-            //        "data": {
-            //            "success": true,
-            //            "ts": 1645597033915
-            //        },
-            //        "channel": "auth"
+            //        jsonrpc: '2.0',
+            //        result: true
             //    }
             //
             //    # Failure to return results
             //
             //    {
-            //        "data": {
-            //            "success": false,
-            //            "message": "Authentication failed!",
-            //            "ts": 1646276295075
-            //        },
-            //        "channel": "auth"
+            //        jsonrpc: '2.0',
+            //        error: {
+            //            code: 1002,
+            //            message: 'Authorization is required or has been failed',
+            //            description: 'invalid signature format'
+            //        }
             //    }
             //
             client.subscriptions[messageHash] = future;
@@ -1039,20 +1036,22 @@ export default class hitbtc extends hitbtcRest {
             if (method !== undefined) {
                 method.call (this, client, message);
             }
+        } else {
+            const success = this.safeValue (message, 'result');
+            if ((success === true) && !('id' in message)) {
+                this.handleAuthenticate (client, message);
+            }
         }
     }
 
     handleAuthenticate (client: Client, message) {
         //
         //    {
-        //        success: true,
-        //        ret_msg: '',
-        //        op: 'auth',
-        //        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        //        jsonrpc: '2.0',
+        //        result: true
         //    }
         //
-        const data = this.safeValue (message, 'data');
-        const success = this.safeValue (data, 'success');
+        const success = this.safeValue (message, 'result');
         const messageHash = 'authenticated';
         if (success) {
             client.resolve (message, messageHash);
