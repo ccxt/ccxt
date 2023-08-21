@@ -63,8 +63,8 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': None,
-                'createStopLimitOrder': False,
-                'createStopMarketOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -234,6 +234,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'precisionMode': DECIMAL_PLACES,
             'options': {
                 # 'fetchTradesMethod': 'binanceGetTrades',  # binanceGetTrades, binanceGetAggTrades
+                'createMarketBuyOrderRequiresPrice': True,
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 # 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
@@ -799,12 +800,16 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['baseId'] + market['quoteId'],
-        }
+        request = {}
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
-        response = self.binanceGetDepth(self.extend(request, params))
+        response = None
+        if market['quote'] == 'USDT':
+            request['symbol'] = market['baseId'] + market['quoteId']
+            response = self.binanceGetDepth(self.extend(request, params))
+        else:
+            request['symbol'] = market['id']
+            response = self.publicGetOpenV1MarketDepth(self.extend(request, params))
         #
         # future
         #
@@ -823,9 +828,21 @@ class tokocrypto(Exchange, ImplicitAPI):
         #             ["2493.71","12.054"],
         #         ]
         #     }
-        timestamp = self.safe_integer(response, 'T')
-        orderbook = self.parse_order_book(response, symbol, timestamp)
-        orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
+        # type not 1
+        #     {
+        #         "code":0,
+        #         "msg":"Success",
+        #         "data":{
+        #            "lastUpdateId":3204783,
+        #            "bids":[],
+        #            "asks": []
+        #         },
+        #         "timestamp":1692262634599
+        #     }
+        data = self.safe_value(response, 'data', response)
+        timestamp = self.safe_integer_2(response, 'T', 'timestamp')
+        orderbook = self.parse_order_book(data, symbol, timestamp)
+        orderbook['nonce'] = self.safe_integer(data, 'lastUpdateId')
         return orderbook
 
     def parse_trade(self, trade, market=None):
@@ -982,12 +999,18 @@ class tokocrypto(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': self.get_market_id_by_type(market),
             # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
             # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             # 'limit': 500,     # default = 500, maximum = 1000
         }
+        if market['quote'] != 'USDT':
+            if limit is not None:
+                request['limit'] = limit
+            responseInner = self.publicGetOpenV1MarketTrades(self.extend(request, params))
+            data = self.safe_value(responseInner, 'data', {})
+            return self.parse_trades(data, market, since, limit)
         defaultMethod = 'binanceGetTrades'
         method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
         if (method == 'binanceGetAggTrades') and (since is not None):
@@ -1135,6 +1158,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         response = getattr(self, method)(params)
         return self.parse_tickers(response, symbols)
 
+    def get_market_id_by_type(self, market):
+        if market['quote'] == 'USDT':
+            return market['baseId'] + market['quoteId']
+        return market['id']
+
     def fetch_ticker(self, symbol: str, params={}):
         """
         see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
@@ -1240,13 +1268,17 @@ class tokocrypto(Exchange, ImplicitAPI):
         if price == 'index':
             request['pair'] = market['id']   # Index price takes self argument instead of symbol
         else:
-            request['symbol'] = market['baseId'] + market['quoteId']
+            request['symbol'] = self.get_market_id_by_type(market)
         # duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
         if until is not None:
             request['endTime'] = until
-        response = self.binanceGetKlines(self.extend(request, params))
+        response = None
+        if market['quote'] == 'USDT':
+            response = self.binanceGetKlines(self.extend(request, params))
+        else:
+            response = self.publicGetOpenV1MarketKlines(self.extend(request, params))
         #
         #     [
         #         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -1254,7 +1286,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', response)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
         """
@@ -1443,28 +1476,25 @@ class tokocrypto(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'executedQty', '0')
         timestamp = self.safe_integer(order, 'createTime')
         average = self.safe_string(order, 'avgPrice')
-        price = self.safe_string(order, 'price')
+        price = self.safe_string_2(order, 'price', 'executedPrice')
         amount = self.safe_string(order, 'origQty')
         # - Spot/Margin market: cummulativeQuoteQty
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
-        cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
-        cost = self.safe_string(order, 'cumBase', cost)
+        cost = self.safe_string_n(order, ['cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase'])
         id = self.safe_string(order, 'orderId')
-        type = self.safe_string_lower(order, 'type')
+        type = self.parse_order_type(self.safe_string_lower(order, 'type'))
         side = self.safe_string_lower(order, 'side')
         if side == '0':
             side = 'buy'
         elif side == '1':
             side = 'sell'
         fills = self.safe_value(order, 'fills', [])
-        clientOrderId = self.safe_string(order, 'clientOrderId')
+        clientOrderId = self.safe_string_2(order, 'clientOrderId', 'clientId')
         timeInForce = self.safe_string(order, 'timeInForce')
         if timeInForce == 'GTX':
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO'
         postOnly = (type == 'limit_maker') or (timeInForce == 'PO')
-        if type == 'limit_maker':
-            type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
         stopPrice = self.parse_number(self.omit_zero(stopPriceString))
         return self.safe_order({
@@ -1493,16 +1523,27 @@ class tokocrypto(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
+    def parse_order_type(self, status):
+        statuses = {
+            '2': 'market',
+            '1': 'limit',
+            '4': 'limit',
+            '7': 'limit',
+        }
+        return self.safe_string(statuses, status, status)
+
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         create a trade order
+        see https://www.tokocrypto.com/apidocs/#new-order--signed
+        see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
+        :param float [params.triggerPrice]: the price at which a trigger order would be triggered
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1569,17 +1610,18 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     LIMIT_MAKER          quantity, price
         #
         if uppercaseType == 'MARKET':
-            quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
-            if quoteOrderQty:
-                quoteOrderQtyInner = self.safe_value_2(params, 'quoteOrderQty', 'cost')
-                precision = market['precision']['price']
-                if quoteOrderQtyInner is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyInner, TRUNCATE, precision, self.precisionMode)
-                    params = self.omit(params, ['quoteOrderQty', 'cost'])
-                elif price is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
-                else:
-                    quantityIsRequired = True
+            quoteOrderQtyInner = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+            if self.options['createMarketBuyOrderRequiresPrice'] and (side == 'buy') and (price is None) and (quoteOrderQtyInner is None):
+                raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+            precision = market['precision']['price']
+            if quoteOrderQtyInner is not None:
+                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyInner, TRUNCATE, precision, self.precisionMode)
+                params = self.omit(params, ['quoteOrderQty', 'cost'])
+            elif price is not None:
+                amountString = self.number_to_string(amount)
+                priceString = self.number_to_string(price)
+                quoteOrderQty = Precise.string_mul(amountString, priceString)
+                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
             else:
                 quantityIsRequired = True
         elif uppercaseType == 'LIMIT':

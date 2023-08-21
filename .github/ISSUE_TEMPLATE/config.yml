@@ -4,7 +4,7 @@ contact_links:
     url: https://docs.ccxt.com/en/latest/manual.html
     about: Read CCXT documentation for answers to common questions
   - name: Troubleshooting
-    url: https://docs.ccxt.com/en/latest/manual.html#troubleshooting
+    url: https://docs.ccxt.com/#/?id=troubleshooting
     about: Read our troubleshooting recommendations in our documentation
   - name: CCXT Discord
     url: https://discord.gg/dhzSKYU

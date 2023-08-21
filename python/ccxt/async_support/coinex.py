@@ -3033,6 +3033,8 @@ class coinex(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': leverage,
             'marginRatio': None,
+            'stopLossPrice': self.safe_number(position, 'stop_loss_price'),
+            'takeProfitPrice': self.safe_number(position, 'take_profit_price'),
         })
 
     async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):

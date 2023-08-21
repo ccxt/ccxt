@@ -246,7 +246,7 @@ class okx extends okx$1 {
                         'trade/orders-history': 1 / 2,
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
-                        'trade/fills-history': 2,
+                        'trade/fills-history': 2.2,
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -437,6 +437,7 @@ class okx extends okx$1 {
                         'broker/nd/subaccount/delete-apikey': 1,
                         'broker/nd/set-subaccount-level': 4,
                         'broker/nd/set-subaccount-fee-rate': 4,
+                        'broker/nd/set-subaccount-assets': 0.25,
                         'asset/broker/nd/subaccount-deposit-address': 1,
                         'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3,
                         'broker/nd/rebate-per-orders': 36000,
@@ -598,6 +599,7 @@ class okx extends okx$1 {
                     '51162': errors.InvalidOrder,
                     '51163': errors.InvalidOrder,
                     '51166': errors.InvalidOrder,
+                    '51174': errors.InvalidOrder,
                     '51201': errors.InvalidOrder,
                     '51202': errors.InvalidOrder,
                     '51203': errors.InvalidOrder,
@@ -5037,6 +5039,8 @@ class okx extends okx$1 {
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'leverage': this.parseNumber(leverageString),
             'marginRatio': marginRatio,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {

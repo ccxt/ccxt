@@ -886,6 +886,21 @@ export default class binance extends Exchange {
                         'cm/openOrder': 1,
                         'cm/openOrders': 1,
                         'cm/allOrders': 20,
+                        'um/conditional/openOrder': 1,
+                        'um/conditional/openOrders': 40,
+                        'um/conditional/orderHistory': 1,
+                        'um/conditional/allOrders': 40,
+                        'cm/conditional/openOrder': 1,
+                        'cm/conditional/openOrders': 40,
+                        'cm/conditional/orderHistory': 1,
+                        'cm/conditional/allOrders': 40,
+                        'margin/order': 5,
+                        'margin/openOrders': 5,
+                        'margin/allOrders': 100,
+                        'margin/orderList': 5,
+                        'margin/allOrderList': 100,
+                        'margin/openOrderList': 5,
+                        'margin/myTrades': 5,
                         'balance': 20,
                         'account': 20,
                         'margin/maxBorrowable': 5,
@@ -904,6 +919,10 @@ export default class binance extends Exchange {
                         'um/apiTradingStatus': 1,
                         'um/commissionRate': 20,
                         'cm/commissionRate': 20,
+                        'margin/marginLoan': 10,
+                        'margin/repayLoan': 10,
+                        'margin/marginInterestHistory': 1,
+                        'portfolio/interest-history': 50,
                         'um/income': 30,
                         'cm/income ': 30,
                         'um/account': 5,
@@ -911,10 +930,6 @@ export default class binance extends Exchange {
                         'portfolio/repay-futures-switch': 3,
                         'um/adlQuantile': 5,
                         'cm/adlQuantile': 5,
-                        'margin/marginLoan': 0.0667,
-                        'margin/repayLoan': 0.0667,
-                        'margin/marginInterestHistory': 0.1,
-                        'portfolio/interest-history': 50, // 50
                     },
                     'post': {
                         'um/order': 1,
@@ -1504,6 +1519,7 @@ export default class binance extends Exchange {
                     '-4045': ExchangeError,
                     '-4046': AuthenticationError,
                     '-4047': BadRequest,
+                    '-4054': BadRequest,
                     '-5001': BadRequest,
                     '-5002': InsufficientFunds,
                     '-5003': InsufficientFunds,
@@ -4258,6 +4274,8 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
          * @see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
@@ -4265,15 +4283,22 @@ export default class binance extends Exchange {
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+         * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketType = this.safeString(params, 'type', market['type']);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
+        const sor = this.safeValue2(params, 'sor', 'SOR', false);
+        params = this.omit(params, 'sor', 'SOR');
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let method = 'privatePostOrder';
-        if (market['linear']) {
+        if (sor) {
+            method = 'privatePostSorOrder';
+        }
+        else if (market['linear']) {
             method = 'fapiPrivatePostOrder';
         }
         else if (market['inverse']) {
@@ -6869,6 +6894,7 @@ export default class binance extends Exchange {
     parsePositionRisk(position, market = undefined) {
         //
         // usdm
+        //
         //     {
         //       "symbol": "BTCUSDT",
         //       "positionAmt": "0.001",
@@ -6888,6 +6914,7 @@ export default class binance extends Exchange {
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol": "BTCUSD_PERP",
         //       "positionAmt": "2",
@@ -7038,6 +7065,8 @@ export default class binance extends Exchange {
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
     async loadLeverageBrackets(reload = false, params = {}) {
@@ -7966,7 +7995,7 @@ export default class binance extends Exchange {
         }
         else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials();
-            if (method === 'POST' && path === 'order') {
+            if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
                 // inject in implicit API calls
                 const newClientOrderId = this.safeString(params, 'newClientOrderId');
                 if (newClientOrderId === undefined) {

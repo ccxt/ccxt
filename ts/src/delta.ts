@@ -1704,6 +1704,8 @@ export default class delta extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': undefined,
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
 

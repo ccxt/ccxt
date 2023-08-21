@@ -2566,6 +2566,9 @@ class woo extends woo$1 {
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     defaultNetworkCodeForCurrency(code) {

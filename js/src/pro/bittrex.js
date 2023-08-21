@@ -45,6 +45,9 @@ export default class bittrex extends bittrexRest {
                 'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds(),
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
             },
         });
     }
@@ -615,7 +618,7 @@ export default class bittrex extends bittrexRest {
         try {
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBook(symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe(symbol, limit);
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
             // make sure we have at least one delta before fetching the snapshot
@@ -629,8 +632,7 @@ export default class bittrex extends bittrexRest {
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const options = this.safeValue(this.options, 'fetchOrderBookSnapshot', {});
-                const maxAttempts = this.safeInteger(options, 'maxAttempts', 3);
+                const maxAttempts = this.handleOption('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger(subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
                 if (numAttempts < maxAttempts) {

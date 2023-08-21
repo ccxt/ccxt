@@ -29,7 +29,7 @@ class bitstamp extends bitstamp$1 {
                 'wsSessionToken': '',
                 'watchOrderBook': {
                     'snapshotDelay': 6,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,

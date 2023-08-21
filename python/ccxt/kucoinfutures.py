@@ -94,6 +94,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransactionFee': False,
                 'fetchWithdrawals': True,
+                'setLeverage': False,
                 'setMarginMode': False,
                 'transfer': True,
                 'withdraw': None,
@@ -1051,6 +1052,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'marginMode': marginMode,
             'side': side,
             'percentage': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):

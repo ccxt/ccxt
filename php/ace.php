@@ -74,6 +74,7 @@ class ace extends Exchange {
                 'setMarginMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
+                'ws' => false,
             ),
             'timeframes' => array(
                 '1m' => 1,

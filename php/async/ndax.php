@@ -34,6 +34,9 @@ class ndax extends Exchange {
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
@@ -258,6 +261,13 @@ class ndax extends Exchange {
                     'TrailingStopMarket' => 5,
                     'TrailingStopLimit' => 6,
                     'BlockTrade' => 7,
+                    '1' => 1,
+                    '2' => 2,
+                    '3' => 3,
+                    '4' => 4,
+                    '5' => 5,
+                    '6' => 6,
+                    '7' => 7,
                 ),
             ),
         ));
@@ -1324,6 +1334,7 @@ class ndax extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the ndax api endpoint
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
@@ -1332,7 +1343,16 @@ class ndax extends Exchange {
             $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
-            $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ));
+            $orderType = $this->safe_integer($this->options['orderTypes'], $this->capitalize($type));
+            $triggerPrice = $this->safe_string($params, 'triggerPrice');
+            if ($triggerPrice !== null) {
+                if ($type === 'market') {
+                    $orderType = 3;
+                } elseif ($type === 'limit') {
+                    $orderType = 4;
+                }
+            }
+            $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ));
             $market = $this->market($symbol);
             $orderSide = ($side === 'buy') ? 0 : 1;
             $request = array(
@@ -1349,7 +1369,7 @@ class ndax extends Exchange {
                 // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
                 'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
                 'Quantity' => floatval($this->amount_to_precision($symbol, $amount)),
-                'OrderType' => $this->safe_integer($this->options['orderTypes'], $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
+                'OrderType' => $orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
                 // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
                 // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
             );
@@ -1359,6 +1379,9 @@ class ndax extends Exchange {
             }
             if ($clientOrderId !== null) {
                 $request['ClientOrderId'] = $clientOrderId;
+            }
+            if ($triggerPrice !== null) {
+                $request['StopPrice'] = $triggerPrice;
             }
             $response = Async\await($this->privatePostSendOrder (array_merge($request, $params)));
             //

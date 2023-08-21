@@ -74,6 +74,8 @@ class bingx extends Exchange {
                     'swap' => 'https://open-api.{hostname}/openApi',
                     'contract' => 'https://open-api.{hostname}/openApi',
                     'wallets' => 'https://open-api.{hostname}/openApi',
+                    'subAccount' => 'https://open-api.{hostname}/openApi',
+                    'account' => 'https://open-api.{hostname}/openApi',
                 ),
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
@@ -109,6 +111,7 @@ class bingx extends Exchange {
                             'post' => array(
                                 'trade/order' => 3,
                                 'trade/cancel' => 3,
+                                'trade/batchOrders' => 3,
                             ),
                         ),
                     ),
@@ -119,6 +122,9 @@ class bingx extends Exchange {
                                 'asset/transfer' => 3,
                                 'capital/deposit/hisrec' => 3,
                                 'capital/withdraw/history' => 3,
+                            ),
+                            'post' => array(
+                                'post/asset/transfer' => 3,
                             ),
                         ),
                     ),
@@ -191,6 +197,35 @@ class bingx extends Exchange {
                             ),
                             'post' => array(
                                 'capital/withdraw/apply' => 3,
+                                'capital/innerTransfer/apply' => 3,
+                                'capital/subAccountInnerTransfer/apply' => 3,
+                            ),
+                        ),
+                    ),
+                ),
+                'subAccount' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'list' => 3,
+                                'assets' => 3,
+                            ),
+                            'post' => array(
+                                'create' => 3,
+                                'apiKey/create' => 3,
+                                'apiKey/edit' => 3,
+                                'apiKey/del' => 3,
+                                'updateStatus' => 3,
+                            ),
+                        ),
+                    ),
+                ),
+                'account' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'post' => array(
+                                'uid' => 3,
+                                'innerTransfer/authorizeSubAccount' => 3,
                             ),
                         ),
                     ),
@@ -769,6 +804,12 @@ class bingx extends Exchange {
             $time = $this->parse8601($datetimeId);
         }
         $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
+        $takeOrMaker = null;
+        if ($isBuyerMaker) {
+            $takeOrMaker = 'maker';
+        } elseif ($isBuyerMaker !== null) {
+            $takeOrMaker = 'taker';
+        }
         $cost = $this->safe_string($trade, 'quoteQty');
         $type = ($cost === null) ? 'spot' : 'swap';
         $currencyId = $this->safe_string($trade, 'currency');
@@ -782,7 +823,7 @@ class bingx extends Exchange {
             'order' => null,
             'type' => null,
             'side' => null,
-            'takerOrMaker' => ($isBuyerMaker === true) ? 'maker' : 'taker',
+            'takerOrMaker' => $takeOrMaker,
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string_2($trade, 'qty', 'amount'),
             'cost' => $cost,
@@ -1427,6 +1468,8 @@ class bingx extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_number($position, 'leverage'),
             'marginRatio' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 
@@ -1686,10 +1729,11 @@ class bingx extends Exchange {
             'currency' => $this->safe_string($order, 'feeAsset'),
             'rate' => $this->safe_string_2($order, 'fee', 'commission'),
         );
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $orderId,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -2816,7 +2860,8 @@ class bingx extends Exchange {
             $this->check_required_credentials();
             $params['timestamp'] = $this->nonce();
             $query = $this->urlencode($params);
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
+            $rawQuery = $this->rawencode($params);
+            $signature = $this->hmac($this->encode($rawQuery), $this->encode($this->secret), 'sha256');
             if ($params) {
                 $query = '?' . $query . '&';
             } else {

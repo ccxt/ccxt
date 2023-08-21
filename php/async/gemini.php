@@ -604,7 +604,7 @@ class gemini extends Exchange {
         $quoteId = $this->safe_string($response, 'quote_currency');
         if ($baseId === null) {
             $idLength = strlen($marketId) - 0;
-            $isUSDT = mb_strpos($marketId, 'usdt') !== -1;
+            $isUSDT = mb_strpos($marketId, 'usdt') !== false;
             $quoteSize = $isUSDT ? 4 : 3;
             $baseId = mb_substr($marketId, 0, $idLength - $quoteSize - 0); // Not true for all markets
             $quoteId = mb_substr($marketId, $idLength - $quoteSize, $idLength - $idLength - $quoteSize);

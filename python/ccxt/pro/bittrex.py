@@ -48,6 +48,9 @@ class bittrex(ccxt.async_support.bittrex):
                 'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': self.milliseconds(),
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
             },
         })
 
@@ -589,7 +592,7 @@ class bittrex(ccxt.async_support.bittrex):
         try:
             # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             # todo: self is a synch blocking call in ccxt.php - make it async
-            snapshot = await self.fetch_order_book(symbol, limit)
+            snapshot = await self.fetch_rest_order_book_safe(symbol, limit)
             orderbook = self.orderbooks[symbol]
             messages = orderbook.cache
             # make sure we have at least one delta before fetching the snapshot
@@ -603,8 +606,7 @@ class bittrex(ccxt.async_support.bittrex):
             # then we cannot align it with the cached deltas and we need to
             # retry synchronizing in maxAttempts
             if (sequence is not None) and (nonce < sequence):
-                options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
-                maxAttempts = self.safe_integer(options, 'maxAttempts', 3)
+                maxAttempts = self.handle_option('watchOrderBook', 'maxRetries', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to syncrhonize if we haven't reached maxAttempts yet
                 if numAttempts < maxAttempts:

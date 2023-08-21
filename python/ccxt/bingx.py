@@ -82,6 +82,8 @@ class bingx(Exchange, ImplicitAPI):
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
                     'wallets': 'https://open-api.{hostname}/openApi',
+                    'subAccount': 'https://open-api.{hostname}/openApi',
+                    'account': 'https://open-api.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -117,6 +119,7 @@ class bingx(Exchange, ImplicitAPI):
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
+                                'trade/batchOrders': 3,
                             },
                         },
                     },
@@ -127,6 +130,9 @@ class bingx(Exchange, ImplicitAPI):
                                 'asset/transfer': 3,
                                 'capital/deposit/hisrec': 3,
                                 'capital/withdraw/history': 3,
+                            },
+                            'post': {
+                                'post/asset/transfer': 3,
                             },
                         },
                     },
@@ -199,6 +205,35 @@ class bingx(Exchange, ImplicitAPI):
                             },
                             'post': {
                                 'capital/withdraw/apply': 3,
+                                'capital/innerTransfer/apply': 3,
+                                'capital/subAccountInnerTransfer/apply': 3,
+                            },
+                        },
+                    },
+                },
+                'subAccount': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'list': 3,
+                                'assets': 3,
+                            },
+                            'post': {
+                                'create': 3,
+                                'apiKey/create': 3,
+                                'apiKey/edit': 3,
+                                'apiKey/del': 3,
+                                'updateStatus': 3,
+                            },
+                        },
+                    },
+                },
+                'account': {
+                    'v1': {
+                        'private': {
+                            'post': {
+                                'uid': 3,
+                                'innerTransfer/authorizeSubAccount': 3,
                             },
                         },
                     },
@@ -736,6 +771,11 @@ class bingx(Exchange, ImplicitAPI):
         if datetimeId is not None:
             time = self.parse8601(datetimeId)
         isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
+        takeOrMaker = None
+        if isBuyerMaker:
+            takeOrMaker = 'maker'
+        elif isBuyerMaker is not None:
+            takeOrMaker = 'taker'
         cost = self.safe_string(trade, 'quoteQty')
         type = 'spot' if (cost is None) else 'swap'
         currencyId = self.safe_string(trade, 'currency')
@@ -749,7 +789,7 @@ class bingx(Exchange, ImplicitAPI):
             'order': None,
             'type': None,
             'side': None,
-            'takerOrMaker': 'maker' if (isBuyerMaker is True) else 'taker',
+            'takerOrMaker': takeOrMaker,
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string_2(trade, 'qty', 'amount'),
             'cost': cost,
@@ -1353,6 +1393,8 @@ class bingx(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
@@ -1590,10 +1632,11 @@ class bingx(Exchange, ImplicitAPI):
             'currency': self.safe_string(order, 'feeAsset'),
             'rate': self.safe_string_2(order, 'fee', 'commission'),
         }
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return self.safe_order({
             'info': order,
             'id': orderId,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -2631,7 +2674,8 @@ class bingx(Exchange, ImplicitAPI):
             self.check_required_credentials()
             params['timestamp'] = self.nonce()
             query = self.urlencode(params)
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
+            rawQuery = self.rawencode(params)
+            signature = self.hmac(self.encode(rawQuery), self.encode(self.secret), hashlib.sha256)
             if params:
                 query = '?' + query + '&'
             else:

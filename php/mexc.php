@@ -4504,6 +4504,9 @@ class mexc extends Exchange {
             'marginRatio' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'hedged' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
             'lastUpdateTimestamp' => null,
         ));
     }

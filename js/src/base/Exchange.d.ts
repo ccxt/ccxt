@@ -226,6 +226,7 @@ export default class Exchange {
     uuid22: (a?: any) => string;
     safeIntegerProduct2: (o: any, k1: string | number, k2: string | number, $factor: number, $default?: number) => number;
     safeIntegerProduct: (o: any, k: string | number, $factor: number, $default?: number) => number;
+    binaryToBase58: (data: Uint8Array) => string;
     base58ToBinary: (str: string) => Uint8Array;
     base64ToBinary: (str: string) => Uint8Array;
     safeTimestamp2: (o: any, k1: string | number, k2: string | number, $default?: any) => number;
@@ -525,6 +526,7 @@ export default class Exchange {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDepositAddresses(codes?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchRestOrderBookSafe(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTime(params?: {}): Promise<number>;
     fetchTradingLimits(symbols?: string[], params?: {}): Promise<any>;

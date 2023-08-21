@@ -1059,11 +1059,11 @@ class bithumb extends bithumb$1 {
                 if (status === '0000') {
                     return undefined; // no error
                 }
-                else if (message === '거래 진행중인 내역이 존재하지 않습니다') {
+                else if (message === '거래 진행중인 내역이 존재하지 않습니다.') {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return undefined; // no error
                 }
-                const feedback = this.id + ' ' + body;
+                const feedback = this.id + ' ' + message;
                 this.throwExactlyMatchedException(this.exceptions, status, feedback);
                 this.throwExactlyMatchedException(this.exceptions, message, feedback);
                 throw new errors.ExchangeError(feedback);

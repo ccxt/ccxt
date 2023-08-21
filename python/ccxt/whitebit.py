@@ -647,6 +647,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the whitebit api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
+        self.load_markets()
         response = self.v4PublicGetAssets(params)
         #
         #      {

@@ -16,6 +16,7 @@ class btcturk extends Exchange {
             'name' => 'BTCTurk',
             'countries' => array( 'TR' ), // Turkey
             'rateLimit' => 100,
+            'pro' => false,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -60,6 +61,7 @@ class btcturk extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'ws' => false,
             ),
             'timeframes' => array(
                 '1m' => 1,
