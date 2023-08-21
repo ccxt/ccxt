@@ -1261,11 +1261,13 @@ export default class Exchange {
 
     async close () {
         const clients = Object.values (this.clients || {});
+        const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
-            await client.close ();
+            closedClients.push(client.close ());
         }
+        return Promise.all (closedClients);
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {

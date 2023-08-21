@@ -154,6 +154,8 @@ class bitget extends Exchange {
                             'market/depth' => 1,
                             'market/spot-vip-level' => 2,
                             'market/history-candles' => 1,
+                            'public/loan/coinInfos' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'public/loan/hour-interest' => 2, // 10 times/1s (IP) => 20/10 = 2
                         ),
                     ),
                     'mix' => array(
@@ -202,6 +204,11 @@ class bitget extends Exchange {
                             'account/transferRecords' => 1, // 20 times/1s (UID) => 20/20 = 1
                             'convert/currencies' => 2,
                             'convert/convert-record' => 2,
+                            'loan/ongoing-orders' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/repay-history' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/revise-history' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/borrow-history' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/debts' => 2, // 10 times/1s (UID) => 20/10 = 2
                         ),
                         'post' => array(
                             'wallet/transfer' => 4,
@@ -232,6 +239,9 @@ class bitget extends Exchange {
                             'plan/batchCancelPlan' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'convert/quoted-price' => 4,
                             'convert/trade' => 4,
+                            'loan/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/repay' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/revise-pledge' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/orderCurrentList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/orderHistoryList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/closeTrackingOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
@@ -367,6 +377,9 @@ class bitget extends Exchange {
                             'account/sub-email' => 20, // 1 times/1s (UID) => 20/1 = 20
                             'account/sub-spot-assets' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'account/sub-future-assets' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/subaccount-transfer' => 1, // unknown
+                            'account/subaccount-deposit' => 1, // unknown
+                            'account/subaccount-withdrawal' => 1, // unknown
                             'account/sub-api-list' => 2, // 10 times/1s (UID) => 20/10 = 2
                         ),
                         'post' => array(
@@ -2243,6 +2256,7 @@ class bitget extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch deposits for
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
@@ -2253,9 +2267,19 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            $until = $this->safe_integer_2($params, 'until', 'endTime');
             if ($since !== null) {
                 $request['startTime'] = $since;
+                if ($until === null) {
+                    $now = $this->milliseconds();
+                    $request['endTime'] = $now;
+                }
             }
+            if ($until !== null) {
+                $this->check_required_argument('fetchTrades', $since, 'since');
+                $request['endTime'] = $until;
+            }
+            $params = $this->omit($params, 'until');
             $options = $this->safe_value($this->options, 'fetchTrades', array());
             $response = null;
             if ($market['spot']) {
@@ -4613,8 +4637,14 @@ class bitget extends Exchange {
              */
             $this->check_required_symbol('setMarginMode', $symbol);
             $marginMode = strtolower($marginMode);
+            if ($marginMode === 'isolated') {
+                $marginMode = 'fixed';
+            }
+            if ($marginMode === 'cross') {
+                $marginMode = 'crossed';
+            }
             if (($marginMode !== 'fixed') && ($marginMode !== 'crossed')) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be "fixed" or "crossed"');
+                throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be either fixed (isolated) or crossed (cross)');
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);

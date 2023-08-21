@@ -31,16 +31,10 @@ export default class okx extends okxRest {
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://ws.okx.com:8443/ws/v5/public', // wss://wsaws.okx.com:8443/ws/v5/public
-                        'private': 'wss://ws.okx.com:8443/ws/v5/private', // wss://wsaws.okx.com:8443/ws/v5/private
-                    },
+                    'ws': 'wss://ws.okx.com:8443/ws/v5',
                 },
                 'test': {
-                    'ws': {
-                        'public': 'wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999',
-                        'private': 'wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999',
-                    },
+                    'ws': 'wss://wspap.okx.com:8443/ws/v5',
                 },
             },
             'options': {
@@ -103,13 +97,25 @@ export default class okx extends okxRest {
         });
     }
 
+    getUrl (channel: string, access = 'public') {
+        // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
+        const isPublic = (access === 'public');
+        const url = this.urls['api']['ws'];
+        if ((channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
+            return url + '/business';
+        } else if (isPublic) {
+            return url + '/public';
+        }
+        return url + '/private';
+    }
+
     async subscribeMultiple (access, channel, symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbols === undefined) {
             symbols = this.symbols;
         }
         symbols = this.marketSymbols (symbols);
-        const url = this.urls['api']['ws'][access];
+        const url = this.getUrl (channel, access);
         let messageHash = channel;
         const args = [];
         messageHash += '::' + symbols.join (',');
@@ -130,7 +136,7 @@ export default class okx extends okxRest {
 
     async subscribe (access, messageHash, channel, symbol, params = {}) {
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'][access];
+        const url = this.getUrl (channel, access);
         const firstArgument = {
             'channel': channel,
         };
@@ -613,7 +619,7 @@ export default class okx extends okxRest {
         this.checkRequiredCredentials ();
         const access = this.safeString (params, 'access', 'private');
         params = this.omit (params, [ 'access' ]);
-        const url = this.urls['api']['ws'][access];
+        const url = this.getUrl ('users', access);
         const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
@@ -1012,7 +1018,7 @@ export default class okx extends okxRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'op', 'batch-orders');
@@ -1083,7 +1089,7 @@ export default class okx extends okxRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
@@ -1113,7 +1119,7 @@ export default class okx extends okxRest {
         }
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
@@ -1153,7 +1159,7 @@ export default class okx extends okxRest {
         }
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
@@ -1190,7 +1196,7 @@ export default class okx extends okxRest {
         if (market['type'] !== 'option') {
             throw new BadRequest (this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
         const request = {
             'id': messageHash,
