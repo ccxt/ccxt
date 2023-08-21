@@ -330,7 +330,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': marketIds,
             },
         };
-        const tickers = this.subscribePublic (name, symbols, this.deepExtend (request, params));
+        const tickers = await this.subscribePublic (name, symbols, this.deepExtend (request, params));
         if (this.newUpdates) {
             return tickers;
         }
