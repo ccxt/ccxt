@@ -885,6 +885,21 @@ export default class binance extends Exchange {
                         'cm/openOrder': 1, // 1
                         'cm/openOrders': 1, // 1
                         'cm/allOrders': 20, // 20
+                        'um/conditional/openOrder': 1,
+                        'um/conditional/openOrders': 40,
+                        'um/conditional/orderHistory': 1,
+                        'um/conditional/allOrders': 40,
+                        'cm/conditional/openOrder': 1,
+                        'cm/conditional/openOrders': 40,
+                        'cm/conditional/orderHistory': 1,
+                        'cm/conditional/allOrders': 40,
+                        'margin/order': 5,
+                        'margin/openOrders': 5,
+                        'margin/allOrders': 100,
+                        'margin/orderList': 5,
+                        'margin/allOrderList': 100,
+                        'margin/openOrderList': 5,
+                        'margin/myTrades': 5,
                         'balance': 20, // 20
                         'account': 20, // 20
                         'margin/maxBorrowable': 5, // 5
