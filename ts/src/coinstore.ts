@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinstore.js';
-import { AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, DDoSProtection } from './base/errors.js';
+import { AuthenticationError, BadSymbol, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, DDoSProtection } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -49,7 +49,7 @@ export default class coinstore extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositions': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
@@ -446,7 +446,15 @@ export default class coinstore extends Exchange {
          * @param {object} [params] extra parameters specific to the coinstore api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        return this.fetchTickers ([ symbol ], params);
+        await this.loadMarkets ();
+        const id = this.marketId (symbol). ();
+        const response = await this.publicGetApiV1MarketTickers (params);
+        const tickers = this.filterByArray (this.safeValue (response, 'data'), 'symbol', [ id ], false);
+        const ticker = this.safeValue (tickers, 0);
+        if (!ticker) {
+            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
+        }
+        return this.parseTicker (ticker)
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
