@@ -204,14 +204,16 @@ export default class protondex extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
+                'taker': this.safeValue (market, 'taker_fee'),
+                'maker': this.safeValue (market, 'maker_fee'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'size_precision'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
+                    'amount': this.parseNumber (this.parsePrecision (market['bid_token']['precision'])),
+                    'price': this.parseNumber (this.parsePrecision (market['ask_token']['precision'])),
                 },
                 'limits': {
                     'leverage': {
@@ -355,7 +357,7 @@ export default class protondex extends Exchange {
         request['step'] = (params['step'] !== undefined) ? params['step'] : 100;
         const response = await this.publicGetOrdersDepth (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'bid', 'ask');
+        return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'level', 'bid');
     }
 
     parseTrade (trade, market = undefined): Trade {
