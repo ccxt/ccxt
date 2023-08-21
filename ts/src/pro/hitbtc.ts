@@ -686,15 +686,6 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {
-        const results = [];
-        for (let i = 0; i < ohlcvs.length; i++) {
-            results.push (this.parseWsOHLCV (ohlcvs[i], market));
-        }
-        const sorted = this.sortBy (results, 0);
-        return this.filterBySinceLimit (sorted, since, limit, 0) as any;
-    }
-
     parseWsOHLCV (ohlcv, market = undefined) {
         //
         //    {
