@@ -547,6 +547,7 @@ export default class kucoin extends kucoinRest {
             'match': 'open',
             'update': 'open',
             'canceled': 'canceled',
+            'cancel': 'canceled',
             'TRIGGERED': 'triggered',
         };
         return this.safeString (statuses, status, status);
@@ -590,19 +591,11 @@ export default class kucoin extends kucoinRest {
         //        "type": "triggered"
         //    }
         //
-        const id = this.safeString (order, 'orderId');
-        const clientOrderId = this.safeString (order, 'clientOid');
-        const orderType = this.safeStringLower (order, 'orderType');
-        const price = this.safeString (order, 'price');
-        const filled = this.safeString (order, 'filledSize');
-        const amount = this.safeString (order, 'size');
         const rawType = this.safeString (order, 'type');
         let status = this.parseWsOrderStatus (rawType);
         const timestamp = this.safeInteger2 (order, 'orderTime', 'createdAt');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const side = this.safeStringLower (order, 'side');
         const triggerPrice = this.safeString (order, 'stopPrice');
         const triggerSuccess = this.safeValue (order, 'triggerSuccess');
         if (status === 'triggered' && triggerSuccess === false) {
@@ -610,23 +603,23 @@ export default class kucoin extends kucoinRest {
         }
         return this.safeOrder ({
             'info': order,
-            'symbol': symbol,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'symbol': market['symbol'],
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'type': orderType,
+            'type': this.safeStringLower (order, 'orderType'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
-            'price': price,
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.safeString2 (order, 'price', 'orderPrice'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': amount,
+            'amount': this.safeString (order, 'size'),
             'cost': undefined,
             'average': undefined,
-            'filled': filled,
+            'filled': this.safeString (order, 'filledSize'),
             'remaining': undefined,
             'status': status,
             'fee': undefined,
