@@ -551,12 +551,13 @@ export default class bitmex extends bitmexRest {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const payload = 'GET' + '/realtime' + timestamp.toString();
@@ -570,8 +571,7 @@ export default class bitmex extends bitmexRest {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -580,7 +580,8 @@ export default class bitmex extends bitmexRest {
         const messageHash = 'authenticated';
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            client.resolve(message, messageHash);
+            const future = this.safeValue(client.futures, messageHash);
+            future.resolve(true);
         }
         else {
             const error = new AuthenticationError(this.json(message));

@@ -564,8 +564,9 @@ class bitmex extends \ccxt\async\bitmex {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $this->check_required_credentials();
             $timestamp = $this->milliseconds();
             $payload = 'GET' . '/realtime' . (string) $timestamp;
@@ -579,8 +580,7 @@ class bitmex extends \ccxt\async\bitmex {
                 ),
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -589,8 +589,9 @@ class bitmex extends \ccxt\async\bitmex {
         $authenticated = $this->safe_value($message, 'success', false);
         $messageHash = 'authenticated';
         if ($authenticated) {
-            // we resolve the future here permanently so authentication only happens once
-            $client->resolve ($message, $messageHash);
+            // we resolve the $future here permanently so authentication only happens once
+            $future = $this->safe_value($client->futures, $messageHash);
+            $future->resolve (true);
         } else {
             $error = new AuthenticationError ($this->json($message));
             $client->reject ($error, $messageHash);
