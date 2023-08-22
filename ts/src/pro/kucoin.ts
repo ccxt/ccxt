@@ -547,6 +547,7 @@ export default class kucoin extends kucoinRest {
             'match': 'open',
             'update': 'open',
             'canceled': 'canceled',
+            'TRIGGERED': 'triggered',
         };
         return this.safeString (statuses, status, status);
     }
@@ -596,13 +597,17 @@ export default class kucoin extends kucoinRest {
         const filled = this.safeString (order, 'filledSize');
         const amount = this.safeString (order, 'size');
         const rawType = this.safeString (order, 'type');
-        const status = this.parseWsOrderStatus (rawType);
+        let status = this.parseWsOrderStatus (rawType);
         const timestamp = this.safeInteger2 (order, 'orderTime', 'createdAt');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const side = this.safeStringLower (order, 'side');
         const triggerPrice = this.safeString (order, 'stopPrice');
+        const triggerSuccess = this.safeValue (order, 'triggerSuccess');
+        if (status === 'triggered' && triggerSuccess === false) {
+            status = 'canceled';
+        }
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -630,6 +635,26 @@ export default class kucoin extends kucoinRest {
     }
 
     handleOrder (client: Client, message) {
+        //
+        // Trigger Orders
+        //
+        //    {
+        //        createdAt: 1692745706437,
+        //        error: 'Balance insufficient!',       // not always there
+        //        orderId: 'vs86kp757vlda6ni003qs70v',
+        //        orderPrice: '0.26',
+        //        orderType: 'stop',
+        //        side: 'sell',
+        //        size: '5',
+        //        stop: 'loss',
+        //        stopPrice: '0.26',
+        //        symbol: 'ADA-USDT',
+        //        tradeType: 'TRADE',
+        //        triggerSuccess: false,                // not always there
+        //        ts: '1692745706442929298',
+        //        type: 'open'
+        //    }
+        //
         const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsOrder (data);
