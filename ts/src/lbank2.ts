@@ -730,7 +730,7 @@ export default class lbank2 extends Exchange {
         let response = undefined;
         if (type === 'swap') {
             request['depth'] = limit;
-            response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder(this.extend (request, params));
+            response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder (this.extend (request, params));
         } else {
             request['size'] = limit;
             response = await this.spotPublicGetDepth (this.extend (request, params));
