@@ -385,7 +385,8 @@ class cryptocom extends cryptocom$1 {
             }
             client.resolve(stored, symbolSpecificMessageHash);
             // non-symbol specific
-            client.resolve(stored, channel);
+            client.resolve(stored, channel); // channel might have a symbol-specific suffix
+            client.resolve(stored, 'user.order');
         }
     }
     async watchBalance(params = {}) {
@@ -648,6 +649,10 @@ class cryptocom extends cryptocom$1 {
             // channel might be user.trade.BTC_USDT
             this.handleTrades(client, result);
         }
+        if ((channel !== undefined) && channel.startsWith('user.order')) {
+            // channel might be user.order.BTC_USDT
+            this.handleOrders(client, result);
+        }
         const method = this.safeValue(methods, channel);
         if (method !== undefined) {
             method.call(this, client, result);
@@ -703,13 +708,14 @@ class cryptocom extends cryptocom$1 {
             callMethod.call(this, client, message);
         }
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.urls['api']['ws']['private'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const method = 'public/auth';
             const nonce = this.nonce().toString();
             const auth = method + nonce + this.apiKey + nonce;
@@ -722,8 +728,7 @@ class cryptocom extends cryptocom$1 {
                 'sig': signature,
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -734,7 +739,8 @@ class cryptocom extends cryptocom$1 {
         //
         //  { id: 1648132625434, method: 'public/auth', code: 0 }
         //
-        client.resolve(message, 'authenticated');
+        const future = this.safeValue(client.futures, 'authenticated');
+        future.resolve(true);
     }
 }
 

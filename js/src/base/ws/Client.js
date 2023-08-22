@@ -207,6 +207,9 @@ export default class Client {
             // todo: exception types for server-side disconnects
             this.reset(new NetworkError('connection closed by remote server, closing code ' + String(event.code)));
         }
+        if (this.disconnected !== undefined) {
+            this.disconnected.resolve(true);
+        }
         this.onCloseCallback(this, event);
     }
     // this method is not used at this time

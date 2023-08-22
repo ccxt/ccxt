@@ -6,6 +6,7 @@ require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
 var WebSocket = require('ws');
+var Future = require('./Future.js');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -56,8 +57,12 @@ class WsClient extends Client {
     }
     close() {
         if (this.connection instanceof WebSocketPlatform) {
-            return this.connection.close();
+            if (this.disconnected === undefined) {
+                this.disconnected = Future.createFuture();
+            }
+            this.connection.close();
         }
+        return this.disconnected;
     }
 }
 
