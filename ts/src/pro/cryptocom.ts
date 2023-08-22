@@ -401,7 +401,8 @@ export default class cryptocom extends cryptocomRest {
             }
             client.resolve (stored, symbolSpecificMessageHash);
             // non-symbol specific
-            client.resolve (stored, channel);
+            client.resolve (stored, channel); // channel might have a symbol-specific suffix
+            client.resolve (stored, 'user.order');
         }
     }
 
@@ -673,6 +674,10 @@ export default class cryptocom extends cryptocomRest {
         if ((channel !== undefined) && channel.indexOf ('user.trade') > -1) {
             // channel might be user.trade.BTC_USDT
             this.handleTrades (client, result);
+        }
+        if ((channel !== undefined) && channel.startsWith ('user.order')) {
+            // channel might be user.order.BTC_USDT
+            this.handleOrders (client, result);
         }
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {
