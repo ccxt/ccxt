@@ -249,7 +249,6 @@ class poloniex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // General
-                    '200' => '\\ccxt\\CancelPending', // array( "orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : "" )
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal System Error
                     '603' => '\\ccxt\\RequestTimeout', // Internal Request Timeout
                     '601' => '\\ccxt\\BadRequest', // Invalid Parameter
@@ -1077,7 +1076,7 @@ class poloniex extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $rawType = $this->safe_string($order, 'type');
         $type = $this->parse_order_type($rawType);
-        $id = $this->safe_string_2($order, 'orderNumber', 'id');
+        $id = $this->safe_string_n($order, array( 'orderNumber', 'id', 'orderId' ));
         $fee = null;
         $feeCurrency = $this->safe_string($order, 'tokenFeeCurrency');
         $feeCost = null;
@@ -1325,7 +1324,17 @@ class poloniex extends Exchange {
             }
             $request['id'] = $id;
             $params = $this->omit($params, 'clientOrderId');
-            return Async\await($this->privateDeleteOrdersId (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersId (array_merge($request, $params)));
+            //
+            //   {
+            //       "orderId":"210832697138888704",
+            //       "clientOrderId":"",
+            //       "state":"PENDING_CANCEL",
+            //       "code":200,
+            //       "message":""
+            //   }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -2239,7 +2248,8 @@ class poloniex extends Exchange {
         //         "message" : "Low available balance"
         //     }
         //
-        if (is_array($response) && array_key_exists('code', $response)) {
+        $responseCode = $this->safe_string($response, 'code');
+        if (($responseCode !== null) && ($responseCode !== '200')) {
             $codeInner = $response['code'];
             $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $body;

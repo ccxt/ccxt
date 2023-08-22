@@ -882,9 +882,12 @@ class binance(Exchange, ImplicitAPI):
                         'myTrades': 10,
                         'rateLimit/order': 20,
                         'myPreventedMatches': 1,
+                        'myAllocations': 10,
                     },
                     'post': {
                         'order/oco': 1,
+                        'sor/order': 1,
+                        'sor/order/test': 1,
                         'order': 1,
                         'order/cancelReplace': 1,
                         'order/test': 1,
@@ -905,6 +908,21 @@ class binance(Exchange, ImplicitAPI):
                         'cm/openOrder': 1,  # 1
                         'cm/openOrders': 1,  # 1
                         'cm/allOrders': 20,  # 20
+                        'um/conditional/openOrder': 1,
+                        'um/conditional/openOrders': 40,
+                        'um/conditional/orderHistory': 1,
+                        'um/conditional/allOrders': 40,
+                        'cm/conditional/openOrder': 1,
+                        'cm/conditional/openOrders': 40,
+                        'cm/conditional/orderHistory': 1,
+                        'cm/conditional/allOrders': 40,
+                        'margin/order': 5,
+                        'margin/openOrders': 5,
+                        'margin/allOrders': 100,
+                        'margin/orderList': 5,
+                        'margin/allOrderList': 100,
+                        'margin/openOrderList': 5,
+                        'margin/myTrades': 5,
                         'balance': 20,  # 20
                         'account': 20,  # 20
                         'margin/maxBorrowable': 5,  # 5
@@ -923,6 +941,10 @@ class binance(Exchange, ImplicitAPI):
                         'um/apiTradingStatus': 1,  # 1
                         'um/commissionRate': 20,  # 20
                         'cm/commissionRate': 20,  # 20
+                        'margin/marginLoan': 10,
+                        'margin/repayLoan': 10,
+                        'margin/marginInterestHistory': 1,
+                        'portfolio/interest-history': 50,  # 50
                         'um/income': 30,
                         'cm/income ': 30,
                         'um/account': 5,
@@ -930,10 +952,6 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/repay-futures-switch': 3,  # Weight(IP): 30 => cost = 0.1 * 30 = 3
                         'um/adlQuantile': 5,
                         'cm/adlQuantile': 5,
-                        'margin/marginLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/repayLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/marginInterestHistory': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'portfolio/interest-history': 50,  # 50
                     },
                     'post': {
                         'um/order': 1,  # 0
@@ -951,6 +969,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/repay-futures-switch': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1,  # 1
+                        'asset-collection': 3,
                     },
                     'put': {
                         'listenKey': 1,  # 1
@@ -1491,7 +1510,7 @@ class binance(Exchange, ImplicitAPI):
                     '-4013': AuthenticationError,  # {"code":-4013 ,"msg":"2FA is not opened."}
                     '-4014': PermissionDenied,  # {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
                     '-4015': ExchangeError,  # {"code":-4015 ,"msg":"Withdraw is limited."}
-                    '-4016': PermissionDenied,  # {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                    '-4016': PermissionDenied,  # {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."} | on swap: {"code":-4016,"msg":"Limit price can't be higher than 27330.52."}
                     '-4017': PermissionDenied,  # {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
                     '-4018': BadSymbol,  # {"code":-4018,"msg":"We don't have self asset."}
                     '-4019': BadSymbol,  # {"code":-4019,"msg":"Current asset is not open for withdrawal."}
@@ -1522,6 +1541,7 @@ class binance(Exchange, ImplicitAPI):
                     '-4045': ExchangeError,  # {"code":-4045,"msg":"Failure to acquire assets."}
                     '-4046': AuthenticationError,  # {"code":-4046,"msg":"Agreement not confirmed."}
                     '-4047': BadRequest,  # {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                    '-4054': BadRequest,  # {"code":-4054,"msg":"Cannot add position margin: position is 0."}
                     '-5001': BadRequest,  # {"code":-5001,"msg":"Don't allow transfer to micro assets."}
                     '-5002': InsufficientFunds,  # {"code":-5002,"msg":"You have insufficient balance."}
                     '-5003': InsufficientFunds,  # {"code":-5003,"msg":"You don't have self asset."}
@@ -4051,6 +4071,8 @@ class binance(Exchange, ImplicitAPI):
         see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
         see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
         see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
@@ -4058,15 +4080,21 @@ class binance(Exchange, ImplicitAPI):
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :param boolean [params.sor]: *spot only* whether to use SOR(Smart Order Routing) or not, default is False
+        :param boolean [params.test]: *spot only* whether to use the test endpoint or not, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         marketType = self.safe_string(params, 'type', market['type'])
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
+        sor = self.safe_value_2(params, 'sor', 'SOR', False)
+        params = self.omit(params, 'sor', 'SOR')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         method = 'privatePostOrder'
-        if market['linear']:
+        if sor:
+            method = 'privatePostSorOrder'
+        elif market['linear']:
             method = 'fapiPrivatePostOrder'
         elif market['inverse']:
             method = 'dapiPrivatePostOrder'
@@ -4142,11 +4170,10 @@ class binance(Exchange, ImplicitAPI):
         if marginMode == 'isolated':
             request['isIsolated'] = True
         if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, marketType)
-                if brokerId is not None:
-                    request['newClientOrderId'] = brokerId + self.uuid22()
+            broker = self.safe_value(self.options, 'broker', {})
+            defaultId = 'x-xcKtGhcu' if (market['contract']) else 'x-R4BD3S82'
+            brokerId = self.safe_string(broker, marketType, defaultId)
+            request['newClientOrderId'] = brokerId + self.uuid22()
         else:
             request['newClientOrderId'] = clientOrderId
         if (marketType == 'spot') or (marketType == 'margin'):
@@ -6380,6 +6407,7 @@ class binance(Exchange, ImplicitAPI):
     def parse_position_risk(self, position, market=None):
         #
         # usdm
+        #
         #     {
         #       "symbol": "BTCUSDT",
         #       "positionAmt": "0.001",
@@ -6399,6 +6427,7 @@ class binance(Exchange, ImplicitAPI):
         #     }
         #
         # coinm
+        #
         #     {
         #       "symbol": "BTCUSD_PERP",
         #       "positionAmt": "2",
@@ -6532,6 +6561,8 @@ class binance(Exchange, ImplicitAPI):
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         }
 
     def load_leverage_brackets(self, reload=False, params={}):
@@ -7353,14 +7384,15 @@ class binance(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
-            if method == 'POST' and path == 'order':
+            if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
                 newClientOrderId = self.safe_string(params, 'newClientOrderId')
                 if newClientOrderId is None:
                     isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
                     marketType = 'spot' if isSpotOrMargin else 'future'
-                    broker = self.safe_value(self.options, 'broker')
-                    brokerId = self.safe_string(broker, marketType)
+                    defaultId = 'x-xcKtGhcu' if (not isSpotOrMargin) else 'x-R4BD3S82'
+                    broker = self.safe_value(self.options, 'broker', {})
+                    brokerId = self.safe_string(broker, marketType, defaultId)
                     params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')

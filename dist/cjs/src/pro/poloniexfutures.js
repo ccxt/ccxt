@@ -38,7 +38,7 @@ class poloniexfutures extends poloniexfutures$1 {
                 'watchOrderBook': {
                     'method': '/contractMarket/level2',
                     'snapshotDelay': 5,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'streamLimit': 5,
                 'streamBySubscriptionsHash': {},

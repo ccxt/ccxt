@@ -764,17 +764,15 @@ class huobijp extends Exchange {
             $type = $typeParts[1];
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string_2($trade, 'filled-amount', 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string_2($trade, 'filled-amount', 'amount');
+        $cost = Precise::string_mul($price, $amount);
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'filled-fees');
+        $feeCost = $this->safe_string($trade, 'filled-fees');
         $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
-        $filledPoints = $this->safe_number($trade, 'filled-points');
+        $filledPoints = $this->safe_string($trade, 'filled-points');
         if ($filledPoints !== null) {
-            if (($feeCost === null) || ($feeCost === 0.0)) {
+            if (($feeCost === null) || (Precise::string_eq($feeCost, '0.0'))) {
                 $feeCost = $filledPoints;
                 $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-deduct-currency'));
             }
@@ -787,13 +785,13 @@ class huobijp extends Exchange {
         }
         $tradeId = $this->safe_string_2($trade, 'trade-id', 'tradeId');
         $id = $this->safe_string($trade, 'id', $tradeId);
-        return array(
-            'id' => $id,
+        return $this->safe_trade(array(
             'info' => $trade,
+            'id' => $id,
+            'symbol' => $symbol,
             'order' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
@@ -801,7 +799,7 @@ class huobijp extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

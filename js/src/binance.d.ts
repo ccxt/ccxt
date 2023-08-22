@@ -360,6 +360,8 @@ export default class binance extends Exchange {
         side: any;
         hedged: boolean;
         percentage: any;
+        stopLossPrice: any;
+        takeProfitPrice: any;
     };
     loadLeverageBrackets(reload?: boolean, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;

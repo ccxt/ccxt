@@ -3329,6 +3329,8 @@ class digifinex extends Exchange {
             'leverage' => $this->safe_number_2($position, 'leverage', 'leverage_ratio'),
             'marginRatio' => $this->safe_number($position, 'margin_ratio'),
             'percentage' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         );
     }
 

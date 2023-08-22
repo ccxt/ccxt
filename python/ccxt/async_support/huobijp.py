@@ -761,17 +761,15 @@ class huobijp(Exchange, ImplicitAPI):
             side = typeParts[0]
             type = typeParts[1]
         takerOrMaker = self.safe_string(trade, 'role')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string_2(trade, 'filled-amount', 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string_2(trade, 'filled-amount', 'amount')
+        cost = Precise.string_mul(price, amount)
         fee = None
-        feeCost = self.safe_number(trade, 'filled-fees')
+        feeCost = self.safe_string(trade, 'filled-fees')
         feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
-        filledPoints = self.safe_number(trade, 'filled-points')
+        filledPoints = self.safe_string(trade, 'filled-points')
         if filledPoints is not None:
-            if (feeCost is None) or (feeCost == 0.0):
+            if (feeCost is None) or (Precise.string_eq(feeCost, '0.0')):
                 feeCost = filledPoints
                 feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-deduct-currency'))
         if feeCost is not None:
@@ -781,13 +779,13 @@ class huobijp(Exchange, ImplicitAPI):
             }
         tradeId = self.safe_string_2(trade, 'trade-id', 'tradeId')
         id = self.safe_string(trade, 'id', tradeId)
-        return {
-            'id': id,
+        return self.safe_trade({
             'info': trade,
+            'id': id,
+            'symbol': symbol,
             'order': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -795,7 +793,7 @@ class huobijp(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }
+        })
 
     async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

@@ -14,6 +14,8 @@ interface Exchange {
     publicSpotGetMarketDepth(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketSpotVipLevel(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketHistoryCandles(params?: {}): Promise<implicitReturnType>;
+    publicSpotGetPublicLoanCoinInfos(params?: {}): Promise<implicitReturnType>;
+    publicSpotGetPublicLoanHourInterest(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketContracts(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketDepth(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketTicker(params?: {}): Promise<implicitReturnType>;
@@ -48,6 +50,11 @@ interface Exchange {
     privateSpotGetAccountTransferRecords(params?: {}): Promise<implicitReturnType>;
     privateSpotGetConvertCurrencies(params?: {}): Promise<implicitReturnType>;
     privateSpotGetConvertConvertRecord(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanOngoingOrders(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanRepayHistory(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanReviseHistory(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanBorrowHistory(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanDebts(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransfer(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransferV2(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletSubTransfer(params?: {}): Promise<implicitReturnType>;
@@ -74,6 +81,11 @@ interface Exchange {
     privateSpotPostPlanCurrentPlan(params?: {}): Promise<implicitReturnType>;
     privateSpotPostPlanHistoryPlan(params?: {}): Promise<implicitReturnType>;
     privateSpotPostPlanBatchCancelPlan(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostConvertQuotedPrice(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostConvertTrade(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostLoanBorrow(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostLoanRepay(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostLoanRevisePledge(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceOrderOrderCurrentList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceOrderOrderHistoryList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceOrderCloseTrackingOrder(params?: {}): Promise<implicitReturnType>;
@@ -87,14 +99,14 @@ interface Exchange {
     privateSpotPostTraceUserMyFollowers(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceConfigSetProductCode(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceUserRemoveTrader(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostTraceGetRemovableFollower(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostTraceUserRemoveFollower(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceProfitTotalProfitInfo(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceProfitTotalProfitList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceProfitProfitHisList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceProfitProfitHisDetailList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceProfitWaitProfitDetailList(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceUserGetTraderInfo(params?: {}): Promise<implicitReturnType>;
-    privateSpotPostConvertQuotedPrice(params?: {}): Promise<implicitReturnType>;
-    privateSpotPostConvertTrade(params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccount(params?: {}): Promise<implicitReturnType>;
     privateMixGetAccountAccounts(params?: {}): Promise<implicitReturnType>;
     privateMixGetPositionSinglePosition(params?: {}): Promise<implicitReturnType>;
@@ -152,6 +164,7 @@ interface Exchange {
     privateMixPostPlanCancelAllPlan(params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceCloseTrackOrder(params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceModifyTPSL(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceCloseTrackOrderBySymbol(params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceSetUpCopySymbols(params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceFollowerSetBatchTraceConfig(params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceFollowerCloseByTrackingNo(params?: {}): Promise<implicitReturnType>;
@@ -188,6 +201,9 @@ interface Exchange {
     privateBrokerGetAccountSubEmail(params?: {}): Promise<implicitReturnType>;
     privateBrokerGetAccountSubSpotAssets(params?: {}): Promise<implicitReturnType>;
     privateBrokerGetAccountSubFutureAssets(params?: {}): Promise<implicitReturnType>;
+    privateBrokerGetAccountSubaccountTransfer(params?: {}): Promise<implicitReturnType>;
+    privateBrokerGetAccountSubaccountDeposit(params?: {}): Promise<implicitReturnType>;
+    privateBrokerGetAccountSubaccountWithdrawal(params?: {}): Promise<implicitReturnType>;
     privateBrokerGetAccountSubApiList(params?: {}): Promise<implicitReturnType>;
     privateBrokerPostAccountSubCreate(params?: {}): Promise<implicitReturnType>;
     privateBrokerPostAccountSubModify(params?: {}): Promise<implicitReturnType>;
@@ -225,6 +241,10 @@ interface Exchange {
     privateMarginPostIsolatedAccountRiskRate(params?: {}): Promise<implicitReturnType>;
     privateMarginPostCrossAccountMaxBorrowableAmount(params?: {}): Promise<implicitReturnType>;
     privateMarginPostIsolatedAccountMaxBorrowableAmount(params?: {}): Promise<implicitReturnType>;
+    privateMarginPostIsolatedAccountFlashRepay(params?: {}): Promise<implicitReturnType>;
+    privateMarginPostIsolatedAccountQueryFlashRepayStatus(params?: {}): Promise<implicitReturnType>;
+    privateMarginPostCrossAccountFlashRepay(params?: {}): Promise<implicitReturnType>;
+    privateMarginPostCrossAccountQueryFlashRepayStatus(params?: {}): Promise<implicitReturnType>;
     privateMarginPostIsolatedOrderPlaceOrder(params?: {}): Promise<implicitReturnType>;
     privateMarginPostIsolatedOrderBatchPlaceOrder(params?: {}): Promise<implicitReturnType>;
     privateMarginPostIsolatedOrderCancelOrder(params?: {}): Promise<implicitReturnType>;

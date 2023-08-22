@@ -30,6 +30,7 @@ class coinone(Exchange, ImplicitAPI):
             # 'enableRateLimit': False,
             'rateLimit': 667,
             'version': 'v2',
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -80,6 +81,7 @@ class coinone(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'ws': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',

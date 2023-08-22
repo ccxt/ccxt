@@ -26,6 +26,7 @@ error_hierarchy = {
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
+                'ContractUnavailable': {},
             },
             'NotSupported': {},
         },
@@ -131,6 +132,10 @@ class DuplicateOrderId(InvalidOrder):
     pass
 
 
+class ContractUnavailable(InvalidOrder):
+    pass
+
+
 class NotSupported(ExchangeError):
     pass
 
@@ -187,6 +192,7 @@ __all__ = [
     'OrderImmediatelyFillable',
     'OrderNotFillable',
     'DuplicateOrderId',
+    'ContractUnavailable',
     'NotSupported',
     'NetworkError',
     'DDoSProtection',

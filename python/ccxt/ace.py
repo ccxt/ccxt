@@ -84,6 +84,7 @@ class ace(Exchange, ImplicitAPI):
                 'setMarginMode': False,
                 'transfer': False,
                 'withdraw': False,
+                'ws': False,
             },
             'timeframes': {
                 '1m': 1,

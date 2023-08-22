@@ -714,6 +714,7 @@ class cex(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://cex.io/rest-api#place-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -728,7 +729,10 @@ class cex(Exchange, ImplicitAPI):
                 if price is None:
                     raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                 else:
-                    amount = amount * price
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    baseAmount = Precise.string_mul(amountString, priceString)
+                    amount = self.parse_number(baseAmount)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -752,15 +756,15 @@ class cex(Exchange, ImplicitAPI):
         #         "complete": False
         #     }
         #
-        placedAmount = self.safe_number(response, 'amount')
-        remaining = self.safe_number(response, 'pending')
+        placedAmount = self.safe_string(response, 'amount')
+        remaining = self.safe_string(response, 'pending')
         timestamp = self.safe_value(response, 'time')
         complete = self.safe_value(response, 'complete')
         status = 'closed' if complete else 'open'
         filled = None
         if (placedAmount is not None) and (remaining is not None):
-            filled = max(placedAmount - remaining, 0)
-        return {
+            filled = Precise.string_max(Precise.string_sub(placedAmount, remaining), '0')
+        return self.safe_order({
             'id': self.safe_string(response, 'id'),
             'info': response,
             'clientOrderId': None,
@@ -771,7 +775,7 @@ class cex(Exchange, ImplicitAPI):
             'side': self.safe_string(response, 'type'),
             'symbol': market['symbol'],
             'status': status,
-            'price': self.safe_number(response, 'price'),
+            'price': self.safe_string(response, 'price'),
             'amount': placedAmount,
             'cost': None,
             'average': None,
@@ -779,7 +783,7 @@ class cex(Exchange, ImplicitAPI):
             'filled': filled,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -793,7 +797,9 @@ class cex(Exchange, ImplicitAPI):
         request = {
             'id': id,
         }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        response = await self.privatePostCancelOrder(self.extend(request, params))
+        # 'true'
+        return self.extend(self.parse_order({}), {'info': response, 'type': None, 'id': id, 'status': 'canceled'})
 
     def parse_order(self, order, market=None):
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
@@ -802,7 +808,7 @@ class cex(Exchange, ImplicitAPI):
         if isinstance(timestamp, str) and timestamp.find('T') >= 0:
             # ISO8601 string
             timestamp = self.parse8601(timestamp)
-        else:
+        elif timestamp is not None:
             # either integer or string integer
             timestamp = int(timestamp)
         symbol = None
@@ -811,53 +817,57 @@ class cex(Exchange, ImplicitAPI):
             quoteId = self.safe_string(order, 'symbol2')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            if (base is not None) and (quote is not None):
+                symbol = base + '/' + quote
             if symbol in self.markets:
                 market = self.market(symbol)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
+        price = self.safe_string(order, 'price')
+        amount = self.omit_zero(self.safe_string(order, 'amount'))
         # sell orders can have a negative amount
         # https://github.com/ccxt/ccxt/issues/5338
         if amount is not None:
-            amount = abs(amount)
-        remaining = self.safe_number_2(order, 'pending', 'remains')
-        filled = amount - remaining
+            amount = Precise.string_abs(amount)
+        elif market is not None:
+            amountKey = 'a:' + market['base'] + 'cds:'
+            amount = Precise.string_abs(self.safe_string(order, amountKey))
+        remaining = self.safe_string_2(order, 'pending', 'remains')
+        filled = Precise.string_sub(amount, remaining)
         fee = None
         cost = None
         if market is not None:
             symbol = market['symbol']
-            taCost = self.safe_number(order, 'ta:' + market['quote'])
-            ttaCost = self.safe_number(order, 'tta:' + market['quote'])
-            cost = self.sum(taCost, ttaCost)
+            taCost = self.safe_string(order, 'ta:' + market['quote'])
+            ttaCost = self.safe_string(order, 'tta:' + market['quote'])
+            cost = Precise.string_add(taCost, ttaCost)
             baseFee = 'fa:' + market['base']
             baseTakerFee = 'tfa:' + market['base']
             quoteFee = 'fa:' + market['quote']
             quoteTakerFee = 'tfa:' + market['quote']
-            feeRate = self.safe_number(order, 'tradingFeeMaker')
+            feeRate = self.safe_string(order, 'tradingFeeMaker')
             if not feeRate:
-                feeRate = self.safe_number(order, 'tradingFeeTaker', feeRate)
+                feeRate = self.safe_string(order, 'tradingFeeTaker', feeRate)
             if feeRate:
-                feeRate = feeRate / 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = Precise.string_div(feeRate, '100')  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
             if (baseFee in order) or (baseTakerFee in order):
                 baseFeeCost = self.safe_number_2(order, baseFee, baseTakerFee)
                 fee = {
                     'currency': market['base'],
-                    'rate': feeRate,
+                    'rate': self.parse_number(feeRate),
                     'cost': baseFeeCost,
                 }
             elif (quoteFee in order) or (quoteTakerFee in order):
                 quoteFeeCost = self.safe_number_2(order, quoteFee, quoteTakerFee)
                 fee = {
                     'currency': market['quote'],
-                    'rate': feeRate,
+                    'rate': self.parse_number(feeRate),
                     'cost': quoteFeeCost,
                 }
         if not cost:
-            cost = price * filled
-        side = order['type']
+            cost = Precise.string_mul(price, filled)
+        side = self.safe_string(order, 'type')
         trades = None
-        orderId = order['id']
+        orderId = self.safe_string(order, 'id')
         if 'vtx' in order:
             trades = []
             for i in range(0, len(order['vtx'])):
@@ -883,7 +893,7 @@ class cex(Exchange, ImplicitAPI):
                     #     cs: '0.42580261',
                     #     ds: 0}
                     continue
-                tradePrice = self.safe_number(item, 'price')
+                tradePrice = self.safe_string(item, 'price')
                 if tradePrice is None:
                     # self represents the order
                     #   {
@@ -985,34 +995,35 @@ class cex(Exchange, ImplicitAPI):
                 #     "fee_amount": "0.03"
                 #   }
                 tradeTimestamp = self.parse8601(self.safe_string(item, 'time'))
-                tradeAmount = self.safe_number(item, 'amount')
-                feeCost = self.safe_number(item, 'fee_amount')
-                absTradeAmount = -tradeAmount if (tradeAmount < 0) else tradeAmount
+                tradeAmount = self.safe_string(item, 'amount')
+                feeCost = self.safe_string(item, 'fee_amount')
+                absTradeAmount = Precise.string_abs(tradeAmount)
                 tradeCost = None
                 if tradeSide == 'sell':
                     tradeCost = absTradeAmount
-                    absTradeAmount = self.sum(feeCost, tradeCost) / tradePrice
+                    absTradeAmount = Precise.string_div(Precise.string_add(feeCost, tradeCost), tradePrice)
                 else:
-                    tradeCost = absTradeAmount * tradePrice
+                    tradeCost = Precise.string_mul(absTradeAmount, tradePrice)
                 trades.append({
                     'id': self.safe_string(item, 'id'),
                     'timestamp': tradeTimestamp,
                     'datetime': self.iso8601(tradeTimestamp),
                     'order': orderId,
                     'symbol': symbol,
-                    'price': tradePrice,
-                    'amount': absTradeAmount,
-                    'cost': tradeCost,
+                    'price': self.parse_number(tradePrice),
+                    'amount': self.parse_number(absTradeAmount),
+                    'cost': self.parse_number(tradeCost),
                     'side': tradeSide,
                     'fee': {
-                        'cost': feeCost,
+                        'cost': self.parse_number(feeCost),
                         'currency': market['quote'],
                     },
                     'info': item,
                     'type': None,
                     'takerOrMaker': None,
                 })
-        return {
+        return self.safe_order({
+            'info': order,
             'id': orderId,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -1033,9 +1044,8 @@ class cex(Exchange, ImplicitAPI):
             'remaining': remaining,
             'trades': trades,
             'fee': fee,
-            'info': order,
             'average': None,
-        }
+        })
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1355,10 +1365,10 @@ class cex(Exchange, ImplicitAPI):
             baseAmount = self.safe_number(order, 'a:' + baseId + ':cds')
             quoteAmount = self.safe_number(order, 'a:' + quoteId + ':cds')
             fee = self.safe_number(order, 'f:' + quoteId + ':cds')
-            amount = self.safe_number(order, 'amount')
-            price = self.safe_number(order, 'price')
-            remaining = self.safe_number(order, 'remains')
-            filled = amount - remaining
+            amount = self.safe_string(order, 'amount')
+            price = self.safe_string(order, 'price')
+            remaining = self.safe_string(order, 'remains')
+            filled = Precise.string_sub(amount, remaining)
             orderAmount = None
             cost = None
             average = None
@@ -1367,23 +1377,24 @@ class cex(Exchange, ImplicitAPI):
                 type = 'market'
                 orderAmount = baseAmount
                 cost = quoteAmount
-                average = orderAmount / cost
+                average = Precise.string_div(orderAmount, cost)
             else:
-                ta = self.safe_number(order, 'ta:' + quoteId, 0)
-                tta = self.safe_number(order, 'tta:' + quoteId, 0)
-                fa = self.safe_number(order, 'fa:' + quoteId, 0)
-                tfa = self.safe_number(order, 'tfa:' + quoteId, 0)
+                ta = self.safe_string(order, 'ta:' + quoteId, '0')
+                tta = self.safe_string(order, 'tta:' + quoteId, '0')
+                fa = self.safe_string(order, 'fa:' + quoteId, '0')
+                tfa = self.safe_string(order, 'tfa:' + quoteId, '0')
                 if side == 'sell':
-                    cost = self.sum(self.sum(ta, tta), self.sum(fa, tfa))
+                    cost = Precise.string_add(Precise.string_add(ta, tta), Precise.string_add(fa, tfa))
                 else:
-                    cost = self.sum(ta, tta) - self.sum(fa, tfa)
+                    cost = Precise.string_sub(Precise.string_add(ta, tta), Precise.string_add(fa, tfa))
                 type = 'limit'
                 orderAmount = amount
-                average = cost / filled
+                average = Precise.string_div(cost, filled)
             time = self.safe_string(order, 'time')
             lastTxTime = self.safe_string(order, 'lastTxTime')
             timestamp = self.parse8601(time)
-            results.append({
+            safeOrder = self.safe_order({
+                'info': order,
                 'id': self.safe_string(order, 'id'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -1402,8 +1413,8 @@ class cex(Exchange, ImplicitAPI):
                     'cost': fee,
                     'currency': quote,
                 },
-                'info': order,
             })
+            results.append(safeOrder)
         return results
 
     def parse_order_status(self, status):

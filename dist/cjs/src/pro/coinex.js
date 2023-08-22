@@ -661,7 +661,7 @@ class coinex extends coinex$1 {
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
-        const timestamp = this.safeNumber(orderBook, 'time');
+        const timestamp = this.safeInteger(orderBook, 'time');
         const currentOrderBook = this.safeValue(this.orderbooks, symbol);
         if (fullOrderBook) {
             const snapshot = this.parseOrderBook(orderBook, symbol, timestamp);

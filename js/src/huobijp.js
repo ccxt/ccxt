@@ -771,17 +771,15 @@ export default class huobijp extends Exchange {
             type = typeParts[1];
         }
         const takerOrMaker = this.safeString(trade, 'role');
-        const priceString = this.safeString(trade, 'price');
-        const amountString = this.safeString2(trade, 'filled-amount', 'amount');
-        const price = this.parseNumber(priceString);
-        const amount = this.parseNumber(amountString);
-        const cost = this.parseNumber(Precise.stringMul(priceString, amountString));
+        const price = this.safeString(trade, 'price');
+        const amount = this.safeString2(trade, 'filled-amount', 'amount');
+        const cost = Precise.stringMul(price, amount);
         let fee = undefined;
-        let feeCost = this.safeNumber(trade, 'filled-fees');
+        let feeCost = this.safeString(trade, 'filled-fees');
         let feeCurrency = this.safeCurrencyCode(this.safeString(trade, 'fee-currency'));
-        const filledPoints = this.safeNumber(trade, 'filled-points');
+        const filledPoints = this.safeString(trade, 'filled-points');
         if (filledPoints !== undefined) {
-            if ((feeCost === undefined) || (feeCost === 0.0)) {
+            if ((feeCost === undefined) || (Precise.stringEq(feeCost, '0.0'))) {
                 feeCost = filledPoints;
                 feeCurrency = this.safeCurrencyCode(this.safeString(trade, 'fee-deduct-currency'));
             }
@@ -794,13 +792,13 @@ export default class huobijp extends Exchange {
         }
         const tradeId = this.safeString2(trade, 'trade-id', 'tradeId');
         const id = this.safeString(trade, 'id', tradeId);
-        return {
-            'id': id,
+        return this.safeTrade({
             'info': trade,
+            'id': id,
+            'symbol': symbol,
             'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': symbol,
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -808,7 +806,7 @@ export default class huobijp extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        });
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

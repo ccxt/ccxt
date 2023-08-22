@@ -38,6 +38,9 @@ class idex(ccxt.async_support.idex):
                 'watchOrderBookLimit': 1000,  # default limit
                 'orderBookSubscriptions': {},
                 'token': None,
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
                 'fetchOrderBookSnapshotMaxAttempts': 10,
                 'fetchOrderBookSnapshotMaxDelay': 10000,  # raise if there are no orders in 10 seconds
             },
@@ -198,17 +201,17 @@ class idex(ccxt.async_support.idex):
         marketId = self.safe_string(trade, 'm')
         symbol = self.safe_symbol(marketId)
         id = self.safe_string(trade, 'i')
-        price = self.safe_float(trade, 'p')
-        amount = self.safe_float(trade, 'q')
-        cost = self.safe_float(trade, 'Q')
+        price = self.safe_string(trade, 'p')
+        amount = self.safe_string(trade, 'q')
+        cost = self.safe_string(trade, 'Q')
         timestamp = self.safe_integer(trade, 't')
         side = self.safe_string(trade, 's')
         fee = {
             'currency': self.safe_string(trade, 'a'),
-            'cost': self.safe_float(trade, 'f'),
+            'cost': self.safe_string(trade, 'f'),
         }
         takerOrMarker = self.safe_string(trade, 'l')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -222,7 +225,7 @@ class idex(ccxt.async_support.idex):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }
+        })
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -333,7 +336,7 @@ class idex(ccxt.async_support.idex):
         try:
             limit = self.safe_integer(subscription, 'limit', 0)
             # 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
-            snapshot = await self.fetch_order_book(symbol, limit)
+            snapshot = await self.fetch_rest_order_book_safe(symbol, limit)
             firstBuffered = self.safe_value(orderbook.cache, 0)
             firstData = self.safe_value(firstBuffered, 'data')
             firstNonce = self.safe_integer(firstData, 'u')
@@ -540,23 +543,17 @@ class idex(ccxt.async_support.idex):
         marketId = self.safe_string(order, 'm')
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(order, 't')
-        fills = self.safe_value(order, 'F')
+        fills = self.safe_value(order, 'F', [])
         trades = []
         for i in range(0, len(fills)):
             trades.append(self.parse_ws_trade(fills[i]))
         id = self.safe_string(order, 'i')
         side = self.safe_string(order, 's')
         orderType = self.safe_string(order, 'o')
-        amount = self.safe_float(order, 'q')
-        filled = self.safe_float(order, 'z')
-        remaining = None
-        if (amount is not None) and (filled is not None):
-            remaining = amount - filled
-        average = self.safe_float(order, 'v')
-        price = self.safe_float(order, 'price', average)  # for market orders
-        cost = None
-        if (amount is not None) and (price is not None):
-            cost = amount * price
+        amount = self.safe_string(order, 'q')
+        filled = self.safe_string(order, 'z')
+        average = self.safe_string(order, 'v')
+        price = self.safe_string(order, 'price', average)  # for market orders
         rawStatus = self.safe_string(order, 'X')
         status = self.parse_order_status(rawStatus)
         fee = {
@@ -567,9 +564,10 @@ class idex(ccxt.async_support.idex):
         for i in range(0, len(trades)):
             lastTrade = trades[i]
             fee['currency'] = lastTrade['fee']['currency']
-            fee['cost'] = self.sum(fee['cost'], lastTrade['fee']['cost'])
+            stringLastTradeFee = lastTrade['fee']['cost']
+            fee['cost'] = Precise.string_add(fee['cost'], stringLastTradeFee)
         lastTradeTimestamp = self.safe_integer(lastTrade, 'timestamp')
-        parsedOrder = {
+        parsedOrder = self.safe_order({
             'info': message,
             'id': id,
             'clientOrderId': None,
@@ -579,18 +577,18 @@ class idex(ccxt.async_support.idex):
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': price,
+            'price': self.parse_number(price),
             'stopPrice': None,
             'triggerPrice': None,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'amount': self.parse_number(amount),
+            'cost': None,
+            'average': self.parse_number(average),
+            'filled': self.parse_number(filled),
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)

@@ -201,6 +201,8 @@ class woo extends Exchange {
                             'accountinfo' => 60,
                             'positions' => 3.33,
                             'buypower' => 1,
+                            'referrals' => 60,
+                            'referral_rewards' => 60,
                         ),
                         'post' => array(
                             'algo/order' => 5,
@@ -2543,6 +2545,9 @@ class woo extends Exchange {
             'marginType' => null,
             'side' => $side,
             'percentage' => null,
+            'hedged' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

@@ -323,6 +323,8 @@ interface Exchange {
     contractPrivateGetApiV1ContractApiTradingStatus (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetSwapApiV1SwapApiTradingStatus (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV1SwapApiTradingStatus (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetLinearSwapApiV1SwapCrossPositionSide (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetLinearSwapApiV1SwapPositionSide (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType (params?: {}): Promise<implicitReturnType>;

@@ -20,6 +20,7 @@ class btctradeua extends Exchange {
             'name' => 'BTC Trade UA',
             'countries' => array( 'UA' ), // Ukraine,
             'rateLimit' => 3000,
+            'pro' => false,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -63,6 +64,7 @@ class btctradeua extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'signIn' => true,
+                'ws' => false,
             ),
             'urls' => array(
                 'referral' => 'https://btc-trade.com.ua/registration/22689',

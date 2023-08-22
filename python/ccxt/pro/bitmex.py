@@ -545,12 +545,13 @@ class bitmex(ccxt.async_support.bitmex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             self.check_required_credentials()
             timestamp = self.milliseconds()
             payload = 'GET' + '/realtime' + str(timestamp)
@@ -564,8 +565,7 @@ class bitmex(ccxt.async_support.bitmex):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     def handle_authentication_message(self, client: Client, message):
@@ -573,7 +573,8 @@ class bitmex(ccxt.async_support.bitmex):
         messageHash = 'authenticated'
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
-            client.resolve(message, messageHash)
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
         else:
             error = AuthenticationError(self.json(message))
             client.reject(error, messageHash)
@@ -1126,7 +1127,7 @@ class bitmex(ccxt.async_support.bitmex):
             orderbook['symbol'] = symbol
             for i in range(0, len(data)):
                 price = self.safe_float(data[i], 'price')
-                size = self.safe_float(data[i], 'size')
+                size = self.convertFromRawQuantity(symbol, self.safe_string(data[i], 'size'))
                 id = self.safe_string(data[i], 'id')
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'
@@ -1147,8 +1148,8 @@ class bitmex(ccxt.async_support.bitmex):
                 market = self.safe_market(marketId)
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
-                price = self.safe_float(data[i], 'price')
-                size = 0 if (action == 'delete') else self.safe_float(data[i], 'size', 0)
+                price = self.safe_number(data[i], 'price')
+                size = 0 if (action == 'delete') else self.convertFromRawQuantity(symbol, self.safe_string(data[i], 'size', '0'))
                 id = self.safe_string(data[i], 'id')
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'

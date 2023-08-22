@@ -68,7 +68,7 @@ export default class gate extends gateRest {
                 'watchOrderBook': {
                     'interval': '100ms',
                     'snapshotDelay': 10,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'watchBalance': {
                     'settle': 'usdt',

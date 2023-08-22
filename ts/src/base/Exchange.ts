@@ -71,6 +71,7 @@ const {
     , safeStringLower2
     , yymmdd
     , base58ToBinary
+    , binaryToBase58
     , safeTimestamp2
     , rawencode
     , keysort
@@ -394,6 +395,7 @@ export default class Exchange {
     uuid22 = uuid22
     safeIntegerProduct2 = safeIntegerProduct2
     safeIntegerProduct = safeIntegerProduct
+    binaryToBase58 = binaryToBase58
     base58ToBinary = base58ToBinary
     base64ToBinary = base64ToBinary
     safeTimestamp2 = safeTimestamp2
@@ -1105,20 +1107,6 @@ export default class Exchange {
         }
     }
 
-    // method to override
-
-    findTimeframe (timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
-        const keys = Object.keys (timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
-
     spawn (method, ... args): Future {
         const future = createFuture ()
         method.apply (this, args).then (future.resolve).catch (future.reject)
@@ -1274,15 +1262,13 @@ export default class Exchange {
 
     async close () {
         const clients = Object.values (this.clients || {});
+        const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
-            await client.close ();
+            closedClients.push(client.close ());
         }
-    }
-
-    handleDelta(bookside, delta, nonce = undefined) {
-        //stub
+        return Promise.all (closedClients);
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
@@ -1290,13 +1276,13 @@ export default class Exchange {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
-        const maxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        const maxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
         try {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
                 const cache = stored.cache;
-                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                const orderBook = await this.fetchRestOrderBookSafe (symbol, limit, params);
                 const index = this.getCacheIndex (orderBook, cache);
                 if (index >= 0) {
                     stored.reset (orderBook);
@@ -1313,18 +1299,6 @@ export default class Exchange {
             client.reject (e, messageHash);
             await this.loadOrderBook (client, messageHash, symbol, limit, params);
         }
-    }
-
-    handleDeltas (orderbook, deltas, nonce = undefined) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
-        }
-    }
-
-    // eslint-disable-next-line no-unused-vars
-    getCacheIndex (orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        return -1;
     }
 
     convertToBigInt(value: string) {
@@ -1388,6 +1362,35 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    handleDeltas (orderbook, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (orderbook, deltas[i]);
+        }
+    }
+
+    handleDelta (bookside, delta) {
+        throw new NotSupported (this.id + ' handleDelta not supported yet');
+    }
+
+    getCacheIndex (orderbook, deltas) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
+    }
+
+    findTimeframe (timeframe, timeframes = undefined) {
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
+        const keys = Object.keys (timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
 
     checkProxySettings (url, method, headers, body) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
@@ -1577,6 +1580,21 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
+    async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
+        const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
+            try {
+                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                return orderBook;
+            } catch (e) {
+                if ((i + 1) === fetchSnapshotMaxRetries) {
+                    throw e;
+                }
+            }
+        }
+        return undefined;
+    }
+
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
@@ -1658,7 +1676,7 @@ export default class Exchange {
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
-        throw new NotSupported (this.id + ' parseWsOHLCV() is not supported yet');
+        return this.parseOHLCV (ohlcv, market);
     }
 
     async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
@@ -4388,6 +4406,14 @@ export default class Exchange {
         const firstMarket = this.safeString (symbols, 0);
         const market = this.market (firstMarket);
         return market;
+    }
+
+    parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {
+        const results = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            results.push (this.parseWsOHLCV (ohlcvs[i], market));
+        }
+        return results;
     }
 
     async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {

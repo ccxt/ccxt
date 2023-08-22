@@ -20,6 +20,7 @@ class bl3p extends bl3p$1 {
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -63,6 +64,7 @@ class bl3p extends bl3p$1 {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',

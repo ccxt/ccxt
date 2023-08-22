@@ -1105,6 +1105,8 @@ export default class poloniexfutures extends Exchange {
             'marginMode': marginMode,
             'side': side,
             'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
 

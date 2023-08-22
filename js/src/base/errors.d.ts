@@ -49,6 +49,9 @@ declare class AddressPending extends InvalidAddress {
 declare class InvalidOrder extends ExchangeError {
     constructor(message: any);
 }
+declare class ContractUnavailable extends InvalidOrder {
+    constructor(message: any);
+}
 declare class OrderNotFound extends InvalidOrder {
     constructor(message: any);
 }
@@ -122,6 +125,7 @@ declare const errors: {
     RequestTimeout: typeof RequestTimeout;
     AuthenticationError: typeof AuthenticationError;
     AddressPending: typeof AddressPending;
+    ContractUnavailable: typeof ContractUnavailable;
 };
-export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
+export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable };
 export default errors;

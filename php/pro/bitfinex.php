@@ -171,16 +171,12 @@ class bitfinex extends \ccxt\async\bitfinex {
             $id = $this->safe_string($trade, $tradeLength - 4);
         }
         $timestamp = $this->safe_timestamp($trade, $tradeLength - 3);
-        $price = $this->safe_float($trade, $tradeLength - 2);
-        $amount = $this->safe_float($trade, $tradeLength - 1);
+        $price = $this->safe_string($trade, $tradeLength - 2);
+        $amount = $this->safe_string($trade, $tradeLength - 1);
         $side = null;
         if ($amount !== null) {
-            $side = ($amount > 0) ? 'buy' : 'sell';
-            $amount = abs($amount);
-        }
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
+            $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
+            $amount = Precise::string_abs($amount);
         }
         $seq = $this->safe_string($trade, 2);
         $parts = explode('-', $seq);
@@ -191,7 +187,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $symbol = $this->safe_symbol($marketId, $market);
         $takerOrMaker = null;
         $orderId = null;
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -203,9 +199,9 @@ class bitfinex extends \ccxt\async\bitfinex {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ));
     }
 
     public function handle_ticker(Client $client, $message, $subscription) {
@@ -359,13 +355,13 @@ class bitfinex extends \ccxt\async\bitfinex {
             $orderbook = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $id = $this->safe_string($message, 1);
-                $price = $this->safe_float($message, 2);
+                $price = $this->safe_string($message, 2);
                 $size = ($message[3] < 0) ? -$message[3] : $message[3];
                 $side = ($message[3] < 0) ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
                 // $price = 0 means that you have to remove the order from your book
-                $amount = ($price > 0) ? $size : 0;
-                $bookside->store ($price, $amount, $id);
+                $amount = Precise::string_gt($price, '0') ? $size : '0';
+                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $id);
             } else {
                 $size = ($message[3] < 0) ? -$message[3] : $message[3];
                 $side = ($message[3] < 0) ? 'asks' : 'bids';

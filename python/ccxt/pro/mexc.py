@@ -52,7 +52,7 @@ class mexc(ccxt.async_support.mexc):
                 },
                 'watchOrderBook': {
                     'snapshotDelay': 25,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'listenKey': None,
             },

@@ -2201,6 +2201,8 @@ class bitmex extends bitmex$1 {
             'marginMode': marginMode,
             'marginRatio': undefined,
             'percentage': this.safeNumber(position, 'unrealisedPnlPcnt'),
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

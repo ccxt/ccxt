@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.47'
+__version__ = '4.0.72'
 
 # -----------------------------------------------------------------------------
 
@@ -324,7 +324,7 @@ class Exchange(object):
         'fetchMarkets': True,
         'fetchMarkOHLCV': None,
         'fetchMyTrades': None,
-        'fetchOHLCV': 'emulated',
+        'fetchOHLCV': None,
         'fetchOpenOrder': None,
         'fetchOpenOrders': None,
         'fetchOrder': None,
@@ -1623,13 +1623,6 @@ class Exchange(object):
         else:
             return unsigned
 
-    def find_timeframe(self, timeframe, timeframes=None):
-        timeframes = timeframes if timeframes else self.timeframes
-        for key, value in timeframes.items():
-            if value == timeframe:
-                return key
-        return None
-
     def clone(self, obj):
         return obj if isinstance(obj, list) else self.extend(obj)
 
@@ -1694,6 +1687,27 @@ class Exchange(object):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def handle_deltas(self, orderbook, deltas):
+        for i in range(0, len(deltas)):
+            self.handle_delta(orderbook, deltas[i])
+
+    def handle_delta(self, bookside, delta):
+        raise NotSupported(self.id + ' handleDelta not supported yet')
+
+    def get_cache_index(self, orderbook, deltas):
+        # return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1
+
+    def find_timeframe(self, timeframe, timeframes=None):
+        if timeframes is None:
+            timeframes = self.timeframes
+        keys = list(timeframes.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if timeframes[key] == timeframe:
+                return key
+        return None
 
     def check_proxy_settings(self, url, method, headers, body):
         proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
@@ -1837,6 +1851,17 @@ class Exchange(object):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
+    def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
+        fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
+        for i in range(0, fetchSnapshotMaxRetries):
+            try:
+                orderBook = self.fetch_order_book(symbol, limit, params)
+                return orderBook
+            except Exception as e:
+                if (i + 1) == fetchSnapshotMaxRetries:
+                    raise e
+        return None
+
     def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
 
@@ -1898,7 +1923,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
 
     def parse_ws_ohlcv(self, ohlcv, market=None):
-        raise NotSupported(self.id + ' parseWsOHLCV() is not supported yet')
+        return self.parse_ohlcv(ohlcv, market)
 
     def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
@@ -4121,6 +4146,12 @@ class Exchange(object):
         firstMarket = self.safe_string(symbols, 0)
         market = self.market(firstMarket)
         return market
+
+    def parse_ws_ohlcvs(self, ohlcvs: List[object], market: Optional[Any] = None, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None):
+        results = []
+        for i in range(0, len(ohlcvs)):
+            results.append(self.parse_ws_ohlcv(ohlcvs[i], market))
+        return results
 
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

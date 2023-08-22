@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/bkex.js';
-import { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder, ExchangeNotAvailable } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
@@ -266,7 +266,8 @@ export default class bkex extends Exchange {
                 'broad': {
                     'Not Enough balance': InsufficientFunds,
                     'Order does not exist': InvalidOrder,
-                    'System busy, please try again later': BadRequest, // in my tests, this was thrown mostly when request was bad, not the problem of exchange. It is easily reproduced in 'cancelOrders'
+                    'System busy, please try again later': BadRequest,
+                    'System busy. Please try again later': ExchangeNotAvailable, // as seen https://app.travis-ci.com/github/ccxt/ccxt/builds/265039537#L2152
                 },
             },
         });

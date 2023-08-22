@@ -19,6 +19,7 @@ class bit2c extends bit2c$1 {
             'name': 'Bit2C',
             'countries': ['IL'],
             'rateLimit': 3000,
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -67,6 +68,7 @@ class bit2c extends bit2c$1 {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -424,7 +426,9 @@ class bit2c extends bit2c$1 {
         }
         else {
             request['Price'] = price;
-            request['Total'] = amount * price;
+            const amountString = this.numberToString(amount);
+            const priceString = this.numberToString(price);
+            request['Total'] = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
             request['IsBid'] = (side === 'buy');
         }
         const response = await this[method](this.extend(request, params));

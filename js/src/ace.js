@@ -80,6 +80,7 @@ export default class ace extends Exchange {
                 'setMarginMode': false,
                 'transfer': false,
                 'withdraw': false,
+                'ws': false,
             },
             'timeframes': {
                 '1m': 1,

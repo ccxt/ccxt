@@ -50,7 +50,7 @@ class mexc extends \ccxt\async\mexc {
                 ),
                 'watchOrderBook' => array(
                     'snapshotDelay' => 25,
-                    'maxRetries' => 3,
+                    'snapshotMaxRetries' => 3,
                 ),
                 'listenKey' => null,
             ),

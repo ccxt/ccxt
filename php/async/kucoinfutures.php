@@ -83,6 +83,7 @@ class kucoinfutures extends kucoin {
                 'fetchTrades' => true,
                 'fetchTransactionFee' => false,
                 'fetchWithdrawals' => true,
+                'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => true,
                 'withdraw' => null,
@@ -1092,6 +1093,8 @@ class kucoinfutures extends kucoin {
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

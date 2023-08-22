@@ -49,6 +49,9 @@ class bitpanda(Exchange, ImplicitAPI):
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -1440,12 +1443,14 @@ class bitpanda(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://docs.onetrading.com/#create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitpanda api endpoint
+        :param float [params.triggerPrice]: bitpanda only does stop limit orders and does not do stop market
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1466,12 +1471,15 @@ class bitpanda(Exchange, ImplicitAPI):
         priceIsRequired = False
         if uppercaseType == 'LIMIT' or uppercaseType == 'STOP':
             priceIsRequired = True
-        if uppercaseType == 'STOP':
-            triggerPrice = self.safe_number(params, 'trigger_price')
-            if triggerPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a trigger_price param for ' + type + ' orders')
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'trigger_price', 'stopPrice'])
+        if triggerPrice is not None:
+            if uppercaseType == 'MARKET':
+                raise BadRequest(self.id + ' createOrder() cannot place stop market orders, only stop limit')
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
-            params = self.omit(params, 'trigger_price')
+            request['type'] = 'STOP'
+            params = self.omit(params, ['triggerPrice', 'trigger_price', 'stopPrice'])
+        elif uppercaseType == 'STOP':
+            raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param for ' + type + ' orders')
         if priceIsRequired:
             request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')

@@ -3194,6 +3194,8 @@ class coinex extends coinex$1 {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
+            'stopLossPrice': this.safeNumber(position, 'stop_loss_price'),
+            'takeProfitPrice': this.safeNumber(position, 'take_profit_price'),
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {

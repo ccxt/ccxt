@@ -1052,11 +1052,11 @@ class bithumb extends Exchange {
             if ($status !== null) {
                 if ($status === '0000') {
                     return null; // no error
-                } elseif ($message === '거래 진행중인 내역이 존재하지 않습니다') {
+                } elseif ($message === '거래 진행중인 내역이 존재하지 않습니다.') {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return null; // no error
                 }
-                $feedback = $this->id . ' ' . $body;
+                $feedback = $this->id . ' ' . $message;
                 $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);
                 $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
                 throw new ExchangeError($feedback);

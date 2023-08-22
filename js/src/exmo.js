@@ -1237,6 +1237,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#createOrder
          * @description create a trade order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1249,10 +1250,7 @@ export default class exmo extends Exchange {
         const market = this.market(symbol);
         const prefix = (type === 'market') ? (type + '_') : '';
         const orderType = prefix + side;
-        let orderPrice = price;
-        if ((type === 'market') && (price === undefined)) {
-            orderPrice = 0;
-        }
+        const isMarket = (type === 'market') && (price === undefined);
         const request = {
             'pair': market['id'],
             // 'leverage': 2,
@@ -1260,7 +1258,7 @@ export default class exmo extends Exchange {
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type': orderType,
-            'price': this.priceToPrecision(market['symbol'], orderPrice),
+            'price': isMarket ? 0 : this.priceToPrecision(market['symbol'], price),
             // 'stop_price': this.priceToPrecision (symbol, stopPrice),
             // 'distance': 0, // distance for trailing stop orders
             // 'expire': 0, // expiration timestamp in UTC timezone for the order, unless expire is 0
@@ -1291,29 +1289,7 @@ export default class exmo extends Exchange {
             }
         }
         const response = await this[method](this.extend(request, params));
-        const id = this.safeString(response, 'order_id');
-        const timestamp = this.milliseconds();
-        const status = 'open';
-        return {
-            'id': id,
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': undefined,
-            'amount': amount,
-            'remaining': amount,
-            'filled': 0.0,
-            'fee': undefined,
-            'trades': undefined,
-            'clientOrderId': clientOrderId,
-            'average': undefined,
-        };
+        return this.parseOrder(response, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1517,7 +1493,7 @@ export default class exmo extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,
-            'type': 'limit',
+            'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,

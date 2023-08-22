@@ -46,7 +46,7 @@ class mexc extends mexc$1 {
                 },
                 'watchOrderBook': {
                     'snapshotDelay': 25,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'listenKey': undefined,
             },

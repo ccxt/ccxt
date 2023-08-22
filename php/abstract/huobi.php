@@ -949,6 +949,12 @@ abstract class huobi extends \ccxt\Exchange {
     public function contract_private_get_linear_swap_api_v1_swap_api_trading_status($params = array()) {
         return $this->request('linear-swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contract_private_get_linear_swap_api_v1_swap_cross_position_side($params = array()) {
+        return $this->request('linear-swap-api/v1/swap_cross_position_side', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_linear_swap_api_v1_swap_position_side($params = array()) {
+        return $this->request('linear-swap-api/v1/swap_position_side', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contract_private_get_linear_swap_api_v3_unified_account_info($params = array()) {
         return $this->request('linear-swap-api/v3/unified_account_info', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2547,6 +2553,12 @@ abstract class huobi extends \ccxt\Exchange {
     }
     public function contractPrivateGetLinearSwapApiV1SwapApiTradingStatus($params = array()) {
         return $this->request('linear-swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetLinearSwapApiV1SwapCrossPositionSide($params = array()) {
+        return $this->request('linear-swap-api/v1/swap_cross_position_side', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetLinearSwapApiV1SwapPositionSide($params = array()) {
+        return $this->request('linear-swap-api/v1/swap_position_side', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contractPrivateGetLinearSwapApiV3UnifiedAccountInfo($params = array()) {
         return $this->request('linear-swap-api/v3/unified_account_info', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));

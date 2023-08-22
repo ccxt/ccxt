@@ -23,6 +23,7 @@ class bl3p(Exchange, ImplicitAPI):
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -66,6 +67,7 @@ class bl3p(Exchange, ImplicitAPI):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
+                'ws': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',

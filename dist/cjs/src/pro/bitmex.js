@@ -548,12 +548,13 @@ class bitmex extends bitmex$1 {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const payload = 'GET' + '/realtime' + timestamp.toString();
@@ -567,8 +568,7 @@ class bitmex extends bitmex$1 {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -577,7 +577,8 @@ class bitmex extends bitmex$1 {
         const messageHash = 'authenticated';
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            client.resolve(message, messageHash);
+            const future = this.safeValue(client.futures, messageHash);
+            future.resolve(true);
         }
         else {
             const error = new errors.AuthenticationError(this.json(message));
@@ -1165,7 +1166,7 @@ class bitmex extends bitmex$1 {
             orderbook['symbol'] = symbol;
             for (let i = 0; i < data.length; i++) {
                 const price = this.safeFloat(data[i], 'price');
-                const size = this.safeFloat(data[i], 'size');
+                const size = this.convertFromRawQuantity(symbol, this.safeString(data[i], 'size'));
                 const id = this.safeString(data[i], 'id');
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
@@ -1189,8 +1190,8 @@ class bitmex extends bitmex$1 {
                 const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
-                const price = this.safeFloat(data[i], 'price');
-                const size = (action === 'delete') ? 0 : this.safeFloat(data[i], 'size', 0);
+                const price = this.safeNumber(data[i], 'price');
+                const size = (action === 'delete') ? 0 : this.convertFromRawQuantity(symbol, this.safeString(data[i], 'size', '0'));
                 const id = this.safeString(data[i], 'id');
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';

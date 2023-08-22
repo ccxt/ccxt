@@ -30,7 +30,7 @@ export default class kucoin extends kucoinRest {
                 },
                 'watchOrderBook': {
                     'snapshotDelay': 5,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
             },
             'streaming': {
@@ -880,7 +880,16 @@ export default class kucoin extends kucoinRest {
     }
 
     handleErrorMessage (client: Client, message) {
-        return message;
+        //
+        //    {
+        //        id: '1',
+        //        type: 'error',
+        //        code: 415,
+        //        data: 'type is not supported'
+        //    }
+        //
+        const data = this.safeString (message, 'data', '');
+        this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
     }
 
     handleMessage (client: Client, message) {
@@ -891,6 +900,7 @@ export default class kucoin extends kucoinRest {
             'ack': this.handleSubscriptionStatus,
             'message': this.handleSubject,
             'pong': this.handlePong,
+            'error': this.handleErrorMessage,
         };
         const method = this.safeValue (methods, type);
         if (method !== undefined) {

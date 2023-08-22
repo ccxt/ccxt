@@ -263,7 +263,8 @@ class bkex extends bkex$1 {
                 'broad': {
                     'Not Enough balance': errors.InsufficientFunds,
                     'Order does not exist': errors.InvalidOrder,
-                    'System busy, please try again later': errors.BadRequest, // in my tests, this was thrown mostly when request was bad, not the problem of exchange. It is easily reproduced in 'cancelOrders'
+                    'System busy, please try again later': errors.BadRequest,
+                    'System busy. Please try again later': errors.ExchangeNotAvailable, // as seen https://app.travis-ci.com/github/ccxt/ccxt/builds/265039537#L2152
                 },
             },
         });

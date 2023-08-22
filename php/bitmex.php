@@ -2181,6 +2181,8 @@ class bitmex extends Exchange {
             'marginMode' => $marginMode,
             'marginRatio' => null,
             'percentage' => $this->safe_number($position, 'unrealisedPnlPcnt'),
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

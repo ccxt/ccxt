@@ -280,7 +280,8 @@ class bybit(ccxt.async_support.bybit):
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_value(message, 'data', {})
-        isSpot = self.safe_string(data, 's') is not None
+        isSpot = self.safe_string(data, 'openInterestValue') is None
+        type = 'spot' if isSpot else 'contract'
         symbol = None
         parsed = None
         if (updateType == 'snapshot') or isSpot:
@@ -290,7 +291,7 @@ class bybit(ccxt.async_support.bybit):
             topicParts = topic.split('.')
             topicLength = len(topicParts)
             marketId = self.safe_string(topicParts, topicLength - 1)
-            market = self.market(marketId)
+            market = self.safe_market(marketId, None, None, type)
             symbol = market['symbol']
             # update the info in place
             ticker = self.safe_value(self.tickers, symbol, {})

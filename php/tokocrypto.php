@@ -34,8 +34,8 @@ class tokocrypto extends Exchange {
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
-                'createStopLimitOrder' => false,
-                'createStopMarketOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -205,6 +205,7 @@ class tokocrypto extends Exchange {
             'precisionMode' => DECIMAL_PLACES,
             'options' => array(
                 // 'fetchTradesMethod' => 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
+                'createMarketBuyOrderRequiresPrice' => true,
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 // 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
@@ -774,7 +775,7 @@ class tokocrypto extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * @see https://www.tokocrypto.com/apidocs/#order-book
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the tokocrypto api endpoint
@@ -782,13 +783,18 @@ class tokocrypto extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['baseId'] . $market['quoteId'],
-        );
+        $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        $response = $this->binanceGetDepth (array_merge($request, $params));
+        $response = null;
+        if ($market['quote'] === 'USDT') {
+            $request['symbol'] = $market['baseId'] . $market['quoteId'];
+            $response = $this->binanceGetDepth (array_merge($request, $params));
+        } else {
+            $request['symbol'] = $market['id'];
+            $response = $this->publicGetOpenV1MarketDepth (array_merge($request, $params));
+        }
         //
         // future
         //
@@ -807,9 +813,21 @@ class tokocrypto extends Exchange {
         //             ["2493.71","12.054"],
         //         ]
         //     }
-        $timestamp = $this->safe_integer($response, 'T');
-        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
-        $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+        // type not 1
+        //     {
+        //         "code":0,
+        //         "msg":"Success",
+        //         "data":array(
+        //            "lastUpdateId":3204783,
+        //            "bids":array(),
+        //            "asks" => array()
+        //         ),
+        //         "timestamp":1692262634599
+        //     }
+        $data = $this->safe_value($response, 'data', $response);
+        $timestamp = $this->safe_integer_2($response, 'T', 'timestamp');
+        $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
+        $orderbook['nonce'] = $this->safe_integer($data, 'lastUpdateId');
         return $orderbook;
     }
 
@@ -973,12 +991,20 @@ class tokocrypto extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['baseId'] . $market['quoteId'],
+            'symbol' => $this->get_market_id_by_type($market),
             // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit' => 500,     // default = 500, maximum = 1000
         );
+        if ($market['quote'] !== 'USDT') {
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $responseInner = $this->publicGetOpenV1MarketTrades (array_merge($request, $params));
+            $data = $this->safe_value($responseInner, 'data', array());
+            return $this->parse_trades($data, $market, $since, $limit);
+        }
         $defaultMethod = 'binanceGetTrades';
         $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
         if (($method === 'binanceGetAggTrades') && ($since !== null)) {
@@ -1132,6 +1158,13 @@ class tokocrypto extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
+    public function get_market_id_by_type($market) {
+        if ($market['quote'] === 'USDT') {
+            return $market['baseId'] . $market['quoteId'];
+        }
+        return $market['id'];
+    }
+
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
@@ -1213,9 +1246,9 @@ class tokocrypto extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-         * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-$data
+         * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
@@ -1241,7 +1274,7 @@ class tokocrypto extends Exchange {
         if ($price === 'index') {
             $request['pair'] = $market['id'];   // Index $price takes this argument instead of $symbol
         } else {
-            $request['symbol'] = $market['baseId'] . $market['quoteId'];
+            $request['symbol'] = $this->get_market_id_by_type($market);
         }
         // $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
@@ -1250,7 +1283,12 @@ class tokocrypto extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->binanceGetKlines (array_merge($request, $params));
+        $response = null;
+        if ($market['quote'] === 'USDT') {
+            $response = $this->binanceGetKlines (array_merge($request, $params));
+        } else {
+            $response = $this->publicGetOpenV1MarketKlines (array_merge($request, $params));
+        }
         //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -1258,7 +1296,8 @@ class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', $response);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -1452,14 +1491,13 @@ class tokocrypto extends Exchange {
         $filled = $this->safe_string($order, 'executedQty', '0');
         $timestamp = $this->safe_integer($order, 'createTime');
         $average = $this->safe_string($order, 'avgPrice');
-        $price = $this->safe_string($order, 'price');
+        $price = $this->safe_string_2($order, 'price', 'executedPrice');
         $amount = $this->safe_string($order, 'origQty');
         // - Spot/Margin $market => cummulativeQuoteQty
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
-        $cost = $this->safe_string_2($order, 'cummulativeQuoteQty', 'cumQuote');
-        $cost = $this->safe_string($order, 'cumBase', $cost);
+        $cost = $this->safe_string_n($order, array( 'cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase' ));
         $id = $this->safe_string($order, 'orderId');
-        $type = $this->safe_string_lower($order, 'type');
+        $type = $this->parse_order_type($this->safe_string_lower($order, 'type'));
         $side = $this->safe_string_lower($order, 'side');
         if ($side === '0') {
             $side = 'buy';
@@ -1467,16 +1505,13 @@ class tokocrypto extends Exchange {
             $side = 'sell';
         }
         $fills = $this->safe_value($order, 'fills', array());
-        $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             $timeInForce = 'PO';
         }
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'PO');
-        if ($type === 'limit_maker') {
-            $type = 'limit';
-        }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
         return $this->safe_order(array(
@@ -1506,16 +1541,28 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
+    public function parse_order_type($status) {
+        $statuses = array(
+            '2' => 'market',
+            '1' => 'limit',
+            '4' => 'limit',
+            '7' => 'limit',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
-         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * create a trade order
+         * @see https://www.tokocrypto.com/apidocs/#new-order--signed
+         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the tokocrypto api endpoint
+         * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1591,18 +1638,19 @@ class tokocrypto extends Exchange {
         //     LIMIT_MAKER          quantity, $price
         //
         if ($uppercaseType === 'MARKET') {
-            $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
-            if ($quoteOrderQty) {
-                $quoteOrderQtyInner = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
-                $precision = $market['precision']['price'];
-                if ($quoteOrderQtyInner !== null) {
-                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyInner, TRUNCATE, $precision, $this->precisionMode);
-                    $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
-                } elseif ($price !== null) {
-                    $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
-                } else {
-                    $quantityIsRequired = true;
-                }
+            $quoteOrderQtyInner = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
+            if ($this->options['createMarketBuyOrderRequiresPrice'] && ($side === 'buy') && ($price === null) && ($quoteOrderQtyInner === null)) {
+                throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the $amount parameter');
+            }
+            $precision = $market['precision']['price'];
+            if ($quoteOrderQtyInner !== null) {
+                $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyInner, TRUNCATE, $precision, $this->precisionMode);
+                $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
+            } elseif ($price !== null) {
+                $amountString = $this->number_to_string($amount);
+                $priceString = $this->number_to_string($price);
+                $quoteOrderQty = Precise::string_mul($amountString, $priceString);
+                $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
             } else {
                 $quantityIsRequired = true;
             }

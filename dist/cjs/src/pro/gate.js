@@ -65,7 +65,7 @@ class gate extends gate$1 {
                 'watchOrderBook': {
                     'interval': '100ms',
                     'snapshotDelay': 10,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'watchBalance': {
                     'settle': 'usdt',

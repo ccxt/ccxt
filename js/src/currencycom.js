@@ -1858,41 +1858,69 @@ export default class currencycom extends Exchange {
         await this.loadMarkets();
         const response = await this.privateGetV2TradingPositions(params);
         //
-        // {
-        //     "positions": [
-        //       {
-        //         "accountId": "109698017416453793",
-        //         "id": "00a18490-0079-54c4-0000-0000803e73d3",
-        //         "instrumentId": "45463225268524228",
-        //         "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
-        //         "openQuantity": "13.6",
-        //         "openPrice": "0.75724",
-        //         "closeQuantity": "0.0",
-        //         "closePrice": "0",
-        //         "rpl": "-0.007723848",
-        //         "rplConverted": "0",
-        //         "upl": "-0.006664",
-        //         "uplConverted": "-0.006664",
-        //         "swap": "0",
-        //         "swapConverted": "0",
-        //         "fee": "-0.007723848",
-        //         "dividend": "0",
-        //         "margin": "0.2",
-        //         "state": "ACTIVE",
-        //         "currency": "USD",
-        //         "createdTimestamp": "1645473877236",
-        //         "openTimestamp": "1645473877193",
-        //         "type": "NET",
-        //         "cost": "2.0583600",
-        //         "symbol": "XRP/USD_LEVERAGE"
-        //       }
-        //     ]
-        // }
+        //    {
+        //        "positions": [
+        //          {
+        //            "accountId": "109698017416453793",
+        //            "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        //            "instrumentId": "45463225268524228",
+        //            "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        //            "openQuantity": "13.6",
+        //            "openPrice": "0.75724",
+        //            "closeQuantity": "0.0",
+        //            "closePrice": "0",
+        //            "rpl": "-0.007723848",
+        //            "rplConverted": "0",
+        //            "upl": "-0.006664",
+        //            "uplConverted": "-0.006664",
+        //            "swap": "0",
+        //            "swapConverted": "0",
+        //            "fee": "-0.007723848",
+        //            "dividend": "0",
+        //            "margin": "0.2",
+        //            "state": "ACTIVE",
+        //            "currency": "USD",
+        //            "createdTimestamp": "1645473877236",
+        //            "openTimestamp": "1645473877193",
+        //            "type": "NET",
+        //            "cost": "2.0583600",
+        //            "symbol": "XRP/USD_LEVERAGE"
+        //          }
+        //        ]
+        //    }
         //
         const data = this.safeValue(response, 'positions', []);
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
+        //
+        //    {
+        //        "accountId": "109698017416453793",
+        //        "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        //        "instrumentId": "45463225268524228",
+        //        "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        //        "openQuantity": "13.6",
+        //        "openPrice": "0.75724",
+        //        "closeQuantity": "0.0",
+        //        "closePrice": "0",
+        //        "rpl": "-0.007723848",
+        //        "rplConverted": "0",
+        //        "upl": "-0.006664",
+        //        "uplConverted": "-0.006664",
+        //        "swap": "0",
+        //        "swapConverted": "0",
+        //        "fee": "-0.007723848",
+        //        "dividend": "0",
+        //        "margin": "0.2",
+        //        "state": "ACTIVE",
+        //        "currency": "USD",
+        //        "createdTimestamp": "1645473877236",
+        //        "openTimestamp": "1645473877193",
+        //        "type": "NET",
+        //        "cost": "2.0583600",
+        //        "symbol": "XRP/USD_LEVERAGE"
+        //    }
+        //
         market = this.safeMarket(this.safeString(position, 'symbol'), market);
         const symbol = market['symbol'];
         const timestamp = this.safeNumber(position, 'createdTimestamp');
@@ -1904,6 +1932,7 @@ export default class currencycom extends Exchange {
         const marginCoeff = this.safeString(position, 'margin');
         const leverage = Precise.stringDiv('1', marginCoeff);
         return this.safePosition({
+            'info': position,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -1927,8 +1956,11 @@ export default class currencycom extends Exchange {
             'maintenanceMargin': this.parseNumber(marginCoeff),
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
-            'info': position,
             'id': undefined,
+            'unrealizedPnl': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

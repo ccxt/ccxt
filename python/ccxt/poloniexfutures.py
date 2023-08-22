@@ -1054,6 +1054,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'side': side,
             'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         }
 
     def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):

@@ -543,9 +543,9 @@ class alpaca(ccxt.async_support.alpaca):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
-            future = client.future('authenticated')
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             request = {
                 'action': 'auth',
                 'key': self.apiKey,
@@ -560,8 +560,8 @@ class alpaca(ccxt.async_support.alpaca):
                         'secret_key': self.secret,
                     },
                 }
-            self.spawn(self.watch, url, messageHash, request, messageHash, future)
-        return await future
+            self.watch(url, messageHash, request, messageHash, future)
+        return future
 
     def handle_error_message(self, client: Client, message):
         #
@@ -652,7 +652,8 @@ class alpaca(ccxt.async_support.alpaca):
         data = self.safe_value(message, 'data', {})
         status = self.safe_string(data, 'status')
         if T == 'success' or status == 'authorized':
-            client.resolve(message, 'authenticated')
+            promise = client.futures['authenticated']
+            promise.resolve(message)
             return
         raise AuthenticationError(self.id + ' failed to authenticate.')
 

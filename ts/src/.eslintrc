@@ -47,7 +47,7 @@
     "no-nested-ternary": "error",
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(exchange|headers|body|account|info|symbol|price|tag|side|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client)" }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(exchange|headers|body|account|info|symbol|price|tag|side|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta)" }],
     "new-parens": "error",
     "new-cap": ["error"],
     "no-var": "error",

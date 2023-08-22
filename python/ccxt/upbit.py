@@ -1312,10 +1312,10 @@ class upbit(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         status = self.parse_order_status(self.safe_string(order, 'state'))
         lastTradeTimestamp = None
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'volume')
-        remaining = self.safe_number(order, 'remaining_volume')
-        filled = self.safe_number(order, 'executed_volume')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'volume')
+        remaining = self.safe_string(order, 'remaining_volume')
+        filled = self.safe_string(order, 'executed_volume')
         cost = None
         if type == 'price':
             type = 'market'
@@ -1323,7 +1323,7 @@ class upbit(Exchange, ImplicitAPI):
             price = None
         average = None
         fee = None
-        feeCost = self.safe_number(order, 'paid_fee')
+        feeCost = self.safe_string(order, 'paid_fee')
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
         trades = self.safe_value(order, 'trades', [])
@@ -1338,23 +1338,23 @@ class upbit(Exchange, ImplicitAPI):
             getFeesFromTrades = False
             if feeCost is None:
                 getFeesFromTrades = True
-                feeCost = 0
-            cost = 0
+                feeCost = '0'
+            cost = '0'
             for i in range(0, numTrades):
                 trade = trades[i]
-                cost = self.sum(cost, trade['cost'])
+                cost = Precise.string_add(cost, self.safe_string(trade, 'cost'))
                 if getFeesFromTrades:
                     tradeFee = self.safe_value(trades[i], 'fee', {})
-                    tradeFeeCost = self.safe_number(tradeFee, 'cost')
+                    tradeFeeCost = self.safe_string(tradeFee, 'cost')
                     if tradeFeeCost is not None:
-                        feeCost = self.sum(feeCost, tradeFeeCost)
-            average = cost / filled
+                        feeCost = Precise.string_add(feeCost, tradeFeeCost)
+            average = Precise.string_div(cost, filled)
         if feeCost is not None:
             fee = {
                 'currency': market['quote'],
                 'cost': feeCost,
             }
-        result = {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -1369,16 +1369,15 @@ class upbit(Exchange, ImplicitAPI):
             'price': price,
             'stopPrice': None,
             'triggerPrice': None,
-            'cost': cost,
-            'average': average,
+            'cost': self.parse_number(cost),
+            'average': self.parse_number(average),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
-        return result
+        })
 
     def fetch_orders_by_state(self, state, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()

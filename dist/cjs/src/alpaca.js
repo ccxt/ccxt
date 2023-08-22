@@ -202,7 +202,8 @@ class alpaca extends alpaca$1 {
                     '40410000': errors.InvalidOrder,
                     '40010001': errors.BadRequest,
                     '40110000': errors.PermissionDenied,
-                    '40310000': errors.InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    '40310000': errors.InsufficientFunds,
+                    '42910000': errors.RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
                     'Invalid format for parameter': errors.BadRequest,

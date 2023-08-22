@@ -16,6 +16,7 @@ class bit2c extends Exchange {
             'name' => 'Bit2C',
             'countries' => array( 'IL' ), // Israel
             'rateLimit' => 3000,
+            'pro' => false,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -64,6 +65,7 @@ class bit2c extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
+                'ws' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -416,7 +418,9 @@ class bit2c extends Exchange {
             $method .= 'MarketPrice' . $this->capitalize($side);
         } else {
             $request['Price'] = $price;
-            $request['Total'] = $amount * $price;
+            $amountString = $this->number_to_string($amount);
+            $priceString = $this->number_to_string($price);
+            $request['Total'] = $this->parse_number(Precise::string_mul($amountString, $priceString));
             $request['IsBid'] = ($side === 'buy');
         }
         $response = $this->$method (array_merge($request, $params));

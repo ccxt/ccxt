@@ -444,7 +444,7 @@ class bitvavo extends bitvavo$1 {
             const withdrawal = (this.safeValue(currency, 'withdrawalStatus') === 'OK');
             const active = deposit && withdrawal;
             const withdrawFee = this.safeNumber(currency, 'withdrawalFee');
-            const precision = this.safeNumber(currency, 'decimals', 8);
+            const precision = this.safeInteger(currency, 'decimals', 8);
             const minWithdraw = this.safeNumber(currency, 'withdrawalMinAmount');
             // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
             if (isOneNetwork) {

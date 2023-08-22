@@ -33,6 +33,9 @@ class bitpanda extends Exchange {
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -1479,12 +1482,14 @@ class bitpanda extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://docs.onetrading.com/#create-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
+         * @param {float} [$params->triggerPrice] bitpanda only does stop limit orders and does not do stop $market
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1506,13 +1511,16 @@ class bitpanda extends Exchange {
         if ($uppercaseType === 'LIMIT' || $uppercaseType === 'STOP') {
             $priceIsRequired = true;
         }
-        if ($uppercaseType === 'STOP') {
-            $triggerPrice = $this->safe_number($params, 'trigger_price');
-            if ($triggerPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a trigger_price param for ' . $type . ' orders');
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'trigger_price', 'stopPrice' ));
+        if ($triggerPrice !== null) {
+            if ($uppercaseType === 'MARKET') {
+                throw new BadRequest($this->id . ' createOrder() cannot place stop $market orders, only stop limit');
             }
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
-            $params = $this->omit($params, 'trigger_price');
+            $request['type'] = 'STOP';
+            $params = $this->omit($params, array( 'triggerPrice', 'trigger_price', 'stopPrice' ));
+        } elseif ($uppercaseType === 'STOP') {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param for ' . $type . ' orders');
         }
         if ($priceIsRequired) {
             $request['price'] = $this->price_to_precision($symbol, $price);
