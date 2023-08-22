@@ -343,9 +343,12 @@ export default class lbank2 extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const spotMarkets = await this.fetchSpotMarkets (params);
-        const swapMarkets = await this.fetchSwapMarkets (params);
-        return this.arrayConcat (spotMarkets, swapMarkets);
+        const marketsPromises = [
+            this.fetchSpotMarkets (params),
+            this.fetchSwapMarkets (params),
+        ];
+        const resolvedMarkets = await Promise.all (marketsPromises);
+        return this.arrayConcat (resolvedMarkets[0], resolvedMarkets[1]);
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -498,8 +501,8 @@ export default class lbank2 extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'volumeTick'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceTick'))),
+                    'amount': this.safeNumber (market, 'volumeTick'),
+                    'price': this.safeNumber (market, 'priceTick'),
                 },
                 'limits': {
                     'leverage': {
