@@ -447,7 +447,8 @@ export default class coinstore extends Exchange {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const id = this.marketId (symbol). ();
+        let id = this.marketId (symbol);
+        id = id.toUpperCase ();
         const response = await this.publicGetApiV1MarketTickers (params);
         const tickers = this.filterByArray (this.safeValue (response, 'data'), 'symbol', [ id ], false);
         const ticker = this.safeValue (tickers, 0);
