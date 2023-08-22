@@ -223,6 +223,7 @@ export default class Exchange {
     orderbooks   = {}
     tickers      = {}
     orders       = undefined
+    triggerOrders = undefined
     trades: any
     transactions = {}
     ohlcvs: any
