@@ -71,6 +71,7 @@ const {
     , safeStringLower2
     , yymmdd
     , base58ToBinary
+    , binaryToBase58
     , safeTimestamp2
     , rawencode
     , keysort
@@ -393,6 +394,7 @@ export default class Exchange {
     uuid22 = uuid22
     safeIntegerProduct2 = safeIntegerProduct2
     safeIntegerProduct = safeIntegerProduct
+    binaryToBase58 = binaryToBase58
     base58ToBinary = base58ToBinary
     base64ToBinary = base64ToBinary
     safeTimestamp2 = safeTimestamp2
@@ -1259,11 +1261,13 @@ export default class Exchange {
 
     async close () {
         const clients = Object.values (this.clients || {});
+        const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
-            await client.close ();
+            closedClients.push(client.close ());
         }
+        return Promise.all (closedClients);
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
@@ -1576,7 +1580,7 @@ export default class Exchange {
     }
 
     async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
-        const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
+        const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {
                 const orderBook = await this.fetchOrderBook (symbol, limit, params);

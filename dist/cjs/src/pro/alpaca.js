@@ -563,9 +563,9 @@ class alpaca extends alpaca$1 {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future('authenticated');
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             let request = {
                 'action': 'auth',
                 'key': this.apiKey,
@@ -581,9 +581,9 @@ class alpaca extends alpaca$1 {
                     },
                 };
             }
-            this.spawn(this.watch, url, messageHash, request, messageHash, future);
+            this.watch(url, messageHash, request, messageHash, future);
         }
-        return await future;
+        return future;
     }
     handleErrorMessage(client, message) {
         //
@@ -681,7 +681,8 @@ class alpaca extends alpaca$1 {
         const data = this.safeValue(message, 'data', {});
         const status = this.safeString(data, 'status');
         if (T === 'success' || status === 'authorized') {
-            client.resolve(message, 'authenticated');
+            const promise = client.futures['authenticated'];
+            promise.resolve(message);
             return;
         }
         throw new errors.AuthenticationError(this.id + ' failed to authenticate.');

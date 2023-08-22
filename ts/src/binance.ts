@@ -885,6 +885,21 @@ export default class binance extends Exchange {
                         'cm/openOrder': 1, // 1
                         'cm/openOrders': 1, // 1
                         'cm/allOrders': 20, // 20
+                        'um/conditional/openOrder': 1,
+                        'um/conditional/openOrders': 40,
+                        'um/conditional/orderHistory': 1,
+                        'um/conditional/allOrders': 40,
+                        'cm/conditional/openOrder': 1,
+                        'cm/conditional/openOrders': 40,
+                        'cm/conditional/orderHistory': 1,
+                        'cm/conditional/allOrders': 40,
+                        'margin/order': 5,
+                        'margin/openOrders': 5,
+                        'margin/allOrders': 100,
+                        'margin/orderList': 5,
+                        'margin/allOrderList': 100,
+                        'margin/openOrderList': 5,
+                        'margin/myTrades': 5,
                         'balance': 20, // 20
                         'account': 20, // 20
                         'margin/maxBorrowable': 5, // 5
@@ -903,6 +918,10 @@ export default class binance extends Exchange {
                         'um/apiTradingStatus': 1, // 1
                         'um/commissionRate': 20, // 20
                         'cm/commissionRate': 20, // 20
+                        'margin/marginLoan': 10,
+                        'margin/repayLoan': 10,
+                        'margin/marginInterestHistory': 1,
+                        'portfolio/interest-history': 50, // 50
                         'um/income': 30,
                         'cm/income ': 30,
                         'um/account': 5,
@@ -910,10 +929,6 @@ export default class binance extends Exchange {
                         'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
                         'um/adlQuantile': 5,
                         'cm/adlQuantile': 5,
-                        'margin/marginLoan': 0.0667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/repayLoan': 0.0667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/marginInterestHistory': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'portfolio/interest-history': 50, // 50
                     },
                     'post': {
                         'um/order': 1, // 0
@@ -1472,7 +1487,7 @@ export default class binance extends Exchange {
                     '-4013': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
                     '-4014': PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
                     '-4015': ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
-                    '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                    '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."} | on swap: {"code":-4016,"msg":"Limit price can't be higher than 27330.52."}
                     '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
                     '-4018': BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
                     '-4019': BadSymbol, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
@@ -1503,6 +1518,7 @@ export default class binance extends Exchange {
                     '-4045': ExchangeError, // {"code":-4045,"msg":"Failure to acquire assets."}
                     '-4046': AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
                     '-4047': BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                    '-4054': BadRequest, // {"code":-4054,"msg":"Cannot add position margin: position is 0."}
                     '-5001': BadRequest, // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
                     '-5002': InsufficientFunds, // {"code":-5002,"msg":"You have insufficient balance."}
                     '-5003': InsufficientFunds, // {"code":-5003,"msg":"You don't have this asset."}

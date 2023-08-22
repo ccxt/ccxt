@@ -27,6 +27,7 @@ class btcturk(Exchange, ImplicitAPI):
             'name': 'BTCTurk',
             'countries': ['TR'],  # Turkey
             'rateLimit': 100,
+            'pro': False,
             'has': {
                 'CORS': True,
                 'spot': True,
@@ -71,6 +72,7 @@ class btcturk(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'ws': False,
             },
             'timeframes': {
                 '1m': 1,

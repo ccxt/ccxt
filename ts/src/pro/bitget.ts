@@ -54,6 +54,8 @@ export default class bitget extends bitgetRest {
                     'exact': {
                         '30001': BadRequest, // {"event":"error","code":30001,"msg":"instType:sp,channel:candleundefined,instId:BTCUSDT doesn't exist"}
                         '30015': AuthenticationError, // { event: 'error', code: 30015, msg: 'Invalid sign' }
+                        '30016': BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
+                        '30011': AuthenticationError, // { event: 'error', code: 30011, msg: 'Invalid ACCESS_KEY' }
                     },
                 },
             },
@@ -1104,13 +1106,14 @@ export default class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.seconds ().toString ();
             const auth = timestamp + 'GET' + '/user/verify';
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
@@ -1127,8 +1130,7 @@ export default class bitget extends bitgetRest {
                 ],
             };
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1149,7 +1151,8 @@ export default class bitget extends bitgetRest {
         //  { event: 'login', code: 0 }
         //
         const messageHash = 'authenticated';
-        client.resolve (message, messageHash);
+        const future = this.safeValue (client.futures, messageHash);
+        future.resolve (true);
     }
 
     handleErrorMessage (client: Client, message) {

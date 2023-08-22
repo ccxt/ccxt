@@ -20,6 +20,7 @@ class btcbox extends btcbox$1 {
             'countries': ['JP'],
             'rateLimit': 1000,
             'version': 'v1',
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -68,6 +69,7 @@ class btcbox extends btcbox$1 {
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg',

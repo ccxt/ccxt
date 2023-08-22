@@ -62,7 +62,7 @@ class gate extends gate$1 {
                     },
                 },
                 'referral': {
-                    'url': 'https://www.gate.io/ref/2436035',
+                    'url': 'https://www.gate.io/signup/2436035',
                     'discount': 0.2,
                 },
             },

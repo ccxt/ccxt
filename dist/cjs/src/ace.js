@@ -77,6 +77,7 @@ class ace extends ace$1 {
                 'setMarginMode': false,
                 'transfer': false,
                 'withdraw': false,
+                'ws': false,
             },
             'timeframes': {
                 '1m': 1,

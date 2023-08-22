@@ -23,6 +23,7 @@ export default class coinone extends Exchange {
             // 'enableRateLimit': false,
             'rateLimit': 667,
             'version': 'v2',
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -73,6 +74,7 @@ export default class coinone extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',

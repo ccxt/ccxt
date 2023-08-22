@@ -751,6 +751,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_broker_nd_set_subaccount_fee_rate($params = array()) {
         return $this->request('broker/nd/set-subaccount-fee-rate', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function private_post_broker_nd_set_subaccount_assets($params = array()) {
+        return $this->request('broker/nd/set-subaccount-assets', 'private', 'POST', $params, null, null, array("cost" => 0.25));
+    }
     public function private_post_asset_broker_nd_subaccount_deposit_address($params = array()) {
         return $this->request('asset/broker/nd/subaccount-deposit-address', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1512,6 +1515,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostBrokerNdSetSubaccountFeeRate($params = array()) {
         return $this->request('broker/nd/set-subaccount-fee-rate', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostBrokerNdSetSubaccountAssets($params = array()) {
+        return $this->request('broker/nd/set-subaccount-assets', 'private', 'POST', $params, null, null, array("cost" => 0.25));
     }
     public function privatePostAssetBrokerNdSubaccountDepositAddress($params = array()) {
         return $this->request('asset/broker/nd/subaccount-deposit-address', 'private', 'POST', $params, null, null, array("cost" => 1));

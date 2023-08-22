@@ -92,7 +92,9 @@ class huobi extends \ccxt\async\huobi {
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'api' => 'api', // or api-aws for clients hosted on AWS
-                'maxOrderBookSyncAttempts' => 3,
+                'watchOrderBook' => array(
+                    'maxRetries' => 3,
+                ),
                 'ws' => array(
                     'gunzip' => true,
                 ),
@@ -398,7 +400,7 @@ class huobi extends \ccxt\async\huobi {
             $snapshotOrderBook = $this->order_book($snapshot, $snapshotLimit);
             $client->resolve ($snapshotOrderBook, $id);
             if (($sequence !== null) && ($nonce < $sequence)) {
-                $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
+                $maxAttempts = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached $maxAttempts yet
                 if ($numAttempts < $maxAttempts) {

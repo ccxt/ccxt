@@ -857,8 +857,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $url = $this->urls['api']['ws']['private'];
         $client = $this->client($url);
         $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $nonce = $this->milliseconds();
             $payload = 'AUTH' . (string) $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
@@ -871,8 +872,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'event' => $event,
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -881,8 +881,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $messageHash = 'authenticated';
         $status = $this->safe_string($message, 'status');
         if ($status === 'OK') {
-            // we resolve the future here permanently so authentication only happens once
-            $client->resolve ($message, $messageHash);
+            // we resolve the $future here permanently so authentication only happens once
+            $future = $this->safe_value($client->futures, $messageHash);
+            $future->resolve (true);
         } else {
             $error = new AuthenticationError ($this->json($message));
             $client->reject ($error, $messageHash);

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.61'
+__version__ = '4.0.71'
 
 # -----------------------------------------------------------------------------
 
@@ -324,7 +324,7 @@ class Exchange(object):
         'fetchMarkets': True,
         'fetchMarkOHLCV': None,
         'fetchMyTrades': None,
-        'fetchOHLCV': 'emulated',
+        'fetchOHLCV': None,
         'fetchOpenOrder': None,
         'fetchOpenOrders': None,
         'fetchOrder': None,
@@ -1852,7 +1852,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
     def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
-        fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'snapshotMaxRetries', 3)
+        fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
                 orderBook = self.fetch_order_book(symbol, limit, params)

@@ -17,7 +17,7 @@ class bitfinex2 extends Exchange {
             'countries' => array( 'VG' ),
             'version' => 'v2',
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => null,

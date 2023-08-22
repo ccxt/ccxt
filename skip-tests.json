@@ -28,6 +28,7 @@
                 "deposit": "not provided"
             },
             "fetchTickers": {
+                "low":"16 Aug - happened weird negative 24hr low",
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
             }

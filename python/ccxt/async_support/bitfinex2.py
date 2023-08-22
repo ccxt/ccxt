@@ -40,7 +40,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'countries': ['VG'],
             'version': 'v2',
             'certified': False,
-            'pro': False,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,

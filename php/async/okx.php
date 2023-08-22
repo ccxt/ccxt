@@ -444,6 +444,7 @@ class okx extends Exchange {
                         'broker/nd/subaccount/delete-apikey' => 1,
                         'broker/nd/set-subaccount-level' => 4,
                         'broker/nd/set-subaccount-fee-rate' => 4,
+                        'broker/nd/set-subaccount-assets' => 0.25,
                         'asset/broker/nd/subaccount-deposit-address' => 1,
                         'asset/broker/nd/modify-subaccount-deposit-address' => 5 / 3,
                         'broker/nd/rebate-per-orders' => 36000,
@@ -605,6 +606,7 @@ class okx extends Exchange {
                     '51162' => '\\ccxt\\InvalidOrder', // You have {instrument} open orders. Cancel these orders and try again
                     '51163' => '\\ccxt\\InvalidOrder', // You hold {instrument} positions. Close these positions and try again
                     '51166' => '\\ccxt\\InvalidOrder', // Currently, we don't support leading trades with this instrument
+                    '51174' => '\\ccxt\\InvalidOrder', // The number of {param0} pending orders reached the upper limit of {param1} (orders).
                     '51201' => '\\ccxt\\InvalidOrder', // Value of per market order cannot exceed 100,000 USDT
                     '51202' => '\\ccxt\\InvalidOrder', // Market - order amount exceeds the max amount
                     '51203' => '\\ccxt\\InvalidOrder', // Order amount exceeds the limit {0}

@@ -60,7 +60,7 @@ class gate extends Exchange {
                     ),
                 ),
                 'referral' => array(
-                    'url' => 'https://www.gate.io/ref/2436035',
+                    'url' => 'https://www.gate.io/signup/2436035',
                     'discount' => 0.2,
                 ),
             ),

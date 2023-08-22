@@ -1384,6 +1384,16 @@ export default class bybit extends Exchange {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
                 const markets = this.markets_by_id[symbol];
+                let defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
+                if (defaultType === 'future') {
+                    defaultType = 'contract';
+                }
+                for (let i = 0; i < markets.length; i++) {
+                    const market = markets[i];
+                    if (market[defaultType]) {
+                        return market;
+                    }
+                }
                 return markets[0];
             } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) {
                 return this.createExpiredOptionMarket (symbol);
@@ -2085,10 +2095,10 @@ export default class bybit extends Exchange {
         //         "change24h": "86"
         //     }
         //
+        const isSpot = this.safeString (ticker, 'openInterestValue') === undefined;
         const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const type = this.safeString (market, 'type', defaultType);
+        const type = isSpot ? 'spot' : 'contract';
         market = this.safeMarket (marketId, market, undefined, type);
         const symbol = this.safeSymbol (marketId, market, undefined, type);
         const last = this.safeString (ticker, 'lastPrice');
@@ -4356,6 +4366,9 @@ export default class bybit extends Exchange {
     }
 
     async editUnifiedAccountOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (amount === undefined && price === undefined) {
+            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['linear'] && !market['option']) {
@@ -4364,7 +4377,6 @@ export default class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': this.amountToPrecision (symbol, amount),
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
@@ -4382,6 +4394,9 @@ export default class bybit extends Exchange {
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            request['qty'] = this.amountToPrecision (symbol, amount);
         }
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
@@ -4432,6 +4447,9 @@ export default class bybit extends Exchange {
     }
 
     async editUnifiedMarginOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+        if (amount === undefined && price === undefined) {
+            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['linear'] && !market['option']) {
@@ -4447,7 +4465,6 @@ export default class bybit extends Exchange {
             'side': this.capitalize (side),
             'orderType': this.capitalize (lowerCaseType), // limit or market
             'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'qty': this.amountToPrecision (symbol, amount),
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
@@ -4461,6 +4478,9 @@ export default class bybit extends Exchange {
             request['category'] = 'linear';
         } else {
             request['category'] = 'option';
+        }
+        if (amount !== undefined) {
+            request['qty'] = this.amountToPrecision (symbol, amount);
         }
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
@@ -4523,12 +4543,14 @@ export default class bybit extends Exchange {
     }
 
     async editContractV3Order (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (amount === undefined && price === undefined) {
+            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': this.amountToPrecision (symbol, amount),
             // 'orderLinkId': '', // User customised order id. Either orderId or orderLinkId is required
             // 'triggerPrice': '', // Trigger price. Don't pass it if not modify the qty
             // 'takeProfit': '', // Take profit price after modification. Don't pass it if not modify the take profit
@@ -4539,6 +4561,9 @@ export default class bybit extends Exchange {
         };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            request['qty'] = this.amountToPrecision (symbol, amount);
         }
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
@@ -4591,6 +4616,22 @@ export default class bybit extends Exchange {
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#editOrder
+         * @description edit a trade order
+         * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+         * @see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+         * @see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an symbol argument');
         }

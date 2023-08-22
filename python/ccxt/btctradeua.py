@@ -22,6 +22,7 @@ class btctradeua(Exchange, ImplicitAPI):
             'name': 'BTC Trade UA',
             'countries': ['UA'],  # Ukraine,
             'rateLimit': 3000,
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -65,6 +66,7 @@ class btctradeua(Exchange, ImplicitAPI):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'signIn': True,
+                'ws': False,
             },
             'urls': {
                 'referral': 'https://btc-trade.com.ua/registration/22689',

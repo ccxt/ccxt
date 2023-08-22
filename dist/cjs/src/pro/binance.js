@@ -85,7 +85,7 @@ class binance extends binance$1 {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
                 },
                 'watchOrderBook': {
-                    'snapshotMaxRetries': 3,
+                    'maxRetries': 3,
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false,
