@@ -643,7 +643,10 @@ export default class lbank2 extends Exchange {
         let market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
-            market = this.market (symbols[0]);
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                market = this.market (symbols[0]);
+            }
         }
         const request = {};
         let type = undefined;
