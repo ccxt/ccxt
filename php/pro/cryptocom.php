@@ -404,7 +404,8 @@ class cryptocom extends \ccxt\async\cryptocom {
             }
             $client->resolve ($stored, $symbolSpecificMessageHash);
             // non-symbol specific
-            $client->resolve ($stored, $channel);
+            $client->resolve ($stored, $channel); // $channel might have a symbol-specific suffix
+            $client->resolve ($stored, 'user.order');
         }
     }
 
@@ -683,6 +684,10 @@ class cryptocom extends \ccxt\async\cryptocom {
             // $channel might be user.trade.BTC_USDT
             $this->handle_trades($client, $result);
         }
+        if (($channel !== null) && str_starts_with($channel, 'user.order')) {
+            // $channel might be user.order.BTC_USDT
+            $this->handle_orders($client, $result);
+        }
         $method = $this->safe_value($methods, $channel);
         if ($method !== null) {
             $method($client, $result);
@@ -745,8 +750,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         $url = $this->urls['api']['ws']['private'];
         $client = $this->client($url);
         $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $method = 'public/auth';
             $nonce = (string) $this->nonce();
             $auth = $method . $nonce . $this->apiKey . $nonce;
@@ -759,8 +765,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'sig' => $signature,
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -773,6 +778,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         //  array( id => 1648132625434, method => 'public/auth', code => 0 )
         //
-        $client->resolve ($message, 'authenticated');
+        $future = $this->safe_value($client->futures, 'authenticated');
+        $future->resolve (true);
     }
 }

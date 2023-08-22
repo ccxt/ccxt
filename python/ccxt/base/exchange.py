@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.71'
+__version__ = '4.0.72'
 
 # -----------------------------------------------------------------------------
 
@@ -1923,7 +1923,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
 
     def parse_ws_ohlcv(self, ohlcv, market=None):
-        raise NotSupported(self.id + ' parseWsOHLCV() is not supported yet')
+        return self.parse_ohlcv(ohlcv, market)
 
     def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
@@ -4146,6 +4146,12 @@ class Exchange(object):
         firstMarket = self.safe_string(symbols, 0)
         market = self.market(firstMarket)
         return market
+
+    def parse_ws_ohlcvs(self, ohlcvs: List[object], market: Optional[Any] = None, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None):
+        results = []
+        for i in range(0, len(ohlcvs)):
+            results.append(self.parse_ws_ohlcv(ohlcvs[i], market))
+        return results
 
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
