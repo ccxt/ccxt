@@ -597,7 +597,7 @@ export default class kucoin extends kucoinRest {
         const amount = this.safeString (order, 'size');
         const rawType = this.safeString (order, 'type');
         const status = this.parseWsOrderStatus (rawType);
-        const timestamp = this.safeInteger (order, 'orderTime');
+        const timestamp = this.safeInteger2 (order, 'orderTime', 'createdAt');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -635,27 +635,26 @@ export default class kucoin extends kucoinRest {
         const parsed = this.parseWsOrder (data);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
+        const triggerPrice = this.safeValue (parsed, 'triggerPrice');
+        const isTriggerOrder = (triggerPrice !== undefined);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
+            this.triggerOrders = new ArrayCacheBySymbolById (limit);
         }
-        const cachedOrders = this.orders;
+        const cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
         const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
         const order = this.safeValue (orders, orderId);
         if (order !== undefined) {
             // todo add others to calculate average etc
-            const stopPrice = this.safeValue (order, 'stopPrice');
-            if (stopPrice !== undefined) {
-                parsed['stopPrice'] = stopPrice;
-            }
             if (order['status'] === 'closed') {
                 parsed['status'] = 'closed';
             }
         }
         cachedOrders.append (parsed);
-        client.resolve (this.orders, messageHash);
+        client.resolve (cachedOrders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
-        client.resolve (this.orders, symbolSpecificMessageHash);
+        client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
 
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
