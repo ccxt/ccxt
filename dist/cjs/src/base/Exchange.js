@@ -1377,7 +1377,7 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' parseWsOrderTrade() is not supported yet');
     }
     parseWsOHLCV(ohlcv, market = undefined) {
-        throw new errors.NotSupported(this.id + ' parseWsOHLCV() is not supported yet');
+        return this.parseOHLCV(ohlcv, market);
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRates() is not supported yet');
@@ -3972,6 +3972,13 @@ class Exchange {
         const firstMarket = this.safeString(symbols, 0);
         const market = this.market(firstMarket);
         return market;
+    }
+    parseWsOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        const results = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            results.push(this.parseWsOHLCV(ohlcvs[i], market));
+        }
+        return results;
     }
     async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

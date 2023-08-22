@@ -2421,7 +2421,7 @@ class Exchange {
     }
 
     public function parse_ws_ohlcv($ohlcv, $market = null) {
-        throw new NotSupported($this->id . ' parseWsOHLCV() is not supported yet');
+        return $this->parse_ohlcv($ohlcv, $market);
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
@@ -5125,6 +5125,14 @@ class Exchange {
         $firstMarket = $this->safe_string($symbols, 0);
         $market = $this->market ($firstMarket);
         return $market;
+    }
+
+    public function parse_ws_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+        $results = array();
+        for ($i = 0; $i < count($ohlcvs); $i++) {
+            $results[] = $this->parse_ws_ohlcv($ohlcvs[$i], $market);
+        }
+        return $results;
     }
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
