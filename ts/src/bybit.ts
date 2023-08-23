@@ -4134,9 +4134,9 @@ export default class bybit extends Exchange {
         }
         let method = undefined;
         if (market['option']) {
-            method = 'privatePostOptionUsdcOpenApiPrivateV1ReplaceOrder';
+            method = 'privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder';
         } else {
-            method = 'privatePostPerpetualUsdcOpenApiPrivateV1ReplaceOrder';
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder';
             const isStop = this.safeValue (params, 'stop', false);
             const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeValue (params, 'stopLossPrice');
