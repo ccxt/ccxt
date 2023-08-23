@@ -1900,6 +1900,7 @@ export default class bingx extends Exchange {
          * @name bingx#cancelOrders
          * @description cancel multiple orders
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
          * @param {[string]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the bingx api endpoint
@@ -1908,14 +1909,17 @@ export default class bingx extends Exchange {
         this.checkRequiredSymbol ('cancelOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
-            throw new BadRequest (this.id + ' cancelOrders is only supported for swap markets.');
-        }
         const request = {
             'symbol': market['id'],
-            'ids': ids,
         };
-        const response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, params));
+        let response = undefined;
+        if (market['spot']) {
+            request['orderIds'] = ids;
+            response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
+        } else {
+            request['ids'] = ids;
+            response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, params));
+        }
         //
         //    {
         //        "code": 0,
