@@ -1102,19 +1102,22 @@ export default class bingx extends Exchange {
          * @name bingx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
+         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap']) {
-            throw new BadRequest (this.id + ' fetchTicker is only supported for swap markets.');
-        }
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
+        } else {
+            response = await this.spotV1PublicGetCommonSymbols (this.extend (request, params));
+        }
         //
         //    {
         //        "code": 0,
@@ -1213,10 +1216,12 @@ export default class bingx extends Exchange {
         const baseVolume = this.safeString (ticker, 'volume');
         const change = this.safeString (ticker, 'chapriceChangenge');
         const percentage = this.safeString (ticker, 'priceChangePercent');
+        const ts = this.safeInteger (ticker, 'closeTime');
+        const datetime = this.iso8601 (ts);
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': ts,
+            'datetime': datetime,
             'high': high,
             'low': low,
             'bid': undefined,
