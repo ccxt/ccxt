@@ -73,6 +73,7 @@ class binance extends Exchange {
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -7571,7 +7572,62 @@ class binance extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical settlement records of the user
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#user-exercise-record-user_data
+         * @param {string} $symbol unified $market $symbol of the settlement history
+         * @param {int} [$since] timestamp in ms
+         * @param {int} [$limit] number of records
+         * @param {array} [$params] exchange specific $params
+         * @return {array[]} a list of [settlement history objects]
+         */
+        $this->load_markets();
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
+        if ($type !== 'option') {
+            throw new NotSupported($this->id . ' fetchMySettlementHistory() supports option markets only');
+        }
+        $request = array();
+        if ($symbol !== null) {
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->eapiPrivateGetExerciseRecord (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "id" => "1125899906842897036",
+        //             "currency" => "USDT",
+        //             "symbol" => "BTC-230728-30000-C",
+        //             "exercisePrice" => "30000.00000000",
+        //             "markPrice" => "29160.71284993",
+        //             "quantity" => "1.00000000",
+        //             "amount" => "0.00000000",
+        //             "fee" => "0.00000000",
+        //             "createDate" => 1690531200000,
+        //             "priceScale" => 0,
+        //             "quantityScale" => 2,
+        //             "optionSide" => "CALL",
+        //             "positionSide" => "LONG",
+        //             "quoteAsset" => "USDT"
+        //         }
+        //     )
+        //
+        $settlements = $this->parse_settlements($response, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+    }
+
     public function parse_settlement($settlement, $market) {
+        //
+        // fetchSettlementHistory
         //
         //     {
         //         "symbol" => "ETH-230223-1900-P",
@@ -7581,18 +7637,39 @@ class binance extends Exchange {
         //         "strikeResult" => "REALISTIC_VALUE_STRICKEN"
         //     }
         //
-        $timestamp = $this->safe_integer($settlement, 'expiryDate');
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "id" => "1125899906842897036",
+        //         "currency" => "USDT",
+        //         "symbol" => "BTC-230728-30000-C",
+        //         "exercisePrice" => "30000.00000000",
+        //         "markPrice" => "29160.71284993",
+        //         "quantity" => "1.00000000",
+        //         "amount" => "0.00000000",
+        //         "fee" => "0.00000000",
+        //         "createDate" => 1690531200000,
+        //         "priceScale" => 0,
+        //         "quantityScale" => 2,
+        //         "optionSide" => "CALL",
+        //         "positionSide" => "LONG",
+        //         "quoteAsset" => "USDT"
+        //     }
+        //
+        $timestamp = $this->safe_integer_2($settlement, 'expiryDate', 'createDate');
         $marketId = $this->safe_string($settlement, 'symbol');
         return array(
             'info' => $settlement,
             'symbol' => $this->safe_symbol($marketId, $market),
-            'price' => $this->safe_number($settlement, 'realStrikePrice'),
+            'price' => $this->safe_number_2($settlement, 'realStrikePrice', 'exercisePrice'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
     }
 
     public function parse_settlements($settlements, $market) {
+        //
+        // fetchSettlementHistory
         //
         //     array(
         //         {
@@ -7601,6 +7678,27 @@ class binance extends Exchange {
         //             "realStrikePrice" => "1665.5897334",
         //             "expiryDate" => 1677139200000,
         //             "strikeResult" => "EXTRINSIC_VALUE_EXPIRED"
+        //         }
+        //     )
+        //
+        // fetchMySettlementHistory
+        //
+        //     array(
+        //         {
+        //             "id" => "1125899906842897036",
+        //             "currency" => "USDT",
+        //             "symbol" => "BTC-230728-30000-C",
+        //             "exercisePrice" => "30000.00000000",
+        //             "markPrice" => "29160.71284993",
+        //             "quantity" => "1.00000000",
+        //             "amount" => "0.00000000",
+        //             "fee" => "0.00000000",
+        //             "createDate" => 1690531200000,
+        //             "priceScale" => 0,
+        //             "quantityScale" => 2,
+        //             "optionSide" => "CALL",
+        //             "positionSide" => "LONG",
+        //             "quoteAsset" => "USDT"
         //         }
         //     )
         //

@@ -117,6 +117,7 @@ class gate extends Exchange {
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchNetworkDepositAddress' => true,
                 'fetchOHLCV' => true,
@@ -821,6 +822,106 @@ class gate extends Exchange {
     public function set_sandbox_mode($enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
+    }
+
+    public function convert_expire_date($date) {
+        // parse YYMMDD to timestamp
+        $year = mb_substr($date, 0, 2 - 0);
+        $month = mb_substr($date, 2, 4 - 2);
+        $day = mb_substr($date, 4, 6 - 4);
+        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+        return $reconstructedDate;
+    }
+
+    public function create_expired_option_market($symbol) {
+        // support expired option contracts
+        $quote = 'USDT';
+        $settle = $quote;
+        $optionParts = explode('-', $symbol);
+        $symbolBase = explode('/', $symbol);
+        $marketIdBase = explode('_', $symbol);
+        $base = null;
+        $expiry = $this->safe_string($optionParts, 1);
+        if (mb_strpos($symbol, '/') > -1) {
+            $base = $this->safe_string($symbolBase, 0);
+        } else {
+            $base = $this->safe_string($marketIdBase, 0);
+            $expiry = mb_substr($expiry, 2, 8 - 2); // convert 20230728 to 230728
+        }
+        $strike = $this->safe_string($optionParts, 2);
+        $optionType = $this->safe_string($optionParts, 3);
+        $datetime = $this->convert_expire_date($expiry);
+        $timestamp = $this->parse8601($datetime);
+        return array(
+            'id' => $base . '_' . $quote . '-' . '20' . $expiry . '-' . $strike . '-' . $optionType,
+            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $base,
+            'quoteId' => $quote,
+            'settleId' => $settle,
+            'active' => false,
+            'type' => 'option',
+            'linear' => null,
+            'inverse' => null,
+            'spot' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => true,
+            'margin' => false,
+            'contract' => true,
+            'contractSize' => $this->parse_number('1'),
+            'expiry' => $timestamp,
+            'expiryDatetime' => $datetime,
+            'optionType' => ($optionType === 'C') ? 'call' : 'put',
+            'strike' => $this->parse_number($strike),
+            'precision' => array(
+                'amount' => $this->parse_number('1'),
+                'price' => null,
+            ),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => null,
+        );
+    }
+
+    public function market($symbol) {
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' $markets not loaded');
+        }
+        if (gettype($symbol) === 'string') {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                return $this->markets[$symbol];
+            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
+                $markets = $this->markets_by_id[$symbol];
+                return $markets[0];
+            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1)) {
+                return $this->create_expired_option_market($symbol);
+            }
+        }
+        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+    }
+
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            // handle expired option contracts
+            return $this->create_expired_option_market($marketId);
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
     public function fetch_markets($params = array ()) {
@@ -5755,7 +5856,64 @@ class gate extends Exchange {
         }) ();
     }
 
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical settlement records of the user
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-my-options-$settlements
+             * @param {string} $symbol unified $market $symbol of the settlement history
+             * @param {int} [$since] timestamp in ms
+             * @param {int} [$limit] number of records
+             * @param {array} [$params] exchange specific $params
+             * @return {array[]} a list of [settlement history objects]
+             */
+            $this->check_required_symbol('fetchMySettlementHistory', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
+            if ($type !== 'option') {
+                throw new NotSupported($this->id . ' fetchMySettlementHistory() supports option markets only');
+            }
+            $marketId = $market['id'];
+            $optionParts = explode('-', $marketId);
+            $request = array(
+                'underlying' => $this->safe_string($optionParts, 0),
+                'contract' => $marketId,
+            );
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateOptionsGetMySettlements (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "size" => -1,
+            //             "settle_profit" => "0",
+            //             "contract" => "BTC_USDT-20220624-26000-C",
+            //             "strike_price" => "26000",
+            //             "time" => 1656057600,
+            //             "settle_price" => "20917.461281337048",
+            //             "underlying" => "BTC_USDT",
+            //             "realised_pnl" => "-0.00116042",
+            //             "fee" => "0"
+            //         }
+            //     )
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'list', array());
+            $settlements = $this->parse_settlements($data, $market);
+            $sorted = $this->sort_by($settlements, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        }) ();
+    }
+
     public function parse_settlement($settlement, $market) {
+        //
+        // fetchSettlementHistory
         //
         //     {
         //         "time" => 1685952000,
@@ -5764,6 +5922,20 @@ class gate extends Exchange {
         //         "fee" => "0.040240021034",
         //         "contract" => "BTC_USDT-20230605-25000-C",
         //         "strike_price" => "25000"
+        //     }
+        //
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "size" => -1,
+        //         "settle_profit" => "0",
+        //         "contract" => "BTC_USDT-20220624-26000-C",
+        //         "strike_price" => "26000",
+        //         "time" => 1656057600,
+        //         "settle_price" => "20917.461281337048",
+        //         "underlying" => "BTC_USDT",
+        //         "realised_pnl" => "-0.00116042",
+        //         "fee" => "0"
         //     }
         //
         $timestamp = $this->safe_timestamp($settlement, 'time');
@@ -5779,6 +5951,8 @@ class gate extends Exchange {
 
     public function parse_settlements($settlements, $market) {
         //
+        // fetchSettlementHistory
+        //
         //     array(
         //         {
         //             "time" => 1685952000,
@@ -5787,6 +5961,22 @@ class gate extends Exchange {
         //             "fee" => "0.040240021034",
         //             "contract" => "BTC_USDT-20230605-25000-C",
         //             "strike_price" => "25000"
+        //         }
+        //     )
+        //
+        // fetchMySettlementHistory
+        //
+        //     array(
+        //         {
+        //             "size" => -1,
+        //             "settle_profit" => "0",
+        //             "contract" => "BTC_USDT-20220624-26000-C",
+        //             "strike_price" => "26000",
+        //             "time" => 1656057600,
+        //             "settle_price" => "20917.461281337048",
+        //             "underlying" => "BTC_USDT",
+        //             "realised_pnl" => "-0.00116042",
+        //             "fee" => "0"
         //         }
         //     )
         //

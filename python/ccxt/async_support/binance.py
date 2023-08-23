@@ -103,6 +103,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMySettlementHistory': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -7176,7 +7177,57 @@ class binance(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
+    async def fetch_my_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical settlement records of the user
+        see https://binance-docs.github.io/apidocs/voptions/en/#user-exercise-record-user_data
+        :param str symbol: unified market symbol of the settlement history
+        :param int [since]: timestamp in ms
+        :param int [limit]: number of records
+        :param dict [params]: exchange specific params
+        :returns dict[]: a list of [settlement history objects]
+        """
+        await self.load_markets()
+        market = None if (symbol is None) else self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMySettlementHistory', market, params)
+        if type != 'option':
+            raise NotSupported(self.id + ' fetchMySettlementHistory() supports option markets only')
+        request = {}
+        if symbol is not None:
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.eapiPrivateGetExerciseRecord(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": "1125899906842897036",
+        #             "currency": "USDT",
+        #             "symbol": "BTC-230728-30000-C",
+        #             "exercisePrice": "30000.00000000",
+        #             "markPrice": "29160.71284993",
+        #             "quantity": "1.00000000",
+        #             "amount": "0.00000000",
+        #             "fee": "0.00000000",
+        #             "createDate": 1690531200000,
+        #             "priceScale": 0,
+        #             "quantityScale": 2,
+        #             "optionSide": "CALL",
+        #             "positionSide": "LONG",
+        #             "quoteAsset": "USDT"
+        #         }
+        #     ]
+        #
+        settlements = self.parse_settlements(response, market)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+
     def parse_settlement(self, settlement, market):
+        #
+        # fetchSettlementHistory
         #
         #     {
         #         "symbol": "ETH-230223-1900-P",
@@ -7186,17 +7237,38 @@ class binance(Exchange, ImplicitAPI):
         #         "strikeResult": "REALISTIC_VALUE_STRICKEN"
         #     }
         #
-        timestamp = self.safe_integer(settlement, 'expiryDate')
+        # fetchMySettlementHistory
+        #
+        #     {
+        #         "id": "1125899906842897036",
+        #         "currency": "USDT",
+        #         "symbol": "BTC-230728-30000-C",
+        #         "exercisePrice": "30000.00000000",
+        #         "markPrice": "29160.71284993",
+        #         "quantity": "1.00000000",
+        #         "amount": "0.00000000",
+        #         "fee": "0.00000000",
+        #         "createDate": 1690531200000,
+        #         "priceScale": 0,
+        #         "quantityScale": 2,
+        #         "optionSide": "CALL",
+        #         "positionSide": "LONG",
+        #         "quoteAsset": "USDT"
+        #     }
+        #
+        timestamp = self.safe_integer_2(settlement, 'expiryDate', 'createDate')
         marketId = self.safe_string(settlement, 'symbol')
         return {
             'info': settlement,
             'symbol': self.safe_symbol(marketId, market),
-            'price': self.safe_number(settlement, 'realStrikePrice'),
+            'price': self.safe_number_2(settlement, 'realStrikePrice', 'exercisePrice'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
 
     def parse_settlements(self, settlements, market):
+        #
+        # fetchSettlementHistory
         #
         #     [
         #         {
@@ -7205,6 +7277,27 @@ class binance(Exchange, ImplicitAPI):
         #             "realStrikePrice": "1665.5897334",
         #             "expiryDate": 1677139200000,
         #             "strikeResult": "EXTRINSIC_VALUE_EXPIRED"
+        #         }
+        #     ]
+        #
+        # fetchMySettlementHistory
+        #
+        #     [
+        #         {
+        #             "id": "1125899906842897036",
+        #             "currency": "USDT",
+        #             "symbol": "BTC-230728-30000-C",
+        #             "exercisePrice": "30000.00000000",
+        #             "markPrice": "29160.71284993",
+        #             "quantity": "1.00000000",
+        #             "amount": "0.00000000",
+        #             "fee": "0.00000000",
+        #             "createDate": 1690531200000,
+        #             "priceScale": 0,
+        #             "quantityScale": 2,
+        #             "optionSide": "CALL",
+        #             "positionSide": "LONG",
+        #             "quoteAsset": "USDT"
         #         }
         #     ]
         #
