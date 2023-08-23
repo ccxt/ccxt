@@ -100,11 +100,13 @@ export default class bingx extends Exchange {
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
                                 'account/balance': 3,
+                                'ticker/24hr': 1,
                             },
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
                                 'trade/batchOrders': 3,
+                                'trade/cancelOrders': 3,
                             },
                         },
                     },
