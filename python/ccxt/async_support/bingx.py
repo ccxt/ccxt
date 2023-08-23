@@ -773,9 +773,9 @@ class bingx(Exchange, ImplicitAPI):
             time = self.parse8601(datetimeId)
         isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
         takeOrMaker = None
-        if isBuyerMaker:
-            takeOrMaker = 'maker'
-        elif isBuyerMaker is not None:
+        side = None
+        if isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
             takeOrMaker = 'taker'
         cost = self.safe_string(trade, 'quoteQty')
         type = 'spot' if (cost is None) else 'swap'
@@ -789,7 +789,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(None, market, '-', type),
             'order': None,
             'type': None,
-            'side': None,
+            'side': side,
             'takerOrMaker': takeOrMaker,
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string_2(trade, 'qty', 'amount'),
