@@ -598,7 +598,8 @@ export default class kucoin extends kucoinRest {
         market = this.safeMarket (marketId, market);
         const triggerPrice = this.safeString (order, 'stopPrice');
         const triggerSuccess = this.safeValue (order, 'triggerSuccess');
-        if (status === 'triggered' && triggerSuccess === false) {
+        const triggerFail = (triggerSuccess !== true) && (triggerSuccess !== undefined);  // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
+        if ((status === 'triggered') && triggerFail) {
             status = 'canceled';
         }
         return this.safeOrder ({
