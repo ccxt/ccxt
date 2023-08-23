@@ -109,6 +109,7 @@ export default class gate extends Exchange {
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchNetworkDepositAddress': true,
                 'fetchOHLCV': true,
@@ -813,6 +814,106 @@ export default class gate extends Exchange {
     setSandboxMode (enable) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
+    }
+
+    convertExpireDate (date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice (0, 2);
+        const month = date.slice (2, 4);
+        const day = date.slice (4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+
+    createExpiredOptionMarket (symbol) {
+        // support expired option contracts
+        const quote = 'USDT';
+        const settle = quote;
+        const optionParts = symbol.split ('-');
+        const symbolBase = symbol.split ('/');
+        const marketIdBase = symbol.split ('_');
+        let base = undefined;
+        let expiry = this.safeString (optionParts, 1);
+        if (symbol.indexOf ('/') > -1) {
+            base = this.safeString (symbolBase, 0);
+        } else {
+            base = this.safeString (marketIdBase, 0);
+            expiry = expiry.slice (2, 8); // convert 20230728 to 230728
+        }
+        const strike = this.safeString (optionParts, 2);
+        const optionType = this.safeString (optionParts, 3);
+        const datetime = this.convertExpireDate (expiry);
+        const timestamp = this.parse8601 (datetime);
+        return {
+            'id': base + '_' + quote + '-' + '20' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': false,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': this.parseNumber ('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': this.parseNumber (strike),
+            'precision': {
+                'amount': this.parseNumber ('1'),
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
+    }
+
+    market (symbol) {
+        if (this.markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                return this.markets[symbol];
+            } else if (symbol in this.markets_by_id) {
+                const markets = this.markets_by_id[symbol];
+                return markets[0];
+            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) {
+                return this.createExpiredOptionMarket (symbol);
+            }
+        }
+        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+    }
+
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket (marketId);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     async fetchMarkets (params = {}) {
@@ -5738,7 +5839,64 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
+    async fetchMySettlementHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchMySettlementHistory
+         * @description fetches historical settlement records of the user
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-my-options-settlements
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [settlement history objects]
+         */
+        this.checkRequiredSymbol ('fetchMySettlementHistory', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMySettlementHistory', market, params);
+        if (type !== 'option') {
+            throw new NotSupported (this.id + ' fetchMySettlementHistory() supports option markets only');
+        }
+        const marketId = market['id'];
+        const optionParts = marketId.split ('-');
+        const request = {
+            'underlying': this.safeString (optionParts, 0),
+            'contract': marketId,
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateOptionsGetMySettlements (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "size": -1,
+        //             "settle_profit": "0",
+        //             "contract": "BTC_USDT-20220624-26000-C",
+        //             "strike_price": "26000",
+        //             "time": 1656057600,
+        //             "settle_price": "20917.461281337048",
+        //             "underlying": "BTC_USDT",
+        //             "realised_pnl": "-0.00116042",
+        //             "fee": "0"
+        //         }
+        //     ]
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'list', []);
+        const settlements = this.parseSettlements (data, market);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+    }
+
     parseSettlement (settlement, market) {
+        //
+        // fetchSettlementHistory
         //
         //     {
         //         "time": 1685952000,
@@ -5747,6 +5905,20 @@ export default class gate extends Exchange {
         //         "fee": "0.040240021034",
         //         "contract": "BTC_USDT-20230605-25000-C",
         //         "strike_price": "25000"
+        //     }
+        //
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "size": -1,
+        //         "settle_profit": "0",
+        //         "contract": "BTC_USDT-20220624-26000-C",
+        //         "strike_price": "26000",
+        //         "time": 1656057600,
+        //         "settle_price": "20917.461281337048",
+        //         "underlying": "BTC_USDT",
+        //         "realised_pnl": "-0.00116042",
+        //         "fee": "0"
         //     }
         //
         const timestamp = this.safeTimestamp (settlement, 'time');
@@ -5762,6 +5934,8 @@ export default class gate extends Exchange {
 
     parseSettlements (settlements, market) {
         //
+        // fetchSettlementHistory
+        //
         //     [
         //         {
         //             "time": 1685952000,
@@ -5770,6 +5944,22 @@ export default class gate extends Exchange {
         //             "fee": "0.040240021034",
         //             "contract": "BTC_USDT-20230605-25000-C",
         //             "strike_price": "25000"
+        //         }
+        //     ]
+        //
+        // fetchMySettlementHistory
+        //
+        //     [
+        //         {
+        //             "size": -1,
+        //             "settle_profit": "0",
+        //             "contract": "BTC_USDT-20220624-26000-C",
+        //             "strike_price": "26000",
+        //             "time": 1656057600,
+        //             "settle_price": "20917.461281337048",
+        //             "underlying": "BTC_USDT",
+        //             "realised_pnl": "-0.00116042",
+        //             "fee": "0"
         //         }
         //     ]
         //
