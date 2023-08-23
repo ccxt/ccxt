@@ -3831,9 +3831,12 @@ export default class bybit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createUsdcOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createUsdcOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (type === 'market') {
+            throw new NotSupported (this.id + ' createOrder does not allow market orders for ' + symbol + ' markets');
+        }
         const lowerCaseType = type.toLowerCase ();
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
@@ -3860,13 +3863,12 @@ export default class bybit extends Exchange {
         };
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
-        if (isLimit) {
+        if (isLimit !== undefined) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         const exchangeSpecificParam = this.safeString (params, 'time_in_force');
         const timeInForce = this.safeStringLower (params, 'timeInForce');
-        let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
+        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
         if (postOnly) {
             request['time_in_force'] = 'PostOnly';
         } else if (timeInForce === 'gtc') {
@@ -3913,13 +3915,9 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16 ();
         }
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
-        let response = undefined;
-        if (market['option']) {
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
-        } else {
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
-        }
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
+        const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "retCode":0,
@@ -4136,9 +4134,9 @@ export default class bybit extends Exchange {
         }
         let method = undefined;
         if (market['option']) {
-            method = 'privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder';
+            method = 'privatePostOptionUsdcOpenApiPrivateV1ReplaceOrder';
         } else {
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder';
+            method = 'privatePostPerpetualUsdcOpenApiPrivateV1ReplaceOrder';
             const isStop = this.safeValue (params, 'stop', false);
             const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeValue (params, 'stopLossPrice');
