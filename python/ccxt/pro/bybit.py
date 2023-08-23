@@ -1307,12 +1307,13 @@ class bybit(ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def authenticate(self, url, params={}):
+    async def authenticate(self, url, params={}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             expiresInt = self.milliseconds() + 10000
             expires = str(expiresInt)
             path = 'GET/realtime'
@@ -1325,8 +1326,7 @@ class bybit(ccxt.async_support.bybit):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     def handle_error_message(self, client: Client, message):
@@ -1466,7 +1466,8 @@ class bybit(ccxt.async_support.bybit):
         success = self.safe_value(message, 'success')
         messageHash = 'authenticated'
         if success:
-            client.resolve(message, messageHash)
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))
             client.reject(error, messageHash)
