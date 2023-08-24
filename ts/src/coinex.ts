@@ -1457,6 +1457,45 @@ export default class coinex extends Exchange {
         return this.safeBalance (result);
     }
 
+    async fetchFinancialBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountInvestmentBalance (params);
+        //
+        //     {
+        //          "code": 0,
+        //          "data": [
+        //              {
+        //                  "asset": "CET",
+        //                  "available": "0",
+        //                  "frozen": "0",
+        //                  "lock": "0",
+        //              },
+        //              {
+        //                  "asset": "USDT",
+        //                  "available": "999900",
+        //                  "frozen": "0",
+        //                  "lock": "0"
+        //              }
+        //          ],
+        //          "message": "Success"
+        //      }
+        //
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'data', {});
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            const frozen = this.safeString (balance, 'frozen');
+            const locked = this.safeString (balance, 'lock');
+            account['used'] = Precise.stringAdd (frozen, locked);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         /**
          * @method
