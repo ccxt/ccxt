@@ -28,9 +28,9 @@ export default class poloniex extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but not fully implemented
-                'swap': undefined, // has but not fully implemented
-                'future': undefined, // has but not fully implemented
-                'option': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
