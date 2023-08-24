@@ -1457,12 +1457,56 @@ export default class coinex extends Exchange {
         return this.safeBalance (result);
     }
 
+    async fetchFinancialBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountInvestmentBalance (params);
+        //
+        //     {
+        //          "code": 0,
+        //          "data": [
+        //              {
+        //                  "asset": "CET",
+        //                  "available": "0",
+        //                  "frozen": "0",
+        //                  "lock": "0",
+        //              },
+        //              {
+        //                  "asset": "USDT",
+        //                  "available": "999900",
+        //                  "frozen": "0",
+        //                  "lock": "0"
+        //              }
+        //          ],
+        //          "message": "Success"
+        //      }
+        //
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'data', {});
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            const frozen = this.safeString (balance, 'frozen');
+            const locked = this.safeString (balance, 'lock');
+            account['used'] = Precise.stringAdd (frozen, locked);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         /**
          * @method
          * @name coinex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         // spot
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   // financial
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       // margin
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       // swap
          * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @param {string} [params.type] 'margin', 'swap', 'financial', or 'spot'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         let marketType = undefined;
@@ -1474,6 +1518,8 @@ export default class coinex extends Exchange {
             return await this.fetchMarginBalance (params);
         } else if (marketType === 'swap') {
             return await this.fetchSwapBalance (params);
+        } else if (marketType === 'financial') {
+            return await this.fetchFinancialBalance (params);
         } else {
             return await this.fetchSpotBalance (params);
         }
