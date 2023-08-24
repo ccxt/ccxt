@@ -370,7 +370,7 @@ export default class oceanex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -414,7 +414,7 @@ export default class oceanex extends Exchange {
          * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int} [limit] max number of entries per orderbook to return, default is undefined
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+         * @returns {object} a dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbol
          */
         await this.loadMarkets ();
         if (symbols === undefined) {
@@ -575,7 +575,7 @@ export default class oceanex extends Exchange {
          * @description fetch the trading fees for multiple markets
          * @see https://api.oceanex.pro/doc/v1/#trading-fees-post
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         const response = await this.publicGetFeesTrading (params);
         const data = this.safeValue (response, 'data', []);
@@ -644,7 +644,7 @@ export default class oceanex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -670,7 +670,7 @@ export default class oceanex extends Exchange {
          * @see https://api.oceanex.pro/doc/v1/#order-status-get
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -705,7 +705,7 @@ export default class oceanex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
             'states': [ 'wait' ],
@@ -723,7 +723,7 @@ export default class oceanex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
             'states': [ 'done', 'cancel' ],
@@ -741,7 +741,7 @@ export default class oceanex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a `symbol` argument');
@@ -906,7 +906,7 @@ export default class oceanex extends Exchange {
          * @param {string} id order id
          * @param {string} symbol not used by oceanex cancelOrder ()
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostOrderDelete (this.extend ({ 'id': id }, params));
@@ -923,7 +923,7 @@ export default class oceanex extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} symbol not used by oceanex cancelOrders ()
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
@@ -939,7 +939,7 @@ export default class oceanex extends Exchange {
          * @see https://api.oceanex.pro/doc/v1/#cancel-all-orders-post
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostOrdersClear (params);
