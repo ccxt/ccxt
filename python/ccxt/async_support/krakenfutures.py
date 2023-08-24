@@ -786,7 +786,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param str type: One of 'limit', 'market', 'take_profit'
         :param str side: buy or sell
         :param int amount: Contract quantity
-        :param float price: Limit order price
+        :param float [price]: Limit order price
         :param float [params.stopPrice]: The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
         :param bool [params.reduceOnly]: Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default False,
         :param bool [params.postOnly]: Set if you wish to make a postOnly order, Default False
@@ -868,7 +868,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param str type: Not used by Krakenfutures
         :param str side: Not used by Krakenfutures
         :param float amount: Order size
-        :param float price: Price to fill order at
+        :param float [price]: Price to fill order at
         :param dict [params]: Exchange specific params
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

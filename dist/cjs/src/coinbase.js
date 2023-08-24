@@ -1956,7 +1956,7 @@ class coinbase extends coinbase$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
-         * @param {float} price the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @param {float} [params.stopPrice] price to trigger stop orders
          * @param {float} [params.triggerPrice] price to trigger stop orders

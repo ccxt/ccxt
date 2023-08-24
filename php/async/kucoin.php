@@ -1796,7 +1796,7 @@ class kucoin extends Exchange {
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
-             * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+             * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
              * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {string} [$params->marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
@@ -1914,7 +1914,7 @@ class kucoin extends Exchange {
              * @param {string} $type not used
              * @param {string} $side not used
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {string} [$params->clientOrderId] client order $id, defaults to $id if not passed
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

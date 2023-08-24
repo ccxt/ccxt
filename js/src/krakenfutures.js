@@ -810,7 +810,7 @@ export default class krakenfutures extends Exchange {
          * @param {string} type One of 'limit', 'market', 'take_profit'
          * @param {string} side buy or sell
          * @param {int} amount Contract quantity
-         * @param {float} price Limit order price
+         * @param {float} [price] Limit order price
          * @param {float} [params.stopPrice] The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
          * @param {bool} [params.reduceOnly] Set as true if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
          * @param {bool} [params.postOnly] Set as true if you wish to make a postOnly order, Default false
@@ -902,7 +902,7 @@ export default class krakenfutures extends Exchange {
          * @param {string} type Not used by Krakenfutures
          * @param {string} side Not used by Krakenfutures
          * @param {float} amount Order size
-         * @param {float} price Price to fill order at
+         * @param {float} [price] Price to fill order at
          * @param {object} [params] Exchange specific params
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
