@@ -585,6 +585,8 @@ export default class poloniex extends Exchange {
         const close = this.safeString (ticker, 'close');
         const relativeChange = this.safeString (ticker, 'dailyChange');
         const percentage = Precise.stringMul (relativeChange, '100');
+        const bidVolume = this.safeString (ticker, 'bidQuantity');
+        const askVolume = this.safeString (ticker, 'askQuantity');
         return this.safeTicker ({
             'id': marketId,
             'symbol': market['symbol'],
@@ -593,9 +595,9 @@ export default class poloniex extends Exchange {
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
             'bid': this.safeString (ticker, 'bid'),
-            'bidVolume': undefined,
+            'bidVolume': bidVolume,
             'ask': this.safeString (ticker, 'ask'),
-            'askVolume': undefined,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': this.safeString (ticker, 'open'),
             'close': close,
