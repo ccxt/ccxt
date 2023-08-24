@@ -560,26 +560,33 @@ export default class poloniex extends Exchange {
         //
         //     {
         //         "symbol" : "BTC_USDT",
-        //         "open" : "22814.93",
-        //         "low" : "22441.90",
-        //         "high" : "23413.00",
-        //         "close" : "23148.66",
-        //         "quantity" : "71.743706",
-        //         "amount" : "1638994.52683452",
-        //         "tradeCount" : 3893,
-        //         "startTime" : 1659605760000,
-        //         "closeTime" : 1659692161077,
+        //         "open" : "26053.33",
+        //         "low" : "26053.33",
+        //         "high" : "26798.02",
+        //         "close" : "26447.58",
+        //         "quantity" : "6116.210188",
+        //         "amount" : "161082122.88450926",
+        //         "tradeCount" : "134709",
+        //         "startTime" : "1692784440000",
+        //         "closeTime" : "1692870839630",
         //         "displayName" : "BTC/USDT",
-        //         "dailyChange" : "0.0152",
-        //         "ts" : 1659692169838
+        //         "dailyChange" : "0.0151",
+        //         "bid" : "26447.57",
+        //         "bidQuantity" : "0.016313",
+        //         "ask" : "26447.58",
+        //         "askQuantity" : "0.068307",
+        //         "ts" : "1692870845446",
+        //         "markPrice" : "26444.11"
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId);
         const close = this.safeString (ticker, 'close');
-        const relativeChange = this.safeString (ticker, 'percentChange');
+        const relativeChange = this.safeString (ticker, 'dailyChange');
         const percentage = Precise.stringMul (relativeChange, '100');
+        const bidVolume = this.safeString (ticker, 'bidQuantity');
+        const askVolume = this.safeString (ticker, 'askQuantity');
         return this.safeTicker ({
             'id': marketId,
             'symbol': market['symbol'],
@@ -587,10 +594,10 @@ export default class poloniex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': bidVolume,
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': this.safeString (ticker, 'open'),
             'close': close,
@@ -621,19 +628,24 @@ export default class poloniex extends Exchange {
         //
         //     [
         //         {
-        //             "symbol" : "KUB_USDD",
-        //             "open" : "0",
-        //             "low" : "0",
-        //             "high" : "0",
-        //             "close" : "0",
-        //             "quantity" : "0",
-        //             "amount" : "0",
-        //             "tradeCount" : 0,
-        //             "startTime" : 1659606240000,
-        //             "closeTime" : 1659692648742,
-        //             "displayName" : "KUB/USDD",
-        //             "dailyChange" : "0.00",
-        //             "ts" : 1659692648742
+        //              "symbol" : "BTC_USDT",
+        //              "open" : "26053.33",
+        //              "low" : "26053.33",
+        //              "high" : "26798.02",
+        //              "close" : "26447.58",
+        //              "quantity" : "6116.210188",
+        //              "amount" : "161082122.88450926",
+        //              "tradeCount" : "134709",
+        //              "startTime" : "1692784440000",
+        //              "closeTime" : "1692870839630",
+        //              "displayName" : "BTC/USDT",
+        //              "dailyChange" : "0.0151",
+        //              "bid" : "26447.57",
+        //              "bidQuantity" : "0.016313",
+        //              "ask" : "26447.58",
+        //              "askQuantity" : "0.068307",
+        //              "ts" : "1692870845446",
+        //              "markPrice" : "26444.11"
         //         }
         //     ]
         //
@@ -793,18 +805,23 @@ export default class poloniex extends Exchange {
         //
         //     {
         //         "symbol" : "BTC_USDT",
-        //         "open" : "22814.93",
-        //         "low" : "22441.90",
-        //         "high" : "23413.00",
-        //         "close" : "23148.66",
-        //         "quantity" : "71.743706",
-        //         "amount" : "1638994.52683452",
-        //         "tradeCount" : 3893,
-        //         "startTime" : 1659605760000,
-        //         "closeTime" : 1659692161077,
+        //         "open" : "26053.33",
+        //         "low" : "26053.33",
+        //         "high" : "26798.02",
+        //         "close" : "26447.58",
+        //         "quantity" : "6116.210188",
+        //         "amount" : "161082122.88450926",
+        //         "tradeCount" : "134709",
+        //         "startTime" : "1692784440000",
+        //         "closeTime" : "1692870839630",
         //         "displayName" : "BTC/USDT",
-        //         "dailyChange" : "0.0152",
-        //         "ts" : 1659692169838
+        //         "dailyChange" : "0.0151",
+        //         "bid" : "26447.57",
+        //         "bidQuantity" : "0.016313",
+        //         "ask" : "26447.58",
+        //         "askQuantity" : "0.068307",
+        //         "ts" : "1692870845446",
+        //         "markPrice" : "26444.11"
         //     }
         //
         return this.parseTicker (response, market);
