@@ -410,7 +410,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {string} symbol Unified market symbol
          * @param {int} [limit] Not used by krakenfutures
          * @param {object} [params] exchange specific params
-         * @returns An [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+         * @returns An [order book structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -639,7 +639,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {int} [limit] Total number of trades, cannot exceed 100
          * @param {object} [params] Exchange specific params
          * @param {int} [params.until] Timestamp in ms of latest trade
-         * @returns An array of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns An array of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -901,7 +901,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {float} amount Order size
          * @param {float} [price] Price to fill order at
          * @param {object} [params] Exchange specific params
-         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -924,7 +924,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {string} id Order id
          * @param {string} symbol Not used by Krakenfutures
          * @param {object} [params] Exchange specific params
-         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostCancelorder(this.extend({ 'order_id': id }, params));
@@ -961,7 +961,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
          * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
          * @param {object} [params] Exchange specific parameters
-         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns An array of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1386,7 +1386,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {object} [params] Exchange specific parameters
          * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'cash' *
          * @param {string} [params.symbol] A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
-         * @returns A [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         * @returns A [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         let type = this.safeString2(params, 'type', 'account');
@@ -1609,7 +1609,7 @@ class krakenfutures extends krakenfutures$1 {
          * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
-         * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {Order[]} an array of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
         await this.loadMarkets();
         const marketIds = this.marketIds(symbols);
@@ -1992,7 +1992,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {str} code Unified currency code
          * @param {float} amount Size of the transfer
          * @param {dict} [params] Exchange specific parameters
-         * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         return await this.transfer(code, amount, 'future', 'spot', params);
     }
@@ -2006,7 +2006,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {string} fromAccount 'main'/'funding'/'future', 'flex', or a unified market symbol
          * @param {string} toAccount 'main'/'funding', 'flex', 'spot' or a unified market symbol
          * @param {object} [params] Exchange specific parameters
-         * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2073,7 +2073,7 @@ class krakenfutures extends krakenfutures$1 {
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
-         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object} a [leverage structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure}
          */
         this.checkRequiredSymbol('fetchLeverage', symbol);
         await this.loadMarkets();

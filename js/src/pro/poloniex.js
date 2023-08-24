@@ -287,7 +287,7 @@ export default class poloniex extends poloniexRest {
          * @param {int} [since] not used by poloniex watchMyTrades
          * @param {int} [limit] not used by poloniex watchMyTrades
          * @param {object} [params] extra parameters specific to the poloniex strean
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
