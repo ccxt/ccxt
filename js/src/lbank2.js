@@ -2659,8 +2659,8 @@ export default class lbank2 extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const success = this.safeString(response, 'result');
-        if (success === 'false') {
+        const success = this.safeValue(response, 'result');
+        if (success === 'false' || !success) {
             const errorCode = this.safeString(response, 'error_code');
             const message = this.safeString({
                 '10000': 'Internal error',

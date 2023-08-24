@@ -2504,8 +2504,8 @@ class lbank2(Exchange, ImplicitAPI):
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return None
-        success = self.safe_string(response, 'result')
-        if success == 'false':
+        success = self.safe_value(response, 'result')
+        if success == 'false' or not success:
             errorCode = self.safe_string(response, 'error_code')
             message = self.safe_string({
                 '10000': 'Internal error',

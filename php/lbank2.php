@@ -2630,8 +2630,8 @@ class lbank2 extends Exchange {
         if ($response === null) {
             return null;
         }
-        $success = $this->safe_string($response, 'result');
-        if ($success === 'false') {
+        $success = $this->safe_value($response, 'result');
+        if ($success === 'false' || !$success) {
             $errorCode = $this->safe_string($response, 'error_code');
             $message = $this->safe_string(array(
                 '10000' => 'Internal error',
