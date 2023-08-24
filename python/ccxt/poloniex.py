@@ -559,26 +559,33 @@ class poloniex(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol" : "BTC_USDT",
-        #         "open" : "22814.93",
-        #         "low" : "22441.90",
-        #         "high" : "23413.00",
-        #         "close" : "23148.66",
-        #         "quantity" : "71.743706",
-        #         "amount" : "1638994.52683452",
-        #         "tradeCount" : 3893,
-        #         "startTime" : 1659605760000,
-        #         "closeTime" : 1659692161077,
+        #         "open" : "26053.33",
+        #         "low" : "26053.33",
+        #         "high" : "26798.02",
+        #         "close" : "26447.58",
+        #         "quantity" : "6116.210188",
+        #         "amount" : "161082122.88450926",
+        #         "tradeCount" : "134709",
+        #         "startTime" : "1692784440000",
+        #         "closeTime" : "1692870839630",
         #         "displayName" : "BTC/USDT",
-        #         "dailyChange" : "0.0152",
-        #         "ts" : 1659692169838
+        #         "dailyChange" : "0.0151",
+        #         "bid" : "26447.57",
+        #         "bidQuantity" : "0.016313",
+        #         "ask" : "26447.58",
+        #         "askQuantity" : "0.068307",
+        #         "ts" : "1692870845446",
+        #         "markPrice" : "26444.11"
         #     }
         #
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId)
         close = self.safe_string(ticker, 'close')
-        relativeChange = self.safe_string(ticker, 'percentChange')
+        relativeChange = self.safe_string(ticker, 'dailyChange')
         percentage = Precise.string_mul(relativeChange, '100')
+        bidVolume = self.safe_string(ticker, 'bidQuantity')
+        askVolume = self.safe_string(ticker, 'askQuantity')
         return self.safe_ticker({
             'id': marketId,
             'symbol': market['symbol'],
@@ -586,10 +593,10 @@ class poloniex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
-            'bid': None,
-            'bidVolume': None,
-            'ask': None,
-            'askVolume': None,
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': bidVolume,
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': askVolume,
             'vwap': None,
             'open': self.safe_string(ticker, 'open'),
             'close': close,
@@ -617,19 +624,24 @@ class poloniex(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             "symbol" : "KUB_USDD",
-        #             "open" : "0",
-        #             "low" : "0",
-        #             "high" : "0",
-        #             "close" : "0",
-        #             "quantity" : "0",
-        #             "amount" : "0",
-        #             "tradeCount" : 0,
-        #             "startTime" : 1659606240000,
-        #             "closeTime" : 1659692648742,
-        #             "displayName" : "KUB/USDD",
-        #             "dailyChange" : "0.00",
-        #             "ts" : 1659692648742
+        #              "symbol" : "BTC_USDT",
+        #              "open" : "26053.33",
+        #              "low" : "26053.33",
+        #              "high" : "26798.02",
+        #              "close" : "26447.58",
+        #              "quantity" : "6116.210188",
+        #              "amount" : "161082122.88450926",
+        #              "tradeCount" : "134709",
+        #              "startTime" : "1692784440000",
+        #              "closeTime" : "1692870839630",
+        #              "displayName" : "BTC/USDT",
+        #              "dailyChange" : "0.0151",
+        #              "bid" : "26447.57",
+        #              "bidQuantity" : "0.016313",
+        #              "ask" : "26447.58",
+        #              "askQuantity" : "0.068307",
+        #              "ts" : "1692870845446",
+        #              "markPrice" : "26444.11"
         #         }
         #     ]
         #
@@ -779,18 +791,23 @@ class poloniex(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol" : "BTC_USDT",
-        #         "open" : "22814.93",
-        #         "low" : "22441.90",
-        #         "high" : "23413.00",
-        #         "close" : "23148.66",
-        #         "quantity" : "71.743706",
-        #         "amount" : "1638994.52683452",
-        #         "tradeCount" : 3893,
-        #         "startTime" : 1659605760000,
-        #         "closeTime" : 1659692161077,
+        #         "open" : "26053.33",
+        #         "low" : "26053.33",
+        #         "high" : "26798.02",
+        #         "close" : "26447.58",
+        #         "quantity" : "6116.210188",
+        #         "amount" : "161082122.88450926",
+        #         "tradeCount" : "134709",
+        #         "startTime" : "1692784440000",
+        #         "closeTime" : "1692870839630",
         #         "displayName" : "BTC/USDT",
-        #         "dailyChange" : "0.0152",
-        #         "ts" : 1659692169838
+        #         "dailyChange" : "0.0151",
+        #         "bid" : "26447.57",
+        #         "bidQuantity" : "0.016313",
+        #         "ask" : "26447.58",
+        #         "askQuantity" : "0.068307",
+        #         "ts" : "1692870845446",
+        #         "markPrice" : "26444.11"
         #     }
         #
         return self.parse_ticker(response, market)
