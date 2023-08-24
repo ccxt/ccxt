@@ -92,6 +92,7 @@ interface Exchange {
     privatePostSpotV1MarginIsolatedBorrow (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV1MarginIsolatedRepay (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV1MarginIsolatedTransfer (params?: {}): Promise<implicitReturnType>;
+<<<<<<< HEAD
     privatePostAccountV1TransferContractList (params?: {}): Promise<implicitReturnType>;
     privatePostAccountV1TransferContract (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitOrder (params?: {}): Promise<implicitReturnType>;
@@ -100,6 +101,11 @@ interface Exchange {
     privatePostContractPrivateSubmitPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateCancelPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitLeverage (params?: {}): Promise<implicitReturnType>;
+=======
+    privatePostContractPrivateTrades (params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryHistoryOrders (params?: {}): Promise<implicitReturnType>;
+	privatePostSpotV4QueryOpenOrders (params?: {}): Promise<implicitReturnType>;
+>>>>>>> 3959c47802 (feat: bitmart fetch orders)
 }
 abstract class Exchange extends _Exchange {}
 
