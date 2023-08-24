@@ -18,7 +18,7 @@ export default class okx extends okxRest {
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any, messageHash: any): any;
     handleOrderBook(client: Client, message: any): any;
-    authenticate(params?: {}): any;
+    authenticate(params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     orderToTrade(order: any, market?: any): import("../base/types.js").Trade;

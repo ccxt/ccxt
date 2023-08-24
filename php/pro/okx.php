@@ -628,8 +628,9 @@ class okx extends \ccxt\async\okx {
         $url = $this->get_url('users', $access);
         $messageHash = 'authenticated';
         $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $timestamp = (string) $this->seconds();
             $method = 'GET';
             $path = '/users/self/verify';
@@ -648,8 +649,7 @@ class okx extends \ccxt\async\okx {
                 ),
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -1247,7 +1247,8 @@ class okx extends \ccxt\async\okx {
         //
         //     array( event => 'login', success => true )
         //
-        $client->resolve ($message, 'authenticated');
+        $future = $this->safe_value($client->futures, 'authenticated');
+        $future->resolve (true);
     }
 
     public function ping($client) {

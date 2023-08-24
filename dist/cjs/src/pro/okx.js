@@ -599,15 +599,16 @@ class okx extends okx$1 {
         }
         return message;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const access = this.safeString(params, 'access', 'private');
         params = this.omit(params, ['access']);
         const url = this.getUrl('users', access);
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.seconds().toString();
             const method = 'GET';
             const path = '/users/self/verify';
@@ -626,8 +627,7 @@ class okx extends okx$1 {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1210,7 +1210,8 @@ class okx extends okx$1 {
         //
         //     { event: 'login', success: true }
         //
-        client.resolve(message, 'authenticated');
+        const future = this.safeValue(client.futures, 'authenticated');
+        future.resolve(true);
     }
     ping(client) {
         // okex does not support built-in ws protocol-level ping-pong

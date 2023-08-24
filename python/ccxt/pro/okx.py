@@ -569,15 +569,16 @@ class okx(ccxt.async_support.okx):
                 client.resolve(orderbook, messageHash)
         return message
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         access = self.safe_string(params, 'access', 'private')
         params = self.omit(params, ['access'])
         url = self.get_url('users', access)
         messageHash = 'authenticated'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             timestamp = str(self.seconds())
             method = 'GET'
             path = '/users/self/verify'
@@ -596,8 +597,7 @@ class okx(ccxt.async_support.okx):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     async def watch_balance(self, params={}):
@@ -1136,7 +1136,8 @@ class okx(ccxt.async_support.okx):
         #
         #     {event: 'login', success: True}
         #
-        client.resolve(message, 'authenticated')
+        future = self.safe_value(client.futures, 'authenticated')
+        future.resolve(True)
 
     def ping(self, client):
         # okex does not support built-in ws protocol-level ping-pong
