@@ -620,29 +620,29 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         marketId = self.safe_string(ticker, 'product_id')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
-        last = self.safe_number(ticker, 'price')
-        return {
+        last = self.safe_string(ticker, 'price')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high_24h'),
-            'low': self.safe_number(ticker, 'low_24h'),
-            'bid': self.safe_number(ticker, 'best_bid'),
-            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
-            'ask': self.safe_number(ticker, 'best_ask'),
-            'askVolume': self.safe_number(ticker, 'best_ask_size'),
+            'high': self.safe_string(ticker, 'high_24h'),
+            'low': self.safe_string(ticker, 'low_24h'),
+            'bid': self.safe_string(ticker, 'best_bid'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_size'),
+            'ask': self.safe_string(ticker, 'best_ask'),
+            'askVolume': self.safe_string(ticker, 'best_ask_size'),
             'vwap': None,
-            'open': self.safe_number(ticker, 'open_24h'),
+            'open': self.safe_string(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume_24h'),
+            'baseVolume': self.safe_string(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        })
 
     def handle_delta(self, bookside, delta):
         price = self.safe_number(delta, 0)

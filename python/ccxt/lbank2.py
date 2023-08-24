@@ -12,7 +12,6 @@ from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -41,7 +40,7 @@ class lbank2(Exchange, ImplicitAPI):
                 'CORS': False,
                 'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': None,
                 'future': False,
                 'option': False,
                 'addMargin': False,
@@ -85,6 +84,7 @@ class lbank2(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
@@ -112,6 +112,7 @@ class lbank2(Exchange, ImplicitAPI):
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
                 'api': {
                     'rest': 'https://api.lbank.info',
+                    'contract': 'https://lbkperp.lbank.com',
                 },
                 'api2': 'https://api.lbkex.com',
                 'www': 'https://www.lbank.info',
@@ -120,73 +121,85 @@ class lbank2(Exchange, ImplicitAPI):
                 'referral': 'https://www.lbank.info/invitevip?icode=7QCY',
             },
             'api': {
-                'public': {
-                    'get': {
-                        'currencyPairs': 2.5,
-                        'accuracy': 2.5,
-                        'usdToCny': 2.5,
-                        'withdrawConfigs': 2.5,
-                        'timestamp': 2.5,
-                        'ticker/24hr': 2.5,
-                        'ticker': 2.5,
-                        'depth': 2.5,
-                        'incrDepth': 2.5,
-                        'trades': 2.5,
-                        'kline': 2.5,
-                        # new quote endpoints
-                        'supplement/system_ping': 2.5,
-                        'supplement/incrDepth': 2.5,
-                        'supplement/trades': 2.5,
-                        'supplement/ticker/price': 2.5,
-                        'supplement/ticker/bookTicker': 2.5,
+                'spot': {
+                    'public': {
+                        'get': {
+                            'currencyPairs': 2.5,
+                            'accuracy': 2.5,
+                            'usdToCny': 2.5,
+                            'withdrawConfigs': 2.5,
+                            'timestamp': 2.5,
+                            'ticker/24hr': 2.5,
+                            'ticker': 2.5,
+                            'depth': 2.5,
+                            'incrDepth': 2.5,
+                            'trades': 2.5,
+                            'kline': 2.5,
+                            # new quote endpoints
+                            'supplement/system_ping': 2.5,
+                            'supplement/incrDepth': 2.5,
+                            'supplement/trades': 2.5,
+                            'supplement/ticker/price': 2.5,
+                            'supplement/ticker/bookTicker': 2.5,
+                        },
+                        'post': {
+                            'supplement/system_status': 2.5,
+                        },
                     },
-                    'post': {
-                        'supplement/system_status': 2.5,
+                    'private': {
+                        'post': {
+                            # account
+                            'user_info': 2.5,
+                            'subscribe/get_key': 2.5,
+                            'subscribe/refresh_key': 2.5,
+                            'subscribe/destroy_key': 2.5,
+                            'get_deposit_address': 2.5,
+                            'deposit_history': 2.5,
+                            # order
+                            'create_order': 1,
+                            'batch_create_order': 1,
+                            'cancel_order': 1,
+                            'cancel_clientOrders': 1,
+                            'orders_info': 2.5,
+                            'orders_info_history': 2.5,
+                            'order_transaction_detail': 2.5,
+                            'transaction_history': 2.5,
+                            'orders_info_no_deal': 2.5,
+                            # withdraw
+                            'withdraw': 2.5,
+                            'withdrawCancel': 2.5,
+                            'withdraws': 2.5,
+                            'supplement/user_info': 2.5,
+                            'supplement/withdraw': 2.5,
+                            'supplement/deposit_history': 2.5,
+                            'supplement/withdraws': 2.5,
+                            'supplement/get_deposit_address': 2.5,
+                            'supplement/asset_detail': 2.5,
+                            'supplement/customer_trade_fee': 2.5,
+                            'supplement/api_Restrictions': 2.5,
+                            # new quote endpoints
+                            'supplement/system_ping': 2.5,
+                            # new order endpoints
+                            'supplement/create_order_test': 1,
+                            'supplement/create_order': 1,
+                            'supplement/cancel_order': 1,
+                            'supplement/cancel_order_by_symbol': 1,
+                            'supplement/orders_info': 2.5,
+                            'supplement/orders_info_no_deal': 2.5,
+                            'supplement/orders_info_history': 2.5,
+                            'supplement/user_info_account': 2.5,
+                            'supplement/transaction_history': 2.5,
+                        },
                     },
                 },
-                'private': {
-                    'post': {
-                        # account
-                        'user_info': 2.5,
-                        'subscribe/get_key': 2.5,
-                        'subscribe/refresh_key': 2.5,
-                        'subscribe/destroy_key': 2.5,
-                        'get_deposit_address': 2.5,
-                        'deposit_history': 2.5,
-                        # order
-                        'create_order': 1,
-                        'batch_create_order': 1,
-                        'cancel_order': 1,
-                        'cancel_clientOrders': 1,
-                        'orders_info': 2.5,
-                        'orders_info_history': 2.5,
-                        'order_transaction_detail': 2.5,
-                        'transaction_history': 2.5,
-                        'orders_info_no_deal': 2.5,
-                        # withdraw
-                        'withdraw': 2.5,
-                        'withdrawCancel': 2.5,
-                        'withdraws': 2.5,
-                        'supplement/user_info': 2.5,
-                        'supplement/withdraw': 2.5,
-                        'supplement/deposit_history': 2.5,
-                        'supplement/withdraws': 2.5,
-                        'supplement/get_deposit_address': 2.5,
-                        'supplement/asset_detail': 2.5,
-                        'supplement/customer_trade_fee': 2.5,
-                        'supplement/api_Restrictions': 2.5,
-                        # new quote endpoints
-                        'supplement/system_ping': 2.5,
-                        # new order endpoints
-                        'supplement/create_order_test': 1,
-                        'supplement/create_order': 1,
-                        'supplement/cancel_order': 1,
-                        'supplement/cancel_order_by_symbol': 1,
-                        'supplement/orders_info': 2.5,
-                        'supplement/orders_info_no_deal': 2.5,
-                        'supplement/orders_info_history': 2.5,
-                        'supplement/user_info_account': 2.5,
-                        'supplement/transaction_history': 2.5,
+                'contract': {
+                    'public': {
+                        'get': {
+                            'cfd/openApi/v1/pub/getTime': 2.5,
+                            'cfd/openApi/v1/pub/instrument': 2.5,
+                            'cfd/openApi/v1/pub/marketData': 2.5,
+                            'cfd/openApi/v1/pub/marketOrder': 2.5,
+                        },
                     },
                 },
             },
@@ -208,7 +221,7 @@ class lbank2(Exchange, ImplicitAPI):
                 'cacheSecretAsPem': True,
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchTrades': {
-                    'method': 'publicGetTrades',  # or 'publicGetTradesSupplement'
+                    'method': 'spotPublicGetTrades',  # or 'spotPublicGetTradesSupplement'
                 },
                 'fetchTransactionFees': {  # DEPRECATED, please use fetchDepositWithdrawFees
                     'method': 'fetchPrivateTransactionFees',  # or 'fetchPublicTransactionFees'
@@ -220,13 +233,13 @@ class lbank2(Exchange, ImplicitAPI):
                     'method': 'fetchDepositAddressDefault',  # or fetchDepositAddressSupplement
                 },
                 'createOrder': {
-                    'method': 'privatePostSupplementCreateOrder',  # or privatePostCreateOrder
+                    'method': 'spotPrivatePostSupplementCreateOrder',  # or spotPrivatePostCreateOrder
                 },
                 'fetchOrder': {
                     'method': 'fetchOrderSupplement',  # or fetchOrderDefault
                 },
                 'fetchBalance': {
-                    'method': 'privatePostSupplementUserInfo',  # or privatePostSupplementUserInfoAccount or privatePostUserInfo
+                    'method': 'spotPrivatePostSupplementUserInfo',  # or spotPrivatePostSupplementUserInfoAccount or spotPrivatePostUserInfo
                 },
                 'networks': {
                     'ERC20': 'erc20',
@@ -288,24 +301,76 @@ class lbank2(Exchange, ImplicitAPI):
             },
         })
 
+    def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        see https://www.lbank.info/en-US/docs/index.html#get-timestamp
+        see https://www.lbank.com/en-US/docs/contract.html#get-the-current-time
+        :param dict [params]: extra parameters specific to the lbank2 api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTime', None, params)
+        response = None
+        if type == 'swap':
+            response = self.contractPublicGetCfdOpenApiV1PubGetTime(params)
+        else:
+            response = self.spotPublicGetTimestamp(params)
+        #
+        # spot
+        #
+        #     {
+        #         "result": "true",
+        #         "data": 1691789627950,
+        #         "error_code": 0,
+        #         "ts": 1691789627950
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "data": 1691789627950,
+        #         "error_code": 0,
+        #         "msg": "Success",
+        #         "result": "true",
+        #         "success": True
+        #     }
+        #
+        return self.safe_integer(response, 'data')
+
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for lbank2
         see https://www.lbank.com/en-US/docs/index.html#trading-pairs
+        see https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
-        # needs to return a list of unified market structures
-        response = self.publicGetAccuracy()
-        data = self.safe_value(response, 'data')
-        #      [
-        #          {
-        #              symbol: 'snx3s_usdt',
-        #              quantityAccuracy: '2',
-        #              minTranQua: '0.01',
-        #              priceAccuracy: '6'
-        #          }
-        #     ]
+        marketsPromises = [
+            self.fetch_spot_markets(params),
+            self.fetch_swap_markets(params),
+        ]
+        resolvedMarkets = marketsPromises
+        return self.array_concat(resolvedMarkets[0], resolvedMarkets[1])
+
+    def fetch_spot_markets(self, params={}):
+        response = self.spotPublicGetAccuracy(params)
+        #
+        #     {
+        #         "result": "true",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "quantityAccuracy": "4",
+        #                 "minTranQua": "0.0001",
+        #                 "priceAccuracy": "2"
+        #             },
+        #         ],
+        #         "error_code": 0,
+        #         "ts": 1691560288484
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -313,10 +378,9 @@ class lbank2(Exchange, ImplicitAPI):
             parts = marketId.split('_')
             baseId = parts[0]
             quoteId = parts[1]
-            base = baseId.upper()
-            quote = quoteId.upper()
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy')))
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -342,7 +406,7 @@ class lbank2(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy'))),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
                 },
                 'limits': {
@@ -367,80 +431,198 @@ class lbank2(Exchange, ImplicitAPI):
             })
         return result
 
+    def fetch_swap_markets(self, params={}):
+        request = {
+            'productGroup': 'SwapU',
+        }
+        response = self.contractPublicGetCfdOpenApiV1PubInstrument(self.extend(request, params))
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "priceLimitUpperValue": 0.2,
+        #                 "symbol": "BTCUSDT",
+        #                 "volumeTick": 0.0001,
+        #                 "indexPrice": "29707.70200000",
+        #                 "minOrderVolume": "0.0001",
+        #                 "priceTick": 0.1,
+        #                 "maxOrderVolume": "30.0",
+        #                 "baseCurrency": "BTC",
+        #                 "volumeMultiple": 1.0,
+        #                 "exchangeID": "Exchange",
+        #                 "priceCurrency": "USDT",
+        #                 "priceLimitLowerValue": 0.2,
+        #                 "clearCurrency": "USDT",
+        #                 "symbolName": "BTCUSDT",
+        #                 "defaultLeverage": 20.0,
+        #                 "minOrderCost": "5.0"
+        #             },
+        #         ],
+        #         "error_code": 0,
+        #         "msg": "Success",
+        #         "result": "true",
+        #         "success": True
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = []
+        for i in range(0, len(data)):
+            market = data[i]
+            marketId = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'baseCurrency')
+            settleId = self.safe_string(market, 'clearCurrency')
+            quoteId = settleId
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote + ':' + settle
+            result.append({
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': True,
+                'linear': True,
+                'inverse': None,
+                'contractSize': self.safe_number(market, 'volumeMultiple'),
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'volumeTick'),
+                    'price': self.safe_number(market, 'priceTick'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minOrderVolume'),
+                        'max': self.safe_number(market, 'maxOrderVolume'),
+                    },
+                    'price': {
+                        'min': self.safe_number(market, 'priceLimitLowerValue'),
+                        'max': self.safe_number(market, 'priceLimitUpperValue'),
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'minOrderCost'),
+                        'max': None,
+                    },
+                },
+                'info': market,
+            })
+        return result
+
     def parse_ticker(self, ticker, market=None):
         #
-        #      {
-        #          "symbol":"btc_usdt",
-        #          "ticker": {
-        #              "high":40200.88,
-        #              "vol":7508.3096,
-        #              "low":38239.38,
-        #              "change":0.75,
-        #              "turnover":292962771.34,
-        #              "latest":39577.95
-        #               },
-        #           "timestamp":1647005189792
-        #      }
+        # spot: fetchTicker, fetchTickers
         #
+        #     {
+        #         "symbol": "btc_usdt",
+        #         "ticker": {
+        #             "high": "29695.57",
+        #             "vol": "6890.2789",
+        #             "low": "29110",
+        #             "change": "0.58",
+        #             "turnover": "202769821.06",
+        #             "latest": "29405.98"
+        #         },
+        #         "timestamp": :1692064274908
+        #     }
+        #
+        # swap: fetchTickers
+        #
+        #     {
+        #         "prePositionFeeRate": "0.000053",
+        #         "volume": "2435.459",
+        #         "symbol": "BTCUSDT",
+        #         "highestPrice": "29446.5",
+        #         "lowestPrice": "29362.9",
+        #         "openPrice": "29419.5",
+        #         "markedPrice": "29385.1",
+        #         "turnover": "36345526.2438402",
+        #         "lastPrice": "29387.0"
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        tickerData = self.safe_value(ticker, 'ticker')
+        tickerData = self.safe_value(ticker, 'ticker', {})
+        market = self.safe_market(marketId, market)
+        data = ticker if (market['contract']) else tickerData
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(tickerData, 'high'),
-            'low': self.safe_string(tickerData, 'low'),
+            'high': self.safe_string_2(data, 'high', 'highestPrice'),
+            'low': self.safe_string_2(data, 'low', 'lowestPrice'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': self.safe_string(data, 'openPrice'),
             'close': None,
-            'last': self.safe_string(tickerData, 'latest'),
+            'last': self.safe_string_2(data, 'latest', 'lastPrice'),
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_string(tickerData, 'change'),
+            'percentage': self.safe_string(data, 'change'),
             'average': None,
-            'baseVolume': self.safe_string(tickerData, 'vol'),
-            'quoteVolume': self.safe_string(tickerData, 'turnover'),
+            'baseVolume': self.safe_string_2(data, 'vol', 'volume'),
+            'quoteVolume': self.safe_string(data, 'turnover'),
             'info': ticker,
         }, market)
 
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
+        if market['swap']:
+            response = self.fetch_tickers([market['symbol']], params)
+            return self.safe_value(response, market['symbol'])
         request = {
             'symbol': market['id'],
         }
-        response = self.publicGetTicker24hr(self.extend(request, params))
+        response = self.spotPublicGetTicker24hr(self.extend(request, params))
         #
-        #      {
-        #          "result":"true",
-        #          "data": [
-        #              {
-        #                  "symbol":"btc_usdt",
-        #                  "ticker":{
-        #                          "high":40200.88,
-        #                          "vol":7508.3096,
-        #                          "low":38239.38,
-        #                          "change":0.75,
-        #                          "turnover":292962771.34,
-        #                          "latest":39577.95
-        #                      },
-        #                  "timestamp":1647005189792
-        #               }
-        #                   ],
-        #          "error_code":0,"ts":1647005190755
-        #      }
+        #     {
+        #         "result": "true",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "ticker": {
+        #                     "high": "29695.57",
+        #                     "vol": "6890.2789",
+        #                     "low": "29110",
+        #                     "change": "0.58",
+        #                     "turnover": "202769821.06",
+        #                     "latest": "29405.98"
+        #                 },
+        #                 "timestamp": :1692064274908
+        #             }
+        #         ],
+        #         "error_code": 0,
+        #         "ts": :1692064276872
+        #     }
         #
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0, {})
@@ -449,21 +631,82 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
+        see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the lbank api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
-        request = {
-            'symbol': 'all',
-        }
-        response = self.publicGetTicker24hr(self.extend(request, params))
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                market = self.market(symbols[0])
+        request = {}
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        response = None
+        if type == 'swap':
+            request['productGroup'] = 'SwapU'
+            response = self.contractPublicGetCfdOpenApiV1PubMarketData(self.extend(request, params))
+        else:
+            request['symbol'] = 'all'
+            response = self.spotPublicGetTicker24hr(self.extend(request, params))
+        #
+        # spot
+        #
+        #     {
+        #         "result": "true",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "ticker": {
+        #                     "high": "29695.57",
+        #                     "vol": "6890.2789",
+        #                     "low": "29110",
+        #                     "change": "0.58",
+        #                     "turnover": "202769821.06",
+        #                     "latest": "29405.98"
+        #                 },
+        #                 "timestamp": :1692064274908
+        #             }
+        #         ],
+        #         "error_code": 0,
+        #         "ts": :1692064276872
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "prePositionFeeRate": "0.000053",
+        #                 "volume": "2435.459",
+        #                 "symbol": "BTCUSDT",
+        #                 "highestPrice": "29446.5",
+        #                 "lowestPrice": "29362.9",
+        #                 "openPrice": "29419.5",
+        #                 "markedPrice": "29385.1",
+        #                 "turnover": "36345526.2438402",
+        #                 "lastPrice": "29387.0"
+        #             },
+        #         ],
+        #         "error_code": 0,
+        #         "msg": "Success",
+        #         "result": "true",
+        #         "success": True
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://www.lbank.info/en-US/docs/index.html#query-market-depth
+        see https://www.lbank.com/en-US/docs/contract.html#get-handicap
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
@@ -475,16 +718,73 @@ class lbank2(Exchange, ImplicitAPI):
             limit = 60
         request = {
             'symbol': market['id'],
-            'size': limit,
         }
-        response = self.publicGetDepth(self.extend(request, params))
-        orderbook = response['data']
+        type = None
+        type, params = self.handle_market_type_and_params('fetchOrderBook', market, params)
+        response = None
+        if type == 'swap':
+            request['depth'] = limit
+            response = self.contractPublicGetCfdOpenApiV1PubMarketOrder(self.extend(request, params))
+        else:
+            request['size'] = limit
+            response = self.spotPublicGetDepth(self.extend(request, params))
+        #
+        # spot
+        #
+        #     {
+        #         "result": "true",
+        #         "data": {
+        #             "asks": [
+        #                 ["29243.37", "2.8783"],
+        #                 ["29243.39", "2.2842"],
+        #                 ["29243.4", "0.0337"]
+        #             ],
+        #             "bids": [
+        #                 ["29243.36", "1.5258"],
+        #                 ["29243.34", "0.8218"],
+        #                 ["29243.28", "1.285"]
+        #             ],
+        #             "timestamp": :1692157328820
+        #         },
+        #         "error_code": 0,
+        #         "ts": :1692157328820
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "data": {
+        #             "symbol": "BTCUSDT",
+        #             "asks": [
+        #                 {
+        #                     "volume": "14.6535",
+        #                     "price": "29234.2",
+        #                     "orders": "1"
+        #                 },
+        #             ],
+        #             "bids": [
+        #                 {
+        #                     "volume": "13.4899",
+        #                     "price": "29234.1",
+        #                     "orders": "4"
+        #                 },
+        #             ]
+        #         },
+        #         "error_code": 0,
+        #         "msg": "Success",
+        #         "result": "true",
+        #         "success": True
+        #     }
+        #
+        orderbook = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
+        if market['swap']:
+            return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchTrades(old) publicGetTrades
+        # fetchTrades(old) spotPublicGetTrades
         #
         #      {
         #          "date_ms":1647021989789,
@@ -495,7 +795,7 @@ class lbank2(Exchange, ImplicitAPI):
         #      }
         #
         #
-        # fetchTrades(new) publicGetTradesSupplement
+        # fetchTrades(new) spotPublicGetTradesSupplement
         #
         #      {
         #          "quoteQty":1675.048485,
@@ -578,6 +878,8 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://www.lbank.info/en-US/docs/index.html#query-historical-transactions
+        see https://www.lbank.info/en-US/docs/index.html#recent-transactions-list
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -599,7 +901,7 @@ class lbank2(Exchange, ImplicitAPI):
         params = self.omit(params, 'method')
         if method is None:
             options = self.safe_value(self.options, 'fetchTrades', {})
-            method = self.safe_string(options, 'method', 'publicGetTrades')
+            method = self.safe_string(options, 'method', 'spotPublicGetTrades')
         response = getattr(self, method)(self.extend(request, params))
         #
         #      {
@@ -616,6 +918,7 @@ class lbank2(Exchange, ImplicitAPI):
         #           "error_code":0,
         #           "ts":1647021999308
         #      }
+        #
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
@@ -642,6 +945,7 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://www.lbank.info/en-US/docs/index.html#query-k-bar-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -663,7 +967,7 @@ class lbank2(Exchange, ImplicitAPI):
             'time': self.parse_to_int(since / 1000),
             'size': limit,  # max 2000
         }
-        response = self.publicGetKline(self.extend(request, params))
+        response = self.spotPublicGetKline(self.extend(request, params))
         ohlcvs = self.safe_value(response, 'data', [])
         #
         #
@@ -690,7 +994,7 @@ class lbank2(Exchange, ImplicitAPI):
 
     def parse_balance(self, response):
         #
-        # privatePostUserInfo
+        # spotPrivatePostUserInfo
         #
         #      {
         #          "toBtc": {
@@ -715,7 +1019,7 @@ class lbank2(Exchange, ImplicitAPI):
         #              }
         #      }
         #
-        # privatePostSupplementUserInfoAccount
+        # spotPrivatePostSupplementUserInfoAccount
         #
         #      {
         #          "balances":[
@@ -727,7 +1031,7 @@ class lbank2(Exchange, ImplicitAPI):
         #          ]
         #      }
         #
-        # privatePostSupplementUserInfo
+        # spotPrivatePostSupplementUserInfo
         #
         #      [
         #          {
@@ -773,7 +1077,7 @@ class lbank2(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
         data = self.safe_value(response, 'data')
-        # from privatePostUserInfo
+        # from spotPrivatePostUserInfo
         toBtc = self.safe_value(data, 'toBtc')
         if toBtc is not None:
             used = self.safe_value(data, 'freeze', {})
@@ -787,7 +1091,7 @@ class lbank2(Exchange, ImplicitAPI):
                 account['free'] = self.safe_string(free, currencyId)
                 result[code] = account
             return self.safe_balance(result)
-        # from privatePostSupplementUserInfoAccount
+        # from spotPrivatePostSupplementUserInfoAccount
         balances = self.safe_value(data, 'balances')
         if balances is not None:
             for i in range(0, len(balances)):
@@ -799,7 +1103,7 @@ class lbank2(Exchange, ImplicitAPI):
                 account['used'] = self.safe_string(item, 'locked')
                 result[codeInner] = account
             return self.safe_balance(result)
-        # from privatePostSupplementUserInfo
+        # from spotPrivatePostSupplementUserInfo
         isArray = isinstance(data, list)
         if isArray is True:
             for i in range(0, len(data)):
@@ -816,6 +1120,9 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://www.lbank.info/en-US/docs/index.html#asset-information
+        see https://www.lbank.info/en-US/docs/index.html#account-information
+        see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
@@ -823,7 +1130,7 @@ class lbank2(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method')
         if method is None:
             options = self.safe_value(self.options, 'fetchBalance', {})
-            method = self.safe_string(options, 'method', 'privatePostSupplementUserInfo')
+            method = self.safe_string(options, 'method', 'spotPrivatePostSupplementUserInfo')
         response = getattr(self, method)()
         #
         #    {
@@ -877,6 +1184,7 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
+        see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -888,12 +1196,13 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
+        see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         request = {}
-        response = self.privatePostSupplementCustomerTradeFee(self.extend(request, params))
+        response = self.spotPrivatePostSupplementCustomerTradeFee(self.extend(request, params))
         fees = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(fees)):
@@ -905,6 +1214,8 @@ class lbank2(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://www.lbank.info/en-US/docs/index.html#place-order
+        see https://www.lbank.info/en-US/docs/index.html#place-an-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -961,7 +1272,7 @@ class lbank2(Exchange, ImplicitAPI):
         params = self.omit(params, 'method')
         if method is None:
             options = self.safe_value(self.options, 'createOrder', {})
-            method = self.safe_string(options, 'method', 'privatePostSupplementCreateOrder')
+            method = self.safe_string(options, 'method', 'spotPrivatePostSupplementCreateOrder')
         response = getattr(self, method)(self.extend(request, params))
         #
         #      {
@@ -1114,6 +1425,8 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
+        see https://www.lbank.info/en-US/docs/index.html#query-order
+        see https://www.lbank.info/en-US/docs/index.html#query-order-new
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1127,15 +1440,14 @@ class lbank2(Exchange, ImplicitAPI):
         return result
 
     def fetch_order_supplement(self, id: str, symbol: Optional[str] = None, params={}):
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'orderId': id,
         }
-        response = self.privatePostSupplementOrdersInfo(self.extend(request, params))
+        response = self.spotPrivatePostSupplementOrdersInfo(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1162,15 +1474,14 @@ class lbank2(Exchange, ImplicitAPI):
 
     def fetch_order_default(self, id: str, symbol: Optional[str] = None, params={}):
         # Id can be a list of ids delimited by a comma
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'order_id': id,
         }
-        response = self.privatePostOrdersInfo(self.extend(request, params))
+        response = self.spotPrivatePostOrdersInfo(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1205,14 +1516,14 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
+        see https://www.lbank.info/en-US/docs/index.html#past-transaction-details
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trades structures to retrieve
+        :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         since = self.safe_value(params, 'start_date', since)
@@ -1231,7 +1542,7 @@ class lbank2(Exchange, ImplicitAPI):
         if since is not None:
             request['start_date'] = self.ymd(since, '-')  # max query 2 days ago
             request['end_date'] = self.ymd(since + 86400000, '-')  # will cover 2 days
-        response = self.privatePostTransactionHistory(self.extend(request, params))
+        response = self.spotPrivatePostTransactionHistory(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1258,16 +1569,16 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
+        see https://www.lbank.info/en-US/docs/index.html#query-all-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # default query is for canceled and completely filled orders
         # does not return open orders unless specified explicitly
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -1278,7 +1589,7 @@ class lbank2(Exchange, ImplicitAPI):
             'page_length': limit,
             # 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         }
-        response = self.privatePostSupplementOrdersInfoHistory(self.extend(request, params))
+        response = self.spotPrivatePostSupplementOrdersInfoHistory(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1313,14 +1624,14 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
+        see https://www.lbank.info/en-US/docs/index.html#current-pending-order
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOpenOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -1330,7 +1641,7 @@ class lbank2(Exchange, ImplicitAPI):
             'current_page': 1,
             'page_length': limit,
         }
-        response = self.privatePostSupplementOrdersInfoNoDeal(self.extend(request, params))
+        response = self.spotPrivatePostSupplementOrdersInfoNoDeal(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1365,24 +1676,24 @@ class lbank2(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
+        see https://www.lbank.info/en-US/docs/index.html#cancel-order-new
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        self.check_required_symbol('cancelOrder', symbol)
         self.load_markets()
         clientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
+            'orderId': id,
         }
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
-        request['orderId'] = id
-        response = self.privatePostSupplementCancelOrder(self.extend(request, params))
+        response = self.spotPrivatePostSupplementCancelOrder(self.extend(request, params))
         #
         #   {
         #      "result":true,
@@ -1402,18 +1713,18 @@ class lbank2(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
+        see https://www.lbank.info/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
+        self.check_required_symbol('cancelAllOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        response = self.privatePostSupplementCancelOrderBySymbol(self.extend(request, params))
+        response = self.spotPrivatePostSupplementCancelOrderBySymbol(self.extend(request, params))
         #
         #      {
         #          "result":"true",
@@ -1445,6 +1756,8 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        see https://www.lbank.info/en-US/docs/index.html#get-deposit-address
+        see https://www.lbank.info/en-US/docs/index.html#the-user-obtains-the-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1454,7 +1767,7 @@ class lbank2(Exchange, ImplicitAPI):
         params = self.omit(params, 'method')
         if method is None:
             options = self.safe_value(self.options, 'fetchDepositAddress', {})
-            method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
+            method = self.safe_string(options, 'method', 'fetchDepositAddressDefault')
         return getattr(self, method)(code, params)
 
     def fetch_deposit_address_default(self, code: str, params={}):
@@ -1467,7 +1780,7 @@ class lbank2(Exchange, ImplicitAPI):
         if network is not None:
             request['netWork'] = network  # ... yes, really lol
             params = self.omit(params, 'network')
-        response = self.privatePostGetDepositAddress(self.extend(request, params))
+        response = self.spotPrivatePostGetDepositAddress(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1508,7 +1821,7 @@ class lbank2(Exchange, ImplicitAPI):
         if network is not None:
             request['networkName'] = network
             params = self.omit(params, 'network')
-        response = self.privatePostSupplementGetDepositAddress(self.extend(request, params))
+        response = self.spotPrivatePostSupplementGetDepositAddress(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1537,6 +1850,7 @@ class lbank2(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
+        see https://www.lbank.info/en-US/docs/index.html#withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1549,8 +1863,8 @@ class lbank2(Exchange, ImplicitAPI):
         self.load_markets()
         fee = self.safe_string(params, 'fee')
         params = self.omit(params, 'fee')
-        if fee is None:
-            raise ArgumentsRequired(self.id + ' withdraw() requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchDepositWithdrawFees(), note: if no network param is supplied then the default network will be used, self can also be found in fetchDepositWithdrawFees()')
+        # The relevant coin network fee can be found by calling fetchDepositWithdrawFees(), note: if no network param is supplied then the default network will be used, self can also be found in fetchDepositWithdrawFees().
+        self.check_required_argument('withdraw', fee, 'fee')
         currency = self.currency(code)
         request = {
             'address': address,
@@ -1572,7 +1886,7 @@ class lbank2(Exchange, ImplicitAPI):
         networkId = self.safe_string(networks, network, network)
         if networkId is not None:
             request['networkName'] = networkId
-        response = self.privatePostSupplementWithdraw(self.extend(request, params))
+        response = self.spotPrivatePostSupplementWithdraw(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1693,6 +2007,7 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
+        see https://www.lbank.info/en-US/docs/index.html#get-recharge-history
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1710,7 +2025,7 @@ class lbank2(Exchange, ImplicitAPI):
             request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
-        response = self.privatePostSupplementDepositHistory(self.extend(request, params))
+        response = self.spotPrivatePostSupplementDepositHistory(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1741,6 +2056,7 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
+        see https://www.lbank.info/en-US/docs/index.html#get-withdrawal-history
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1759,7 +2075,7 @@ class lbank2(Exchange, ImplicitAPI):
             request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
-        response = self.privatePostSupplementWithdraws(self.extend(request, params))
+        response = self.spotPrivatePostSupplementWithdraws(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1817,7 +2133,7 @@ class lbank2(Exchange, ImplicitAPI):
         # complete response
         # incl. for coins which None in public method
         self.load_markets()
-        response = self.privatePostSupplementUserInfo()
+        response = self.spotPrivatePostSupplementUserInfo()
         #
         #    {
         #        "result": "true",
@@ -1879,7 +2195,7 @@ class lbank2(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['assetCode'] = currency['id']
-        response = self.publicGetWithdrawConfigs(self.extend(request, params))
+        response = self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
         #        result: 'true',
@@ -1926,6 +2242,8 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying self.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
+        see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
+        see https://www.lbank.info/en-US/docs/index.html#withdrawal-configurations
         :param str[]|None codes: array of unified currency codes
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1947,7 +2265,7 @@ class lbank2(Exchange, ImplicitAPI):
         # complete response
         # incl. for coins which None in public method
         self.load_markets()
-        response = self.privatePostSupplementUserInfo(params)
+        response = self.spotPrivatePostSupplementUserInfo(params)
         #
         #    {
         #        "result": "true",
@@ -1986,7 +2304,7 @@ class lbank2(Exchange, ImplicitAPI):
         # vast majority fees None
         self.load_markets()
         request = {}
-        response = self.publicGetWithdrawConfigs(self.extend(request, params))
+        response = self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
         #        result: 'true',
@@ -2119,9 +2437,12 @@ class lbank2(Exchange, ImplicitAPI):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
-        # Every endpoint ends with ".do"
-        url += '.do'
-        if api == 'public':
+        # Every spot endpoint ends with ".do"
+        if api[0] == 'spot':
+            url += '.do'
+        else:
+            url = self.urls['api']['contract'] + '/' + self.implode_params(path, params)
+        if api[1] == 'public':
             if query:
                 url += '?' + self.urlencode(self.keysort(query))
         else:

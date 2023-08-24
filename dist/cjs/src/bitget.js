@@ -148,6 +148,8 @@ class bitget extends bitget$1 {
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
                             'market/history-candles': 1,
+                            'public/loan/coinInfos': 2,
+                            'public/loan/hour-interest': 2, // 10 times/1s (IP) => 20/10 = 2
                         },
                     },
                     'mix': {
@@ -196,6 +198,11 @@ class bitget extends bitget$1 {
                             'account/transferRecords': 1,
                             'convert/currencies': 2,
                             'convert/convert-record': 2,
+                            'loan/ongoing-orders': 2,
+                            'loan/repay-history': 2,
+                            'loan/revise-history': 2,
+                            'loan/borrow-history': 2,
+                            'loan/debts': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                         'post': {
                             'wallet/transfer': 4,
@@ -226,6 +233,9 @@ class bitget extends bitget$1 {
                             'plan/batchCancelPlan': 2,
                             'convert/quoted-price': 4,
                             'convert/trade': 4,
+                            'loan/borrow': 2,
+                            'loan/repay': 2,
+                            'loan/revise-pledge': 2,
                             'trace/order/orderCurrentList': 2,
                             'trace/order/orderHistoryList': 2,
                             'trace/order/closeTrackingOrder': 2,
@@ -361,6 +371,9 @@ class bitget extends bitget$1 {
                             'account/sub-email': 20,
                             'account/sub-spot-assets': 2,
                             'account/sub-future-assets': 2,
+                            'account/subaccount-transfer': 1,
+                            'account/subaccount-deposit': 1,
+                            'account/subaccount-withdrawal': 1,
                             'account/sub-api-list': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                         'post': {

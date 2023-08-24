@@ -1398,12 +1398,13 @@ export default class bybit extends bybitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    authenticate (url, params = {}) {
+    async authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const expiresInt = this.milliseconds () + 10000;
             const expires = expiresInt.toString ();
             const path = 'GET/realtime';
@@ -1416,8 +1417,7 @@ export default class bybit extends bybitRest {
                 ],
             };
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1578,7 +1578,8 @@ export default class bybit extends bybitRest {
         const success = this.safeValue (message, 'success');
         const messageHash = 'authenticated';
         if (success) {
-            client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, messageHash);
+            future.resolve (true);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
             client.reject (error, messageHash);

@@ -79,6 +79,7 @@ export default class binance extends Exchange {
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -885,6 +886,21 @@ export default class binance extends Exchange {
                         'cm/openOrder': 1, // 1
                         'cm/openOrders': 1, // 1
                         'cm/allOrders': 20, // 20
+                        'um/conditional/openOrder': 1,
+                        'um/conditional/openOrders': 40,
+                        'um/conditional/orderHistory': 1,
+                        'um/conditional/allOrders': 40,
+                        'cm/conditional/openOrder': 1,
+                        'cm/conditional/openOrders': 40,
+                        'cm/conditional/orderHistory': 1,
+                        'cm/conditional/allOrders': 40,
+                        'margin/order': 5,
+                        'margin/openOrders': 5,
+                        'margin/allOrders': 100,
+                        'margin/orderList': 5,
+                        'margin/allOrderList': 100,
+                        'margin/openOrderList': 5,
+                        'margin/myTrades': 5,
                         'balance': 20, // 20
                         'account': 20, // 20
                         'margin/maxBorrowable': 5, // 5
@@ -903,6 +919,10 @@ export default class binance extends Exchange {
                         'um/apiTradingStatus': 1, // 1
                         'um/commissionRate': 20, // 20
                         'cm/commissionRate': 20, // 20
+                        'margin/marginLoan': 10,
+                        'margin/repayLoan': 10,
+                        'margin/marginInterestHistory': 1,
+                        'portfolio/interest-history': 50, // 50
                         'um/income': 30,
                         'cm/income ': 30,
                         'um/account': 5,
@@ -910,10 +930,6 @@ export default class binance extends Exchange {
                         'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
                         'um/adlQuantile': 5,
                         'cm/adlQuantile': 5,
-                        'margin/marginLoan': 0.0667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/repayLoan': 0.0667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/marginInterestHistory': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'portfolio/interest-history': 50, // 50
                     },
                     'post': {
                         'um/order': 1, // 0
@@ -7669,7 +7685,64 @@ export default class binance extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
+    async fetchMySettlementHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMySettlementHistory
+         * @description fetches historical settlement records of the user
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#user-exercise-record-user_data
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [settlement history objects]
+         */
+        await this.loadMarkets ();
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMySettlementHistory', market, params);
+        if (type !== 'option') {
+            throw new NotSupported (this.id + ' fetchMySettlementHistory() supports option markets only');
+        }
+        const request = {};
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.eapiPrivateGetExerciseRecord (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "1125899906842897036",
+        //             "currency": "USDT",
+        //             "symbol": "BTC-230728-30000-C",
+        //             "exercisePrice": "30000.00000000",
+        //             "markPrice": "29160.71284993",
+        //             "quantity": "1.00000000",
+        //             "amount": "0.00000000",
+        //             "fee": "0.00000000",
+        //             "createDate": 1690531200000,
+        //             "priceScale": 0,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "positionSide": "LONG",
+        //             "quoteAsset": "USDT"
+        //         }
+        //     ]
+        //
+        const settlements = this.parseSettlements (response, market);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+    }
+
     parseSettlement (settlement, market) {
+        //
+        // fetchSettlementHistory
         //
         //     {
         //         "symbol": "ETH-230223-1900-P",
@@ -7679,18 +7752,39 @@ export default class binance extends Exchange {
         //         "strikeResult": "REALISTIC_VALUE_STRICKEN"
         //     }
         //
-        const timestamp = this.safeInteger (settlement, 'expiryDate');
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "id": "1125899906842897036",
+        //         "currency": "USDT",
+        //         "symbol": "BTC-230728-30000-C",
+        //         "exercisePrice": "30000.00000000",
+        //         "markPrice": "29160.71284993",
+        //         "quantity": "1.00000000",
+        //         "amount": "0.00000000",
+        //         "fee": "0.00000000",
+        //         "createDate": 1690531200000,
+        //         "priceScale": 0,
+        //         "quantityScale": 2,
+        //         "optionSide": "CALL",
+        //         "positionSide": "LONG",
+        //         "quoteAsset": "USDT"
+        //     }
+        //
+        const timestamp = this.safeInteger2 (settlement, 'expiryDate', 'createDate');
         const marketId = this.safeString (settlement, 'symbol');
         return {
             'info': settlement,
             'symbol': this.safeSymbol (marketId, market),
-            'price': this.safeNumber (settlement, 'realStrikePrice'),
+            'price': this.safeNumber2 (settlement, 'realStrikePrice', 'exercisePrice'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
     }
 
     parseSettlements (settlements, market) {
+        //
+        // fetchSettlementHistory
         //
         //     [
         //         {
@@ -7699,6 +7793,27 @@ export default class binance extends Exchange {
         //             "realStrikePrice": "1665.5897334",
         //             "expiryDate": 1677139200000,
         //             "strikeResult": "EXTRINSIC_VALUE_EXPIRED"
+        //         }
+        //     ]
+        //
+        // fetchMySettlementHistory
+        //
+        //     [
+        //         {
+        //             "id": "1125899906842897036",
+        //             "currency": "USDT",
+        //             "symbol": "BTC-230728-30000-C",
+        //             "exercisePrice": "30000.00000000",
+        //             "markPrice": "29160.71284993",
+        //             "quantity": "1.00000000",
+        //             "amount": "0.00000000",
+        //             "fee": "0.00000000",
+        //             "createDate": 1690531200000,
+        //             "priceScale": 0,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "positionSide": "LONG",
+        //             "quoteAsset": "USDT"
         //         }
         //     ]
         //

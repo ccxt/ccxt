@@ -503,7 +503,7 @@ export default class Exchange {
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
-    close(): Promise<void>;
+    close(): Promise<any[]>;
     loadOrderBook(client: any, messageHash: any, symbol: any, limit?: any, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     valueIsDefined(value: any): boolean;
@@ -547,7 +547,7 @@ export default class Exchange {
     parseWsTrade(trade: any, market?: any): Trade;
     parseWsOrder(order: any, market?: any): Order;
     parseWsOrderTrade(trade: any, market?: any): Trade;
-    parseWsOHLCV(ohlcv: any, market?: any): void;
+    parseWsOHLCV(ohlcv: any, market?: any): any;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
@@ -783,6 +783,7 @@ export default class Exchange {
     parseIncome(info: any, market?: any): void;
     parseIncomes(incomes: any, market?: any, since?: Int, limit?: Int): any;
     getMarketFromSymbols(symbols?: string[]): any;
+    parseWsOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): any[];
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any, indexed?: boolean): Position[];
 }

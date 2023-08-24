@@ -1261,11 +1261,13 @@ export default class Exchange {
 
     async close () {
         const clients = Object.values (this.clients || {});
+        const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
-            await client.close ();
+            closedClients.push(client.close ());
         }
+        return Promise.all (closedClients);
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
@@ -1673,7 +1675,7 @@ export default class Exchange {
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
-        throw new NotSupported (this.id + ' parseWsOHLCV() is not supported yet');
+        return this.parseOHLCV (ohlcv, market);
     }
 
     async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
@@ -4403,6 +4405,14 @@ export default class Exchange {
         const firstMarket = this.safeString (symbols, 0);
         const market = this.market (firstMarket);
         return market;
+    }
+
+    parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {
+        const results = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            results.push (this.parseWsOHLCV (ohlcvs[i], market));
+        }
+        return results;
     }
 
     async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {

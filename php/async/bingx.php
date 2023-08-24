@@ -805,9 +805,9 @@ class bingx extends Exchange {
         }
         $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
         $takeOrMaker = null;
-        if ($isBuyerMaker) {
-            $takeOrMaker = 'maker';
-        } elseif ($isBuyerMaker !== null) {
+        $side = null;
+        if ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
             $takeOrMaker = 'taker';
         }
         $cost = $this->safe_string($trade, 'quoteQty');
@@ -822,7 +822,7 @@ class bingx extends Exchange {
             'symbol' => $this->safe_symbol(null, $market, '-', $type),
             'order' => null,
             'type' => null,
-            'side' => null,
+            'side' => $side,
             'takerOrMaker' => $takeOrMaker,
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string_2($trade, 'qty', 'amount'),

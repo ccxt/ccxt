@@ -80,6 +80,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMySettlementHistory': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -8308,12 +8309,86 @@ class bybit(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
+    def fetch_my_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical settlement records of the user
+        see https://bybit-exchange.github.io/docs/v5/asset/delivery
+        :param str symbol: unified market symbol of the settlement history
+        :param int [since]: timestamp in ms
+        :param int [limit]: number of records
+        :param dict [params]: exchange specific params
+        :returns dict[]: a list of [settlement history objects]
+        """
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMySettlementHistory', market, params)
+        if type == 'option':
+            request['category'] = 'option'
+        else:
+            subType = None
+            subType, params = self.handle_sub_type_and_params('fetchMySettlementHistory', market, params, 'linear')
+            if subType == 'inverse':
+                raise NotSupported(self.id + ' fetchMySettlementHistory() doesn\'t support inverse markets')
+            request['category'] = 'linear'
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetV5AssetDeliveryRecord(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "success",
+        #         "result": {
+        #             "category": "option",
+        #             "nextPageCursor": "0%2C3",
+        #             "list": [
+        #                 {
+        #                     "symbol": "SOL-27JUN23-20-C",
+        #                     "deliveryPrice": "16.62258889",
+        #                     "deliveryTime": "1687852800000",
+        #                     "side": "Buy",
+        #                     "strike": "20",
+        #                     "fee": "0.00000000",
+        #                     "position": "0.01",
+        #                     "deliveryRpl": "3.5"
+        #                 },
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1689043527231
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'list', [])
+        settlements = self.parse_settlements(data, market)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+
     def parse_settlement(self, settlement, market):
+        #
+        # fetchSettlementHistory
         #
         #     {
         #         "symbol": "SOL-27JUN23-20-C",
         #         "deliveryPrice": "16.62258889",
         #         "deliveryTime": "1687852800000"
+        #     }
+        #
+        # fetchMySettlementHistory
+        #
+        #     {
+        #         "symbol": "SOL-27JUN23-20-C",
+        #         "deliveryPrice": "16.62258889",
+        #         "deliveryTime": "1687852800000",
+        #         "side": "Buy",
+        #         "strike": "20",
+        #         "fee": "0.00000000",
+        #         "position": "0.01",
+        #         "deliveryRpl": "3.5"
         #     }
         #
         timestamp = self.safe_integer(settlement, 'deliveryTime')
@@ -8328,11 +8403,28 @@ class bybit(Exchange, ImplicitAPI):
 
     def parse_settlements(self, settlements, market):
         #
+        # fetchSettlementHistory
+        #
         #     [
         #         {
         #             "symbol": "SOL-27JUN23-20-C",
         #             "deliveryPrice": "16.62258889",
         #             "deliveryTime": "1687852800000"
+        #         }
+        #     ]
+        #
+        # fetchMySettlementHistory
+        #
+        #     [
+        #         {
+        #             "symbol": "SOL-27JUN23-20-C",
+        #             "deliveryPrice": "16.62258889",
+        #             "deliveryTime": "1687852800000",
+        #             "side": "Buy",
+        #             "strike": "20",
+        #             "fee": "0.00000000",
+        #             "position": "0.01",
+        #             "deliveryRpl": "3.5"
         #         }
         #     ]
         #

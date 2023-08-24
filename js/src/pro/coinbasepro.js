@@ -669,29 +669,29 @@ export default class coinbasepro extends coinbaseproRest {
         const marketId = this.safeString(ticker, 'product_id');
         const symbol = this.safeSymbol(marketId, market, '-');
         const timestamp = this.parse8601(this.safeString(ticker, 'time'));
-        const last = this.safeNumber(ticker, 'price');
-        return {
+        const last = this.safeString(ticker, 'price');
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.safeNumber(ticker, 'high_24h'),
-            'low': this.safeNumber(ticker, 'low_24h'),
-            'bid': this.safeNumber(ticker, 'best_bid'),
-            'bidVolume': this.safeNumber(ticker, 'best_bid_size'),
-            'ask': this.safeNumber(ticker, 'best_ask'),
-            'askVolume': this.safeNumber(ticker, 'best_ask_size'),
+            'high': this.safeString(ticker, 'high_24h'),
+            'low': this.safeString(ticker, 'low_24h'),
+            'bid': this.safeString(ticker, 'best_bid'),
+            'bidVolume': this.safeString(ticker, 'best_bid_size'),
+            'ask': this.safeString(ticker, 'best_ask'),
+            'askVolume': this.safeString(ticker, 'best_ask_size'),
             'vwap': undefined,
-            'open': this.safeNumber(ticker, 'open_24h'),
+            'open': this.safeString(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber(ticker, 'volume_24h'),
+            'baseVolume': this.safeString(ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        });
     }
     handleDelta(bookside, delta) {
         const price = this.safeNumber(delta, 0);

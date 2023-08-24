@@ -61,6 +61,7 @@ class bybit extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -8815,12 +8816,91 @@ class bybit extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical settlement records of the user
+         * @see https://bybit-exchange.github.io/docs/v5/asset/delivery
+         * @param {string} $symbol unified $market $symbol of the settlement history
+         * @param {int} [$since] timestamp in ms
+         * @param {int} [$limit] number of records
+         * @param {array} [$params] exchange specific $params
+         * @return {array[]} a list of [settlement history objects]
+         */
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
+        if ($type === 'option') {
+            $request['category'] = 'option';
+        } else {
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMySettlementHistory', $market, $params, 'linear');
+            if ($subType === 'inverse') {
+                throw new NotSupported($this->id . ' fetchMySettlementHistory() doesn\'t support inverse markets');
+            }
+            $request['category'] = 'linear';
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privateGetV5AssetDeliveryRecord (array_merge($request, $params));
+        //
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "success",
+        //         "result" => array(
+        //             "category" => "option",
+        //             "nextPageCursor" => "0%2C3",
+        //             "list" => array(
+        //                 array(
+        //                     "symbol" => "SOL-27JUN23-20-C",
+        //                     "deliveryPrice" => "16.62258889",
+        //                     "deliveryTime" => "1687852800000",
+        //                     "side" => "Buy",
+        //                     "strike" => "20",
+        //                     "fee" => "0.00000000",
+        //                     "position" => "0.01",
+        //                     "deliveryRpl" => "3.5"
+        //                 ),
+        //             )
+        //         ),
+        //         "retExtInfo" => array(),
+        //         "time" => 1689043527231
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($result, 'list', array());
+        $settlements = $this->parse_settlements($data, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+    }
+
     public function parse_settlement($settlement, $market) {
+        //
+        // fetchSettlementHistory
         //
         //     {
         //         "symbol" => "SOL-27JUN23-20-C",
         //         "deliveryPrice" => "16.62258889",
         //         "deliveryTime" => "1687852800000"
+        //     }
+        //
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "symbol" => "SOL-27JUN23-20-C",
+        //         "deliveryPrice" => "16.62258889",
+        //         "deliveryTime" => "1687852800000",
+        //         "side" => "Buy",
+        //         "strike" => "20",
+        //         "fee" => "0.00000000",
+        //         "position" => "0.01",
+        //         "deliveryRpl" => "3.5"
         //     }
         //
         $timestamp = $this->safe_integer($settlement, 'deliveryTime');
@@ -8836,11 +8916,28 @@ class bybit extends Exchange {
 
     public function parse_settlements($settlements, $market) {
         //
+        // fetchSettlementHistory
+        //
         //     array(
         //         {
         //             "symbol" => "SOL-27JUN23-20-C",
         //             "deliveryPrice" => "16.62258889",
         //             "deliveryTime" => "1687852800000"
+        //         }
+        //     )
+        //
+        // fetchMySettlementHistory
+        //
+        //     array(
+        //         {
+        //             "symbol" => "SOL-27JUN23-20-C",
+        //             "deliveryPrice" => "16.62258889",
+        //             "deliveryTime" => "1687852800000",
+        //             "side" => "Buy",
+        //             "strike" => "20",
+        //             "fee" => "0.00000000",
+        //             "position" => "0.01",
+        //             "deliveryRpl" => "3.5"
         //         }
         //     )
         //

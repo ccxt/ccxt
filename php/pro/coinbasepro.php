@@ -688,29 +688,29 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $marketId = $this->safe_string($ticker, 'product_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
-        $last = $this->safe_number($ticker, 'price');
-        return array(
+        $last = $this->safe_string($ticker, 'price');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high_24h'),
-            'low' => $this->safe_number($ticker, 'low_24h'),
-            'bid' => $this->safe_number($ticker, 'best_bid'),
-            'bidVolume' => $this->safe_number($ticker, 'best_bid_size'),
-            'ask' => $this->safe_number($ticker, 'best_ask'),
-            'askVolume' => $this->safe_number($ticker, 'best_ask_size'),
+            'high' => $this->safe_string($ticker, 'high_24h'),
+            'low' => $this->safe_string($ticker, 'low_24h'),
+            'bid' => $this->safe_string($ticker, 'best_bid'),
+            'bidVolume' => $this->safe_string($ticker, 'best_bid_size'),
+            'ask' => $this->safe_string($ticker, 'best_ask'),
+            'askVolume' => $this->safe_string($ticker, 'best_ask_size'),
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open_24h'),
+            'open' => $this->safe_string($ticker, 'open_24h'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume_24h'),
+            'baseVolume' => $this->safe_string($ticker, 'volume_24h'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ));
     }
 
     public function handle_delta($bookside, $delta) {
