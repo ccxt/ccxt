@@ -1577,7 +1577,7 @@ class bitopro(Exchange, ImplicitAPI):
                 }
                 data = self.json(rawData)
                 payload = self.string_to_base64(data)
-                signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
                 headers['X-BITOPRO-APIKEY'] = self.apiKey
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature

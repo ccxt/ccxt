@@ -1666,7 +1666,7 @@ class bitopro extends bitopro$1 {
                 };
                 const data = this.json(rawData);
                 const payload = this.stringToBase64(data);
-                const signature = this.hmac(payload, this.encode(this.secret), sha512.sha384);
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
