@@ -215,9 +215,15 @@ class woo(Exchange, ImplicitAPI):
                             'buypower': 1,
                             'referrals': 60,
                             'referral_rewards': 60,
+                            'convert/exchangeInfo': 1,
+                            'convert/assetInfo': 1,
+                            'convert/rfq': 60,
+                            'convert/trade': 1,
+                            'convert/trades': 1,
                         },
                         'post': {
                             'algo/order': 5,
+                            'convert/rft': 60,
                         },
                         'put': {
                             'order/{oid}': 2,

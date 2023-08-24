@@ -208,9 +208,15 @@ class woo extends Exchange {
                             'buypower' => 1,
                             'referrals' => 60,
                             'referral_rewards' => 60,
+                            'convert/exchangeInfo' => 1,
+                            'convert/assetInfo' => 1,
+                            'convert/rfq' => 60,
+                            'convert/trade' => 1,
+                            'convert/trades' => 1,
                         ),
                         'post' => array(
                             'algo/order' => 5,
+                            'convert/rft' => 60,
                         ),
                         'put' => array(
                             'order/{oid}' => 2,
