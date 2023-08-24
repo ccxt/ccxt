@@ -614,19 +614,32 @@ class wavesexchange extends wavesexchange$1 {
     }
     parseOrderBookSide(bookSide, market = undefined, limit = undefined) {
         const precision = market['precision'];
-        const wavesPrecision = this.safeInteger(this.options, 'wavesPrecision', 8);
-        const amountPrecision = Math.pow(10, precision['amount']);
-        const difference = precision['amount'] - precision['price'];
-        const pricePrecision = Math.pow(10, wavesPrecision - difference);
+        const wavesPrecision = this.safeString(this.options, 'wavesPrecision', '8');
+        const amountPrecision = '1e' + this.numberToString(precision['amount']);
+        const amountPrecisionString = this.numberToString(precision['amount']);
+        const pricePrecisionString = this.numberToString(precision['price']);
+        const difference = Precise["default"].stringSub(amountPrecisionString, pricePrecisionString);
+        const pricePrecision = '1e' + Precise["default"].stringSub(wavesPrecision, difference);
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const entry = bookSide[i];
-            const price = this.safeInteger(entry, 'price', 0) / pricePrecision;
-            const amount = this.safeInteger(entry, 'amount', 0) / amountPrecision;
+            const entryPrice = this.safeString(entry, 'price', '0');
+            const entryAmount = this.safeString(entry, 'amount', '0');
+            let price = undefined;
+            let amount = undefined;
+            if ((pricePrecision !== undefined) && (entryPrice !== undefined)) {
+                price = Precise["default"].stringDiv(entryPrice, pricePrecision);
+            }
+            if ((amountPrecision !== undefined) && (entryAmount !== undefined)) {
+                amount = Precise["default"].stringDiv(entryAmount, amountPrecision);
+            }
             if ((limit !== undefined) && (i > limit)) {
                 break;
             }
-            result.push([price, amount]);
+            result.push([
+                this.parseNumber(price),
+                this.parseNumber(amount),
+            ]);
         }
         return result;
     }
@@ -1206,15 +1219,21 @@ class wavesexchange extends wavesexchange$1 {
     }
     customPriceToPrecision(symbol, price) {
         const market = this.markets[symbol];
-        const wavesPrecision = this.safeInteger(this.options, 'wavesPrecision', 8);
-        const difference = market['precision']['amount'] - market['precision']['price'];
-        return this.parseToInt(parseFloat(this.toPrecision(price, wavesPrecision - difference)));
+        const wavesPrecision = this.safeString(this.options, 'wavesPrecision', '8');
+        const amount = this.numberToString(market['precision']['amount']);
+        const precisionPrice = this.numberToString(market['precision']['price']);
+        const difference = Precise["default"].stringSub(amount, precisionPrice);
+        const precision = Precise["default"].stringSub(wavesPrecision, difference);
+        const pricePrecision = this.toPrecision(price, precision).toString();
+        return this.parseToInt(parseFloat(pricePrecision));
     }
     customAmountToPrecision(symbol, amount) {
-        return this.parseToInt(parseFloat(this.toPrecision(amount, this.markets[symbol]['precision']['amount'])));
+        const amountPrecision = this.numberToString(this.toPrecision(amount, this.numberToString(this.markets[symbol]['precision']['amount'])));
+        return this.parseToInt(parseFloat(amountPrecision));
     }
     currencyToPrecision(code, amount, networkCode = undefined) {
-        return this.parseToInt(parseFloat(this.toPrecision(amount, this.currencies[code]['precision'])));
+        const amountPrecision = this.numberToString(this.toPrecision(amount, this.currencies[code]['precision']));
+        return this.parseToInt(parseFloat(amountPrecision));
     }
     fromPrecision(amount, scale) {
         if (amount === undefined) {
@@ -1226,11 +1245,11 @@ class wavesexchange extends wavesexchange$1 {
         return precise.toString();
     }
     toPrecision(amount, scale) {
-        const amountString = amount.toString();
+        const amountString = this.numberToString(amount);
         const precise = new Precise["default"](amountString);
-        precise.decimals = precise.decimals - scale;
+        precise.decimals = Precise["default"].stringSub(precise.decimals, scale);
         precise.reduce();
-        return precise.toString();
+        return precise;
     }
     currencyFromPrecision(currency, amount) {
         const scale = this.currencies[currency]['precision'];

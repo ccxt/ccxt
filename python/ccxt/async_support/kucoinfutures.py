@@ -94,6 +94,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransactionFee': False,
                 'fetchWithdrawals': True,
+                'setLeverage': False,
                 'setMarginMode': False,
                 'transfer': True,
                 'withdraw': None,

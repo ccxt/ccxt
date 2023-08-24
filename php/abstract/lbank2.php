@@ -7,322 +7,346 @@ namespace ccxt\abstract;
 
 
 abstract class lbank2 extends \ccxt\Exchange {
-    public function public_get_currencypairs($params = array()) {
-        return $this->request('currencyPairs', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_currencypairs($params = array()) {
+        return $this->request('currencyPairs', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_accuracy($params = array()) {
-        return $this->request('accuracy', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_accuracy($params = array()) {
+        return $this->request('accuracy', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_usdtocny($params = array()) {
-        return $this->request('usdToCny', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_usdtocny($params = array()) {
+        return $this->request('usdToCny', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_withdrawconfigs($params = array()) {
-        return $this->request('withdrawConfigs', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_withdrawconfigs($params = array()) {
+        return $this->request('withdrawConfigs', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_timestamp($params = array()) {
-        return $this->request('timestamp', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_timestamp($params = array()) {
+        return $this->request('timestamp', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_ticker_24hr($params = array()) {
-        return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_ticker_24hr($params = array()) {
+        return $this->request('ticker/24hr', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_ticker($params = array()) {
-        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_ticker($params = array()) {
+        return $this->request('ticker', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_depth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_depth($params = array()) {
+        return $this->request('depth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_incrdepth($params = array()) {
-        return $this->request('incrDepth', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_incrdepth($params = array()) {
+        return $this->request('incrDepth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_trades($params = array()) {
-        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_trades($params = array()) {
+        return $this->request('trades', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_kline($params = array()) {
-        return $this->request('kline', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_kline($params = array()) {
+        return $this->request('kline', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_supplement_system_ping($params = array()) {
-        return $this->request('supplement/system_ping', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_supplement_system_ping($params = array()) {
+        return $this->request('supplement/system_ping', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_supplement_incrdepth($params = array()) {
-        return $this->request('supplement/incrDepth', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_supplement_incrdepth($params = array()) {
+        return $this->request('supplement/incrDepth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_supplement_trades($params = array()) {
-        return $this->request('supplement/trades', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_supplement_trades($params = array()) {
+        return $this->request('supplement/trades', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_supplement_ticker_price($params = array()) {
-        return $this->request('supplement/ticker/price', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_supplement_ticker_price($params = array()) {
+        return $this->request('supplement/ticker/price', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_get_supplement_ticker_bookticker($params = array()) {
-        return $this->request('supplement/ticker/bookTicker', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spot_public_get_supplement_ticker_bookticker($params = array()) {
+        return $this->request('supplement/ticker/bookTicker', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function public_post_supplement_system_status($params = array()) {
-        return $this->request('supplement/system_status', 'public', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_public_post_supplement_system_status($params = array()) {
+        return $this->request('supplement/system_status', array('spot', 'public'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_user_info($params = array()) {
-        return $this->request('user_info', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_user_info($params = array()) {
+        return $this->request('user_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_subscribe_get_key($params = array()) {
-        return $this->request('subscribe/get_key', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_subscribe_get_key($params = array()) {
+        return $this->request('subscribe/get_key', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_subscribe_refresh_key($params = array()) {
-        return $this->request('subscribe/refresh_key', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_subscribe_refresh_key($params = array()) {
+        return $this->request('subscribe/refresh_key', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_subscribe_destroy_key($params = array()) {
-        return $this->request('subscribe/destroy_key', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_subscribe_destroy_key($params = array()) {
+        return $this->request('subscribe/destroy_key', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_get_deposit_address($params = array()) {
-        return $this->request('get_deposit_address', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_get_deposit_address($params = array()) {
+        return $this->request('get_deposit_address', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_deposit_history($params = array()) {
-        return $this->request('deposit_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_deposit_history($params = array()) {
+        return $this->request('deposit_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_create_order($params = array()) {
-        return $this->request('create_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spot_private_post_create_order($params = array()) {
+        return $this->request('create_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_batch_create_order($params = array()) {
-        return $this->request('batch_create_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spot_private_post_batch_create_order($params = array()) {
+        return $this->request('batch_create_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_cancel_order($params = array()) {
-        return $this->request('cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spot_private_post_cancel_order($params = array()) {
+        return $this->request('cancel_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_cancel_clientorders($params = array()) {
-        return $this->request('cancel_clientOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spot_private_post_cancel_clientorders($params = array()) {
+        return $this->request('cancel_clientOrders', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_orders_info($params = array()) {
-        return $this->request('orders_info', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_orders_info($params = array()) {
+        return $this->request('orders_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_orders_info_history($params = array()) {
-        return $this->request('orders_info_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_orders_info_history($params = array()) {
+        return $this->request('orders_info_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_order_transaction_detail($params = array()) {
-        return $this->request('order_transaction_detail', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_order_transaction_detail($params = array()) {
+        return $this->request('order_transaction_detail', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_transaction_history($params = array()) {
-        return $this->request('transaction_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_transaction_history($params = array()) {
+        return $this->request('transaction_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_orders_info_no_deal($params = array()) {
-        return $this->request('orders_info_no_deal', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_orders_info_no_deal($params = array()) {
+        return $this->request('orders_info_no_deal', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_withdraw($params = array()) {
-        return $this->request('withdraw', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_withdraw($params = array()) {
+        return $this->request('withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_withdrawcancel($params = array()) {
-        return $this->request('withdrawCancel', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_withdrawcancel($params = array()) {
+        return $this->request('withdrawCancel', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_withdraws($params = array()) {
-        return $this->request('withdraws', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_withdraws($params = array()) {
+        return $this->request('withdraws', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_user_info($params = array()) {
-        return $this->request('supplement/user_info', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_user_info($params = array()) {
+        return $this->request('supplement/user_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_withdraw($params = array()) {
-        return $this->request('supplement/withdraw', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_withdraw($params = array()) {
+        return $this->request('supplement/withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_deposit_history($params = array()) {
-        return $this->request('supplement/deposit_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_deposit_history($params = array()) {
+        return $this->request('supplement/deposit_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_withdraws($params = array()) {
-        return $this->request('supplement/withdraws', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_withdraws($params = array()) {
+        return $this->request('supplement/withdraws', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_get_deposit_address($params = array()) {
-        return $this->request('supplement/get_deposit_address', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_get_deposit_address($params = array()) {
+        return $this->request('supplement/get_deposit_address', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_asset_detail($params = array()) {
-        return $this->request('supplement/asset_detail', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_asset_detail($params = array()) {
+        return $this->request('supplement/asset_detail', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_customer_trade_fee($params = array()) {
-        return $this->request('supplement/customer_trade_fee', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_customer_trade_fee($params = array()) {
+        return $this->request('supplement/customer_trade_fee', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_api_restrictions($params = array()) {
-        return $this->request('supplement/api_Restrictions', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_api_restrictions($params = array()) {
+        return $this->request('supplement/api_Restrictions', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_system_ping($params = array()) {
-        return $this->request('supplement/system_ping', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_system_ping($params = array()) {
+        return $this->request('supplement/system_ping', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_create_order_test($params = array()) {
-        return $this->request('supplement/create_order_test', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spot_private_post_supplement_create_order_test($params = array()) {
+        return $this->request('supplement/create_order_test', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_supplement_create_order($params = array()) {
-        return $this->request('supplement/create_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spot_private_post_supplement_create_order($params = array()) {
+        return $this->request('supplement/create_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_supplement_cancel_order($params = array()) {
-        return $this->request('supplement/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spot_private_post_supplement_cancel_order($params = array()) {
+        return $this->request('supplement/cancel_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_supplement_cancel_order_by_symbol($params = array()) {
-        return $this->request('supplement/cancel_order_by_symbol', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spot_private_post_supplement_cancel_order_by_symbol($params = array()) {
+        return $this->request('supplement/cancel_order_by_symbol', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_supplement_orders_info($params = array()) {
-        return $this->request('supplement/orders_info', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_orders_info($params = array()) {
+        return $this->request('supplement/orders_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_orders_info_no_deal($params = array()) {
-        return $this->request('supplement/orders_info_no_deal', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_orders_info_no_deal($params = array()) {
+        return $this->request('supplement/orders_info_no_deal', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_orders_info_history($params = array()) {
-        return $this->request('supplement/orders_info_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_orders_info_history($params = array()) {
+        return $this->request('supplement/orders_info_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_user_info_account($params = array()) {
-        return $this->request('supplement/user_info_account', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_user_info_account($params = array()) {
+        return $this->request('supplement/user_info_account', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function private_post_supplement_transaction_history($params = array()) {
-        return $this->request('supplement/transaction_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spot_private_post_supplement_transaction_history($params = array()) {
+        return $this->request('supplement/transaction_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetCurrencyPairs($params = array()) {
-        return $this->request('currencyPairs', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function contract_public_get_cfd_openapi_v1_pub_gettime($params = array()) {
+        return $this->request('cfd/openApi/v1/pub/getTime', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetAccuracy($params = array()) {
-        return $this->request('accuracy', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function contract_public_get_cfd_openapi_v1_pub_instrument($params = array()) {
+        return $this->request('cfd/openApi/v1/pub/instrument', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetUsdToCny($params = array()) {
-        return $this->request('usdToCny', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function contract_public_get_cfd_openapi_v1_pub_marketdata($params = array()) {
+        return $this->request('cfd/openApi/v1/pub/marketData', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetWithdrawConfigs($params = array()) {
-        return $this->request('withdrawConfigs', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function contract_public_get_cfd_openapi_v1_pub_marketorder($params = array()) {
+        return $this->request('cfd/openApi/v1/pub/marketOrder', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetTimestamp($params = array()) {
-        return $this->request('timestamp', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetCurrencyPairs($params = array()) {
+        return $this->request('currencyPairs', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetTicker24hr($params = array()) {
-        return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetAccuracy($params = array()) {
+        return $this->request('accuracy', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetTicker($params = array()) {
-        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetUsdToCny($params = array()) {
+        return $this->request('usdToCny', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetDepth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetWithdrawConfigs($params = array()) {
+        return $this->request('withdrawConfigs', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetIncrDepth($params = array()) {
-        return $this->request('incrDepth', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetTimestamp($params = array()) {
+        return $this->request('timestamp', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetTrades($params = array()) {
-        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetTicker24hr($params = array()) {
+        return $this->request('ticker/24hr', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetKline($params = array()) {
-        return $this->request('kline', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetTicker($params = array()) {
+        return $this->request('ticker', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetSupplementSystemPing($params = array()) {
-        return $this->request('supplement/system_ping', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetDepth($params = array()) {
+        return $this->request('depth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetSupplementIncrDepth($params = array()) {
-        return $this->request('supplement/incrDepth', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetIncrDepth($params = array()) {
+        return $this->request('incrDepth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetSupplementTrades($params = array()) {
-        return $this->request('supplement/trades', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetTrades($params = array()) {
+        return $this->request('trades', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetSupplementTickerPrice($params = array()) {
-        return $this->request('supplement/ticker/price', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetKline($params = array()) {
+        return $this->request('kline', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicGetSupplementTickerBookTicker($params = array()) {
-        return $this->request('supplement/ticker/bookTicker', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetSupplementSystemPing($params = array()) {
+        return $this->request('supplement/system_ping', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function publicPostSupplementSystemStatus($params = array()) {
-        return $this->request('supplement/system_status', 'public', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetSupplementIncrDepth($params = array()) {
+        return $this->request('supplement/incrDepth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostUserInfo($params = array()) {
-        return $this->request('user_info', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetSupplementTrades($params = array()) {
+        return $this->request('supplement/trades', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSubscribeGetKey($params = array()) {
-        return $this->request('subscribe/get_key', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetSupplementTickerPrice($params = array()) {
+        return $this->request('supplement/ticker/price', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSubscribeRefreshKey($params = array()) {
-        return $this->request('subscribe/refresh_key', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPublicGetSupplementTickerBookTicker($params = array()) {
+        return $this->request('supplement/ticker/bookTicker', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSubscribeDestroyKey($params = array()) {
-        return $this->request('subscribe/destroy_key', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPublicPostSupplementSystemStatus($params = array()) {
+        return $this->request('supplement/system_status', array('spot', 'public'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostGetDepositAddress($params = array()) {
-        return $this->request('get_deposit_address', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostUserInfo($params = array()) {
+        return $this->request('user_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostDepositHistory($params = array()) {
-        return $this->request('deposit_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSubscribeGetKey($params = array()) {
+        return $this->request('subscribe/get_key', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostCreateOrder($params = array()) {
-        return $this->request('create_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spotPrivatePostSubscribeRefreshKey($params = array()) {
+        return $this->request('subscribe/refresh_key', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostBatchCreateOrder($params = array()) {
-        return $this->request('batch_create_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spotPrivatePostSubscribeDestroyKey($params = array()) {
+        return $this->request('subscribe/destroy_key', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostCancelOrder($params = array()) {
-        return $this->request('cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spotPrivatePostGetDepositAddress($params = array()) {
+        return $this->request('get_deposit_address', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostCancelClientOrders($params = array()) {
-        return $this->request('cancel_clientOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spotPrivatePostDepositHistory($params = array()) {
+        return $this->request('deposit_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostOrdersInfo($params = array()) {
-        return $this->request('orders_info', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostCreateOrder($params = array()) {
+        return $this->request('create_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostOrdersInfoHistory($params = array()) {
-        return $this->request('orders_info_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostBatchCreateOrder($params = array()) {
+        return $this->request('batch_create_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostOrderTransactionDetail($params = array()) {
-        return $this->request('order_transaction_detail', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostCancelOrder($params = array()) {
+        return $this->request('cancel_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostTransactionHistory($params = array()) {
-        return $this->request('transaction_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostCancelClientOrders($params = array()) {
+        return $this->request('cancel_clientOrders', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostOrdersInfoNoDeal($params = array()) {
-        return $this->request('orders_info_no_deal', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostOrdersInfo($params = array()) {
+        return $this->request('orders_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostWithdraw($params = array()) {
-        return $this->request('withdraw', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostOrdersInfoHistory($params = array()) {
+        return $this->request('orders_info_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostWithdrawCancel($params = array()) {
-        return $this->request('withdrawCancel', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostOrderTransactionDetail($params = array()) {
+        return $this->request('order_transaction_detail', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostWithdraws($params = array()) {
-        return $this->request('withdraws', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostTransactionHistory($params = array()) {
+        return $this->request('transaction_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementUserInfo($params = array()) {
-        return $this->request('supplement/user_info', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostOrdersInfoNoDeal($params = array()) {
+        return $this->request('orders_info_no_deal', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementWithdraw($params = array()) {
-        return $this->request('supplement/withdraw', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostWithdraw($params = array()) {
+        return $this->request('withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementDepositHistory($params = array()) {
-        return $this->request('supplement/deposit_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostWithdrawCancel($params = array()) {
+        return $this->request('withdrawCancel', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementWithdraws($params = array()) {
-        return $this->request('supplement/withdraws', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostWithdraws($params = array()) {
+        return $this->request('withdraws', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementGetDepositAddress($params = array()) {
-        return $this->request('supplement/get_deposit_address', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementUserInfo($params = array()) {
+        return $this->request('supplement/user_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementAssetDetail($params = array()) {
-        return $this->request('supplement/asset_detail', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementWithdraw($params = array()) {
+        return $this->request('supplement/withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementCustomerTradeFee($params = array()) {
-        return $this->request('supplement/customer_trade_fee', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementDepositHistory($params = array()) {
+        return $this->request('supplement/deposit_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementApiRestrictions($params = array()) {
-        return $this->request('supplement/api_Restrictions', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementWithdraws($params = array()) {
+        return $this->request('supplement/withdraws', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementSystemPing($params = array()) {
-        return $this->request('supplement/system_ping', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementGetDepositAddress($params = array()) {
+        return $this->request('supplement/get_deposit_address', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementCreateOrderTest($params = array()) {
-        return $this->request('supplement/create_order_test', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spotPrivatePostSupplementAssetDetail($params = array()) {
+        return $this->request('supplement/asset_detail', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementCreateOrder($params = array()) {
-        return $this->request('supplement/create_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spotPrivatePostSupplementCustomerTradeFee($params = array()) {
+        return $this->request('supplement/customer_trade_fee', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementCancelOrder($params = array()) {
-        return $this->request('supplement/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spotPrivatePostSupplementApiRestrictions($params = array()) {
+        return $this->request('supplement/api_Restrictions', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementCancelOrderBySymbol($params = array()) {
-        return $this->request('supplement/cancel_order_by_symbol', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function spotPrivatePostSupplementSystemPing($params = array()) {
+        return $this->request('supplement/system_ping', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePostSupplementOrdersInfo($params = array()) {
-        return $this->request('supplement/orders_info', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementCreateOrderTest($params = array()) {
+        return $this->request('supplement/create_order_test', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostSupplementOrdersInfoNoDeal($params = array()) {
-        return $this->request('supplement/orders_info_no_deal', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementCreateOrder($params = array()) {
+        return $this->request('supplement/create_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostSupplementOrdersInfoHistory($params = array()) {
-        return $this->request('supplement/orders_info_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementCancelOrder($params = array()) {
+        return $this->request('supplement/cancel_order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostSupplementUserInfoAccount($params = array()) {
-        return $this->request('supplement/user_info_account', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementCancelOrderBySymbol($params = array()) {
+        return $this->request('supplement/cancel_order_by_symbol', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostSupplementTransactionHistory($params = array()) {
-        return $this->request('supplement/transaction_history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    public function spotPrivatePostSupplementOrdersInfo($params = array()) {
+        return $this->request('supplement/orders_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function spotPrivatePostSupplementOrdersInfoNoDeal($params = array()) {
+        return $this->request('supplement/orders_info_no_deal', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function spotPrivatePostSupplementOrdersInfoHistory($params = array()) {
+        return $this->request('supplement/orders_info_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function spotPrivatePostSupplementUserInfoAccount($params = array()) {
+        return $this->request('supplement/user_info_account', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function spotPrivatePostSupplementTransactionHistory($params = array()) {
+        return $this->request('supplement/transaction_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function contractPublicGetCfdOpenApiV1PubGetTime($params = array()) {
+        return $this->request('cfd/openApi/v1/pub/getTime', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
+    }
+    public function contractPublicGetCfdOpenApiV1PubInstrument($params = array()) {
+        return $this->request('cfd/openApi/v1/pub/instrument', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
+    }
+    public function contractPublicGetCfdOpenApiV1PubMarketData($params = array()) {
+        return $this->request('cfd/openApi/v1/pub/marketData', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
+    }
+    public function contractPublicGetCfdOpenApiV1PubMarketOrder($params = array()) {
+        return $this->request('cfd/openApi/v1/pub/marketOrder', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
 }

@@ -150,6 +150,8 @@ export default class bitget extends Exchange {
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
                             'market/history-candles': 1,
+                            'public/loan/coinInfos': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'public/loan/hour-interest': 2, // 10 times/1s (IP) => 20/10 = 2
                         },
                     },
                     'mix': {
@@ -198,6 +200,11 @@ export default class bitget extends Exchange {
                             'account/transferRecords': 1, // 20 times/1s (UID) => 20/20 = 1
                             'convert/currencies': 2,
                             'convert/convert-record': 2,
+                            'loan/ongoing-orders': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/repay-history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/revise-history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/borrow-history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/debts': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                         'post': {
                             'wallet/transfer': 4,
@@ -228,6 +235,9 @@ export default class bitget extends Exchange {
                             'plan/batchCancelPlan': 2, // 10 times/1s (UID) => 20/10 = 2
                             'convert/quoted-price': 4,
                             'convert/trade': 4,
+                            'loan/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/repay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/revise-pledge': 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/orderCurrentList': 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/orderHistoryList': 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/closeTrackingOrder': 2, // 10 times/1s (UID) => 20/10 = 2
@@ -363,6 +373,9 @@ export default class bitget extends Exchange {
                             'account/sub-email': 20, // 1 times/1s (UID) => 20/1 = 20
                             'account/sub-spot-assets': 2, // 10 times/1s (UID) => 20/10 = 2
                             'account/sub-future-assets': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/subaccount-transfer': 1, // unknown
+                            'account/subaccount-deposit': 1, // unknown
+                            'account/subaccount-withdrawal': 1, // unknown
                             'account/sub-api-list': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                         'post': {
@@ -2238,6 +2251,7 @@ export default class bitget extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch deposits for
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
@@ -2248,9 +2262,19 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        const until = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
             request['startTime'] = since;
+            if (until === undefined) {
+                const now = this.milliseconds ();
+                request['endTime'] = now;
+            }
         }
+        if (until !== undefined) {
+            this.checkRequiredArgument ('fetchTrades', since, 'since');
+            request['endTime'] = until;
+        }
+        params = this.omit (params, 'until');
         const options = this.safeValue (this.options, 'fetchTrades', {});
         let response = undefined;
         if (market['spot']) {
@@ -2801,7 +2825,7 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
          * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
@@ -2982,7 +3006,7 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -4604,8 +4628,14 @@ export default class bitget extends Exchange {
          */
         this.checkRequiredSymbol ('setMarginMode', symbol);
         marginMode = marginMode.toLowerCase ();
+        if (marginMode === 'isolated') {
+            marginMode = 'fixed';
+        }
+        if (marginMode === 'cross') {
+            marginMode = 'crossed';
+        }
         if ((marginMode !== 'fixed') && (marginMode !== 'crossed')) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be "fixed" or "crossed"');
+            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either fixed (isolated) or crossed (cross)');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

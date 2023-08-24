@@ -794,9 +794,9 @@ export default class bingx extends Exchange {
         }
         const isBuyerMaker = this.safeValue2 (trade, 'buyerMaker', 'isBuyerMaker');
         let takeOrMaker = undefined;
-        if (isBuyerMaker) {
-            takeOrMaker = 'maker';
-        } else if (isBuyerMaker !== undefined) {
+        let side = undefined;
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
             takeOrMaker = 'taker';
         }
         const cost = this.safeString (trade, 'quoteQty');
@@ -811,7 +811,7 @@ export default class bingx extends Exchange {
             'symbol': this.safeSymbol (undefined, market, '-', type),
             'order': undefined,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'takerOrMaker': takeOrMaker,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString2 (trade, 'qty', 'amount'),

@@ -1388,12 +1388,13 @@ class bybit extends bybit$1 {
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash);
     }
-    authenticate(url, params = {}) {
+    async authenticate(url, params = {}) {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const expiresInt = this.milliseconds() + 10000;
             const expires = expiresInt.toString();
             const path = 'GET/realtime';
@@ -1406,8 +1407,7 @@ class bybit extends bybit$1 {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1566,7 +1566,8 @@ class bybit extends bybit$1 {
         const success = this.safeValue(message, 'success');
         const messageHash = 'authenticated';
         if (success) {
-            client.resolve(message, messageHash);
+            const future = this.safeValue(client.futures, messageHash);
+            future.resolve(true);
         }
         else {
             const error = new errors.AuthenticationError(this.id + ' ' + this.json(message));

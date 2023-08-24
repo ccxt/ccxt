@@ -67,6 +67,7 @@ export default class bybit extends Exchange {
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -1384,6 +1385,16 @@ export default class bybit extends Exchange {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
                 const markets = this.markets_by_id[symbol];
+                let defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
+                if (defaultType === 'future') {
+                    defaultType = 'contract';
+                }
+                for (let i = 0; i < markets.length; i++) {
+                    const market = markets[i];
+                    if (market[defaultType]) {
+                        return market;
+                    }
+                }
                 return markets[0];
             } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) {
                 return this.createExpiredOptionMarket (symbol);
@@ -3782,7 +3793,7 @@ export default class bybit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -4618,7 +4629,7 @@ export default class bybit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -8901,12 +8912,93 @@ export default class bybit extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
+    async fetchMySettlementHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchMySettlementHistory
+         * @description fetches historical settlement records of the user
+         * @see https://bybit-exchange.github.io/docs/v5/asset/delivery
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [settlement history objects]
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMySettlementHistory', market, params);
+        if (type === 'option') {
+            request['category'] = 'option';
+        } else {
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchMySettlementHistory', market, params, 'linear');
+            if (subType === 'inverse') {
+                throw new NotSupported (this.id + ' fetchMySettlementHistory() doesn\'t support inverse markets');
+            }
+            request['category'] = 'linear';
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV5AssetDeliveryRecord (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "category": "option",
+        //             "nextPageCursor": "0%2C3",
+        //             "list": [
+        //                 {
+        //                     "symbol": "SOL-27JUN23-20-C",
+        //                     "deliveryPrice": "16.62258889",
+        //                     "deliveryTime": "1687852800000",
+        //                     "side": "Buy",
+        //                     "strike": "20",
+        //                     "fee": "0.00000000",
+        //                     "position": "0.01",
+        //                     "deliveryRpl": "3.5"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1689043527231
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'list', []);
+        const settlements = this.parseSettlements (data, market);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+    }
+
     parseSettlement (settlement, market) {
+        //
+        // fetchSettlementHistory
         //
         //     {
         //         "symbol": "SOL-27JUN23-20-C",
         //         "deliveryPrice": "16.62258889",
         //         "deliveryTime": "1687852800000"
+        //     }
+        //
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "symbol": "SOL-27JUN23-20-C",
+        //         "deliveryPrice": "16.62258889",
+        //         "deliveryTime": "1687852800000",
+        //         "side": "Buy",
+        //         "strike": "20",
+        //         "fee": "0.00000000",
+        //         "position": "0.01",
+        //         "deliveryRpl": "3.5"
         //     }
         //
         const timestamp = this.safeInteger (settlement, 'deliveryTime');
@@ -8922,11 +9014,28 @@ export default class bybit extends Exchange {
 
     parseSettlements (settlements, market) {
         //
+        // fetchSettlementHistory
+        //
         //     [
         //         {
         //             "symbol": "SOL-27JUN23-20-C",
         //             "deliveryPrice": "16.62258889",
         //             "deliveryTime": "1687852800000"
+        //         }
+        //     ]
+        //
+        // fetchMySettlementHistory
+        //
+        //     [
+        //         {
+        //             "symbol": "SOL-27JUN23-20-C",
+        //             "deliveryPrice": "16.62258889",
+        //             "deliveryTime": "1687852800000",
+        //             "side": "Buy",
+        //             "strike": "20",
+        //             "fee": "0.00000000",
+        //             "position": "0.01",
+        //             "deliveryRpl": "3.5"
         //         }
         //     ]
         //

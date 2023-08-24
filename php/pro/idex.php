@@ -38,7 +38,7 @@ class idex extends \ccxt\async\idex {
                 'orderBookSubscriptions' => array(),
                 'token' => null,
                 'watchOrderBook' => array(
-                    'snapshotMaxRetries' => 3,
+                    'maxRetries' => 3,
                 ),
                 'fetchOrderBookSnapshotMaxAttempts' => 10,
                 'fetchOrderBookSnapshotMaxDelay' => 10000, // throw if there are no orders in 10 seconds

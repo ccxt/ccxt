@@ -38,16 +38,10 @@ class okx(ccxt.async_support.okx):
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://ws.okx.com:8443/ws/v5/public',  # wss://wsaws.okx.com:8443/ws/v5/public
-                        'private': 'wss://ws.okx.com:8443/ws/v5/private',  # wss://wsaws.okx.com:8443/ws/v5/private
-                    },
+                    'ws': 'wss://ws.okx.com:8443/ws/v5',
                 },
                 'test': {
-                    'ws': {
-                        'public': 'wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999',
-                        'private': 'wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999',
-                    },
+                    'ws': 'wss://wspap.okx.com:8443/ws/v5',
                 },
             },
             'options': {
@@ -109,12 +103,22 @@ class okx(ccxt.async_support.okx):
             },
         })
 
+    def get_url(self, channel: str, access='public'):
+        # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
+        isPublic = (access == 'public')
+        url = self.urls['api']['ws']
+        if (channel.find('candle') > -1) or (channel == 'orders-algo'):
+            return url + '/business'
+        elif isPublic:
+            return url + '/public'
+        return url + '/private'
+
     async def subscribe_multiple(self, access, channel, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
         if symbols is None:
             symbols = self.symbols
         symbols = self.market_symbols(symbols)
-        url = self.urls['api']['ws'][access]
+        url = self.get_url(channel, access)
         messageHash = channel
         args = []
         messageHash += '::' + ','.join(symbols)
@@ -133,7 +137,7 @@ class okx(ccxt.async_support.okx):
 
     async def subscribe(self, access, messageHash, channel, symbol, params={}):
         await self.load_markets()
-        url = self.urls['api']['ws'][access]
+        url = self.get_url(channel, access)
         firstArgument = {
             'channel': channel,
         }
@@ -569,7 +573,7 @@ class okx(ccxt.async_support.okx):
         self.check_required_credentials()
         access = self.safe_string(params, 'access', 'private')
         params = self.omit(params, ['access'])
-        url = self.urls['api']['ws'][access]
+        url = self.get_url('users', access)
         messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)
@@ -935,7 +939,7 @@ class okx(ccxt.async_support.okx):
         """
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         op = None
         op, params = self.handle_option_and_params(params, 'createOrderWs', 'op', 'batch-orders')
@@ -999,7 +1003,7 @@ class okx(ccxt.async_support.okx):
         """
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         op = None
         op, params = self.handle_option_and_params(params, 'editOrderWs', 'op', 'amend-order')
@@ -1025,7 +1029,7 @@ class okx(ccxt.async_support.okx):
             raise BadRequest(self.id + ' cancelOrderWs() requires a symbol argument')
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         params = self.omit(params, ['clientOrderId', 'clOrdId'])
@@ -1059,7 +1063,7 @@ class okx(ccxt.async_support.okx):
             raise BadRequest(self.id + ' cancelOrdersWs() requires a symbol argument')
         await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         args = []
         for i in range(0, idsLength):
@@ -1090,7 +1094,7 @@ class okx(ccxt.async_support.okx):
         market = self.market(symbol)
         if market['type'] != 'option':
             raise BadRequest(self.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
-        url = self.urls['api']['ws']['private']
+        url = self.get_url('private', 'private')
         messageHash = str(self.nonce())
         request = {
             'id': messageHash,

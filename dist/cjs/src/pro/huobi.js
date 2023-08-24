@@ -84,7 +84,9 @@ class huobi extends huobi$1 {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api',
-                'maxOrderBookSyncAttempts': 3,
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
                 'ws': {
                     'gunzip': true,
                 },
@@ -382,7 +384,7 @@ class huobi extends huobi$1 {
             const snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const maxAttempts = this.safeInteger(this.options, 'maxOrderBookSyncAttempts', 3);
+                const maxAttempts = this.handleOption('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger(subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached maxAttempts yet
                 if (numAttempts < maxAttempts) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.67'
+__version__ = '4.0.74'
 
 # -----------------------------------------------------------------------------
 
@@ -1852,7 +1852,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
     def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
-        fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'snapshotMaxRetries', 3)
+        fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
                 orderBook = self.fetch_order_book(symbol, limit, params)
@@ -1923,7 +1923,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
 
     def parse_ws_ohlcv(self, ohlcv, market=None):
-        raise NotSupported(self.id + ' parseWsOHLCV() is not supported yet')
+        return self.parse_ohlcv(ohlcv, market)
 
     def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
@@ -2920,7 +2920,7 @@ class Exchange(object):
         for i in range(0, len(positions)):
             position = self.extend(self.parse_position(positions[i], None), params)
             result.append(position)
-        return self.filterByArrayPositions(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts, params={}):
         accounts = self.to_array(accounts)
@@ -4146,6 +4146,12 @@ class Exchange(object):
         firstMarket = self.safe_string(symbols, 0)
         market = self.market(firstMarket)
         return market
+
+    def parse_ws_ohlcvs(self, ohlcvs: List[object], market: Optional[Any] = None, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None):
+        results = []
+        for i in range(0, len(ohlcvs)):
+            results.append(self.parse_ws_ohlcv(ohlcvs[i], market))
+        return results
 
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

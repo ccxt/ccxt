@@ -994,7 +994,7 @@ export default class bitopro extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1694,7 +1694,7 @@ export default class bitopro extends Exchange {
                 };
                 const data = this.json (rawData);
                 const payload = this.stringToBase64 (data);
-                const signature = this.hmac (payload, this.encode (this.secret), sha384);
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

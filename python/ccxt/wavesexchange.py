@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
-import math
 import json
 from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
@@ -618,18 +617,29 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def parse_order_book_side(self, bookSide, market=None, limit: Optional[int] = None):
         precision = market['precision']
-        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        amountPrecision = math.pow(10, precision['amount'])
-        difference = precision['amount'] - precision['price']
-        pricePrecision = math.pow(10, wavesPrecision - difference)
+        wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '8')
+        amountPrecision = '1e' + self.number_to_string(precision['amount'])
+        amountPrecisionString = self.number_to_string(precision['amount'])
+        pricePrecisionString = self.number_to_string(precision['price'])
+        difference = Precise.string_sub(amountPrecisionString, pricePrecisionString)
+        pricePrecision = '1e' + Precise.string_sub(wavesPrecision, difference)
         result = []
         for i in range(0, len(bookSide)):
             entry = bookSide[i]
-            price = self.safe_integer(entry, 'price', 0) / pricePrecision
-            amount = self.safe_integer(entry, 'amount', 0) / amountPrecision
+            entryPrice = self.safe_string(entry, 'price', '0')
+            entryAmount = self.safe_string(entry, 'amount', '0')
+            price = None
+            amount = None
+            if (pricePrecision is not None) and (entryPrice is not None):
+                price = Precise.string_div(entryPrice, pricePrecision)
+            if (amountPrecision is not None) and (entryAmount is not None):
+                amount = Precise.string_div(entryAmount, amountPrecision)
             if (limit is not None) and (i > limit):
                 break
-            result.append([price, amount])
+            result.append([
+                self.parse_number(price),
+                self.parse_number(amount),
+            ])
         return result
 
     def check_required_keys(self):
@@ -1155,15 +1165,21 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def custom_price_to_precision(self, symbol, price):
         market = self.markets[symbol]
-        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        difference = market['precision']['amount'] - market['precision']['price']
-        return self.parse_to_int(float(self.to_precision(price, wavesPrecision - difference)))
+        wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '8')
+        amount = self.number_to_string(market['precision']['amount'])
+        precisionPrice = self.number_to_string(market['precision']['price'])
+        difference = Precise.string_sub(amount, precisionPrice)
+        precision = Precise.string_sub(wavesPrecision, difference)
+        pricePrecision = self.to_precision(price, str(precision))
+        return self.parse_to_int(float(pricePrecision))
 
     def custom_amount_to_precision(self, symbol, amount):
-        return self.parse_to_int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
+        amountPrecision = self.number_to_string(self.to_precision(amount, self.number_to_string(self.markets[symbol]['precision']['amount'])))
+        return self.parse_to_int(float(amountPrecision))
 
     def currency_to_precision(self, code, amount, networkCode=None):
-        return self.parse_to_int(float(self.to_precision(amount, self.currencies[code]['precision'])))
+        amountPrecision = self.number_to_string(self.to_precision(amount, self.currencies[code]['precision']))
+        return self.parse_to_int(float(amountPrecision))
 
     def from_precision(self, amount, scale):
         if amount is None:
@@ -1174,11 +1190,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         return str(precise)
 
     def to_precision(self, amount, scale):
-        amountString = str(amount)
+        amountString = self.number_to_string(amount)
         precise = Precise(amountString)
-        precise.decimals = precise.decimals - scale
+        precise.decimals = Precise.string_sub(precise.decimals, scale)
         precise.reduce()
-        return str(precise)
+        return precise
 
     def currency_from_precision(self, currency, amount):
         scale = self.currencies[currency]['precision']

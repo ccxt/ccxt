@@ -1406,8 +1406,9 @@ class bybit extends \ccxt\async\bybit {
         $this->check_required_credentials();
         $messageHash = 'authenticated';
         $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $expiresInt = $this->milliseconds() + 10000;
             $expires = (string) $expiresInt;
             $path = 'GET/realtime';
@@ -1420,8 +1421,7 @@ class bybit extends \ccxt\async\bybit {
                 ),
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -1582,7 +1582,8 @@ class bybit extends \ccxt\async\bybit {
         $success = $this->safe_value($message, 'success');
         $messageHash = 'authenticated';
         if ($success) {
-            $client->resolve ($message, $messageHash);
+            $future = $this->safe_value($client->futures, $messageHash);
+            $future->resolve (true);
         } else {
             $error = new AuthenticationError ($this->id . ' ' . $this->json($message));
             $client->reject ($error, $messageHash);

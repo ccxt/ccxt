@@ -512,8 +512,9 @@ class bitmart extends \ccxt\async\bitmart {
         $url = $this->implode_hostname($this->urls['api']['ws']['private']);
         $messageHash = 'authenticated';
         $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $timestamp = (string) $this->milliseconds();
             $memo = $this->uid;
             $path = 'bitmart.WebSocket';
@@ -529,8 +530,7 @@ class bitmart extends \ccxt\async\bitmart {
                 ),
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -547,7 +547,8 @@ class bitmart extends \ccxt\async\bitmart {
         //     array( event => 'login' )
         //
         $messageHash = 'authenticated';
-        $client->resolve ($message, $messageHash);
+        $future = $this->safe_value($client->futures, $messageHash);
+        $future->resolve (true);
     }
 
     public function handle_error_message(Client $client, $message) {

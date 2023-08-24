@@ -782,12 +782,13 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         client.subscriptions[channelId] = message
         return message
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             nonce = self.milliseconds()
             payload = 'AUTH' + str(nonce)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
@@ -800,8 +801,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 'event': event,
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     def handle_authentication_message(self, client: Client, message):
@@ -809,7 +809,8 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         status = self.safe_string(message, 'status')
         if status == 'OK':
             # we resolve the future here permanently so authentication only happens once
-            client.resolve(message, messageHash)
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
         else:
             error = AuthenticationError(self.json(message))
             client.reject(error, messageHash)

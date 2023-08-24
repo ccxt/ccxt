@@ -3496,6 +3496,7 @@ class phemex extends Exchange {
         }
         $unrealizedPnl = Precise::string_mul(Precise::string_mul($priceDiff, $contracts), $contractSizeString);
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
+        $isCross = $this->safe_value($position, 'crossMargin');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -3518,7 +3519,7 @@ class phemex extends Exchange {
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentageString),
             'marginRatio' => $this->parse_number($marginRatio),
             'datetime' => null,
-            'marginMode' => null,
+            'marginMode' => $isCross ? 'cross' : 'isolated',
             'side' => $side,
             'hedged' => false,
             'percentage' => null,

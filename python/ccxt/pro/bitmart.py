@@ -461,13 +461,14 @@ class bitmart(ccxt.async_support.bitmart):
             client.resolve(orderbook, messageHash)
         return message
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.implode_hostname(self.urls['api']['ws']['private'])
         messageHash = 'authenticated'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             timestamp = str(self.milliseconds())
             memo = self.uid
             path = 'bitmart.WebSocket'
@@ -483,8 +484,7 @@ class bitmart(ccxt.async_support.bitmart):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     def handle_subscription_status(self, client: Client, message):
@@ -498,7 +498,8 @@ class bitmart(ccxt.async_support.bitmart):
         #     {event: 'login'}
         #
         messageHash = 'authenticated'
-        client.resolve(message, messageHash)
+        future = self.safe_value(client.futures, messageHash)
+        future.resolve(True)
 
     def handle_error_message(self, client: Client, message):
         #
