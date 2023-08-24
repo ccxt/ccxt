@@ -1914,10 +1914,10 @@ export default class bingx extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
-            request['orderIds'] = ids;
+            request['orderIds'] = ids.join (',');
             response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
         } else {
-            request['ids'] = ids;
+            request['ids'] = ids.join (',');
             response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, params));
         }
         //
