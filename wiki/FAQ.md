@@ -2,7 +2,7 @@
 
 ## I'm trying to run the code, but it's not working, how do I fix it?
 
-If your question is formulated in a short manner like the above, we won't help. We don't teach programming. If you're unable to read and understand the [Manual](https://docs.ccxt.com) or you can't follow precisely the guides from the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) doc on how to report an issue, we won't help either. Read the CONTRIBUTING guides on how to report an issue and read the Manual. You should not risk anyone's money and time without reading the entire Manual very carefully. You should not risk anything if you're not used to a lot of reading with tons of details. Also, if you don't have the confidence with the programming language you're using, there are much better places for coding fundamentals and practice. Search for `python tutorials`, `js videos`, play with examples, this is how other people climb up the learning curve. No shortcuts, if you want to learn something.
+If your question is formulated in a short manner like the above, we won't help. We don't teach programming. If you're unable to read and understand the [Manual](https://github.com/ccxt/ccxt/wiki) or you can't follow precisely the guides from the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) doc on how to report an issue, we won't help either. Read the CONTRIBUTING guides on how to report an issue and read the Manual. You should not risk anyone's money and time without reading the entire Manual very carefully. You should not risk anything if you're not used to a lot of reading with tons of details. Also, if you don't have the confidence with the programming language you're using, there are much better places for coding fundamentals and practice. Search for `python tutorials`, `js videos`, play with examples, this is how other people climb up the learning curve. No shortcuts, if you want to learn something.
 
 ## What is required to get help?
 
@@ -74,5 +74,5 @@ Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip an
 
 More about it here:
 
-- https://docs.ccxt.com/#/CONTRIBUTING?id=multilanguage-support
-- https://docs.ccxt.com/#/CONTRIBUTING?id=transpiled-generated-files
+- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
+- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files

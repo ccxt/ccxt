@@ -202,7 +202,7 @@ include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
-The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.2+. Read the [Manual](https://docs.ccxt.com) for more details.
+The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.2+. Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ### Docker
 
