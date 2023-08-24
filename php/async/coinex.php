@@ -1472,11 +1472,57 @@ class coinex extends Exchange {
         }) ();
     }
 
+    public function fetch_financial_balance($params = array ()) {
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetAccountInvestmentBalance ($params));
+            //
+            //     {
+            //          "code" => 0,
+            //          "data" => array(
+            //              array(
+            //                  "asset" => "CET",
+            //                  "available" => "0",
+            //                  "frozen" => "0",
+            //                  "lock" => "0",
+            //              ),
+            //              {
+            //                  "asset" => "USDT",
+            //                  "available" => "999900",
+            //                  "frozen" => "0",
+            //                  "lock" => "0"
+            //              }
+            //          ),
+            //          "message" => "Success"
+            //      }
+            //
+            $result = array( 'info' => $response );
+            $balances = $this->safe_value($response, 'data', array());
+            for ($i = 0; $i < count($balances); $i++) {
+                $balance = $balances[$i];
+                $currencyId = $this->safe_string($balance, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'available');
+                $frozen = $this->safe_string($balance, 'frozen');
+                $locked = $this->safe_string($balance, 'lock');
+                $account['used'] = Precise::string_add($frozen, $locked);
+                $result[$code] = $account;
+            }
+            return $this->safe_balance($result);
+        }) ();
+    }
+
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         // spot
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   // financial
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       // margin
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       // swap
              * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {string} [$params->type] 'margin', 'swap', 'financial', or 'spot'
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             $marketType = null;
@@ -1488,6 +1534,8 @@ class coinex extends Exchange {
                 return Async\await($this->fetch_margin_balance($params));
             } elseif ($marketType === 'swap') {
                 return Async\await($this->fetch_swap_balance($params));
+            } elseif ($marketType === 'financial') {
+                return Async\await($this->fetch_financial_balance($params));
             } else {
                 return Async\await($this->fetch_spot_balance($params));
             }

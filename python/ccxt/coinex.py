@@ -1406,10 +1406,52 @@ class coinex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
+    def fetch_financial_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetAccountInvestmentBalance(params)
+        #
+        #     {
+        #          "code": 0,
+        #          "data": [
+        #              {
+        #                  "asset": "CET",
+        #                  "available": "0",
+        #                  "frozen": "0",
+        #                  "lock": "0",
+        #              },
+        #              {
+        #                  "asset": "USDT",
+        #                  "available": "999900",
+        #                  "frozen": "0",
+        #                  "lock": "0"
+        #              }
+        #          ],
+        #          "message": "Success"
+        #      }
+        #
+        result = {'info': response}
+        balances = self.safe_value(response, 'data', {})
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            frozen = self.safe_string(balance, 'frozen')
+            locked = self.safe_string(balance, 'lock')
+            account['used'] = Precise.string_add(frozen, locked)
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         # spot
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   # financial
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       # margin
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       # swap
         :param dict [params]: extra parameters specific to the coinex api endpoint
+        :param str [params.type]: 'margin', 'swap', 'financial', or 'spot'
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         marketType = None
@@ -1421,6 +1463,8 @@ class coinex(Exchange, ImplicitAPI):
             return self.fetch_margin_balance(params)
         elif marketType == 'swap':
             return self.fetch_swap_balance(params)
+        elif marketType == 'financial':
+            return self.fetch_financial_balance(params)
         else:
             return self.fetch_spot_balance(params)
 
