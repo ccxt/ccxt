@@ -1912,12 +1912,17 @@ export default class bingx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        const parsedIds = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            parsedIds.push (id.toString ());
+        }
         let response = undefined;
         if (market['spot']) {
-            request['orderIds'] = ids.join (',');
+            request['orderIds'] = parsedIds.join (',');
             response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
         } else {
-            request['ids'] = ids.join (',');
+            request['ids'] = parsedIds.join (',');
             response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, params));
         }
         //
