@@ -5882,7 +5882,6 @@ export default class bybit extends Exchange {
 
     async fetchUsdcPositions (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
         const request = {};
         let market = undefined;
         let type = undefined;
