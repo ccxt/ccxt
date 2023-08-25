@@ -201,6 +201,11 @@ class coinsph extends Exchange {
                         'openapi/convert/v1/get-supported-trading-pairs' => 1,
                         'openapi/convert/v1/get-quote' => 1,
                         'openapi/convert/v1/accpet-quote' => 1,
+                        'openapi/fiat/v1/support-channel' => 1,
+                        'openapi/fiat/v1/cash-out' => 1,
+                        'openapi/fiat/v1/history' => 1,
+                        'openapi/migration/v4/sellorder' => 1,
+                        'openapi/migration/v4/validate-field' => 1,
                         'openapi/transfer/v3/transfers' => 1,
                     ),
                     'delete' => array(
