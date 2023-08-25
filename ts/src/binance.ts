@@ -188,147 +188,148 @@ export default class binance extends Exchange {
             'api': {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
-                    // IP (api) = 1200 per minute => (rateLimit = 50)
+                    // DEPRECATED: IP (api) = 1200 per minute => (rateLimit = 50)
+                    // UPDATED TO: IP (api) = 6000 per minute => (rateLimit = 10) so divided the previously used sapi (IP) weights by 5 instead of changing ratelimit to 10
                     // IP (sapi) request rate limit of 12 000 per minute
-                    // 1 IP (sapi) => cost = 0.1
-                    // 10 IP (sapi) => cost = 1
+                    // 1 IP (sapi) => cost = 0.02
+                    // 10 IP (sapi) => cost = 0.2
                     // UID (sapi) request rate limit of 180 000 per minute
-                    // 1 UID (sapi) => cost = 1200 / 180 000 = 0.006667
+                    // 1 UID (sapi) => cost = 0.006667 => (1000 / (50 * 0.006667)) * 60 = 180000
                     'get': {
-                        'system/status': 0.1,
+                        'system/status': 0.02, // Weight(IP): 1 => cost = 0.02 * 1 = 0.02
                         // these endpoints require this.apiKey
-                        'accountSnapshot': 240, // Weight(IP): 2400 => cost = 0.1 * 2400 = 240
-                        'margin/asset': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
-                        'margin/pair': 1,
-                        'margin/allAssets': 0.1,
-                        'margin/allPairs': 0.1,
-                        'margin/priceIndex': 1,
+                        'accountSnapshot': 48, // Weight(IP): 2400 => cost = 0.02 * 2400 = 48
+                        'margin/asset': 0.2, // Weight(IP): 10 => cost = 0.02 * 10 = 0.2
+                        'margin/pair': 0.2,
+                        'margin/allAssets': 0.02,
+                        'margin/allPairs': 0.02,
+                        'margin/priceIndex': 0.2,
                         // these endpoints require this.apiKey + this.secret
-                        'asset/assetDividend': 1,
-                        'asset/dribblet': 0.1,
-                        'asset/transfer': 0.1,
-                        'asset/assetDetail': 0.1,
-                        'asset/tradeFee': 0.1,
-                        'asset/ledger-transfer/cloud-mining/queryByPage': 4,
+                        'asset/assetDividend': 0.2,
+                        'asset/dribblet': 0.02,
+                        'asset/transfer': 0.02,
+                        'asset/assetDetail': 0.02,
+                        'asset/tradeFee': 0.02,
+                        'asset/ledger-transfer/cloud-mining/queryByPage': 0.8,
                         'asset/convert-transfer/queryByPage': 0.033335,
-                        'margin/loan': 1,
-                        'margin/repay': 1,
-                        'margin/account': 1,
-                        'margin/transfer': 0.1,
-                        'margin/interestHistory': 0.1,
-                        'margin/forceLiquidationRec': 0.1,
-                        'margin/order': 1,
-                        'margin/openOrders': 1,
-                        'margin/allOrders': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
-                        'margin/myTrades': 1,
-                        'margin/maxBorrowable': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
-                        'margin/maxTransferable': 5,
-                        'margin/tradeCoeff': 1,
-                        'margin/isolated/transfer': 0.1,
-                        'margin/isolated/account': 1,
-                        'margin/isolated/pair': 1,
-                        'margin/isolated/allPairs': 1,
-                        'margin/isolated/accountLimit': 0.1,
-                        'margin/interestRateHistory': 0.1,
-                        'margin/orderList': 1,
-                        'margin/allOrderList': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
-                        'margin/openOrderList': 1,
-                        'margin/crossMarginData': { 'cost': 0.1, 'noCoin': 0.5 },
-                        'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
-                        'margin/isolatedMarginTier': 0.1,
-                        'margin/rateLimit/order': 2,
-                        'margin/dribblet': 0.1,
+                        'margin/loan': 0.2,
+                        'margin/repay': 0.2,
+                        'margin/account': 0.2,
+                        'margin/transfer': 0.02,
+                        'margin/interestHistory': 0.02,
+                        'margin/forceLiquidationRec': 0.02,
+                        'margin/order': 0.2,
+                        'margin/openOrders': 0.2,
+                        'margin/allOrders': 4, // Weight(IP): 200 => cost = 0.02 * 200 = 4
+                        'margin/myTrades': 0.2,
+                        'margin/maxBorrowable': 1, // Weight(IP): 50 => cost = 0.02 * 50 = 1
+                        'margin/maxTransferable': 1,
+                        'margin/tradeCoeff': 0.2,
+                        'margin/isolated/transfer': 0.02,
+                        'margin/isolated/account': 0.2,
+                        'margin/isolated/pair': 0.2,
+                        'margin/isolated/allPairs': 0.2,
+                        'margin/isolated/accountLimit': 0.02,
+                        'margin/interestRateHistory': 0.02,
+                        'margin/orderList': 0.2,
+                        'margin/allOrderList': 4,
+                        'margin/openOrderList': 0.2,
+                        'margin/crossMarginData': { 'cost': 0.02, 'noCoin': 0.1 },
+                        'margin/isolatedMarginData': { 'cost': 0.02, 'noCoin': 0.2 },
+                        'margin/isolatedMarginTier': 0.02,
+                        'margin/rateLimit/order': 0.4,
+                        'margin/dribblet': 0.02,
                         'margin/dust': 20, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
-                        'margin/crossMarginCollateralRatio': 10,
+                        'margin/crossMarginCollateralRatio': 2,
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
                         'margin/next-hourly-interest-rate': 0.6667,
-                        'loan/vip/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/vip/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/vip/request/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/loanable/data': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/vip/collateral/data': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/vip/request/data': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'loan/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/repay/collateral/rate': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
-                        'loan/vip/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/vip/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/vip/collateral/account': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'loan/ongoing/orders': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/ltv/adjustment/history': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/borrow/history': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/repay/history': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/loanable/data': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/collateral/data': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/repay/collateral/rate': 120, // Weight(IP): 6000 => cost = 0.02 * 6000 = 120
+                        'loan/vip/ongoing/orders': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/vip/repay/history': 8, // Weight(IP): 400 => cost = 0.02 * 400 = 8
+                        'loan/vip/collateral/account': 120, // Weight(IP): 6000 => cost = 0.02 * 6000 = 120
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
-                        'fiat/payments': 0.1,
-                        'futures/transfer': 1,
-                        'futures/loan/borrow/history': 1,
-                        'futures/loan/repay/history': 1,
-                        'futures/loan/wallet': 1,
-                        'futures/loan/adjustCollateral/history': 1,
-                        'futures/loan/liquidationHistory': 1,
+                        'fiat/payments': 0.02,
+                        'futures/transfer': 0.2,
+                        'futures/loan/borrow/history': 0.2,
+                        'futures/loan/repay/history': 0.2,
+                        'futures/loan/wallet': 0.2,
+                        'futures/loan/adjustCollateral/history': 0.2,
+                        'futures/loan/liquidationHistory': 0.2,
                         'rebate/taxQuery': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-                        'capital/config/getall': 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
-                        'capital/deposit/address': 1,
-                        'capital/deposit/hisrec': 0.1,
-                        'capital/deposit/subAddress': 0.1,
-                        'capital/deposit/subHisrec': 0.1,
-                        'capital/withdraw/history': 0.1,
+                        'capital/config/getall': 0.2, // get networks for withdrawing USDT ERC20 vs USDT Omni
+                        'capital/deposit/address': 0.2,
+                        'capital/deposit/hisrec': 0.02,
+                        'capital/deposit/subAddress': 0.02,
+                        'capital/deposit/subHisrec': 0.02,
+                        'capital/withdraw/history': 0.02,
                         'capital/contract/convertible-coins': 4.0002,
                         'convert/tradeFlow': 20.0001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.0001
-                        'convert/exchangeInfo': 50,
-                        'convert/assetInfo': 10,
+                        'convert/exchangeInfo': 10,
+                        'convert/assetInfo': 2,
                         'convert/orderStatus': 0.6667,
-                        'account/status': 0.1,
-                        'account/apiTradingStatus': 0.1,
-                        'account/apiRestrictions/ipRestriction': 0.1,
-                        'bnbBurn': 0.1,
+                        'account/status': 0.02,
+                        'account/apiTradingStatus': 0.02,
+                        'account/apiRestrictions/ipRestriction': 0.02,
+                        'bnbBurn': 0.02,
                         // 'sub-account/assets': 1, (v3 endpoint)
-                        'sub-account/futures/account': 1,
-                        'sub-account/futures/accountSummary': 0.1,
-                        'sub-account/futures/positionRisk': 1,
-                        'sub-account/futures/internalTransfer': 0.1,
-                        'sub-account/list': 0.1,
-                        'sub-account/margin/account': 1,
-                        'sub-account/margin/accountSummary': 1,
-                        'sub-account/spotSummary': 0.1,
-                        'sub-account/status': 1,
-                        'sub-account/sub/transfer/history': 0.1,
-                        'sub-account/transfer/subUserHistory': 0.1,
-                        'sub-account/universalTransfer': 0.1,
-                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
-                        'sub-account/transaction-tatistics': 0.4,
-                        'managed-subaccount/asset': 0.1,
-                        'managed-subaccount/accountSnapshot': 240,
-                        'managed-subaccount/queryTransLogForInvestor': 0.1,
-                        'managed-subaccount/queryTransLogForTradeParent': 0.1,
-                        'managed-subaccount/fetch-future-asset': 0.1,
-                        'managed-subaccount/marginAsset': 0.1,
-                        'managed-subaccount/info': 0.4,
-                        'managed-subaccount/deposit/address': 0.1,
+                        'sub-account/futures/account': 0.2,
+                        'sub-account/futures/accountSummary': 0.02,
+                        'sub-account/futures/positionRisk': 0.2,
+                        'sub-account/futures/internalTransfer': 0.02,
+                        'sub-account/list': 0.02,
+                        'sub-account/margin/account': 0.2,
+                        'sub-account/margin/accountSummary': 0.2,
+                        'sub-account/spotSummary': 0.02,
+                        'sub-account/status': 0.2,
+                        'sub-account/sub/transfer/history': 0.02,
+                        'sub-account/transfer/subUserHistory': 0.02,
+                        'sub-account/universalTransfer': 0.02,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 0.2,
+                        'sub-account/transaction-tatistics': 0.08,
+                        'managed-subaccount/asset': 0.02,
+                        'managed-subaccount/accountSnapshot': 48,
+                        'managed-subaccount/queryTransLogForInvestor': 0.02,
+                        'managed-subaccount/queryTransLogForTradeParent': 0.02,
+                        'managed-subaccount/fetch-future-asset': 0.02,
+                        'managed-subaccount/marginAsset': 0.02,
+                        'managed-subaccount/info': 0.08,
+                        'managed-subaccount/deposit/address': 0.02,
                         'managed-subaccount/query-trans-log': 0.40002,
                         // lending endpoints
-                        'lending/daily/product/list': 0.1,
-                        'lending/daily/userLeftQuota': 0.1,
-                        'lending/daily/userRedemptionQuota': 0.1,
-                        'lending/daily/token/position': 0.1,
-                        'lending/union/account': 0.1,
-                        'lending/union/purchaseRecord': 0.1,
-                        'lending/union/redemptionRecord': 0.1,
-                        'lending/union/interestHistory': 0.1,
-                        'lending/project/list': 0.1,
-                        'lending/project/position/list': 0.1,
+                        'lending/daily/product/list': 0.02,
+                        'lending/daily/userLeftQuota': 0.02,
+                        'lending/daily/userRedemptionQuota': 0.02,
+                        'lending/daily/token/position': 0.02,
+                        'lending/union/account': 0.02,
+                        'lending/union/purchaseRecord': 0.02,
+                        'lending/union/redemptionRecord': 0.02,
+                        'lending/union/interestHistory': 0.02,
+                        'lending/project/list': 0.02,
+                        'lending/project/position/list': 0.02,
                         // mining endpoints
-                        'mining/pub/algoList': 0.1,
-                        'mining/pub/coinList': 0.1,
-                        'mining/worker/detail': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
-                        'mining/worker/list': 0.5,
-                        'mining/payment/list': 0.5,
-                        'mining/statistics/user/status': 0.5,
-                        'mining/statistics/user/list': 0.5,
-                        'mining/payment/uid': 0.5,
+                        'mining/pub/algoList': 0.02,
+                        'mining/pub/coinList': 0.02,
+                        'mining/worker/detail': 0.1, // Weight(IP): 5 => cost = 0.02 * 5 = 0.1
+                        'mining/worker/list': 0.1,
+                        'mining/payment/list': 0.1,
+                        'mining/statistics/user/status': 0.1,
+                        'mining/statistics/user/list': 0.1,
+                        'mining/payment/uid': 0.1,
                         // liquid swap endpoints
-                        'bswap/pools': 0.1,
-                        'bswap/liquidity': { 'cost': 0.1, 'noPoolId': 1 },
+                        'bswap/pools': 0.02,
+                        'bswap/liquidity': { 'cost': 0.02, 'noPoolId': 0.2 },
                         'bswap/liquidityOps': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'bswap/quote': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
                         'bswap/swap': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
@@ -338,178 +339,178 @@ export default class binance extends Exchange {
                         'bswap/unclaimedRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         'bswap/claimedHistory': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
-                        'blvt/tokenInfo': 0.1,
-                        'blvt/subscribe/record': 0.1,
-                        'blvt/redeem/record': 0.1,
-                        'blvt/userLimit': 0.1,
+                        'blvt/tokenInfo': 0.02,
+                        'blvt/subscribe/record': 0.02,
+                        'blvt/redeem/record': 0.02,
+                        'blvt/userLimit': 0.02,
                         // broker api TODO (NOT IN DOCS)
-                        'apiReferral/ifNewUser': 1,
-                        'apiReferral/customization': 1,
-                        'apiReferral/userCustomization': 1,
-                        'apiReferral/rebate/recentRecord': 1,
-                        'apiReferral/rebate/historicalRecord': 1,
-                        'apiReferral/kickback/recentRecord': 1,
-                        'apiReferral/kickback/historicalRecord': 1,
+                        'apiReferral/ifNewUser': 0.2,
+                        'apiReferral/customization': 0.2,
+                        'apiReferral/userCustomization': 0.2,
+                        'apiReferral/rebate/recentRecord': 0.2,
+                        'apiReferral/rebate/historicalRecord': 0.2,
+                        'apiReferral/kickback/recentRecord': 0.2,
+                        'apiReferral/kickback/historicalRecord': 0.2,
                         // brokerage API TODO https://binance-docs.github.io/Brokerage-API/General/ does not state ratelimits
-                        'broker/subAccountApi': 1,
-                        'broker/subAccount': 1,
-                        'broker/subAccountApi/commission/futures': 1,
-                        'broker/subAccountApi/commission/coinFutures': 1,
-                        'broker/info': 1,
-                        'broker/transfer': 1,
-                        'broker/transfer/futures': 1,
-                        'broker/rebate/recentRecord': 1,
-                        'broker/rebate/historicalRecord': 1,
-                        'broker/subAccount/bnbBurn/status': 1,
-                        'broker/subAccount/depositHist': 1,
-                        'broker/subAccount/spotSummary': 1,
-                        'broker/subAccount/marginSummary': 1,
-                        'broker/subAccount/futuresSummary': 1,
-                        'broker/rebate/futures/recentRecord': 1,
-                        'broker/subAccountApi/ipRestriction': 1,
-                        'broker/universalTransfer': 1,
+                        'broker/subAccountApi': 0.2,
+                        'broker/subAccount': 0.2,
+                        'broker/subAccountApi/commission/futures': 0.2,
+                        'broker/subAccountApi/commission/coinFutures': 0.2,
+                        'broker/info': 0.2,
+                        'broker/transfer': 0.2,
+                        'broker/transfer/futures': 0.2,
+                        'broker/rebate/recentRecord': 0.2,
+                        'broker/rebate/historicalRecord': 0.2,
+                        'broker/subAccount/bnbBurn/status': 0.2,
+                        'broker/subAccount/depositHist': 0.2,
+                        'broker/subAccount/spotSummary': 0.2,
+                        'broker/subAccount/marginSummary': 0.2,
+                        'broker/subAccount/futuresSummary': 0.2,
+                        'broker/rebate/futures/recentRecord': 0.2,
+                        'broker/subAccountApi/ipRestriction': 0.2,
+                        'broker/universalTransfer': 0.2,
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
-                        'account/apiRestrictions': 0.1,
+                        'account/apiRestrictions': 0.02,
                         // c2c / p2p
-                        'c2c/orderMatch/listUserOrderHistory': 0.1,
+                        'c2c/orderMatch/listUserOrderHistory': 0.02,
                         // nft endpoints
                         'nft/history/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'nft/history/deposit': 20.001,
                         'nft/history/withdraw': 20.001,
                         'nft/user/getAsset': 20.001,
                         'pay/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'giftcard/verify': 0.1,
-                        'giftcard/cryptography/rsa-public-key': 0.1,
-                        'giftcard/buyCode/token-limit': 0.1,
-                        'algo/futures/openOrders': 0.1,
-                        'algo/futures/historicalOrders': 0.1,
-                        'algo/futures/subOrders': 0.1,
-                        'portfolio/account': 0.1,
-                        'portfolio/collateralRate': 5,
+                        'giftcard/verify': 0.02,
+                        'giftcard/cryptography/rsa-public-key': 0.02,
+                        'giftcard/buyCode/token-limit': 0.02,
+                        'algo/futures/openOrders': 0.02,
+                        'algo/futures/historicalOrders': 0.02,
+                        'algo/futures/subOrders': 0.02,
+                        'portfolio/account': 0.02,
+                        'portfolio/collateralRate': 1, // Weight(IP): 50 => cost = 0.02 * 50 = 1
                         'portfolio/pmLoan': 3.3335,
                         'portfolio/interest-history': 0.6667,
-                        'portfolio/asset-index-price': 0.1,
-                        'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
+                        'portfolio/asset-index-price': 0.02,
+                        'portfolio/repay-futures-switch': 0.6, // Weight(IP): 30 => cost = 0.02 * 30 = 0.6
                         // staking
-                        'staking/productList': 0.1,
-                        'staking/position': 0.1,
-                        'staking/stakingRecord': 0.1,
-                        'staking/personalLeftQuota': 0.1,
-                        'lending/auto-invest/target-asset/list': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/target-asset/roi/list': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/all/asset': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/source-asset/list': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/plan/list': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/plan/id': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/history/list': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'staking/productList': 0.02,
+                        'staking/position': 0.02,
+                        'staking/stakingRecord': 0.02,
+                        'staking/personalLeftQuota': 0.02,
+                        'lending/auto-invest/target-asset/list': 0.02, // Weight(IP): 1 => cost = 0.02 * 1 = 0.02
+                        'lending/auto-invest/target-asset/roi/list': 0.02,
+                        'lending/auto-invest/all/asset': 0.02,
+                        'lending/auto-invest/source-asset/list': 0.02,
+                        'lending/auto-invest/plan/list': 0.02,
+                        'lending/auto-invest/plan/id': 0.02,
+                        'lending/auto-invest/history/list': 0.02,
                         // simple earn
-                        'simple-earn/flexible/list': 15,
-                        'simple-earn/locked/list': 15,
-                        'simple-earn/flexible/personalLeftQuota': 15,
-                        'simple-earn/locked/personalLeftQuota': 15,
-                        'simple-earn/flexible/subscriptionPreview': 15,
-                        'simple-earn/locked/subscriptionPreview': 15,
-                        'simple-earn/flexible/history/rateHistory': 15,
-                        'simple-earn/flexible/position': 15,
-                        'simple-earn/locked/position': 15,
-                        'simple-earn/account': 15,
-                        'simple-earn/flexible/history/subscriptionRecord': 15,
-                        'simple-earn/locked/history/subscriptionRecord': 15,
-                        'simple-earn/flexible/history/redemptionRecord': 15,
-                        'simple-earn/locked/history/redemptionRecord': 15,
-                        'simple-earn/flexible/history/rewardsRecord': 15,
-                        'simple-earn/locked/history/rewardsRecord': 15,
-                        'simple-earn/flexible/history/collateralRecord': 0.1,
+                        'simple-earn/flexible/list': 3,
+                        'simple-earn/locked/list': 3,
+                        'simple-earn/flexible/personalLeftQuota': 3,
+                        'simple-earn/locked/personalLeftQuota': 3,
+                        'simple-earn/flexible/subscriptionPreview': 3,
+                        'simple-earn/locked/subscriptionPreview': 3,
+                        'simple-earn/flexible/history/rateHistory': 3,
+                        'simple-earn/flexible/position': 3,
+                        'simple-earn/locked/position': 3,
+                        'simple-earn/account': 3,
+                        'simple-earn/flexible/history/subscriptionRecord': 3,
+                        'simple-earn/locked/history/subscriptionRecord': 3,
+                        'simple-earn/flexible/history/redemptionRecord': 3,
+                        'simple-earn/locked/history/redemptionRecord': 3,
+                        'simple-earn/flexible/history/rewardsRecord': 3,
+                        'simple-earn/locked/history/rewardsRecord': 3,
+                        'simple-earn/flexible/history/collateralRecord': 0.02,
                     },
                     'post': {
-                        'asset/dust': 1,
-                        'asset/dust-btc': 0.1,
-                        'asset/transfer': 0.1,
-                        'asset/get-funding-asset': 0.1,
+                        'asset/dust': 0.2,
+                        'asset/dust-btc': 0.02,
+                        'asset/transfer': 0.02,
+                        'asset/get-funding-asset': 0.02,
                         'asset/convert-transfer': 0.033335,
-                        'account/disableFastWithdrawSwitch': 0.1,
-                        'account/enableFastWithdrawSwitch': 0.1,
+                        'account/disableFastWithdrawSwitch': 0.02,
+                        'account/enableFastWithdrawSwitch': 0.02,
                         // 'account/apiRestrictions/ipRestriction': 1, discontinued
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
                         'capital/withdraw/apply': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins': 4.0002,
-                        'capital/deposit/credit-apply': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'margin/transfer': 1, // Weight(IP): 600 => cost = 0.1 * 600 = 60
+                        'capital/deposit/credit-apply': 0.02, // Weight(IP): 1 => cost = 0.02 * 1 = 0.02
+                        'margin/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/loan': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
                         'margin/order': 0.040002, // Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
                         'margin/order/oco': 0.040002,
-                        'margin/dust': 20, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
+                        'margin/dust': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/exchange-small-liability': 20.001,
                         // 'margin/isolated/create': 1, discontinued
                         'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
-                        'margin/max-leverage': 300, // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
-                        'bnbBurn': 0.1,
-                        'sub-account/virtualSubAccount': 0.1,
+                        'margin/max-leverage': 60, // Weight(IP): 3000 => cost = 0.02 * 3000 = 60
+                        'bnbBurn': 0.02,
+                        'sub-account/virtualSubAccount': 0.02,
                         'sub-account/margin/transfer': 4.0002, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
-                        'sub-account/margin/enable': 0.1,
-                        'sub-account/futures/enable': 0.1,
-                        'sub-account/futures/transfer': 0.1,
-                        'sub-account/futures/internalTransfer': 0.1,
-                        'sub-account/transfer/subToSub': 0.1,
-                        'sub-account/transfer/subToMaster': 0.1,
-                        'sub-account/universalTransfer': 0.1,
-                        'sub-account/options/enable': 0.1,
+                        'sub-account/margin/enable': 0.02,
+                        'sub-account/futures/enable': 0.02,
+                        'sub-account/futures/transfer': 0.02,
+                        'sub-account/futures/internalTransfer': 0.02,
+                        'sub-account/transfer/subToSub': 0.02,
+                        'sub-account/transfer/subToMaster': 0.02,
+                        'sub-account/universalTransfer': 0.02,
+                        'sub-account/options/enable': 0.02,
                         // v2 not supported yet
                         // 'sub-account/subAccountApi/ipRestriction': 20,
-                        'managed-subaccount/deposit': 0.1,
-                        'managed-subaccount/withdraw': 0.1,
-                        'userDataStream': 0.1,
-                        'userDataStream/isolated': 0.1,
-                        'futures/transfer': 0.1,
+                        'managed-subaccount/deposit': 0.02,
+                        'managed-subaccount/withdraw': 0.02,
+                        'userDataStream': 0.02,
+                        'userDataStream/isolated': 0.02,
+                        'futures/transfer': 0.02,
                         // lending
-                        'lending/customizedFixed/purchase': 0.1,
-                        'lending/daily/purchase': 0.1,
-                        'lending/daily/redeem': 0.1,
+                        'lending/customizedFixed/purchase': 0.02,
+                        'lending/daily/purchase': 0.02,
+                        'lending/daily/redeem': 0.02,
                         // liquid swap endpoints
                         'bswap/liquidityAdd': 60, // Weight(UID): 1000 + (Additional: 1 request every 3 seconds =  0.333 requests per second) => cost = ( 1000 / rateLimit ) / 0.333 = 60.0000006
                         'bswap/liquidityRemove': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
                         'bswap/swap': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
                         'bswap/claimRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
-                        'blvt/subscribe': 0.1,
-                        'blvt/redeem': 0.1,
+                        'blvt/subscribe': 0.02,
+                        'blvt/redeem': 0.02,
                         // brokerage API TODO: NO MENTION OF RATELIMITS IN BROKERAGE DOCS
-                        'apiReferral/customization': 1,
-                        'apiReferral/userCustomization': 1,
-                        'apiReferral/rebate/historicalRecord': 1,
-                        'apiReferral/kickback/historicalRecord': 1,
-                        'broker/subAccount': 1,
-                        'broker/subAccount/margin': 1,
-                        'broker/subAccount/futures': 1,
-                        'broker/subAccountApi': 1,
-                        'broker/subAccountApi/permission': 1,
-                        'broker/subAccountApi/commission': 1,
-                        'broker/subAccountApi/commission/futures': 1,
-                        'broker/subAccountApi/commission/coinFutures': 1,
-                        'broker/transfer': 1,
-                        'broker/transfer/futures': 1,
-                        'broker/rebate/historicalRecord': 1,
-                        'broker/subAccount/bnbBurn/spot': 1,
-                        'broker/subAccount/bnbBurn/marginInterest': 1,
-                        'broker/subAccount/blvt': 1,
-                        'broker/subAccountApi/ipRestriction': 1,
-                        'broker/subAccountApi/ipRestriction/ipList': 1,
-                        'broker/universalTransfer': 1,
-                        'broker/subAccountApi/permission/universalTransfer': 1,
-                        'broker/subAccountApi/permission/vanillaOptions': 1,
+                        'apiReferral/customization': 0.2,
+                        'apiReferral/userCustomization': 0.2,
+                        'apiReferral/rebate/historicalRecord': 0.2,
+                        'apiReferral/kickback/historicalRecord': 0.2,
+                        'broker/subAccount': 0.2,
+                        'broker/subAccount/margin': 0.2,
+                        'broker/subAccount/futures': 0.2,
+                        'broker/subAccountApi': 0.2,
+                        'broker/subAccountApi/permission': 0.2,
+                        'broker/subAccountApi/commission': 0.2,
+                        'broker/subAccountApi/commission/futures': 0.2,
+                        'broker/subAccountApi/commission/coinFutures': 0.2,
+                        'broker/transfer': 0.2,
+                        'broker/transfer/futures': 0.2,
+                        'broker/rebate/historicalRecord': 0.2,
+                        'broker/subAccount/bnbBurn/spot': 0.2,
+                        'broker/subAccount/bnbBurn/marginInterest': 0.2,
+                        'broker/subAccount/blvt': 0.2,
+                        'broker/subAccountApi/ipRestriction': 0.2,
+                        'broker/subAccountApi/ipRestriction/ipList': 0.2,
+                        'broker/universalTransfer': 0.2,
+                        'broker/subAccountApi/permission/universalTransfer': 0.2,
+                        'broker/subAccountApi/permission/vanillaOptions': 0.2,
                         //
-                        'giftcard/createCode': 0.1,
-                        'giftcard/redeemCode': 0.1,
-                        'giftcard/buyCode': 0.1,
+                        'giftcard/createCode': 0.02,
+                        'giftcard/redeemCode': 0.02,
+                        'giftcard/buyCode': 0.02,
                         'algo/futures/newOrderVp': 20.001,
                         'algo/futures/newOrderTwap': 20.001,
                         // staking
-                        'staking/purchase': 0.1,
-                        'staking/redeem': 0.1,
-                        'staking/setAutoStaking': 0.1,
+                        'staking/purchase': 0.02,
+                        'staking/redeem': 0.02,
+                        'staking/setAutoStaking': 0.02,
                         'portfolio/repay': 20.001,
                         'loan/vip/renew': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/vip/borrow': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
@@ -520,38 +521,38 @@ export default class binance extends Exchange {
                         'loan/vip/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
-                        'portfolio/auto-collection': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/asset-collection': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
-                        'portfolio/bnb-transfer': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/repay-futures-switch': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/repay-futures-negative-balance': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'lending/auto-invest/plan/add': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/plan/edit': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/plan/edit-status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'portfolio/auto-collection': 30, // Weight(IP): 1500 => cost = 0.02 * 1500 = 30
+                        'portfolio/asset-collection': 1.2, // Weight(IP): 60 => cost = 0.02 * 60 = 1.2
+                        'portfolio/bnb-transfer': 30, // Weight(IP): 1500 => cost = 0.02 * 1500 = 30
+                        'portfolio/repay-futures-switch': 30, // Weight(IP): 1500 => cost = 0.02 * 1500 = 30
+                        'portfolio/repay-futures-negative-balance': 30, // Weight(IP): 1500 => cost = 0.02 * 1500 = 30
+                        'lending/auto-invest/plan/add': 0.02, // Weight(IP): 1 => cost = 0.02 * 1 = 0.02
+                        'lending/auto-invest/plan/edit': 0.02, // Weight(IP): 1 => cost = 0.02 * 1 = 0.02
+                        'lending/auto-invest/plan/edit-status': 0.02, // Weight(IP): 1 => cost = 0.02 * 1 = 0.02
                         // simple earn
-                        'simple-earn/flexible/subscribe': 0.1,
-                        'simple-earn/locked/subscribe': 0.1,
-                        'simple-earn/flexible/redeem': 0.1,
-                        'simple-earn/locked/redeem': 0.1,
-                        'simple-earn/flexible/setAutoSubscribe': 15,
-                        'simple-earn/locked/setAutoSubscribe': 15,
+                        'simple-earn/flexible/subscribe': 0.02,
+                        'simple-earn/locked/subscribe': 0.02,
+                        'simple-earn/flexible/redeem': 0.02,
+                        'simple-earn/locked/redeem': 0.02,
+                        'simple-earn/flexible/setAutoSubscribe': 3,
+                        'simple-earn/locked/setAutoSubscribe': 3,
                     },
                     'put': {
-                        'userDataStream': 0.1,
-                        'userDataStream/isolated': 0.1,
+                        'userDataStream': 0.02,
+                        'userDataStream/isolated': 0.02,
                     },
                     'delete': {
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
-                        'margin/openOrders': 0.1,
+                        'margin/openOrders': 0.02,
                         'margin/order': 0.0066667, // Weight(UID): 1 => cost = 0.006667
                         'margin/orderList': 0.0066667,
                         'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
-                        'userDataStream': 0.1,
-                        'userDataStream/isolated': 0.1,
+                        'userDataStream': 0.02,
+                        'userDataStream/isolated': 0.02,
                         // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
-                        'broker/subAccountApi': 1,
-                        'broker/subAccountApi/ipRestriction/ipList': 1,
-                        'algo/futures/order': 0.1,
+                        'broker/subAccountApi': 0.2,
+                        'broker/subAccountApi/ipRestriction/ipList': 0.2,
+                        'algo/futures/order': 0.02,
                     },
                 },
                 'sapiV2': {
@@ -826,54 +827,54 @@ export default class binance extends Exchange {
                 },
                 'public': {
                     'get': {
-                        'ping': 1,
-                        'time': 1,
-                        'depth': { 'cost': 2, 'byLimit': [ [ 100, 2 ], [ 500, 10 ], [ 1000, 20 ], [ 5000, 100 ] ] },
-                        'trades': 2,
-                        'aggTrades': 2,
-                        'historicalTrades': 10,
-                        'klines': 2,
-                        'ticker/24hr': { 'cost': 2, 'noSymbol': 80 },
-                        'ticker/price': { 'cost': 2, 'noSymbol': 4 },
-                        'ticker/bookTicker': { 'cost': 2, 'noSymbol': 4 },
-                        'exchangeInfo': 20,
+                        'ping': 0.02, // Weight(IP): 1 => cost = 0.02 * 1 = 0.02
+                        'time': 0.02,
+                        'depth': { 'cost': 0.04, 'byLimit': [ [ 100, 0.04 ], [ 500, 0.2 ], [ 1000, 0.4 ], [ 5000, 2 ] ] },
+                        'trades': 0.04, // Weight(IP): 2 => cost = 0.02 * 2 = 0.04
+                        'aggTrades': 0.04,
+                        'historicalTrades': 0.2, // Weight(IP): 10 => cost = 0.02 * 10 = 0.2
+                        'klines': 0.04,
+                        'ticker/24hr': { 'cost': 0.04, 'noSymbol': 1.6 },
+                        'ticker/price': { 'cost': 0.04, 'noSymbol': 0.08 },
+                        'ticker/bookTicker': { 'cost': 0.04, 'noSymbol': 0.08 },
+                        'exchangeInfo': 0.4, // Weight(IP): 20 => cost = 0.02 * 20 = 0.4
                     },
                     'put': {
-                        'userDataStream': 2,
+                        'userDataStream': 0.04,
                     },
                     'post': {
-                        'userDataStream': 2,
+                        'userDataStream': 0.04,
                     },
                     'delete': {
-                        'userDataStream': 2,
+                        'userDataStream': 0.04,
                     },
                 },
                 'private': {
                     'get': {
-                        'allOrderList': 20, // oco
-                        'openOrderList': 6, // oco
-                        'orderList': 4, // oco
-                        'order': 4,
-                        'openOrders': { 'cost': 6, 'noSymbol': 80 },
-                        'allOrders': 20,
-                        'account': 20,
-                        'myTrades': 20,
-                        'rateLimit/order': 40,
-                        'myPreventedMatches': 2,
-                        'myAllocations': 20,
+                        'allOrderList': 0.08, // oco Weight(IP): 4 => cost = 0.02 * 4 = 0.08
+                        'openOrderList': 0.12, // oco Weight(IP): 6 => cost = 0.02 * 6 = 0.12
+                        'orderList': 0.08, // oco
+                        'order': 0.08,
+                        'openOrders': { 'cost': 0.12, 'noSymbol': 1.6 },
+                        'allOrders': 0.4,
+                        'account': 0.4,
+                        'myTrades': 0.4,
+                        'rateLimit/order': 0.8, // Weight(IP): 40 => cost = 0.02 * 40 = 0.8
+                        'myPreventedMatches': 0.04, // Weight(IP): 2 => cost = 0.02 * 2 = 0.04
+                        'myAllocations': 0.4,
                     },
                     'post': {
-                        'order/oco': 1,
-                        'sor/order': 1,
-                        'sor/order/test': 1,
-                        'order': 1,
-                        'order/cancelReplace': 1,
-                        'order/test': 1,
+                        'order/oco': 0.02,
+                        'sor/order': 0.02,
+                        'sor/order/test': 0.02,
+                        'order': 0.02,
+                        'order/cancelReplace': 0.02,
+                        'order/test': 0.02,
                     },
                     'delete': {
-                        'openOrders': 1, // added on 2020-04-25 for canceling all open orders per symbol
-                        'orderList': 1, // oco
-                        'order': 1,
+                        'openOrders': 0.02, // added on 2020-04-25 for canceling all open orders per symbol
+                        'orderList': 0.02, // oco
+                        'order': 0.02,
                     },
                 },
                 'papi': {
