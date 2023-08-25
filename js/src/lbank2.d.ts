@@ -6,9 +6,12 @@ import { Int, OrderSide, OrderType } from './base/types.js';
  */
 export default class lbank2 extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchTime(params?: {}): Promise<number>;
+    fetchMarkets(params?: {}): Promise<any>;
+    fetchSpotMarkets(params?: {}): Promise<any[]>;
+    fetchSwapMarkets(params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<any>;
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;

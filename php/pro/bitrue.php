@@ -181,7 +181,7 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum amount of $orders to return
              * @param {array} [$params] extra parameters specific to the bitrue api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-structure order structure~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure} indexed by $market symbols
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {

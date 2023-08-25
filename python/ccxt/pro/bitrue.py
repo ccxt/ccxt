@@ -171,7 +171,7 @@ class bitrue(ccxt.async_support.bitrue):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum amount of orders to return
         :param dict [params]: extra parameters specific to the bitrue api endpoint
-        :returns dict: A dictionary of `order structure <https://docs.ccxt.com/#/?id=order-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>` indexed by market symbols
         """
         await self.load_markets()
         if symbol is not None:

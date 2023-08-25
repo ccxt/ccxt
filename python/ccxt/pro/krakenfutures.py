@@ -220,7 +220,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
         name = 'fills'
@@ -242,7 +242,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [limit]: not used by krakenfutures watchBalance
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
         :param str [params.account]: can be either 'futures' or 'flex_futures'
-        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict[]: a list of `balance structures <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         name = 'balances'

@@ -324,7 +324,7 @@ class coinbase extends Exchange {
             /**
              * fetch all the accounts associated with a profile
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
              */
             $method = $this->safe_string($this->options, 'fetchAccounts', 'fetchAccountsV3');
             if ($method === 'fetchAccountsV3') {
@@ -509,7 +509,7 @@ class coinbase extends Exchange {
              * create a currency deposit $address
              * @param {string} $code unified currency $code of the currency for the deposit $address
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
              */
             $accountId = $this->safe_string($params, 'account_id');
             $params = $this->omit($params, 'account_id');
@@ -586,7 +586,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest sell, default is null
              * @param {int} [$limit] max number of $sells to return, default is null
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=order-structure list of order structures~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure list of order structures}
              */
             // v2 did't have an endpoint for all historical trades
             $request = $this->prepare_account_request($limit, $params);
@@ -605,7 +605,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest buy, default is null
              * @param {int} [$limit] max number of $buys to return, default is null
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} a list of  ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} a list of  {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             // v2 did't have an endpoint for all historical trades
             $request = $this->prepare_account_request($limit, $params);
@@ -634,7 +634,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             // fiat only, for crypto transactions use fetchLedger
             return Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $params));
@@ -649,7 +649,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             // fiat only, for crypto transactions use fetchLedger
             return Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', $code, $since, $limit, $params));
@@ -1208,7 +1208,7 @@ class coinbase extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
              */
             $method = $this->safe_string($this->options, 'fetchTickers', 'fetchTickersV3');
             if ($method === 'fetchTickersV3') {
@@ -1316,7 +1316,7 @@ class coinbase extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             $method = $this->safe_string($this->options, 'fetchTicker', 'fetchTickerV3');
             if ($method === 'fetchTickerV3') {
@@ -1607,7 +1607,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2014,7 +2014,7 @@ class coinbase extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
-             * @param {float} $price the $price to fulfill the order, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
              * @param {float} [$params->stopPrice] $price to trigger stop orders
              * @param {float} [$params->triggerPrice] $price to trigger stop orders
@@ -2024,7 +2024,7 @@ class coinbase extends Exchange {
              * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
              * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
              * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2334,7 +2334,7 @@ class coinbase extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol not used by coinbase cancelOrder()
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
@@ -2350,7 +2350,7 @@ class coinbase extends Exchange {
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by coinbase cancelOrders()
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -2391,7 +2391,7 @@ class coinbase extends Exchange {
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $market $symbol that the $order was made in
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -2455,7 +2455,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $orders
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -2597,7 +2597,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             return Async\await($this->fetch_orders_by_status('OPEN', $symbol, $since, $limit, $params));
         }) ();
@@ -2612,7 +2612,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of closed order structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             return Async\await($this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params));
         }) ();
@@ -2627,7 +2627,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of canceled order structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             return Async\await($this->fetch_orders_by_status('CANCELLED', $symbol, $since, $limit, $params));
         }) ();
@@ -2753,7 +2753,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of trade structures to fetch
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -2807,7 +2807,7 @@ class coinbase extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

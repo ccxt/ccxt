@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.0.71';
+$version = '4.0.74';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.0.71';
+    const VERSION = '4.0.74';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2421,7 +2421,7 @@ class Exchange {
     }
 
     public function parse_ws_ohlcv($ohlcv, $market = null) {
-        throw new NotSupported($this->id . ' parseWsOHLCV() is not supported yet');
+        return $this->parse_ohlcv($ohlcv, $market);
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
@@ -3616,7 +3616,7 @@ class Exchange {
             $position = array_merge($this->parse_position($positions[$i], null), $params);
             $result[] = $position;
         }
-        return $this->filterByArrayPositions ($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_accounts($accounts, $params = array ()) {
@@ -3843,7 +3843,7 @@ class Exchange {
          * specifically fetches positions for specific $symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
          * @param {string} $symbol unified market $symbol of the market the position is held in
          * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported($this->id . ' fetchPositionsBySymbol() is not supported yet');
     }
@@ -5106,7 +5106,7 @@ class Exchange {
          * @param {array} $market ccxt $market
          * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [$limit] limits the number of items in the response
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         * @return {array[]} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structures}
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
@@ -5125,6 +5125,14 @@ class Exchange {
         $firstMarket = $this->safe_string($symbols, 0);
         $market = $this->market ($firstMarket);
         return $market;
+    }
+
+    public function parse_ws_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+        $results = array();
+        for ($i = 0; $i < count($ohlcvs); $i++) {
+            $results[] = $this->parse_ws_ohlcv($ohlcvs[$i], $market);
+        }
+        return $results;
     }
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {

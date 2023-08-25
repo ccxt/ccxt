@@ -998,11 +998,13 @@ export default class Exchange {
     }
     async close() {
         const clients = Object.values(this.clients || {});
+        const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
             delete this.clients[client.url];
-            await client.close();
+            closedClients.push(client.close());
         }
+        return Promise.all(closedClients);
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
@@ -1370,7 +1372,7 @@ export default class Exchange {
         throw new NotSupported(this.id + ' parseWsOrderTrade() is not supported yet');
     }
     parseWsOHLCV(ohlcv, market = undefined) {
-        throw new NotSupported(this.id + ' parseWsOHLCV() is not supported yet');
+        return this.parseOHLCV(ohlcv, market);
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchFundingRates() is not supported yet');
@@ -2762,7 +2764,7 @@ export default class Exchange {
          * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported(this.id + ' fetchPositionsBySymbol() is not supported yet');
     }
@@ -3947,7 +3949,7 @@ export default class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -3965,6 +3967,13 @@ export default class Exchange {
         const firstMarket = this.safeString(symbols, 0);
         const market = this.market(firstMarket);
         return market;
+    }
+    parseWsOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        const results = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            results.push(this.parseWsOHLCV(ohlcvs[i], market));
+        }
+        return results;
     }
     async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

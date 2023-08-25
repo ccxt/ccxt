@@ -404,7 +404,7 @@ class poloniexfutures extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -441,7 +441,7 @@ class poloniexfutures extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTickers ($params));
@@ -458,7 +458,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the poloniexfuturesfutures api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $level = $this->safe_number($params, 'level');
@@ -543,7 +543,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$limit] max number of orders to return, default is null
              * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -816,7 +816,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
-             * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+             * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
              * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
              * @param {float} [$params->leverage] Leverage size of the order
              * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
@@ -829,7 +829,7 @@ class poloniexfutures extends Exchange {
              * @param {string} [$params->stopPriceType]  TP, IP or MP, defaults to TP
              * @param {bool} [$params->closeOrder] set to true to close position
              * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -923,7 +923,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -963,7 +963,7 @@ class poloniexfutures extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-position-list
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetPositions ($params));
@@ -1120,7 +1120,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
@@ -1192,7 +1192,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
              * @param {array} [$params->stop] When true, all the trigger orders will be cancelled
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1261,7 +1261,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$params->until] End time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit or $market
-             * @return An ~@link https://docs.ccxt.com/#/?id=$order-structure array of $order structures~
+             * @return An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure array of $order structures}
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value($params, 'stop');
@@ -1364,7 +1364,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
         }) ();
@@ -1383,7 +1383,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             return Async\await($this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params));
         }) ();
@@ -1397,7 +1397,7 @@ class poloniexfutures extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1596,7 +1596,7 @@ class poloniexfutures extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-premium-index
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1651,7 +1651,7 @@ class poloniexfutures extends Exchange {
              * @param {string} side buy or sell
              * @param {string} type  $limit, $market, limit_stop or market_stop
              * @param {int} endAt end time (milisecond)
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $request = array(

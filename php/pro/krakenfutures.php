@@ -249,7 +249,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $name = 'fills';
@@ -276,7 +276,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {int} [limit] not used by krakenfutures watchBalance
              * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
              * @param {string} [$params->account] can be either 'futures' or 'flex_futures'
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structures}
              */
             Async\await($this->load_markets());
             $name = 'balances';

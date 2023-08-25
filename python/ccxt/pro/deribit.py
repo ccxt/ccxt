@@ -149,7 +149,7 @@ class deribit(ccxt.async_support.deribit):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -372,7 +372,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param str [params.interval]: Frequency of notifications. Events will be aggregated over self interval. Possible values: 100ms, raw
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -493,7 +493,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the deribit api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
         await self.load_markets()
         await self.authenticate(params)
