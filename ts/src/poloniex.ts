@@ -28,9 +28,9 @@ export default class poloniex extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but not fully implemented
-                'swap': undefined, // has but not fully implemented
-                'future': undefined, // has but not fully implemented
-                'option': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -1112,6 +1112,7 @@ export default class poloniex extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const triggerPrice = this.safeString2 (order, 'triggerPrice', 'stopPrice');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1126,8 +1127,8 @@ export default class poloniex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'cost': undefined,
             'average': this.safeString (order, 'avgPrice'),
             'amount': amount,
@@ -1168,11 +1169,13 @@ export default class poloniex extends Exchange {
          * @name poloniex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {boolean} [params.stop] set true to fetch trigger orders instead of regular orders
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1184,7 +1187,14 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateGetSmartorders (this.extend (request, params));
+        } else {
+            response = await this.privateGetOrders (this.extend (request, params));
+        }
         //
         //     [
         //         {
@@ -1202,6 +1212,7 @@ export default class poloniex extends Exchange {
         //             "amount" : "0",
         //             "filledQuantity" : "0",
         //             "filledAmount" : "0",
+        //             "stopPrice": "3750.00",              // for trigger orders
         //             "createTime" : 16xxxxxxxxx26,
         //             "updateTime" : 16xxxxxxxxx36
         //         }
@@ -1212,36 +1223,45 @@ export default class poloniex extends Exchange {
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniex#createOrder
-         * @description create a trade order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
-        // if (type === 'market') {
-        //     throw new ExchangeError (this.id + ' createOrder() does not accept market orders');
-        // }
+        //
+        // @method
+        // @name poloniex#createOrder
+        // @description create a trade order
+        // @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
+        // @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  // trigger orders
+        // @param {string} symbol unified symbol of the market to create an order in
+        // @param {string} type 'market' or 'limit'
+        // @param {string} side 'buy' or 'sell'
+        // @param {float} amount how much of currency you want to trade in units of base currency
+        // @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        // @param {object} [params] extra parameters specific to the poloniex api endpoint
+        // <<<<<<< HEAD
+        // @param {float} [params.triggerPrice] *spot only* The price at which a trigger order is triggered at
+        // @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // =======
+        // @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+        // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
+        //
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request = {
+        let request = {
             'symbol': market['id'],
             'side': side,
             // 'timeInForce': timeInForce,
             // 'accountType': 'SPOT',
             // 'amount': amount,
         };
-        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
-        let response = await this.privatePostOrders (this.extend (orderRequest[0], orderRequest[1]));
+        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        [ request, params ] = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = undefined;
+        if (triggerPrice !== undefined) {
+            response = await this.privatePostSmartorders (this.extend (request, params));
+        } else {
+            response = await this.privatePostOrders (this.extend (request, params));
+        }
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1259,9 +1279,13 @@ export default class poloniex extends Exchange {
         let upperCaseType = type.toUpperCase ();
         const isMarket = upperCaseType === 'MARKET';
         const isPostOnly = this.isPostOnly (isMarket, upperCaseType === 'LIMIT_MAKER', params);
-        if (isPostOnly) {
+        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        params = this.omit (params, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
+        if (triggerPrice !== undefined) {
+            upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
+            request['stopPrice'] = triggerPrice;
+        } else if (isPostOnly) {
             upperCaseType = 'LIMIT_MAKER';
-            params = this.omit (params, 'postOnly');
         }
         request['type'] = upperCaseType;
         if (isMarket) {
@@ -1284,31 +1308,43 @@ export default class poloniex extends Exchange {
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniex#editOrder
-         * @description edit a trade order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
+        //
+        // @method
+        // @name poloniex#editOrder
+        // @description edit a trade order
+        // @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+        // @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
+        // @param {string} id order id
+        // @param {string} symbol unified symbol of the market to create an order in
+        // @param {string} type 'market' or 'limit'
+        // @param {string} side 'buy' or 'sell'
+        // @param {float} [amount] how much of the currency you want to trade in units of the base currency
+        // @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        // @param {object} [params] extra parameters specific to the poloniex api endpoint
+        // <<<<<<< HEAD
+        // @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        // @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // =======
+        // @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+        // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
+        //
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request = {
+        let request = {
             'id': id,
             // 'timeInForce': timeInForce,
         };
-        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
-        let response = await this.privatePutOrdersId (this.extend (orderRequest[0], orderRequest[1]));
+        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        [ request, params ] = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = undefined;
+        if (triggerPrice !== undefined) {
+            response = await this.privatePutSmartordersId (this.extend (request, params));
+        } else {
+            response = await this.privatePutOrdersId (this.extend (request, params));
+        }
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1322,16 +1358,22 @@ export default class poloniex extends Exchange {
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniex#cancelOrder
-         * @description cancels an open order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-id
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
+        //
+        // @method
+        // @name poloniex#cancelOrder
+        // @description cancels an open order
+        // @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-id
+        // @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-order-by-id  // trigger orders
+        // @param {string} id order id
+        // @param {string} symbol unified symbol of the market the order was made in
+        // @param {object} [params] extra parameters specific to the poloniex api endpoint
+        // <<<<<<< HEAD
+        // @param {boolean} [params.trigger] true if canceling a trigger order
+        // @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // =======
+        // @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+        // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
+        //
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeValue (params, 'clientOrderId');
@@ -1339,8 +1381,14 @@ export default class poloniex extends Exchange {
             id = clientOrderId;
         }
         request['id'] = id;
-        params = this.omit (params, 'clientOrderId');
-        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'clientOrderId', 'trigger', 'stop' ]);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateDeleteSmartordersId (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteOrdersId (this.extend (request, params));
+        }
         //
         //   {
         //       "orderId":"210832697138888704",
@@ -1354,18 +1402,25 @@ export default class poloniex extends Exchange {
     }
 
     async cancelAllOrders (symbol: string = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniex#cancelAllOrders
-         * @description cancel all open orders
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
-         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
+        //
+        // @method
+        // @name poloniex#cancelAllOrders
+        // @description cancel all open orders
+        // @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
+        // @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  // trigger orders
+        // @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+        // @param {object} [params] extra parameters specific to the poloniex api endpoint
+        // <<<<<<< HEAD
+        // @param {boolean} [params.trigger] true if canceling trigger orders
+        // @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // =======
+        // @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+        // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
+        //
         await this.loadMarkets ();
         const request = {
             // 'accountTypes': 'SPOT',
+            'symbols': [ ],
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -1374,7 +1429,14 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateDeleteSmartorders (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteOrders (this.extend (request, params));
+        }
         //
         //     [
         //         {
@@ -1392,26 +1454,40 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        return response;
+        return this.parseOrders (response, market);
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniex#fetchOrder
-         * @description fetch an order by it's id
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol, default is undefined
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
+        //
+        // @method
+        // @name poloniex#fetchOrder
+        // @description fetch an order by it's id
+        // @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
+        // @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
+        // @param {string} id order id
+        // @param {string} symbol unified market symbol, default is undefined
+        // @param {object} [params] extra parameters specific to the poloniex api endpoint
+        // <<<<<<< HEAD
+        // @param {boolean} [params.trigger] true if fetching a trigger order
+        // @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // =======
+        // @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+        // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
+        //
         await this.loadMarkets ();
         id = id.toString ();
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateGetSmartordersId (this.extend (request, params));
+            response = this.safeValue (response, 0);
+        } else {
+            response = await this.privateGetOrdersId (this.extend (request, params));
+        }
         //
         //     {
         //         "id": "21934611974062080",
@@ -1428,6 +1504,7 @@ export default class poloniex extends Exchange {
         //         "amount": "0.00",
         //         "filledQuantity": "0.00",
         //         "filledAmount": "0.00",
+        //         "stopPrice": "3750.00",              // for trigger orders
         //         "createTime": 1646196019020,
         //         "updateTime": 1646196019020
         //     }
