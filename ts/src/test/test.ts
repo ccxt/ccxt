@@ -248,7 +248,7 @@ export default class testMainClass extends baseMainTestClass {
             if (this.info) {
                 dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
             }
-            return;
+            return undefined;
         }
         if (this.info) {
             const argsStringified = '(' + args.join (',') + ')';
