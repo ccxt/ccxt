@@ -2853,7 +2853,14 @@ export default class bingx extends Exchange {
             }
             const value = sortedParams[key];
             if (Array.isArray (value)) {
-                result += key + '=[' + value.toString () + ']';
+                result += key + '=[';
+                for (let j = 0; j < value.length; j++) {
+                    if (j > 0) {
+                        result += ',';
+                    }
+                    result += value[j].toString ();
+                }
+                result += ']';
             } else {
                 result += key + '=' + value.toString ();
             }

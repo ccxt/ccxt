@@ -1,0 +1,838 @@
+2023-08-14T16:10:55.715Z
+Node.js: v18.14.0
+CCXT v4.0.46
+bitmex.watchOrderBookForSymbols (ETH/USDT:USDT)
+2023-08-14T16:10:56.668Z connecting to wss://ws.bitmex.com/realtime
+2023-08-14T16:10:56.931Z onUpgrade
+2023-08-14T16:10:56.932Z onOpen
+2023-08-14T16:10:56.933Z sending { op: 'subscribe', args: [ 'orderBookL2:ETHUSDT' ] }
+2023-08-14T16:10:56.936Z onMessage {
+  info: 'Welcome to the BitMEX Realtime API.',
+  version: '2.0.0',
+  timestamp: '2023-08-14T16:10:56.941Z',
+  docs: 'https://www.bitmex.com/app/wsAPI',
+  heartbeatEnabled: false,
+  limit: { remaining: 179 }
+}
+2023-08-14T16:10:56.992Z onMessage {
+  success: true,
+  subscribe: 'orderBookL2:ETHUSDT',
+  request: { op: 'subscribe', args: [ 'orderBookL2:ETHUSDT' ] }
+}
+2023-08-14T16:10:56.993Z onMessage {
+  table: 'orderBookL2',
+  action: 'partial',
+  keys: [ 'symbol', 'id', 'side' ],
+  types: {
+    symbol: 'symbol',
+    id: 'long',
+    side: 'symbol',
+    size: 'long',
+    price: 'float',
+    timestamp: 'timestamp'
+  },
+  filter: { symbol: 'ETHUSDT' },
+  data: [
+    {
+      symbol: 'ETHUSDT',
+      id: 73400900000,
+      side: 'Sell',
+      size: 108000,
+      price: 5000,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400932293,
+      side: 'Sell',
+      size: 25000,
+      price: 3385.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400934013,
+      side: 'Sell',
+      size: 1000,
+      price: 3299.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400934413,
+      side: 'Sell',
+      size: 1000,
+      price: 3279.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400934813,
+      side: 'Sell',
+      size: 1000,
+      price: 3259.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400935213,
+      side: 'Sell',
+      size: 1000,
+      price: 3239.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400935541,
+      side: 'Sell',
+      size: 1000,
+      price: 3222.95,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400935613,
+      side: 'Sell',
+      size: 1000,
+      price: 3219.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400936013,
+      side: 'Sell',
+      size: 1000,
+      price: 3199.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400936290,
+      side: 'Sell',
+      size: 50000,
+      price: 3185.5,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400936293,
+      side: 'Sell',
+      size: 60000,
+      price: 3185.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400936393,
+      side: 'Sell',
+      size: 1000,
+      price: 3180.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400936793,
+      side: 'Sell',
+      size: 1000,
+      price: 3160.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400937193,
+      side: 'Sell',
+      size: 1000,
+      price: 3140.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400937593,
+      side: 'Sell',
+      size: 1000,
+      price: 3120.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400937993,
+      side: 'Sell',
+      size: 1000,
+      price: 3100.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400938333,
+      side: 'Sell',
+      size: 1000,
+      price: 3083.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400938733,
+      side: 'Sell',
+      size: 1000,
+      price: 3063.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400939133,
+      side: 'Sell',
+      size: 1000,
+      price: 3043.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400939310,
+      side: 'Sell',
+      size: 1000,
+      price: 3034.5,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400939710,
+      side: 'Sell',
+      size: 1000,
+      price: 3014.5,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400940110,
+      side: 'Sell',
+      size: 1000,
+      price: 2994.5,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400940414,
+      side: 'Sell',
+      size: 1000,
+      price: 2979.3,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400940674,
+      side: 'Sell',
+      size: 1000,
+      price: 2966.3,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400948100,
+      side: 'Sell',
+      size: 1000,
+      price: 2595,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400949200,
+      side: 'Sell',
+      size: 250000,
+      price: 2540,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400949800,
+      side: 'Sell',
+      size: 150000,
+      price: 2510,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400950400,
+      side: 'Sell',
+      size: 150000,
+      price: 2480,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400951000,
+      side: 'Sell',
+      size: 100000,
+      price: 2450,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400951600,
+      side: 'Sell',
+      size: 100000,
+      price: 2420,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400951763,
+      side: 'Sell',
+      size: 5000,
+      price: 2411.85,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400951880,
+      side: 'Sell',
+      size: 5000,
+      price: 2406,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400952200,
+      side: 'Sell',
+      size: 100000,
+      price: 2390,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400952681,
+      side: 'Sell',
+      size: 1000,
+      price: 2365.95,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400952800,
+      side: 'Sell',
+      size: 50000,
+      price: 2360,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400953315,
+      side: 'Sell',
+      size: 1000,
+      price: 2334.25,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400953400,
+      side: 'Sell',
+      size: 50000,
+      price: 2330,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400953681,
+      side: 'Sell',
+      size: 1000,
+      price: 2315.95,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400954000,
+      side: 'Sell',
+      size: 50000,
+      price: 2300,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400954520,
+      side: 'Sell',
+      size: 5000,
+      price: 2274,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400954600,
+      side: 'Sell',
+      size: 50000,
+      price: 2270,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400954681,
+      side: 'Sell',
+      size: 1000,
+      price: 2265.95,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400954760,
+      side: 'Sell',
+      size: 5000,
+      price: 2262,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400955200,
+      side: 'Sell',
+      size: 50000,
+      price: 2240,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400955662,
+      side: 'Sell',
+      size: 1996000,
+      price: 2216.9,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400955681,
+      side: 'Sell',
+      size: 1000,
+      price: 2215.95,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400955800,
+      side: 'Sell',
+      size: 50000,
+      price: 2210,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400956400,
+      side: 'Sell',
+      size: 50000,
+      price: 2180,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400956681,
+      side: 'Sell',
+      size: 1000,
+      price: 2165.95,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400957040,
+      side: 'Sell',
+      size: 8000000,
+      price: 2148,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400957640,
+      side: 'Sell',
+      size: 7000000,
+      price: 2118,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400957680,
+      side: 'Sell',
+      size: 5000,
+      price: 2116,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400957700,
+      side: 'Sell',
+      size: 5000,
+      price: 2115,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400957800,
+      side: 'Sell',
+      size: 1000,
+      price: 2110,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400958000,
+      side: 'Sell',
+      size: 1000,
+      price: 2100,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400958100,
+      side: 'Sell',
+      size: 100000,
+      price: 2095,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400958172,
+      side: 'Sell',
+      size: 1000,
+      price: 2091.4,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400958200,
+      side: 'Sell',
+      size: 10000,
+      price: 2090,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400958240,
+      side: 'Sell',
+      size: 5500000,
+      price: 2088,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400958520,
+      side: 'Sell',
+      size: 12000,
+      price: 2074,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400958809,
+      side: 'Sell',
+      size: 40000,
+      price: 2059.55,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400958900,
+      side: 'Sell',
+      size: 4500000,
+      price: 2055,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400959000,
+      side: 'Sell',
+      size: 30000,
+      price: 2050,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400959240,
+      side: 'Sell',
+      size: 100000,
+      price: 2038,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400959357,
+      side: 'Sell',
+      size: 1996000,
+      price: 2032.15,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400959420,
+      side: 'Sell',
+      size: 10000,
+      price: 2029,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400959636,
+      side: 'Sell',
+      size: 4000000,
+      price: 2018.2,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400959840,
+      side: 'Sell',
+      size: 442000,
+      price: 2008,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400959900,
+      side: 'Sell',
+      size: 1000,
+      price: 2005,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400959920,
+      side: 'Sell',
+      size: 10000,
+      price: 2004,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960000,
+      side: 'Sell',
+      size: 1515000,
+      price: 2000,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960110,
+      side: 'Sell',
+      size: 3500000,
+      price: 1994.5,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960200,
+      side: 'Sell',
+      size: 10000,
+      price: 1990,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960203,
+      side: 'Sell',
+      size: 20000,
+      price: 1989.85,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960480,
+      side: 'Sell',
+      size: 100000,
+      price: 1976,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960580,
+      side: 'Sell',
+      size: 10000,
+      price: 1971,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960610,
+      side: 'Sell',
+      size: 3000000,
+      price: 1969.5,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960736,
+      side: 'Sell',
+      size: 2000,
+      price: 1963.2,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960882,
+      side: 'Sell',
+      size: 10000,
+      price: 1955.9,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400960910,
+      side: 'Sell',
+      size: 2500000,
+      price: 1954.5,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961000,
+      side: 'Sell',
+      size: 11000,
+      price: 1950,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961080,
+      side: 'Sell',
+      size: 525000,
+      price: 1946,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961204,
+      side: 'Sell',
+      size: 1996000,
+      price: 1939.8,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961218,
+      side: 'Sell',
+      size: 2500000,
+      price: 1939.1,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961220,
+      side: 'Sell',
+      size: 210000,
+      price: 1939,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961356,
+      side: 'Sell',
+      size: 2500000,
+      price: 1932.2,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961360,
+      side: 'Sell',
+      size: 5000,
+      price: 1932,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961556,
+      side: 'Sell',
+      size: 3000000,
+      price: 1922.2,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961560,
+      side: 'Sell',
+      size: 12000,
+      price: 1922,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961574,
+      side: 'Sell',
+      size: 1996000,
+      price: 1921.3,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961640,
+      side: 'Sell',
+      size: 40000,
+      price: 1918,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961720,
+      side: 'Sell',
+      size: 250000,
+      price: 1914,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961840,
+      side: 'Sell',
+      size: 2003000,
+      price: 1908,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400961979,
+      side: 'Sell',
+      size: 30000,
+      price: 1901.05,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400962000,
+      side: 'Sell',
+      size: 10000,
+      price: 1900,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400962105,
+      side: 'Sell',
+      size: 3000,
+      price: 1894.75,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400962119,
+      side: 'Sell',
+      size: 15000,
+      price: 1894.05,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400962150,
+      side: 'Sell',
+      size: 2000000,
+      price: 1892.5,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400962173,
+      side: 'Sell',
+      size: 1996000,
+      price: 1891.35,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    {
+      symbol: 'ETHUSDT',
+      id: 73400962180,
+      side: 'Sell',
+      size: 250000,
+      price: 1891,
+      timestamp: '2023-08-14T16:10:56.998Z'
+    },
+    ... 377 more items
+  ]
+}
