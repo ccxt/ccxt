@@ -489,7 +489,7 @@
         }
     },
     "bybit": {
-        "skip": "403 forbidden, RateLimitExceeded",
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "fetchTickers": {
                 "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT"

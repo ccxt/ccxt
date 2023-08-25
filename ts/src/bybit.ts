@@ -44,7 +44,7 @@ export default class bybit extends Exchange {
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false, // temporarily disabled, as it does not work
+                'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
