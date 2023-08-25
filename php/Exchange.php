@@ -145,6 +145,7 @@ class Exchange {
     public $ohlcvs = array();
     public $exceptions = array();
     public $accounts = array();
+    public $accountsById = array();
     public $status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
     public $limits = array(
         'cost' => array(
