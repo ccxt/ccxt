@@ -1915,7 +1915,8 @@ export default class bingx extends Exchange {
         const parsedIds = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            parsedIds.push (id.toString ());
+            const stringId = id.toString ();
+            parsedIds.push (stringId);
         }
         let response = undefined;
         if (market['spot']) {
@@ -2855,10 +2856,11 @@ export default class bingx extends Exchange {
             if (Array.isArray (value)) {
                 result += key + '=[';
                 for (let j = 0; j < value.length; j++) {
+                    const arrayElement = value[j];
                     if (j > 0) {
                         result += ',';
                     }
-                    result += value[j].toString ();
+                    result += arrayElement.toString ();
                 }
                 result += ']';
             } else {
