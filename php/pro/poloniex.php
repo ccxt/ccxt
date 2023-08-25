@@ -298,7 +298,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {int} [$since] not used by poloniex watchMyTrades
              * @param {int} [$limit] not used by poloniex watchMyTrades
              * @param {array} [$params] extra parameters specific to the poloniex strean
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $name = 'orders';

@@ -127,7 +127,7 @@ class bitstamp1 extends Exchange {
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
          */
         if ($symbol !== 'BTC/USD') {
             throw new ExchangeError($this->id . ' ' . $this->version . " fetchOrderBook doesn't support " . $symbol . ', use it for BTC/USD only');
@@ -187,7 +187,7 @@ class bitstamp1 extends Exchange {
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
          */
         if ($symbol !== 'BTC/USD') {
             throw new ExchangeError($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
@@ -291,9 +291,9 @@ class bitstamp1 extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' ' . $this->version . ' accepts limit orders only');
@@ -321,7 +321,7 @@ class bitstamp1 extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         return $this->privatePostCancelOrder (array( 'id' => $id ));
     }
@@ -352,7 +352,7 @@ class bitstamp1 extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
         $market = null;

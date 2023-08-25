@@ -593,7 +593,7 @@ class lbank2(Exchange, ImplicitAPI):
         see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -636,7 +636,7 @@ class lbank2(Exchange, ImplicitAPI):
         see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the lbank api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = None
@@ -711,7 +711,7 @@ class lbank2(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1188,7 +1188,7 @@ class lbank2(Exchange, ImplicitAPI):
         see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         market = self.market(symbol)
         result = await self.fetch_trading_fees(self.extend(params, {'category': market['id']}))
@@ -1199,7 +1199,7 @@ class lbank2(Exchange, ImplicitAPI):
         fetch the trading fees for multiple markets
         see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         request = {}
@@ -1221,9 +1221,9 @@ class lbank2(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1430,7 +1430,7 @@ class lbank2(Exchange, ImplicitAPI):
         see https://www.lbank.info/en-US/docs/index.html#query-order-new
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         method = self.safe_string(params, 'method')
@@ -1522,7 +1522,7 @@ class lbank2(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.check_required_symbol('fetchMyTrades', symbol)
         await self.load_markets()
@@ -1575,7 +1575,7 @@ class lbank2(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         # default query is for canceled and completely filled orders
         # does not return open orders unless specified explicitly
@@ -1630,7 +1630,7 @@ class lbank2(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('fetchOpenOrders', symbol)
         await self.load_markets()
@@ -1681,7 +1681,7 @@ class lbank2(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
@@ -1717,7 +1717,7 @@ class lbank2(Exchange, ImplicitAPI):
         see https://www.lbank.info/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('cancelAllOrders', symbol)
         await self.load_markets()
@@ -1761,7 +1761,7 @@ class lbank2(Exchange, ImplicitAPI):
         see https://www.lbank.info/en-US/docs/index.html#the-user-obtains-the-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         await self.load_markets()
         method = self.safe_string(params, 'method')
@@ -1857,7 +1857,7 @@ class lbank2(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -2013,7 +2013,7 @@ class lbank2(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -2062,7 +2062,7 @@ class lbank2(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -2113,7 +2113,7 @@ class lbank2(Exchange, ImplicitAPI):
         please use fetchDepositWithdrawFees instead
         :param str[]|None codes: not used by lbank2 fetchTransactionFees()
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         # private only returns information for currencies with non-zero balance
         await self.load_markets()
@@ -2247,7 +2247,7 @@ class lbank2(Exchange, ImplicitAPI):
         see https://www.lbank.info/en-US/docs/index.html#withdrawal-configurations
         :param str[]|None codes: array of unified currency codes
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
@@ -2505,8 +2505,8 @@ class lbank2(Exchange, ImplicitAPI):
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return None
-        success = self.safe_string(response, 'result')
-        if success == 'false':
+        success = self.safe_value(response, 'result')
+        if success == 'false' or not success:
             errorCode = self.safe_string(response, 'error_code')
             message = self.safe_string({
                 '10000': 'Internal error',

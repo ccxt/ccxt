@@ -132,7 +132,7 @@ export default class binance extends binanceRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         //
         // todo add support for <levels>-snapshots (depth)
@@ -755,7 +755,7 @@ export default class binance extends binanceRest {
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.name] stream to use can be ticker or bookTicker
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -790,7 +790,7 @@ export default class binance extends binanceRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1707,7 +1707,7 @@ export default class binance extends binanceRest {
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const url = this.urls['api']['ws']['ws'];
@@ -1737,7 +1737,7 @@ export default class binance extends binanceRest {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         if (symbol === undefined) {
@@ -1784,7 +1784,7 @@ export default class binance extends binanceRest {
          * @param {int} [params.startTime] earliest time in ms to retrieve orders for
          * @param {int} [params.endTime] latest time in ms to retrieve orders for
          * @param {int} [params.limit] the maximum number of order structures to retrieve
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         if (symbol === undefined) {
@@ -1821,7 +1821,7 @@ export default class binance extends binanceRest {
          * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
          * @param {int|undefined} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         this.checkIsSpot('fetchOpenOrdersWs', symbol);
@@ -1856,7 +1856,7 @@ export default class binance extends binanceRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         let messageHash = 'orders';
@@ -2140,7 +2140,7 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {int} [params.endTime] the latest time in ms to fetch trades for
          * @param {int} [params.fromId] first trade Id to fetch
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         if (symbol === undefined) {
@@ -2215,7 +2215,7 @@ export default class binance extends binanceRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets();
         const defaultType = this.safeString2(this.options, 'watchMyTrades', 'defaultType', 'spot');

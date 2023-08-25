@@ -4,7 +4,7 @@
 
 A JavaScript / Python / PHP / C#  library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-### [Install](#install) · [Usage](#usage) · [Manual](https://docs.ccxt.com/#/README) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social) · [CCXT Pro](https://ccxt.pro)
+### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social)
 
 The **CCXT** library is used to connect and trade with cryptocurrency exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
 
@@ -159,7 +159,7 @@ The CCXT library currently supports the following 98 cryptocurrency exchange mar
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                                 | zaif               | [Zaif](https://zaif.jp)                                                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                  |                                                                                                                             |                                                                              |
 | [![zonda](https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                 | zonda              | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zonda.exchange/)                                                         |                                                                                                                             |                                                                              |
 
-The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the [Manual](https://docs.ccxt.com/#/README) for more details. If you can't find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
+The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details. If you can't find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
 
 The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
@@ -215,13 +215,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.0.73/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.0.73/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.0.74/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.0.74/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.0.73/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.0.74/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -266,7 +266,7 @@ include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
-The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://docs.ccxt.com/#/README) for more details.
+The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
 
 ### Dotnet/C# [Beta]
 
@@ -292,7 +292,7 @@ You don't need the Docker image if you're not going to develop CCXT. If you just
 
 ## Documentation
 
-Read the [Manual](https://docs.ccxt.com/#/README) for more details.
+Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
 
 ## Usage
 
@@ -324,9 +324,9 @@ Private APIs allow the following:
 - transfer funds between accounts
 - use merchant services
 
-This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
+This library implements full public and private REST and WebSocket APIs for all exchanges in TypeScript, JavaScript, PHP and Python.
 
-The CCXT library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
+The CCXT library supports both camelcase notation (preferred in TypeScript and JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
 
 ```JavaScript
 // both of these notations work in JavaScript/Python/PHP
@@ -334,7 +334,7 @@ exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
 
-Read the [Manual](https://docs.ccxt.com/#/README) for more details.
+Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
 
 ### JavaScript
 
@@ -510,7 +510,7 @@ class Project {
 
 ## Contributing
 
-Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://docs.ccxt.com/#/README) for more details.
+Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ## Support Developer Team
 

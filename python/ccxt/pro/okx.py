@@ -209,7 +209,7 @@ class okx(ccxt.async_support.okx):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTicker', 'channel', 'tickers')
@@ -224,7 +224,7 @@ class okx(ccxt.async_support.okx):
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
@@ -344,7 +344,7 @@ class okx(ccxt.async_support.okx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         options = self.safe_value(self.options, 'watchOrderBook', {})
         #
@@ -569,15 +569,16 @@ class okx(ccxt.async_support.okx):
                 client.resolve(orderbook, messageHash)
         return message
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         access = self.safe_string(params, 'access', 'private')
         params = self.omit(params, ['access'])
         url = self.get_url('users', access)
         messageHash = 'authenticated'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             timestamp = str(self.seconds())
             method = 'GET'
             path = '/users/self/verify'
@@ -596,8 +597,7 @@ class okx(ccxt.async_support.okx):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     async def watch_balance(self, params={}):
@@ -696,7 +696,7 @@ class okx(ccxt.async_support.okx):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param bool [params.stop]: True if fetching trigger or conditional trades
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         await self.load_markets()
         await self.authenticate()
@@ -733,7 +733,7 @@ class okx(ccxt.async_support.okx):
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param bool [params.stop]: True if fetching trigger or conditional orders
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -1136,7 +1136,8 @@ class okx(ccxt.async_support.okx):
         #
         #     {event: 'login', success: True}
         #
-        client.resolve(message, 'authenticated')
+        future = self.safe_value(client.futures, 'authenticated')
+        future.resolve(True)
 
     def ping(self, client):
         # okex does not support built-in ws protocol-level ping-pong

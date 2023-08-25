@@ -362,7 +362,7 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
 ```javascript
 [
-    order, // see https://docs.ccxt.com/#/?id=order-structure
+    order, // see https://github.com/ccxt/ccxt/wiki/Manual#order-structure
     order,
     order,
     ...
@@ -535,11 +535,11 @@ The obvious downside of the throttling mode is being less reactive or responsive
 
 ##### watchOrderBook
 
-The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://docs.ccxt.com/#/?id=order-book). It accepts three arguments:
+The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://github.com/ccxt/ccxt/wiki/Manual#order-book). It accepts three arguments:
 
 - `symbol` – string, a unified CCXT symbol, required
 - `limit` – integer, the max number of bids/asks returned, optional
-- `params` – assoc dictionary, optional overrides as described in [Overriding Unified API Params](https://docs.ccxt.com/#/?id=overriding-unified-api-params)
+- `params` – assoc dictionary, optional overrides as described in [Overriding Unified API Params](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params)
 
 In general, the exchanges can be divided in two categories:
 
@@ -828,7 +828,7 @@ if ($exchange->has['watchTrades']) {
 
 #### Authentication
 
-In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://docs.ccxt.com/#/?id=api-keys-setup) for more details.
+In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup) for more details.
 
 #### Trading
 
@@ -1007,4 +1007,4 @@ cancel__all_orders_ws(string $symbol, $params = array ())
 
 ### Error Handling
 
-In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/#/?id=error-handling) for more details.
+In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling) for more details.

@@ -334,7 +334,7 @@ class wazirx extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -370,7 +370,7 @@ class wazirx extends Exchange {
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -404,7 +404,7 @@ class wazirx extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $tickers = Async\await($this->publicGetTickers24hr ());
@@ -514,7 +514,7 @@ class wazirx extends Exchange {
              * @see https://docs.wazirx.com/#system-$status
              * the latest known information on the availability of the exchange API
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-$status-structure $status structure}
              */
             $response = Async\await($this->publicGetSystemStatus ($params));
             //
@@ -649,7 +649,7 @@ class wazirx extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
@@ -710,7 +710,7 @@ class wazirx extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
              * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -759,7 +759,7 @@ class wazirx extends Exchange {
              * cancel all open orders in a $market
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a `$symbol` argument');
@@ -781,7 +781,7 @@ class wazirx extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
@@ -806,9 +806,9 @@ class wazirx extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             $type = strtolower($type);
             if (($type !== 'limit') && ($type !== 'stop_limit')) {

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.73'
+__version__ = '4.0.74'
 
 # -----------------------------------------------------------------------------
 
@@ -1740,7 +1740,7 @@ class Exchange(BaseExchange):
         for i in range(0, len(positions)):
             position = self.extend(self.parse_position(positions[i], None), params)
             result.append(position)
-        return self.filterByArrayPositions(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts, params={}):
         accounts = self.to_array(accounts)
@@ -1925,7 +1925,7 @@ class Exchange(BaseExchange):
         specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
         :param str symbol: unified market symbol of the market the position is held in
         :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
         raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
 
@@ -2950,7 +2950,7 @@ class Exchange(BaseExchange):
         :param dict market: ccxt market
         :param int [since]: when defined, the response items are filtered to only include items after self timestamp
         :param int [limit]: limits the number of items in the response
-        :returns dict[]: an array of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict[]: an array of `funding history structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
         result = []
         for i in range(0, len(incomes)):

@@ -611,7 +611,7 @@ while (true) {
 }
 ```
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time. Therefore, you will force-load the markets over and over as explained in the [Loading Markets](https://docs.ccxt.com/#/?id=loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time. Therefore, you will force-load the markets over and over as explained in the [Loading Markets](#loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
 ```javascript
 // DO NOT DO THIS!
@@ -1048,7 +1048,7 @@ exchange.amountToPrecision (symbol, 123.4567890123456789) === 123.45678
 
 ## Loading Markets
 
-In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See [Notes On Rate Limiter](https://docs.ccxt.com/#/?id=notes-on-rate-limiter) for more details.
+In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See [Notes On Rate Limiter](#notes-on-rate-limiter) for more details.
 
 In order to load markets manually beforehand call the `loadMarkets ()` / `load_markets ()` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets by hand is recommended.
 
@@ -2965,7 +2965,7 @@ The exchanges' private APIs will usually allow the following types of interactio
 
 - the current state of the user's account balance can be obtained with the `fetchBalance()` method as described in the [Account Balance](#account-balance) section
 - the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchCanceledOrders`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
-- the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/#/?id=how-orders-are-related-to-trades)
+- the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](#how-orders-are-related-to-trades)
 - the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
 - the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposit()`, `fetchDeposits()` `fetchWithdrawal()`, and `fetchWithdrawals()` separately, depending on what is available from the exchange API
 - if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with `fetchLedger` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the [Ledger](#ledger) section.
@@ -3432,7 +3432,7 @@ The majority of the exchanges will have a way of fetching currently-open orders.
 
 Some exchanges will provide the order history, other exchanges will not. If the underlying exchange provides the order history, then the `exchange.has['fetchClosedOrders']` or the `exchange.has['fetchOrders']`. If the underlying exchange does not provide the order history, then `fetchClosedOrders()` and `fetchOrders()` are not available. In the latter case, the user is required to build a local cache of orders and track the open orders using `fetchOpenOrders()` and `fetchOrder()` for order statuses and for marking them as closed locally in the userland (when they're not open anymore).
 
-If the underlying exchange does not have methods for order history (`fetchClosedOrders()` and `fetchOrders()`), then it will provide `fetchOpenOrders` + the trade history with `fetchMyTrades` (see [How Orders Are Related To Trades](https://docs.ccxt.com/#/?id=how-orders-are-related-to-trades)). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
+If the underlying exchange does not have methods for order history (`fetchClosedOrders()` and `fetchOrders()`), then it will provide `fetchOpenOrders` + the trade history with `fetchMyTrades` (see [How Orders Are Related To Trades](#how-orders-are-related-to-trades)). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
 
 In general, the underlying exchanges will usually provide one or more of the following types of historical data:
 
@@ -5582,7 +5582,7 @@ Returns
 In some specific cases you may want a proxy, when:
 - Exchange is not available in your location
 - Your IP is forbidden by exchange
-- You experience random restriction by exchange, like [DDoS protection by Cloudflare](https://docs.ccxt.com/#/?id=ddos-protection-by-cloudflare-incapsula)
+- You experience random restriction by exchange, like [DDoS protection by Cloudflare](#ddos-protection-by-cloudflare-incapsula)
 
 However, beware that each added intermediary might add some latency to requests.
 

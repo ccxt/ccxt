@@ -61,7 +61,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         return await self.watch_public('ticker24h', symbol, params)
 
@@ -221,7 +221,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -398,7 +398,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
@@ -431,7 +431,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ortradeder-structure
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol argument')

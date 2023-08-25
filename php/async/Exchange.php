@@ -38,11 +38,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.73';
+$version = '4.0.74';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.73';
+    const VERSION = '4.0.74';
 
     public $browser;
     public $marketsLoading = null;
@@ -1814,7 +1814,7 @@ class Exchange extends \ccxt\Exchange {
             $position = array_merge($this->parse_position($positions[$i], null), $params);
             $result[] = $position;
         }
-        return $this->filterByArrayPositions ($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_accounts($accounts, $params = array ()) {
@@ -2057,7 +2057,7 @@ class Exchange extends \ccxt\Exchange {
          * specifically fetches positions for specific $symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
          * @param {string} $symbol unified market $symbol of the market the position is held in
          * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported($this->id . ' fetchPositionsBySymbol() is not supported yet');
     }
@@ -3384,7 +3384,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {array} $market ccxt $market
          * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [$limit] limits the number of items in the response
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         * @return {array[]} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structures}
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {

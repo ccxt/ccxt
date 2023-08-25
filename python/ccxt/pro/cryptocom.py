@@ -69,7 +69,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -187,7 +187,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         await self.load_markets()
         market = None
@@ -207,7 +207,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -307,7 +307,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -450,7 +450,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -487,7 +487,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param str id: the order id of the order to cancel
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         params = self.extend({
@@ -506,7 +506,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
         :param str symbol: unified market symbol of the orders to cancel
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict} Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure:
+        :returns dict} Returns exchange raw message {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure:
         """
         await self.load_markets()
         market = None

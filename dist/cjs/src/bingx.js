@@ -822,7 +822,7 @@ class bingx extends bingx$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -910,7 +910,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1034,7 +1034,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1085,7 +1085,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1127,7 +1127,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         if (symbols !== undefined) {
@@ -1343,7 +1343,7 @@ class bingx extends bingx$1 {
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {boolean} [params.standard] whether to fetch standard contract positions
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1459,7 +1459,7 @@ class bingx extends bingx$1 {
          * @param {object} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered (swap markets only)
          * @param {float} [params.stopLossPrice] stop loss trigger price (swap markets only)
          * @param {float} [params.takeProfitPrice] take profit trigger price (swap markets only)
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1751,7 +1751,7 @@ class bingx extends bingx$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
@@ -1826,7 +1826,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
          * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('cancelAllOrders', symbol);
         await this.loadMarkets();
@@ -1878,7 +1878,7 @@ class bingx extends bingx$1 {
          * @param {[string]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('cancelOrders', symbol);
         await this.loadMarkets();
@@ -1931,7 +1931,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Order
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
@@ -2014,7 +2014,7 @@ class bingx extends bingx$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
@@ -2103,7 +2103,7 @@ class bingx extends bingx$1 {
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {boolean} [params.standard] whether to fetch standard contract orders
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('fetchClosedOrders', symbol);
         await this.loadMarkets();
@@ -2194,7 +2194,7 @@ class bingx extends bingx$1 {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2234,7 +2234,7 @@ class bingx extends bingx$1 {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {[object]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -2311,7 +2311,7 @@ class bingx extends bingx$1 {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2356,7 +2356,7 @@ class bingx extends bingx$1 {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2528,7 +2528,7 @@ class bingx extends bingx$1 {
          * @param {string} symbol unified market symbol of the market to set margin in
          * @param {float} amount the amount to set the margin to
          * @param {object} [params] parameters specific to the bingx api endpoint
-         * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
          */
         const type = this.safeInteger(params, 'type'); // 1 increase margin 2 decrease margin
         if (type === undefined) {
@@ -2563,7 +2563,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object} a [leverage structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2627,7 +2627,7 @@ class bingx extends bingx$1 {
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         this.checkRequiredArgument('fetchMyTrades', symbol, 'symbol');
         this.checkRequiredArgument('fetchMyTrades', since, 'since');
@@ -2758,7 +2758,7 @@ class bingx extends bingx$1 {
          * @param {string} [tag]
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);

@@ -266,7 +266,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param int [since]: not used by poloniex watchMyTrades
         :param int [limit]: not used by poloniex watchMyTrades
         :param dict [params]: extra parameters specific to the poloniex strean
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
         name = 'orders'
