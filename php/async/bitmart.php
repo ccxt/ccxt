@@ -113,14 +113,21 @@ class bitmart extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'system/time' => 3,
+                        'system/time' => 3, // 10 times/sec => 30/10 = 3
                         'system/service' => 3,
                         // spot markets
                         'spot/v1/currencies' => 7.5,
                         'spot/v1/symbols' => 7.5,
                         'spot/v1/symbols/details' => 5,
+                        'spot/quotation/v3/tickers' => 6, // 10 times/2 sec = 5/s => 30/5 = 6
+                        'spot/quotation/v3/ticker' => 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
+                        'spot/quotation/v3/lite-klines' => 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
+                        'spot/quotation/v3/klines' => 6, // 10 times/2 sec = 5/s => 30/5 = 6
+                        'spot/quotation/v3/books' => 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
+                        'spot/quotation/v3/trades' => 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
                         'spot/v1/ticker' => 5,
                         'spot/v2/ticker' => 5,
+                        'spot/v1/ticker_detail' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v1/steps' => 30,
                         'spot/v1/symbols/kline' => 5,
                         'spot/v1/symbols/book' => 5,
@@ -185,6 +192,12 @@ class bitmart extends Exchange {
                         'spot/v1/batch_orders' => 1,
                         'spot/v2/cancel_order' => 1,
                         'spot/v1/cancel_orders' => 15,
+                        'spot/v4/query/order' => 1, // 60 times/2 sec = 30/s => 30/30 = 1
+                        'spot/v4/query/client-order' => 1, // 60 times/2 sec = 30/s => 30/30 = 1
+                        'spot/v4/query/open-orders' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/query/history-orders' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/query/trades' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/query/order-trades' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         // newer endpoint
                         'spot/v3/cancel_order' => 1,
                         'spot/v2/batch_orders' => 1,

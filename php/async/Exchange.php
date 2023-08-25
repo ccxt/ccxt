@@ -29,6 +29,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
+use ccxt\BadResponse;
+use ccxt\BadRequest;
 
 use React;
 use React\Async;
@@ -38,11 +40,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.74';
+$version = '4.0.75';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.74';
+    const VERSION = '4.0.75';
 
     public $browser;
     public $marketsLoading = null;

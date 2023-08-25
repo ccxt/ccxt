@@ -116,11 +116,13 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
                                 'account/balance': 3,
+                                'ticker/24hr': 1,
                             },
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
                                 'trade/batchOrders': 3,
+                                'trade/cancelOrders': 3,
                             },
                         },
                     },
@@ -1056,18 +1058,21 @@ class bingx(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
+        see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
-            raise BadRequest(self.id + ' fetchTicker is only supported for swap markets.')
         request = {
             'symbol': market['id'],
         }
-        response = await self.swapV2PublicGetQuoteTicker(self.extend(request, params))
+        response = None
+        if market['spot']:
+            response = await self.swapV2PublicGetQuoteTicker(self.extend(request, params))
+        else:
+            response = await self.spotV1PublicGetCommonSymbols(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -1160,10 +1165,12 @@ class bingx(Exchange, ImplicitAPI):
         baseVolume = self.safe_string(ticker, 'volume')
         change = self.safe_string(ticker, 'chapriceChangenge')
         percentage = self.safe_string(ticker, 'priceChangePercent')
+        ts = self.safe_integer(ticker, 'closeTime')
+        datetime = self.iso8601(ts)
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': ts,
+            'datetime': datetime,
             'high': high,
             'low': low,
             'bid': None,
@@ -1796,6 +1803,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         cancel multiple orders
         see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+        see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
         :param [str] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the bingx api endpoint
@@ -1804,13 +1812,21 @@ class bingx(Exchange, ImplicitAPI):
         self.check_required_symbol('cancelOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
-        if market['type'] != 'swap':
-            raise BadRequest(self.id + ' cancelOrders is only supported for swap markets.')
         request = {
             'symbol': market['id'],
-            'ids': ids,
         }
-        response = await self.swapV2PrivateDeleteTradeBatchOrders(self.extend(request, params))
+        parsedIds = []
+        for i in range(0, len(ids)):
+            id = ids[i]
+            stringId = str(id)
+            parsedIds.append(stringId)
+        response = None
+        if market['spot']:
+            request['orderIds'] = ','.join(parsedIds)
+            response = await self.spotV1PrivatePostTradeCancelOrders(self.extend(request, params))
+        else:
+            request['orderIdList'] = parsedIds
+            response = await self.swapV2PrivateDeleteTradeBatchOrders(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -2654,6 +2670,27 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         self.parse_transaction(data)
 
+    def parse_params(self, params):
+        result = ''
+        sortedParams = self.keysort(params)
+        keys = list(sortedParams.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if i > 0:
+                result += '&'
+            value = sortedParams[key]
+            if isinstance(value, list):
+                result += key + '=['
+                for j in range(0, len(value)):
+                    arrayElement = value[j]
+                    if j > 0:
+                        result += ','
+                    result += str(arrayElement)
+                result += ']'
+            else:
+                result += key + '=' + str(value)
+        return result
+
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
         version = section[1]
@@ -2674,9 +2711,8 @@ class bingx(Exchange, ImplicitAPI):
         elif access == 'private':
             self.check_required_credentials()
             params['timestamp'] = self.nonce()
-            query = self.urlencode(params)
-            rawQuery = self.rawencode(params)
-            signature = self.hmac(self.encode(rawQuery), self.encode(self.secret), hashlib.sha256)
+            query = self.parse_params(params)
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             if params:
                 query = '?' + query + '&'
             else:
