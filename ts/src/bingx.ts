@@ -1922,7 +1922,7 @@ export default class bingx extends Exchange {
             request['orderIds'] = parsedIds.join (',');
             response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
         } else {
-            request['ids'] = parsedIds.join (',');
+            request['orderIdList'] = parsedIds;
             response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, params));
         }
         //
@@ -2842,6 +2842,25 @@ export default class bingx extends Exchange {
         this.parseTransaction (data);
     }
 
+    parseParams (params) {
+        let result = '';
+        const sortedParams = this.keysort (params);
+        const keys = Object.keys (sortedParams);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (i > 0) {
+                result += '&';
+            }
+            const value = sortedParams[key];
+            if (this.isArray (value)) {
+                result += key + '=[' + value + ']';
+            } else {
+                result += key + '=' + value;
+            }
+        }
+        return result;
+    }
+
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];
         const version = section[1];
@@ -2864,9 +2883,8 @@ export default class bingx extends Exchange {
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
             params['timestamp'] = this.nonce ();
-            let query = this.urlencode (params);
-            const rawQuery = this.rawencode (params);
-            const signature = this.hmac (this.encode (rawQuery), this.encode (this.secret), sha256);
+            let query = this.parseParams (params);
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             if (Object.keys (params).length) {
                 query = '?' + query + '&';
             } else {
