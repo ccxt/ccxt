@@ -29,6 +29,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
+use ccxt\BadResponse;
+use ccxt\BadRequest;
 
 use React;
 use React\Async;
