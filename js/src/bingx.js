@@ -101,11 +101,13 @@ export default class bingx extends Exchange {
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
                                 'account/balance': 3,
+                                'ticker/24hr': 1,
                             },
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
                                 'trade/batchOrders': 3,
+                                'trade/cancelOrders': 3,
                             },
                         },
                     },
@@ -1086,19 +1088,23 @@ export default class bingx extends Exchange {
          * @name bingx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
+         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap']) {
-            throw new BadRequest(this.id + ' fetchTicker is only supported for swap markets.');
-        }
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
+        }
+        else {
+            response = await this.spotV1PublicGetCommonSymbols(this.extend(request, params));
+        }
         //
         //    {
         //        "code": 0,
@@ -1195,10 +1201,12 @@ export default class bingx extends Exchange {
         const baseVolume = this.safeString(ticker, 'volume');
         const change = this.safeString(ticker, 'chapriceChangenge');
         const percentage = this.safeString(ticker, 'priceChangePercent');
+        const ts = this.safeInteger(ticker, 'closeTime');
+        const datetime = this.iso8601(ts);
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': ts,
+            'datetime': datetime,
             'high': high,
             'low': low,
             'bid': undefined,
@@ -1878,6 +1886,7 @@ export default class bingx extends Exchange {
          * @name bingx#cancelOrders
          * @description cancel multiple orders
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
          * @param {[string]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the bingx api endpoint
@@ -1886,14 +1895,24 @@ export default class bingx extends Exchange {
         this.checkRequiredSymbol('cancelOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['type'] !== 'swap') {
-            throw new BadRequest(this.id + ' cancelOrders is only supported for swap markets.');
-        }
         const request = {
             'symbol': market['id'],
-            'ids': ids,
         };
-        const response = await this.swapV2PrivateDeleteTradeBatchOrders(this.extend(request, params));
+        const parsedIds = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const stringId = id.toString();
+            parsedIds.push(stringId);
+        }
+        let response = undefined;
+        if (market['spot']) {
+            request['orderIds'] = parsedIds.join(',');
+            response = await this.spotV1PrivatePostTradeCancelOrders(this.extend(request, params));
+        }
+        else {
+            request['orderIdList'] = parsedIds;
+            response = await this.swapV2PrivateDeleteTradeBatchOrders(this.extend(request, params));
+        }
         //
         //    {
         //        "code": 0,
@@ -2794,6 +2813,33 @@ export default class bingx extends Exchange {
         //    }
         this.parseTransaction(data);
     }
+    parseParams(params) {
+        let result = '';
+        const sortedParams = this.keysort(params);
+        const keys = Object.keys(sortedParams);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (i > 0) {
+                result += '&';
+            }
+            const value = sortedParams[key];
+            if (Array.isArray(value)) {
+                result += key + '=[';
+                for (let j = 0; j < value.length; j++) {
+                    const arrayElement = value[j];
+                    if (j > 0) {
+                        result += ',';
+                    }
+                    result += arrayElement.toString();
+                }
+                result += ']';
+            }
+            else {
+                result += key + '=' + value.toString();
+            }
+        }
+        return result;
+    }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];
         const version = section[1];
@@ -2818,9 +2864,8 @@ export default class bingx extends Exchange {
         else if (access === 'private') {
             this.checkRequiredCredentials();
             params['timestamp'] = this.nonce();
-            let query = this.urlencode(params);
-            const rawQuery = this.rawencode(params);
-            const signature = this.hmac(this.encode(rawQuery), this.encode(this.secret), sha256);
+            let query = this.parseParams(params);
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             if (Object.keys(params).length) {
                 query = '?' + query + '&';
             }

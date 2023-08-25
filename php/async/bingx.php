@@ -107,11 +107,13 @@ class bingx extends Exchange {
                                 'trade/openOrders' => 3,
                                 'trade/historyOrders' => 3,
                                 'account/balance' => 3,
+                                'ticker/24hr' => 1,
                             ),
                             'post' => array(
                                 'trade/order' => 3,
                                 'trade/cancel' => 3,
                                 'trade/batchOrders' => 3,
+                                'trade/cancelOrders' => 3,
                             ),
                         ),
                     ),
@@ -1110,19 +1112,22 @@ class bingx extends Exchange {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
+             * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if (!$market['swap']) {
-                throw new BadRequest($this->id . ' fetchTicker is only supported for swap markets.');
-            }
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->swapV2PublicGetQuoteTicker (array_merge($request, $params)));
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->swapV2PublicGetQuoteTicker (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->spotV1PublicGetCommonSymbols (array_merge($request, $params)));
+            }
             //
             //    {
             //        "code" => 0,
@@ -1222,10 +1227,12 @@ class bingx extends Exchange {
         $baseVolume = $this->safe_string($ticker, 'volume');
         $change = $this->safe_string($ticker, 'chapriceChangenge');
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
+        $ts = $this->safe_integer($ticker, 'closeTime');
+        $datetime = $this->iso8601($ts);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $ts,
+            'datetime' => $datetime,
             'high' => $high,
             'low' => $low,
             'bid' => null,
@@ -1903,6 +1910,7 @@ class bingx extends Exchange {
             /**
              * cancel multiple orders
              * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+             * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
              * @param {[string]} $ids order $ids
              * @param {string} $symbol unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
@@ -1911,14 +1919,23 @@ class bingx extends Exchange {
             $this->check_required_symbol('cancelOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if ($market['type'] !== 'swap') {
-                throw new BadRequest($this->id . ' cancelOrders is only supported for swap markets.');
-            }
             $request = array(
                 'symbol' => $market['id'],
-                'ids' => $ids,
             );
-            $response = Async\await($this->swapV2PrivateDeleteTradeBatchOrders (array_merge($request, $params)));
+            $parsedIds = array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                $stringId = (string) $id;
+                $parsedIds[] = $stringId;
+            }
+            $response = null;
+            if ($market['spot']) {
+                $request['orderIds'] = implode(',', $parsedIds);
+                $response = Async\await($this->spotV1PrivatePostTradeCancelOrders (array_merge($request, $params)));
+            } else {
+                $request['orderIdList'] = $parsedIds;
+                $response = Async\await($this->swapV2PrivateDeleteTradeBatchOrders (array_merge($request, $params)));
+            }
             //
             //    {
             //        "code" => 0,
@@ -2837,6 +2854,33 @@ class bingx extends Exchange {
         }) ();
     }
 
+    public function parse_params($params) {
+        $result = '';
+        $sortedParams = $this->keysort($params);
+        $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($i > 0) {
+                $result .= '&';
+            }
+            $value = $sortedParams[$key];
+            if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+                $result .= $key . '=[';
+                for ($j = 0; $j < count($value); $j++) {
+                    $arrayElement = $value[$j];
+                    if ($j > 0) {
+                        $result .= ',';
+                    }
+                    $result .= (string) $arrayElement;
+                }
+                $result .= ']';
+            } else {
+                $result .= $key . '=' . (string) $value;
+            }
+        }
+        return $result;
+    }
+
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $section[0];
         $version = $section[1];
@@ -2859,9 +2903,8 @@ class bingx extends Exchange {
         } elseif ($access === 'private') {
             $this->check_required_credentials();
             $params['timestamp'] = $this->nonce();
-            $query = $this->urlencode($params);
-            $rawQuery = $this->rawencode($params);
-            $signature = $this->hmac($this->encode($rawQuery), $this->encode($this->secret), 'sha256');
+            $query = $this->parse_params($params);
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
             if ($params) {
                 $query = '?' . $query . '&';
             } else {
