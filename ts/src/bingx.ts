@@ -2852,7 +2852,7 @@ export default class bingx extends Exchange {
                 result += '&';
             }
             const value = sortedParams[key];
-            if (this.isArray (value)) {
+            if (Array.isArray (value)) {
                 result += key + '=[' + value + ']';
             } else {
                 result += key + '=' + value;
