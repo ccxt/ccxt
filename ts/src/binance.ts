@@ -828,39 +828,39 @@ export default class binance extends Exchange {
                     'get': {
                         'ping': 1,
                         'time': 1,
-                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
-                        'trades': 1,
-                        'aggTrades': 1,
-                        'historicalTrades': 5,
-                        'klines': 1,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'exchangeInfo': 10,
+                        'depth': { 'cost': 2, 'byLimit': [ [ 100, 2 ], [ 500, 10 ], [ 1000, 20 ], [ 5000, 100 ] ] },
+                        'trades': 2,
+                        'aggTrades': 2,
+                        'historicalTrades': 10,
+                        'klines': 2,
+                        'ticker/24hr': { 'cost': 2, 'noSymbol': 80 },
+                        'ticker/price': { 'cost': 2, 'noSymbol': 4 },
+                        'ticker/bookTicker': { 'cost': 2, 'noSymbol': 4 },
+                        'exchangeInfo': 20,
                     },
                     'put': {
-                        'userDataStream': 1,
+                        'userDataStream': 2,
                     },
                     'post': {
-                        'userDataStream': 1,
+                        'userDataStream': 2,
                     },
                     'delete': {
-                        'userDataStream': 1,
+                        'userDataStream': 2,
                     },
                 },
                 'private': {
                     'get': {
-                        'allOrderList': 10, // oco
-                        'openOrderList': 3, // oco
-                        'orderList': 2, // oco
-                        'order': 2,
-                        'openOrders': { 'cost': 3, 'noSymbol': 40 },
-                        'allOrders': 10,
-                        'account': 10,
-                        'myTrades': 10,
-                        'rateLimit/order': 20,
-                        'myPreventedMatches': 1,
-                        'myAllocations': 10,
+                        'allOrderList': 20, // oco
+                        'openOrderList': 6, // oco
+                        'orderList': 4, // oco
+                        'order': 4,
+                        'openOrders': { 'cost': 6, 'noSymbol': 80 },
+                        'allOrders': 20,
+                        'account': 20,
+                        'myTrades': 20,
+                        'rateLimit/order': 40,
+                        'myPreventedMatches': 2,
+                        'myAllocations': 20,
                     },
                     'post': {
                         'order/oco': 1,
