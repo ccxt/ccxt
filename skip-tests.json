@@ -630,6 +630,8 @@
         }
     },
     "currencycom": {
+        "skip": "exchange does not return symbols from api, temporary issue probably",
+        "until": "2023-08-28 00:00:00",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
