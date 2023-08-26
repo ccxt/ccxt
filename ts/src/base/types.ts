@@ -9,6 +9,8 @@ export interface MinMax {
     max: number | undefined;
 }
 
+export type hasItem = boolean | undefined | 'emulated';
+
 export interface Fee {
     type?: 'taker' | 'maker' | string;
     currency: string;

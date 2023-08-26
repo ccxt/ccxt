@@ -106,8 +106,8 @@ class Exchange(object):
     alias = False  # whether this exchange is an alias to another exchange
     # rate limiter settings
     enableRateLimit = True
-    rateLimit = 2000  # milliseconds = seconds * 1000
-    timeout = 10000   # milliseconds = seconds * 1000
+    rateLimit = 0  # milliseconds = seconds * 1000
+    timeout = 0   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
     trust_env = False
@@ -123,11 +123,17 @@ class Exchange(object):
     symbols = None
     codes = None
     timeframes = None
+
     fees = {
         'trading': {
-            'percentage': True,  # subclasses should rarely have to redefine this
+            'tierBased': None,
+            'percentage': None,
+            'taker': None,
+            'maker': None,
         },
         'funding': {
+            'tierBased': None,
+            'percentage': None,
             'withdraw': {},
             'deposit': {},
         },
@@ -187,14 +193,17 @@ class Exchange(object):
     twofa = None
     markets_by_id = None
     currencies_by_id = None
-    precision = None
+
+    precision = {
+        'amount': None,
+        'price': None,
+        'cost': None,
+        'base': None,
+        'quote': None,
+    }
     exceptions = None
     limits = {
-        'leverage': {
-            'min': None,
-            'max': None,
-        },
-        'amount': {
+        'cost': {
             'min': None,
             'max': None,
         },
@@ -202,38 +211,18 @@ class Exchange(object):
             'min': None,
             'max': None,
         },
-        'cost': {
+        'amount': {
+            'min': None,
+            'max': None,
+        },
+        'leverage': {
             'min': None,
             'max': None,
         },
     }
-    httpExceptions = {
-        '422': ExchangeError,
-        '418': DDoSProtection,
-        '429': RateLimitExceeded,
-        '404': ExchangeNotAvailable,
-        '409': ExchangeNotAvailable,
-        '410': ExchangeNotAvailable,
-        '451': ExchangeNotAvailable,
-        '500': ExchangeNotAvailable,
-        '501': ExchangeNotAvailable,
-        '502': ExchangeNotAvailable,
-        '520': ExchangeNotAvailable,
-        '521': ExchangeNotAvailable,
-        '522': ExchangeNotAvailable,
-        '525': ExchangeNotAvailable,
-        '526': ExchangeNotAvailable,
-        '400': ExchangeNotAvailable,
-        '403': ExchangeNotAvailable,
-        '405': ExchangeNotAvailable,
-        '503': ExchangeNotAvailable,
-        '530': ExchangeNotAvailable,
-        '408': RequestTimeout,
-        '504': RequestTimeout,
-        '401': AuthenticationError,
-        '407': AuthenticationError,
-        '511': AuthenticationError,
-    }
+
+    httpExceptions = {}
+
     balance = None
     orderbooks = None
     orders = None
@@ -299,12 +288,7 @@ class Exchange(object):
     # no lower case l or upper case I, O
     base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
-    commonCurrencies = {
-        'XBT': 'BTC',
-        'BCC': 'BCH',
-        'BCHABC': 'BCH',
-        'BCHSV': 'BSV',
-    }
+    commonCurrencies = {}
     synchronous = True
 
     def __init__(self, config={}):

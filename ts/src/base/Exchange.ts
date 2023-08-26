@@ -140,7 +140,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position } from './types.js';
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, hasItem } from './types.js';
 export {Market, Trade, Fee, Ticker} from './types.js'
 
 // ----------------------------------------------------------------------------
@@ -158,6 +158,10 @@ export default class Exchange {
     }
 
     api = undefined
+    alias: boolean = false;
+    certified: boolean = false;
+    pro: boolean = false;
+    countries: string[] = undefined;
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy: any; // maintained for backwards compatibility, no-one should use it from now on
@@ -244,8 +248,17 @@ export default class Exchange {
     requiresEddsa = false
     precision: {
         amount: number | undefined,
-        price: number | undefined
-    };
+        price: number | undefined,
+        cost: number | undefined,
+        base: number | undefined,
+        quote: number | undefined,
+    } = {
+        'amount': undefined,
+        'price': undefined,
+        'cost': undefined,
+        'base': undefined,
+        'quote': undefined,
+    }
 
     enableLastJsonResponse = true
     enableLastHttpResponse = true
@@ -257,39 +270,349 @@ export default class Exchange {
     id: string = undefined
 
     markets: Dictionary<any> = undefined
-    has: Dictionary<boolean | 'emulated'>
+    has: {
+        publicAPI: hasItem,
+        privateAPI: hasItem,
+        CORS: hasItem,
+        spot: hasItem,
+        margin: hasItem,
+        swap: hasItem,
+        future: hasItem,
+        option: hasItem,
+        addMargin: hasItem,
+        cancelAllOrders: hasItem,
+        cancelOrder: hasItem,
+        cancelOrders: hasItem,
+        createDepositAddress: hasItem,
+        createLimitOrder: hasItem,
+        createMarketOrder: hasItem,
+        createOrder: hasItem,
+        createPostOnlyOrder: hasItem,
+        createReduceOnlyOrder: hasItem,
+        createStopOrder: hasItem,
+        createStopLimitOrder: hasItem,
+        createStopMarketOrder: hasItem,
+        createOrderWs: hasItem,
+        editOrderWs: hasItem,
+        fetchOpenOrdersWs: hasItem,
+        fetchOrderWs: hasItem,
+        cancelOrderWs: hasItem,
+        cancelOrdersWs: hasItem,
+        cancelAllOrdersWs: hasItem,
+        fetchTradesWs: hasItem,
+        fetchBalanceWs: hasItem,
+        editOrder: hasItem,
+        fetchAccounts: hasItem,
+        fetchBalance: hasItem,
+        fetchBidsAsks: hasItem,
+        fetchBorrowInterest: hasItem,
+        fetchBorrowRate: hasItem,
+        fetchBorrowRateHistory: hasItem,
+        fetchBorrowRatesPerSymbol: hasItem,
+        fetchBorrowRates: hasItem,
+        fetchCanceledOrders: hasItem,
+        fetchClosedOrder: hasItem,
+        fetchClosedOrders: hasItem,
+        fetchCurrencies: hasItem,
+        fetchDeposit: hasItem,
+        fetchDepositAddress: hasItem,
+        fetchDepositAddresses: hasItem,
+        fetchDepositAddressesByNetwork: hasItem,
+        fetchDeposits: hasItem,
+        fetchDepositsWithdrawals: hasItem,
+        fetchTransactionFee: hasItem,
+        fetchTransactionFees: hasItem,
+        fetchFundingHistory: hasItem,
+        fetchFundingRate: hasItem,
+        fetchFundingRateHistory: hasItem,
+        fetchFundingRates: hasItem,
+        fetchIndexOHLCV: hasItem,
+        fetchL2OrderBook: hasItem,
+        fetchLastPrices: hasItem,
+        fetchLedger: hasItem,
+        fetchLedgerEntry: hasItem,
+        fetchLeverageTiers: hasItem,
+        fetchMarketLeverageTiers: hasItem,
+        fetchMarkets: hasItem,
+        fetchMarkOHLCV: hasItem,
+        fetchMyTrades: hasItem,
+        fetchOHLCV: hasItem,
+        fetchOpenInterest: hasItem,
+        fetchOpenInterestHistory: hasItem,
+        fetchOpenOrder: hasItem,
+        fetchOpenOrders: hasItem,
+        fetchOrder: hasItem,
+        fetchOrderBook: hasItem,
+        fetchOrderBooks: hasItem,
+        fetchOrders: hasItem,
+        fetchOrderTrades: hasItem,
+        fetchPermissions: hasItem,
+        fetchPosition: hasItem,
+        fetchPositions: hasItem,
+        fetchPositionsBySymbol: hasItem,
+        fetchPositionsRisk: hasItem,
+        fetchPremiumIndexOHLCV: hasItem,
+        fetchStatus: hasItem,
+        fetchTicker: hasItem,
+        fetchTickers: hasItem,
+        fetchTime: hasItem,
+        fetchTrades: hasItem,
+        fetchTradingFee: hasItem,
+        fetchTradingFees: hasItem,
+        fetchTradingLimits: hasItem,
+        fetchTransactions: hasItem,
+        fetchTransfers: hasItem,
+        fetchWithdrawAddresses: hasItem,
+        fetchWithdrawal: hasItem,
+        fetchWithdrawals: hasItem,
+        reduceMargin: hasItem,
+        setLeverage: hasItem,
+        setMargin: hasItem,
+        setMarginMode: hasItem,
+        setPositionMode: hasItem,
+        signIn: hasItem,
+        transfer: hasItem,
+        withdraw: hasItem,
+    } = {
+        'publicAPI': true,
+        'privateAPI': true,
+        'CORS': undefined,
+        'spot': undefined,
+        'margin': undefined,
+        'swap': undefined,
+        'future': undefined,
+        'option': undefined,
+        'addMargin': undefined,
+        'cancelAllOrders': undefined,
+        'cancelOrder': true,
+        'cancelOrders': undefined,
+        'createDepositAddress': undefined,
+        'createLimitOrder': true,
+        'createMarketOrder': true,
+        'createOrder': true,
+        'createPostOnlyOrder': undefined,
+        'createReduceOnlyOrder': undefined,
+        'createStopOrder': undefined,
+        'createStopLimitOrder': undefined,
+        'createStopMarketOrder': undefined,
+        'createOrderWs': undefined,
+        'editOrderWs': undefined,
+        'fetchOpenOrdersWs': undefined,
+        'fetchOrderWs': undefined,
+        'cancelOrderWs': undefined,
+        'cancelOrdersWs': undefined,
+        'cancelAllOrdersWs': undefined,
+        'fetchTradesWs': undefined,
+        'fetchBalanceWs': undefined,
+        'editOrder': 'emulated',
+        'fetchAccounts': undefined,
+        'fetchBalance': true,
+        'fetchBidsAsks': undefined,
+        'fetchBorrowInterest': undefined,
+        'fetchBorrowRate': undefined,
+        'fetchBorrowRateHistory': undefined,
+        'fetchBorrowRatesPerSymbol': undefined,
+        'fetchBorrowRates': undefined,
+        'fetchCanceledOrders': undefined,
+        'fetchClosedOrder': undefined,
+        'fetchClosedOrders': undefined,
+        'fetchCurrencies': 'emulated',
+        'fetchDeposit': undefined,
+        'fetchDepositAddress': undefined,
+        'fetchDepositAddresses': undefined,
+        'fetchDepositAddressesByNetwork': undefined,
+        'fetchDeposits': undefined,
+        'fetchDepositsWithdrawals': undefined,
+        'fetchTransactionFee': undefined,
+        'fetchTransactionFees': undefined,
+        'fetchFundingHistory': undefined,
+        'fetchFundingRate': undefined,
+        'fetchFundingRateHistory': undefined,
+        'fetchFundingRates': undefined,
+        'fetchIndexOHLCV': undefined,
+        'fetchL2OrderBook': true,
+        'fetchLastPrices': undefined,
+        'fetchLedger': undefined,
+        'fetchLedgerEntry': undefined,
+        'fetchLeverageTiers': undefined,
+        'fetchMarketLeverageTiers': undefined,
+        'fetchMarkets': true,
+        'fetchMarkOHLCV': undefined,
+        'fetchMyTrades': undefined,
+        'fetchOHLCV': undefined,
+        'fetchOpenInterest': undefined,
+        'fetchOpenInterestHistory': undefined,
+        'fetchOpenOrder': undefined,
+        'fetchOpenOrders': undefined,
+        'fetchOrder': undefined,
+        'fetchOrderBook': true,
+        'fetchOrderBooks': undefined,
+        'fetchOrders': undefined,
+        'fetchOrderTrades': undefined,
+        'fetchPermissions': undefined,
+        'fetchPosition': undefined,
+        'fetchPositions': undefined,
+        'fetchPositionsBySymbol': undefined,
+        'fetchPositionsRisk': undefined,
+        'fetchPremiumIndexOHLCV': undefined,
+        'fetchStatus': 'emulated',
+        'fetchTicker': true,
+        'fetchTickers': undefined,
+        'fetchTime': undefined,
+        'fetchTrades': true,
+        'fetchTradingFee': undefined,
+        'fetchTradingFees': undefined,
+        'fetchTradingLimits': undefined,
+        'fetchTransactions': undefined,
+        'fetchTransfers': undefined,
+        'fetchWithdrawAddresses': undefined,
+        'fetchWithdrawal': undefined,
+        'fetchWithdrawals': undefined,
+        'reduceMargin': undefined,
+        'setLeverage': undefined,
+        'setMargin': undefined,
+        'setMarginMode': undefined,
+        'setPositionMode': undefined,
+        'signIn': undefined,
+        'transfer': undefined,
+        'withdraw': undefined,
+    };
 
-    status = undefined
+    status: {
+        status: string | undefined,
+        updated: number | undefined,
+        eta: number | undefined,
+        url: string | undefined,
+    } = {
+        'status': 'ok',
+        'updated': undefined,
+        'eta': undefined,
+        'url': undefined,
+    };
 
     requiredCredentials: {
-        apiKey: boolean;
-        secret: boolean;
-        uid: boolean;
-        login: boolean;
-        password: boolean;
-        twofa: boolean;
-        privateKey: boolean;
-        walletAddress: boolean;
-        token: boolean;
+        apiKey: boolean | undefined,
+        secret: boolean | undefined,
+        uid: boolean | undefined,
+        login: boolean | undefined,
+        password: boolean | undefined,
+        twofa: boolean | undefined, // 2-factor authentication (one-time password key)
+        privateKey: boolean | undefined, // a "0x"-prefixed hexstring private key for a wallet
+        walletAddress: boolean | undefined, // the wallet address "0x"-prefixed hexstring
+        token: boolean | undefined, // reserved for HTTP auth in some cases
+    } = {
+        'apiKey': true,
+        'secret': true,
+        'uid': false,
+        'login': false,
+        'password': false,
+        'twofa': false, // 2-factor authentication (one-time password key)
+        'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
+        'walletAddress': false, // the wallet address "0x"-prefixed hexstring
+        'token': false, // reserved for HTTP auth in some cases
     };
-    rateLimit: number = undefined; // milliseconds
+
+    rateLimit: number = 2000; // milliseconds
     tokenBucket = undefined
     throttler = undefined
-    enableRateLimit: boolean = undefined;
+    enableRateLimit: boolean = true;
 
-    httpExceptions = undefined
+    httpExceptions = {
+        '422': ExchangeError,
+        '418': DDoSProtection,
+        '429': RateLimitExceeded,
+        '404': ExchangeNotAvailable,
+        '409': ExchangeNotAvailable,
+        '410': ExchangeNotAvailable,
+        '451': ExchangeNotAvailable,
+        '500': ExchangeNotAvailable,
+        '501': ExchangeNotAvailable,
+        '502': ExchangeNotAvailable,
+        '520': ExchangeNotAvailable,
+        '521': ExchangeNotAvailable,
+        '522': ExchangeNotAvailable,
+        '525': ExchangeNotAvailable,
+        '526': ExchangeNotAvailable,
+        '400': ExchangeNotAvailable,
+        '403': ExchangeNotAvailable,
+        '405': ExchangeNotAvailable,
+        '503': ExchangeNotAvailable,
+        '530': ExchangeNotAvailable,
+        '408': RequestTimeout,
+        '504': RequestTimeout,
+        '401': AuthenticationError,
+        '407': AuthenticationError,
+        '511': AuthenticationError,
+    };
 
     limits: {
-        amount?: MinMax,
-        cost?: MinMax,
-        leverage?: MinMax,
-        price?: MinMax,
+        cost: {
+            min: number,
+            max: number,
+        },
+        price: {
+            min: number,
+            max: number,
+        },
+        amount: {
+            min: number,
+            max: number,
+        },
+        leverage: {
+            min: number,
+            max: number,
+        },
+    } = {
+        'leverage': {
+            'min': undefined,
+            'max': undefined,
+        },
+        'amount': {
+            'min': undefined,
+            'max': undefined,
+        },
+        'price': {
+            'min': undefined,
+            'max': undefined,
+        },
+        'cost': {
+            'min': undefined,
+            'max': undefined,
+        },
     };
-    fees: object;
+
+    fees: {
+        trading: {
+            tierBased: boolean | undefined,
+            percentage: boolean | undefined,
+            taker: number | undefined,
+            maker: number | undefined,
+        },
+        funding: {
+            tierBased: boolean | undefined,
+            percentage: boolean | undefined,
+            withdraw: {},
+            deposit: {},
+        },
+    } = {
+        'trading': {
+            'tierBased': undefined,
+            'percentage': undefined,
+            'taker': undefined,
+            'maker': undefined,
+        },
+        'funding': {
+            'tierBased': undefined,
+            'percentage': undefined,
+            'withdraw': {},
+            'deposit': {},
+        },
+    };
+
     markets_by_id: Dictionary<any> = undefined;
     symbols: string[] = undefined;
     ids: string[] = undefined;
-    currencies: Dictionary<Currency> = undefined;
+    currencies: Dictionary<Currency> = {};
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
@@ -306,8 +629,8 @@ export default class Exchange {
 
     hostname: string = undefined;
 
-    precisionMode: number = undefined;
-    paddingMode = undefined
+    precisionMode: number = DECIMAL_PLACES;
+    paddingMode: number = NO_PADDING;
 
     exceptions = {}
     timeframes: Dictionary<number | string> = {}
@@ -1163,201 +1486,35 @@ export default class Exchange {
 
     describe () {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': true,
-            'rateLimit': 2000, // milliseconds = seconds * 1000
-            'certified': false, // if certified by the CCXT dev team
-            'pro': false, // if it is integrated with CCXT Pro for WebSocket support
-            'alias': false, // whether this exchange is an alias to another exchange
-            'has': {
-                'publicAPI': true,
-                'privateAPI': true,
-                'CORS': undefined,
-                'spot': undefined,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
-                'addMargin': undefined,
-                'cancelAllOrders': undefined,
-                'cancelOrder': true,
-                'cancelOrders': undefined,
-                'createDepositAddress': undefined,
-                'createLimitOrder': true,
-                'createMarketOrder': true,
-                'createOrder': true,
-                'createPostOnlyOrder': undefined,
-                'createReduceOnlyOrder': undefined,
-                'createStopOrder': undefined,
-                'createStopLimitOrder': undefined,
-                'createStopMarketOrder': undefined,
-                'createOrderWs': undefined,
-                'editOrderWs': undefined,
-                'fetchOpenOrdersWs': undefined,
-                'fetchOrderWs': undefined,
-                'cancelOrderWs': undefined,
-                'cancelOrdersWs': undefined,
-                'cancelAllOrdersWs': undefined,
-                'fetchTradesWs': undefined,
-                'fetchBalanceWs': undefined,
-                'editOrder': 'emulated',
-                'fetchAccounts': undefined,
-                'fetchBalance': true,
-                'fetchBidsAsks': undefined,
-                'fetchBorrowInterest': undefined,
-                'fetchBorrowRate': undefined,
-                'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
-                'fetchBorrowRates': undefined,
-                'fetchCanceledOrders': undefined,
-                'fetchClosedOrder': undefined,
-                'fetchClosedOrders': undefined,
-                'fetchCurrencies': 'emulated',
-                'fetchDeposit': undefined,
-                'fetchDepositAddress': undefined,
-                'fetchDepositAddresses': undefined,
-                'fetchDepositAddressesByNetwork': undefined,
-                'fetchDeposits': undefined,
-                'fetchDepositsWithdrawals': undefined,
-                'fetchTransactionFee': undefined,
-                'fetchTransactionFees': undefined,
-                'fetchFundingHistory': undefined,
-                'fetchFundingRate': undefined,
-                'fetchFundingRateHistory': undefined,
-                'fetchFundingRates': undefined,
-                'fetchIndexOHLCV': undefined,
-                'fetchL2OrderBook': true,
-                'fetchLastPrices': undefined,
-                'fetchLedger': undefined,
-                'fetchLedgerEntry': undefined,
-                'fetchLeverageTiers': undefined,
-                'fetchMarketLeverageTiers': undefined,
-                'fetchMarkets': true,
-                'fetchMarkOHLCV': undefined,
-                'fetchMyTrades': undefined,
-                'fetchOHLCV': undefined,
-                'fetchOpenInterest': undefined,
-                'fetchOpenInterestHistory': undefined,
-                'fetchOpenOrder': undefined,
-                'fetchOpenOrders': undefined,
-                'fetchOrder': undefined,
-                'fetchOrderBook': true,
-                'fetchOrderBooks': undefined,
-                'fetchOrders': undefined,
-                'fetchOrderTrades': undefined,
-                'fetchPermissions': undefined,
-                'fetchPosition': undefined,
-                'fetchPositions': undefined,
-                'fetchPositionsBySymbol': undefined,
-                'fetchPositionsRisk': undefined,
-                'fetchPremiumIndexOHLCV': undefined,
-                'fetchStatus': 'emulated',
-                'fetchTicker': true,
-                'fetchTickers': undefined,
-                'fetchTime': undefined,
-                'fetchTrades': true,
-                'fetchTradingFee': undefined,
-                'fetchTradingFees': undefined,
-                'fetchTradingLimits': undefined,
-                'fetchTransactions': undefined,
-                'fetchTransfers': undefined,
-                'fetchWithdrawAddresses': undefined,
-                'fetchWithdrawal': undefined,
-                'fetchWithdrawals': undefined,
-                'reduceMargin': undefined,
-                'setLeverage': undefined,
-                'setMargin': undefined,
-                'setMarginMode': undefined,
-                'setPositionMode': undefined,
-                'signIn': undefined,
-                'transfer': undefined,
-                'withdraw': undefined,
-            },
-            'urls': {
-                'logo': undefined,
-                'api': undefined,
-                'www': undefined,
-                'doc': undefined,
-                'fees': undefined,
-            },
-            'api': undefined,
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'uid': false,
-                'login': false,
-                'password': false,
-                'twofa': false, // 2-factor authentication (one-time password key)
-                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
-                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
-                'token': false, // reserved for HTTP auth in some cases
-            },
-            'markets': undefined, // to be filled manually or by fetchMarkets
-            'currencies': {}, // to be filled manually or by fetchMarkets
-            'timeframes': undefined, // redefine if the exchange has fetchOHLCV
-            'fees': {
-                'trading': {
-                    'tierBased': undefined,
-                    'percentage': undefined,
-                    'taker': undefined,
-                    'maker': undefined,
-                },
-                'funding': {
-                    'tierBased': undefined,
-                    'percentage': undefined,
-                    'withdraw': {},
-                    'deposit': {},
-                },
-            },
-            'status': {
-                'status': 'ok',
-                'updated': undefined,
-                'eta': undefined,
-                'url': undefined,
-            },
-            'exceptions': undefined,
-            'httpExceptions': {
-                '422': ExchangeError,
-                '418': DDoSProtection,
-                '429': RateLimitExceeded,
-                '404': ExchangeNotAvailable,
-                '409': ExchangeNotAvailable,
-                '410': ExchangeNotAvailable,
-                '451': ExchangeNotAvailable,
-                '500': ExchangeNotAvailable,
-                '501': ExchangeNotAvailable,
-                '502': ExchangeNotAvailable,
-                '520': ExchangeNotAvailable,
-                '521': ExchangeNotAvailable,
-                '522': ExchangeNotAvailable,
-                '525': ExchangeNotAvailable,
-                '526': ExchangeNotAvailable,
-                '400': ExchangeNotAvailable,
-                '403': ExchangeNotAvailable,
-                '405': ExchangeNotAvailable,
-                '503': ExchangeNotAvailable,
-                '530': ExchangeNotAvailable,
-                '408': RequestTimeout,
-                '504': RequestTimeout,
-                '401': AuthenticationError,
-                '407': AuthenticationError,
-                '511': AuthenticationError,
-            },
+            'id': this.id,
+            'name': this.name,
+            'countries': this.countries,
+            'enableRateLimit': this.enableRateLimit,
+            'rateLimit': this.rateLimit, // milliseconds = seconds * 1000
+            'timeout': this.timeout, // milliseconds = seconds * 1000
+            'certified': this.certified, // if certified by the CCXT dev team
+            'pro': this.pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': this.alias, // whether this exchange is an alias to another exchange
+            'has': this.has,
+            'urls': this.urls,
+            'api': this.api,
+            'requiredCredentials': this.requiredCredentials,
+            'markets': this.markets, // to be filled manually or by fetchMarkets
+            'currencies': this.currencies, // to be filled manually or by fetchMarkets
+            'timeframes': this.timeframes, // redefine if the exchange has fetchOHLCV
+            'fees': this.fees,
+            'status': this.status,
+            'exceptions': this.exceptions,
+            'precision': this.precision,
+            'precisionMode': this.precisionMode,
+            'paddingMode': this.paddingMode,
+            'limits': this.limits,
+            'httpExceptions': this.httpExceptions,
             'commonCurrencies': { // gets extended/overwritten in subclasses
                 'XBT': 'BTC',
                 'BCC': 'BCH',
                 'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
-            },
-            'precisionMode': DECIMAL_PLACES,
-            'paddingMode': NO_PADDING,
-            'limits': {
-                'leverage': { 'min': undefined, 'max': undefined },
-                'amount': { 'min': undefined, 'max': undefined },
-                'price': { 'min': undefined, 'max': undefined },
-                'cost': { 'min': undefined, 'max': undefined },
             },
         };
     }

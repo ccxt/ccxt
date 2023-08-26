@@ -73,7 +73,7 @@ class Exchange {
     public $validateServerSsl = true;
     public $validateClientSsl = false;
     public $curlopt_interface = null;
-    public $timeout = 10000; // in milliseconds
+    public $timeout = 0; // in milliseconds
 
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
@@ -121,7 +121,16 @@ class Exchange {
     public $pro = false; // if it is integrated with CCXT Pro for WebSocket support
     public $alias = false; // whether this exchange is an alias to another exchange
 
-    public $urls = array();
+    public $urls = array(
+        'logo'=> null,
+        'api'=> null,
+        'test'=> null,
+        'www'=> null,
+        'doc'=> null,
+        'api_management'=> null,
+        'fees'=> null,
+        'referral'=> null,
+    );
     public $api = array();
     public $comment = null;
 
@@ -135,8 +144,29 @@ class Exchange {
     public $balance = array();
     public $orderbooks = array();
     public $tickers = array();
-    public $fees = array('trading' => array(), 'funding' => array());
-    public $precision = array();
+    public $fees = array(
+        'trading'=> array(
+            'tierBased'=> null,
+            'percentage'=> null,
+            'taker'=> null,
+            'maker'=> null,
+        ),
+        'funding'=> array(
+            'tierBased'=> null,
+            'percentage'=> null,
+            'withdraw'=> array(),
+            'deposit'=> array(),
+        ),
+    );
+
+    public $precision = array(
+        'amount'=> null,
+        'price'=> null,
+        'cost'=> null,
+        'base'=> null,
+        'quote'=> null,
+    );
+
     public $orders = null;
     public $myTrades = null;
     public $trades = array();
@@ -146,7 +176,13 @@ class Exchange {
     public $exceptions = array();
     public $accounts = array();
     public $accountsById = array();
-    public $status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
+    public $status = array(
+        'status' => null,
+        'updated' => null,
+        'eta' => null,
+        'url' => null,
+    );
+
     public $limits = array(
         'cost' => array(
             'min' => null,
@@ -165,33 +201,9 @@ class Exchange {
             'max' => null,
         ),
     );
-    public $httpExceptions = array(
-        '422' => 'ExchangeError',
-        '418' => 'DDoSProtection',
-        '429' => 'RateLimitExceeded',
-        '404' => 'ExchangeNotAvailable',
-        '409' => 'ExchangeNotAvailable',
-        '410' => 'ExchangeNotAvailable',
-        '451' => 'ExchangeNotAvailable',
-        '500' => 'ExchangeNotAvailable',
-        '501' => 'ExchangeNotAvailable',
-        '502' => 'ExchangeNotAvailable',
-        '520' => 'ExchangeNotAvailable',
-        '521' => 'ExchangeNotAvailable',
-        '522' => 'ExchangeNotAvailable',
-        '525' => 'ExchangeNotAvailable',
-        '526' => 'ExchangeNotAvailable',
-        '400' => 'ExchangeNotAvailable',
-        '403' => 'ExchangeNotAvailable',
-        '405' => 'ExchangeNotAvailable',
-        '503' => 'ExchangeNotAvailable',
-        '530' => 'ExchangeNotAvailable',
-        '408' => 'RequestTimeout',
-        '504' => 'RequestTimeout',
-        '401' => 'AuthenticationError',
-        '407' => 'AuthenticationError',
-        '511' => 'AuthenticationError',
-    );
+
+    public $httpExceptions = array();
+
     public $verbose = false;
     public $apiKey = '';
     public $secret = '';
@@ -220,8 +232,8 @@ class Exchange {
         'login' => false,
         'password' => false,
         'twofa' => false, // 2-factor authentication (one-time password key)
-        'privateKey' => false,
-        'walletAddress' => false,
+        'privateKey' => false, // a "0x"-prefixed hexstring private key for a wallet
+        'walletAddress' => false, // the wallet address "0x"-prefixed hexstring
         'token' => false, // reserved for HTTP auth in some cases
     );
 
@@ -247,14 +259,9 @@ class Exchange {
 
     public $requiresWeb3 = false;
     public $requiresEddsa = false;
-    public $rateLimit = 2000;
+    public $rateLimit = 0;
 
-    public $commonCurrencies = array(
-        'XBT' => 'BTC',
-        'BCC' => 'BCH',
-        'BCHABC' => 'BCH',
-        'BCHSV' => 'BSV',
-    );
+    public $commonCurrencies = array();
 
     public $urlencode_glue = '&'; // ini_get('arg_separator.output'); // can be overrided by exchange constructor params
     public $urlencode_glue_warning = true;
