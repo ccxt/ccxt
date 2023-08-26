@@ -73,7 +73,7 @@ class Exchange {
     public $validateServerSsl = true;
     public $validateClientSsl = false;
     public $curlopt_interface = null;
-    public $timeout = 0; // in milliseconds
+    public $timeout = 10000; // in milliseconds
 
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
@@ -259,7 +259,7 @@ class Exchange {
 
     public $requiresWeb3 = false;
     public $requiresEddsa = false;
-    public $rateLimit = 0;
+    public $rateLimit = 2000;
 
     public $commonCurrencies = array();
 
@@ -2025,6 +2025,41 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function describe() {   
+        return array(
+            'id' => $this->id,
+            'name' => $this->name,
+            'countries' => $this->countries,
+            'enableRateLimit' => $this->enableRateLimit,
+            'rateLimit' => $this->rateLimit, // milliseconds = seconds * 1000
+            'timeout' => $this->timeout, // milliseconds = seconds * 1000
+            'certified' => $this->certified, // if certified by the CCXT dev team
+            'pro' => $this->pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias' => $this->alias, // whether this exchange is an alias to another exchange
+            'has' => $this->has,
+            'urls' => $this->urls,
+            'api' => $this->api,
+            'requiredCredentials' => $this->requiredCredentials,
+            'markets' => $this->markets, // to be filled manually or by fetchMarkets
+            'currencies' => $this->currencies, // to be filled manually or by fetchMarkets
+            'timeframes' => $this->timeframes, // redefine if the exchange has fetchOHLCV
+            'fees' => $this->fees,
+            'status' => $this->status,
+            'exceptions' => $this->exceptions,
+            'precision' => $this->precision,
+            'precisionMode' => $this->precisionMode,
+            'paddingMode' => $this->paddingMode,
+            'limits' => $this->limits,
+            'httpExceptions' => $this->httpExceptions,
+            'commonCurrencies' => array( // gets extended/overwritten in subclasses
+                'XBT' => 'BTC',
+                'BCC' => 'BCH',
+                'BCHABC' => 'BCH',
+                'BCHSV' => 'BSV',
+            ),
+        );
+    }
 
     public function handle_deltas($orderbook, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {

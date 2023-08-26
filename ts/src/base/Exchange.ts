@@ -242,6 +242,15 @@ export default class Exchange {
         api_management?: string;
         fees?: string;
         referral?: string;
+    } = {
+        'logo': undefined,
+        'api': undefined,
+        'test': undefined,
+        'www': undefined,
+        'doc': undefined,
+        'api_management': undefined,
+        'fees': undefined,
+        'referral': undefined,
     };
 
     requiresWeb3 = false

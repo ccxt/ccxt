@@ -148,7 +148,16 @@ class Exchange(object):
         },
     }
     ids = None
-    urls = None
+    urls = {
+        'logo': None,
+        'api': None,
+        'test': None,
+        'www': None,
+        'doc': None,
+        'api_management': None,
+        'fees': None,
+        'referral': None,
+    }
     api = None
     parseJsonResponse = True
 
@@ -1580,6 +1589,40 @@ class Exchange(object):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def describe(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'countries': self.countries,
+            'enableRateLimit': self.enableRateLimit,
+            'rateLimit': self.rateLimit,  # milliseconds = seconds * 1000
+            'timeout': self.timeout,  # milliseconds = seconds * 1000
+            'certified': self.certified,  # if certified by the CCXT dev team
+            'pro': self.pro,  # if it is integrated with CCXT Pro for WebSocket support
+            'alias': self.alias,  # whether self exchange is an alias to another exchange
+            'has': self.has,
+            'urls': self.urls,
+            'api': self.api,
+            'requiredCredentials': self.requiredCredentials,
+            'markets': self.markets,  # to be filled manually or by fetchMarkets
+            'currencies': self.currencies,  # to be filled manually or by fetchMarkets
+            'timeframes': self.timeframes,  # redefine if the exchange has fetchOHLCV
+            'fees': self.fees,
+            'status': self.status,
+            'exceptions': self.exceptions,
+            'precision': self.precision,
+            'precisionMode': self.precisionMode,
+            'paddingMode': self.paddingMode,
+            'limits': self.limits,
+            'httpExceptions': self.httpExceptions,
+            'commonCurrencies': { # gets extended/overwritten in subclasses
+                'XBT': 'BTC',
+                'BCC': 'BCH',
+                'BCHABC': 'BCH',
+                'BCHSV': 'BSV',
+            },
+        }
 
     def handle_deltas(self, orderbook, deltas):
         for i in range(0, len(deltas)):
