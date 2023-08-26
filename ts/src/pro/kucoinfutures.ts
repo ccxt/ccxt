@@ -546,6 +546,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
+        await this.loadMarkets ();
         const url = await this.negotiate (true);
         const topic = '/contractAccount/wallet';
         const request = {
