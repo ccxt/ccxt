@@ -1366,7 +1366,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3410,7 +3410,7 @@ export default class mexc extends Exchange {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.symbols] // required for margin, market id's separated by commas
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         let marketType = undefined;
@@ -3936,7 +3936,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] not used by mexc, but filtered internally by ccxt
          * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
          * @param {object} [params] extra parameters specific to the mexc api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
