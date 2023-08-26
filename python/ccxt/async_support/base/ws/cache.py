@@ -161,6 +161,7 @@ class ArrayCacheBySymbolById(ArrayCache):
         after_length = len(id_set)
         self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
 
+
 class ArrayCacheBySymbolBySide(ArrayCache):
     def __init__(self, max_size=None):
         super(ArrayCacheBySymbolBySide, self).__init__(max_size)
