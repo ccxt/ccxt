@@ -1296,7 +1296,7 @@ export default class Exchange {
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets
-            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
+            'timeframes': undefined, // redefine if the exchange has fetchOHLCV
             'fees': {
                 'trading': {
                     'tierBased': undefined,
