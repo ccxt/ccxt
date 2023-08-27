@@ -28,7 +28,7 @@ export default class bybit extends bybitRest {
     handleBalance(client: Client, message: any): void;
     parseWsBalance(balance: any, accountType?: any): void;
     watchTopics(url: any, messageHash: any, topics?: any[], params?: {}): Promise<any>;
-    authenticate(url: any, params?: {}): any;
+    authenticate(url: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
     ping(client: any): {

@@ -53,7 +53,7 @@ class probit extends probit$1 {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs-en.probit.com/reference/balance-1
          * @param {object} [params] extra parameters specific to the probit api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.authenticate(params);
         const messageHash = 'balance';
@@ -121,7 +121,7 @@ class probit extends probit$1 {
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the probit api endpoint
          * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTicker', 'filter', 'ticker');
@@ -166,7 +166,7 @@ class probit extends probit$1 {
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the probit api endpoint
          * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTrades', 'filter', 'recent_trades');
@@ -226,7 +226,7 @@ class probit extends probit$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the probit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         await this.authenticate(params);
@@ -307,7 +307,7 @@ class probit extends probit$1 {
          * @param {int} [limit] the maximum amount of orders to watch
          * @param {object} [params] extra parameters specific to the aax api endpoint
          * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.authenticate(params);
         const url = this.urls['api']['ws'];
@@ -391,7 +391,7 @@ class probit extends probit$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the probit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'filter', 'order_books');

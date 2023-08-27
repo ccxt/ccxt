@@ -73,6 +73,7 @@ class binance extends Exchange {
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -879,6 +880,21 @@ class binance extends Exchange {
                         'cm/openOrder' => 1, // 1
                         'cm/openOrders' => 1, // 1
                         'cm/allOrders' => 20, // 20
+                        'um/conditional/openOrder' => 1,
+                        'um/conditional/openOrders' => 40,
+                        'um/conditional/orderHistory' => 1,
+                        'um/conditional/allOrders' => 40,
+                        'cm/conditional/openOrder' => 1,
+                        'cm/conditional/openOrders' => 40,
+                        'cm/conditional/orderHistory' => 1,
+                        'cm/conditional/allOrders' => 40,
+                        'margin/order' => 5,
+                        'margin/openOrders' => 5,
+                        'margin/allOrders' => 100,
+                        'margin/orderList' => 5,
+                        'margin/allOrderList' => 100,
+                        'margin/openOrderList' => 5,
+                        'margin/myTrades' => 5,
                         'balance' => 20, // 20
                         'account' => 20, // 20
                         'margin/maxBorrowable' => 5, // 5
@@ -897,6 +913,10 @@ class binance extends Exchange {
                         'um/apiTradingStatus' => 1, // 1
                         'um/commissionRate' => 20, // 20
                         'cm/commissionRate' => 20, // 20
+                        'margin/marginLoan' => 10,
+                        'margin/repayLoan' => 10,
+                        'margin/marginInterestHistory' => 1,
+                        'portfolio/interest-history' => 50, // 50
                         'um/income' => 30,
                         'cm/income ' => 30,
                         'um/account' => 5,
@@ -904,10 +924,6 @@ class binance extends Exchange {
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
                         'um/adlQuantile' => 5,
                         'cm/adlQuantile' => 5,
-                        'margin/marginLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/repayLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
-                        'margin/marginInterestHistory' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
-                        'portfolio/interest-history' => 50, // 50
                     ),
                     'post' => array(
                         'um/order' => 1, // 0
@@ -2463,7 +2479,7 @@ class binance extends Exchange {
          * @param {string} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
          * @param {string[]|null} [$params->symbols] unified market $symbols, only used in isolated margin mode
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
@@ -2707,7 +2723,7 @@ class binance extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2922,7 +2938,7 @@ class binance extends Exchange {
          * the latest known information on the availability of the exchange API
          * @see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure status structure}
          */
         $response = $this->sapiGetSystemStatus ($params);
         //
@@ -2950,7 +2966,7 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2981,7 +2997,7 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -3014,7 +3030,7 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -3117,7 +3133,7 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
         $this->load_markets();
         $type = null;
@@ -3537,7 +3553,7 @@ class binance extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [$params->fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3645,7 +3661,7 @@ class binance extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3832,9 +3848,9 @@ class binance extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3902,9 +3918,9 @@ class binance extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4189,12 +4205,12 @@ class binance extends Exchange {
          * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [$params->sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
          * @param {boolean} [$params->test] *spot only* whether to use the $test endpoint or not, default is false
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4449,7 +4465,7 @@ class binance extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->check_required_symbol('fetchOrder', $symbol);
         $this->load_markets();
@@ -4496,7 +4512,7 @@ class binance extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->check_required_symbol('fetchOrders', $symbol);
         $this->load_markets();
@@ -4612,7 +4628,7 @@ class binance extends Exchange {
          * @param {int} [$limit] the maximum number of open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $market = null;
@@ -4672,7 +4688,7 @@ class binance extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
@@ -4688,7 +4704,7 @@ class binance extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->check_required_symbol('fetchCanceledOrders', $symbol);
         $this->load_markets();
@@ -4708,7 +4724,7 @@ class binance extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
@@ -4760,7 +4776,7 @@ class binance extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->check_required_symbol('cancelAllOrders', $symbol);
         $this->load_markets();
@@ -4800,7 +4816,7 @@ class binance extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
@@ -4825,7 +4841,7 @@ class binance extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
         $request = array();
@@ -4960,7 +4976,7 @@ class binance extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch my dust $trades for
          * @param {int} [$limit] the maximum number of dust $trades to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         //
         // Binance provides an opportunity to trade insignificant ($i->e. non-tradable and non-withdrawable)
@@ -5099,7 +5115,7 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {bool} [$params->fiat] if true, only fiat deposits will be returned
          * @param {int} [$params->until] the latest time in ms to fetch deposits for
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $this->load_markets();
         $currency = null;
@@ -5200,7 +5216,7 @@ class binance extends Exchange {
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {bool} [$params->fiat] if true, only fiat withdrawals will be returned
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $this->load_markets();
         $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
@@ -5572,7 +5588,7 @@ class binance extends Exchange {
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -5659,7 +5675,7 @@ class binance extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of transfers structures to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
          */
         $this->load_markets();
         $currency = null;
@@ -5719,7 +5735,7 @@ class binance extends Exchange {
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -5793,7 +5809,7 @@ class binance extends Exchange {
          * please use fetchDepositWithdrawFees instead
          * @param {string[]|null} $codes not used by binance fetchTransactionFees ()
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures}
          */
         $this->load_markets();
         $response = $this->sapiGetCapitalConfigGetall ($params);
@@ -5905,7 +5921,7 @@ class binance extends Exchange {
          * fetch deposit and withdraw fees
          * @param {string[]|null} $codes not used by binance fetchDepositWithdrawFees ()
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
          */
         $this->load_markets();
         $response = $this->sapiGetCapitalConfigGetall ($params);
@@ -6031,7 +6047,7 @@ class binance extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
@@ -6083,7 +6099,7 @@ class binance extends Exchange {
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -6108,7 +6124,7 @@ class binance extends Exchange {
         /**
          * fetch the trading fees for multiple markets
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market $symbols
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by $market $symbols
          */
         $this->load_markets();
         $method = null;
@@ -6284,7 +6300,7 @@ class binance extends Exchange {
          * @param {string} $type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {float} $params->recvWindow
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=futures-transfer-structure transfer structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#futures-transfer-structure transfer structure}
          */
         if (($type < 1) || ($type > 4)) {
             throw new ArgumentsRequired($this->id . ' $type must be between 1 and 4');
@@ -6310,7 +6326,7 @@ class binance extends Exchange {
          * fetch the current funding rate
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -6349,10 +6365,10 @@ class binance extends Exchange {
          * fetches historical funding rate prices
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding rate
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         $this->load_markets();
         $request = array();
@@ -6417,7 +6433,7 @@ class binance extends Exchange {
          * fetch the funding rate for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -6935,7 +6951,7 @@ class binance extends Exchange {
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
          */
         $this->load_markets();
         list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
@@ -7038,7 +7054,7 @@ class binance extends Exchange {
          * fetch data on an open position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -7081,7 +7097,7 @@ class binance extends Exchange {
          * fetch data on open options positions
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -7195,7 +7211,7 @@ class binance extends Exchange {
          * fetch all open positions
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
          */
         $defaultMethod = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
         if ($defaultMethod === 'positionRisk') {
@@ -7343,7 +7359,7 @@ class binance extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
          */
         $this->load_markets();
         $market = null;
@@ -7556,7 +7572,62 @@ class binance extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical settlement records of the user
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#user-exercise-record-user_data
+         * @param {string} $symbol unified $market $symbol of the settlement history
+         * @param {int} [$since] timestamp in ms
+         * @param {int} [$limit] number of records
+         * @param {array} [$params] exchange specific $params
+         * @return {array[]} a list of [settlement history objects]
+         */
+        $this->load_markets();
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
+        if ($type !== 'option') {
+            throw new NotSupported($this->id . ' fetchMySettlementHistory() supports option markets only');
+        }
+        $request = array();
+        if ($symbol !== null) {
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->eapiPrivateGetExerciseRecord (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "id" => "1125899906842897036",
+        //             "currency" => "USDT",
+        //             "symbol" => "BTC-230728-30000-C",
+        //             "exercisePrice" => "30000.00000000",
+        //             "markPrice" => "29160.71284993",
+        //             "quantity" => "1.00000000",
+        //             "amount" => "0.00000000",
+        //             "fee" => "0.00000000",
+        //             "createDate" => 1690531200000,
+        //             "priceScale" => 0,
+        //             "quantityScale" => 2,
+        //             "optionSide" => "CALL",
+        //             "positionSide" => "LONG",
+        //             "quoteAsset" => "USDT"
+        //         }
+        //     )
+        //
+        $settlements = $this->parse_settlements($response, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+    }
+
     public function parse_settlement($settlement, $market) {
+        //
+        // fetchSettlementHistory
         //
         //     {
         //         "symbol" => "ETH-230223-1900-P",
@@ -7566,18 +7637,39 @@ class binance extends Exchange {
         //         "strikeResult" => "REALISTIC_VALUE_STRICKEN"
         //     }
         //
-        $timestamp = $this->safe_integer($settlement, 'expiryDate');
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "id" => "1125899906842897036",
+        //         "currency" => "USDT",
+        //         "symbol" => "BTC-230728-30000-C",
+        //         "exercisePrice" => "30000.00000000",
+        //         "markPrice" => "29160.71284993",
+        //         "quantity" => "1.00000000",
+        //         "amount" => "0.00000000",
+        //         "fee" => "0.00000000",
+        //         "createDate" => 1690531200000,
+        //         "priceScale" => 0,
+        //         "quantityScale" => 2,
+        //         "optionSide" => "CALL",
+        //         "positionSide" => "LONG",
+        //         "quoteAsset" => "USDT"
+        //     }
+        //
+        $timestamp = $this->safe_integer_2($settlement, 'expiryDate', 'createDate');
         $marketId = $this->safe_string($settlement, 'symbol');
         return array(
             'info' => $settlement,
             'symbol' => $this->safe_symbol($marketId, $market),
-            'price' => $this->safe_number($settlement, 'realStrikePrice'),
+            'price' => $this->safe_number_2($settlement, 'realStrikePrice', 'exercisePrice'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
     }
 
     public function parse_settlements($settlements, $market) {
+        //
+        // fetchSettlementHistory
         //
         //     array(
         //         {
@@ -7586,6 +7678,27 @@ class binance extends Exchange {
         //             "realStrikePrice" => "1665.5897334",
         //             "expiryDate" => 1677139200000,
         //             "strikeResult" => "EXTRINSIC_VALUE_EXPIRED"
+        //         }
+        //     )
+        //
+        // fetchMySettlementHistory
+        //
+        //     array(
+        //         {
+        //             "id" => "1125899906842897036",
+        //             "currency" => "USDT",
+        //             "symbol" => "BTC-230728-30000-C",
+        //             "exercisePrice" => "30000.00000000",
+        //             "markPrice" => "29160.71284993",
+        //             "quantity" => "1.00000000",
+        //             "amount" => "0.00000000",
+        //             "fee" => "0.00000000",
+        //             "createDate" => 1690531200000,
+        //             "priceScale" => 0,
+        //             "quantityScale" => 2,
+        //             "optionSide" => "CALL",
+        //             "positionSide" => "LONG",
+        //             "quoteAsset" => "USDT"
         //         }
         //     )
         //
@@ -7606,7 +7719,7 @@ class binance extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry
          * @param {int} [$limit] max number of ledger entrys to return
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
          */
         $this->load_markets();
         $type = null;
@@ -8006,7 +8119,7 @@ class binance extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
          */
         return $this->modify_margin_helper($symbol, $amount, 2, $params);
     }
@@ -8019,7 +8132,7 @@ class binance extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
          */
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
@@ -8029,7 +8142,7 @@ class binance extends Exchange {
          * fetch the $rate of interest to borrow a $currency for margin trading
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=borrow-$rate-structure borrow $rate structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$rate-structure borrow $rate structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -8057,9 +8170,9 @@ class binance extends Exchange {
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {string} $code unified $currency $code
          * @param {int} [$since] timestamp for the earliest borrow rate
-         * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~ to retrieve
+         * @param {int} [$limit] the maximum number of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structures} to retrieve
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
+         * @return {array[]} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structures}
          */
         $this->load_markets();
         if ($limit === null) {
@@ -8216,7 +8329,7 @@ class binance extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
          * @param {int} [$limit] the maximum number of structures to retrieve
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$interest-structure borrow $interest structures}
          */
         $this->load_markets();
         $request = array();
@@ -8283,7 +8396,7 @@ class binance extends Exchange {
          * @param {float} $amount the $amount to repay
          * @param {string} $symbol unified $market $symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
         list($marginMode, $query) = $this->handle_margin_mode_and_params('repayMargin', $params); // cross or isolated
         $this->check_required_margin_argument('repayMargin', $symbol, $marginMode);
@@ -8316,7 +8429,7 @@ class binance extends Exchange {
          * @param {float} $amount the $amount to borrow
          * @param {string} $symbol unified $market $symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the binance api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
         list($marginMode, $query) = $this->handle_margin_mode_and_params('borrowMargin', $params); // cross or isolated
         $this->check_required_margin_argument('borrowMargin', $symbol, $marginMode);
@@ -8368,7 +8481,7 @@ class binance extends Exchange {
          * @param {int} [$limit] default 30, max 500
          * @param {array} [$params] exchange specific parameters
          * @param {int} [$params->until] the time(ms) of the latest record to retrieve unix timestamp
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=interest-history-structure open interest history structure~
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure open interest history structure}
          */
         if ($timeframe === '1m') {
             throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
@@ -8428,7 +8541,7 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#open-interest
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
+         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);

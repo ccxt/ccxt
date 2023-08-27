@@ -6,8 +6,15 @@ interface Exchange {
     publicGetSpotV1Currencies(params?: {}): Promise<implicitReturnType>;
     publicGetSpotV1Symbols(params?: {}): Promise<implicitReturnType>;
     publicGetSpotV1SymbolsDetails(params?: {}): Promise<implicitReturnType>;
+    publicGetSpotQuotationV3Tickers(params?: {}): Promise<implicitReturnType>;
+    publicGetSpotQuotationV3Ticker(params?: {}): Promise<implicitReturnType>;
+    publicGetSpotQuotationV3LiteKlines(params?: {}): Promise<implicitReturnType>;
+    publicGetSpotQuotationV3Klines(params?: {}): Promise<implicitReturnType>;
+    publicGetSpotQuotationV3Books(params?: {}): Promise<implicitReturnType>;
+    publicGetSpotQuotationV3Trades(params?: {}): Promise<implicitReturnType>;
     publicGetSpotV1Ticker(params?: {}): Promise<implicitReturnType>;
     publicGetSpotV2Ticker(params?: {}): Promise<implicitReturnType>;
+    publicGetSpotV1TickerDetail(params?: {}): Promise<implicitReturnType>;
     publicGetSpotV1Steps(params?: {}): Promise<implicitReturnType>;
     publicGetSpotV1SymbolsKline(params?: {}): Promise<implicitReturnType>;
     publicGetSpotV1SymbolsBook(params?: {}): Promise<implicitReturnType>;
@@ -56,6 +63,12 @@ interface Exchange {
     privatePostSpotV1BatchOrders(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2CancelOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV1CancelOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryClientOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryOpenOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryHistoryOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryTrades(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryOrderTrades(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3CancelOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2BatchOrders(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2SubmitOrder(params?: {}): Promise<implicitReturnType>;
