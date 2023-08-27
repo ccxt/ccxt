@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import okxRest from '../okx.js';
-import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -233,6 +233,9 @@ export default class okx extends okxRest {
          * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
+        if (this.isEmpty(symbols)) {
+            throw new ArgumentsRequired(this.id + ' watchTickers requires a list of symbols');
+        }
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'tickers');
         const newTickers = await this.subscribeMultiple('public', channel, symbols, params);

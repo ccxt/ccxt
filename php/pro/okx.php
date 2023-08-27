@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidNonce;
 use ccxt\AuthenticationError;
@@ -244,6 +245,9 @@ class okx extends \ccxt\async\okx {
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
+            if ($this->is_empty($symbols)) {
+                throw new ArgumentsRequired($this->id . ' watchTickers requires a list of symbols');
+            }
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'tickers');
             $newTickers = Async\await($this->subscribe_multiple('public', $channel, $symbols, $params));

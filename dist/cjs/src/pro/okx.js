@@ -230,6 +230,9 @@ class okx extends okx$1 {
          * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
+        if (this.isEmpty(symbols)) {
+            throw new errors.ArgumentsRequired(this.id + ' watchTickers requires a list of symbols');
+        }
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'tickers');
         const newTickers = await this.subscribeMultiple('public', channel, symbols, params);

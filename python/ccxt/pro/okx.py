@@ -11,6 +11,7 @@ from ccxt.base.types import OrderType
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
@@ -226,6 +227,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
+        if self.is_empty(symbols):
+            raise ArgumentsRequired(self.id + ' watchTickers requires a list of symbols')
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
         newTickers = await self.subscribe_multiple('public', channel, symbols, params)
