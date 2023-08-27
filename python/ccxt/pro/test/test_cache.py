@@ -11,12 +11,11 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402
 
 
 def equals(a, b):
     return a == b
-
 
 # ----------------------------------------------------------------------------
 
@@ -393,4 +392,3 @@ assert cache.getLimit(symbol, outsideLimit) == 1  # watch by symbol
 assert cache.getLimit(None, outsideLimit) == 2  # watch all positions
 cache.append({'symbol': symbol2, 'side': 'long', 'contracts': 3})  # update second position
 assert cache.getLimit(None, outsideLimit) == 1  # watch all positions
-
