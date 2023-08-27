@@ -1114,7 +1114,7 @@ export default class bingx extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
-            response = await this.spotV1PublicGetCommonSymbols (this.extend (request, params));
+            response = await this.spotV1PrivateGetTicker24hr (this.extend (request, params));
         } else {
             response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
         }
