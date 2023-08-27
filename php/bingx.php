@@ -1079,12 +1079,12 @@ class bingx extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the bingx api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1093,9 +1093,9 @@ class bingx extends Exchange {
         );
         $response = null;
         if ($market['spot']) {
-            $response = $this->swapV2PublicGetQuoteTicker (array_merge($request, $params));
+            $response = $this->spotV1PrivateGetTicker24hr (array_merge($request, $params));
         } else {
-            $response = $this->spotV1PublicGetCommonSymbols (array_merge($request, $params));
+            $response = $this->swapV2PublicGetQuoteTicker (array_merge($request, $params));
         }
         //
         //    {
@@ -1118,7 +1118,8 @@ class bingx extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        return $this->parse_ticker($data, $market);
+        $ticker = $this->safe_value($data, 0, $data);
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
@@ -1167,6 +1168,20 @@ class bingx extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
+        // spot
+        //    {
+        //        $symbol => 'BTC-USDT',
+        //        openPrice => '26032.08',
+        //        highPrice => '26178.86',
+        //        lowPrice => '25968.18',
+        //        lastPrice => '26113.60',
+        //        volume => '1161.79',
+        //        $quoteVolume => '30288466.44',
+        //        openTime => '1693081020762',
+        //        closeTime => '1693167420762'
+        //    }
+        // swap
+        //
         //    {
         //        "symbol" => "BTC-USDT",
         //        "priceChange" => "52.5",
@@ -1183,15 +1198,15 @@ class bingx extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'swap');
-        $symbol = $this->safe_symbol($marketId, $market, '-', $defaultType);
+        $change = $this->safe_string($ticker, 'priceChange');
+        $type = ($change === null) ? 'spot' : 'swap';
+        $symbol = $this->safe_symbol($marketId, $market, null, $type);
         $open = $this->safe_string($ticker, 'openPrice');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
         $close = $this->safe_string($ticker, 'lastPrice');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
-        $change = $this->safe_string($ticker, 'chapriceChangenge');
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
         $ts = $this->safe_integer($ticker, 'closeTime');
         $datetime = $this->iso8601($ts);

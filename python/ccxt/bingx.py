@@ -1069,9 +1069,9 @@ class bingx(Exchange, ImplicitAPI):
         }
         response = None
         if market['spot']:
-            response = self.swapV2PublicGetQuoteTicker(self.extend(request, params))
+            response = self.spotV1PrivateGetTicker24hr(self.extend(request, params))
         else:
-            response = self.spotV1PublicGetCommonSymbols(self.extend(request, params))
+            response = self.swapV2PublicGetQuoteTicker(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -1093,7 +1093,8 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        return self.parse_ticker(data, market)
+        ticker = self.safe_value(data, 0, data)
+        return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -1138,6 +1139,20 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market=None):
         #
+        # spot
+        #    {
+        #        symbol: 'BTC-USDT',
+        #        openPrice: '26032.08',
+        #        highPrice: '26178.86',
+        #        lowPrice: '25968.18',
+        #        lastPrice: '26113.60',
+        #        volume: '1161.79',
+        #        quoteVolume: '30288466.44',
+        #        openTime: '1693081020762',
+        #        closeTime: '1693167420762'
+        #    }
+        # swap
+        #
         #    {
         #        "symbol": "BTC-USDT",
         #        "priceChange": "52.5",
@@ -1154,15 +1169,15 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        defaultType = self.safe_string(self.options, 'defaultType', 'swap')
-        symbol = self.safe_symbol(marketId, market, '-', defaultType)
+        change = self.safe_string(ticker, 'priceChange')
+        type = 'spot' if (change is None) else 'swap'
+        symbol = self.safe_symbol(marketId, market, None, type)
         open = self.safe_string(ticker, 'openPrice')
         high = self.safe_string(ticker, 'highPrice')
         low = self.safe_string(ticker, 'lowPrice')
         close = self.safe_string(ticker, 'lastPrice')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
-        change = self.safe_string(ticker, 'chapriceChangenge')
         percentage = self.safe_string(ticker, 'priceChangePercent')
         ts = self.safe_integer(ticker, 'closeTime')
         datetime = self.iso8601(ts)
