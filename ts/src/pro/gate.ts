@@ -3,7 +3,7 @@
 
 import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -23,6 +23,7 @@ export default class gate extends gateRest {
                 'watchOHLCV': true,
                 'watchBalance': true,
                 'watchOrders': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -73,6 +74,10 @@ export default class gate extends gateRest {
                 'watchBalance': {
                     'settle': 'usdt', // or btc
                     'spot': 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
+                },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true, // or false
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },
             'exceptions': {
@@ -735,6 +740,143 @@ export default class gate extends gateRest {
         client.resolve (this.balance, messageHash);
     }
 
+    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#watchPositions
+         * @see https://www.gate.io/docs/developers/futures/ws/en/#positions-subscription
+         * @see https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
+         * @see https://www.gate.io/docs/developers/options/ws/en/#positions-channel
+         * @description watch all open positions
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        symbols = this.marketSymbols (symbols);
+        const payload = [ '!' + 'all' ];
+        if (!this.isEmpty (symbols)) {
+            market = this.getMarketFromSymbols (symbols);
+        }
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
+        const typeId = this.getSupportedMapping (type, {
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        });
+        let messageHash = type + ':positions';
+        if (!this.isEmpty (symbols)) {
+            messageHash += '::' + symbols.join (',');
+        }
+        const channel = typeId + '.positions';
+        let subType = undefined;
+        [ subType, query ] = this.handleSubTypeAndParams ('watchPositions', market, query);
+        const isInverse = (subType === 'inverse');
+        const url = this.getUrlByMarketType (type, isInverse);
+        const client = this.client (url);
+        this.setPositionsCache (client, type, symbols);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        const cache = this.positions[type];
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty (cache)) {
+            return await client.future (type + ':fetchPositionsSnapshot');
+        }
+        const positions = await this.subscribePrivate (url, messageHash, payload, channel, query, true);
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, type, symbols: string[] = undefined) {
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (type in this.positions) {
+            return;
+        }
+        this.positions[type] = new ArrayCacheBySymbolBySide ();
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = type + ':fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type, symbols);
+            }
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash, type, symbols) {
+        const positions = await this.fetchPositions (symbols, { 'type': type });
+        const cache = this.positions[type];
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            cache.append (position);
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (cache, type + ':position');
+    }
+
+    handlePositions (client, message) {
+        //
+        //    {
+        //        time: 1693158497,
+        //        time_ms: 1693158497204,
+        //        channel: 'futures.positions',
+        //        event: 'update',
+        //        result: [{
+        //            contract: 'XRP_USDT',
+        //            cross_leverage_limit: 0,
+        //            entry_price: 0.5253,
+        //            history_pnl: 0,
+        //            history_point: 0,
+        //            last_close_pnl: 0,
+        //            leverage: 0,
+        //            leverage_max: 50,
+        //            liq_price: 0.0361,
+        //            maintenance_rate: 0.01,
+        //            margin: 4.89609962852,
+        //            mode: 'single',
+        //            realised_pnl: -0.0026265,
+        //            realised_point: 0,
+        //            risk_limit: 500000,
+        //            size: 1,
+        //            time: 1693158497,
+        //            time_ms: 1693158497195,
+        //            update_id: 1,
+        //            user: '10444586'
+        //        }]
+        //    }
+        //
+        const type = this.getMarketTypeByUrl (client.url);
+        const data = this.safeValue (message, 'result', []);
+        const cache = this.positions[type];
+        const newPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const rawPosition = data[i];
+            const position = this.parsePosition (rawPosition);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, type + ':positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (cache, type + ':positions');
+    }
+
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -1021,6 +1163,7 @@ export default class gate extends gateRest {
             'usertrades': this.handleMyTrades,
             'candlesticks': this.handleOHLCV,
             'orders': this.handleOrder,
+            'positions': this.handlePositions,
             'tickers': this.handleTicker,
             'book_ticker': this.handleTicker,
             'trades': this.handleTrades,
@@ -1060,6 +1203,23 @@ export default class gate extends gateRest {
         } else {
             return url;
         }
+    }
+
+    getMarketTypeByUrl (url: string) {
+        const findBy = {
+            'op-': 'option',
+            'delivery': 'future',
+            'fx': 'swap',
+        };
+        const keys = Object.keys (findBy);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = findBy[key];
+            if (url.indexOf (key) >= 0) {
+                return value;
+            }
+        }
+        return 'spot';
     }
 
     requestId () {
