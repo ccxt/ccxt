@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
-import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -783,6 +783,127 @@ export default class okx extends okxRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
+    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchPositions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
+         * @description watch all open positions
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        if (this.isEmpty (symbols)) {
+            throw new ArgumentsRequired (this.id + ' watchPositions requires a list of symbols');
+        }
+        await this.loadMarkets ();
+        await this.authenticate (params);
+        symbols = this.marketSymbols (symbols);
+        const request = {
+            'instType': 'ANY',
+        };
+        const channel = 'positions';
+        const newPositions = await this.subscribeMultiple ('private', channel, symbols, this.extend (request, params));
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client, message) {
+        //
+        //    {
+        //        arg: {
+        //            channel: 'positions',
+        //            instType: 'ANY',
+        //            instId: 'XRP-USDT-SWAP',
+        //            uid: '464737184507959869'
+        //        },
+        //        data: [{
+        //            adl: '1',
+        //            availPos: '',
+        //            avgPx: '0.52668',
+        //            baseBal: '',
+        //            baseBorrowed: '',
+        //            baseInterest: '',
+        //            bizRefId: '',
+        //            bizRefType: '',
+        //            cTime: '1693151444408',
+        //            ccy: 'USDT',
+        //            closeOrderAlgo: [],
+        //            deltaBS: '',
+        //            deltaPA: '',
+        //            gammaBS: '',
+        //            gammaPA: '',
+        //            idxPx: '0.52683',
+        //            imr: '17.564000000000004',
+        //            instId: 'XRP-USDT-SWAP',
+        //            instType: 'SWAP',
+        //            interest: '',
+        //            last: '0.52691',
+        //            lever: '3',
+        //            liab: '',
+        //            liabCcy: '',
+        //            liqPx: '0.3287514731020614',
+        //            margin: '',
+        //            markPx: '0.52692',
+        //            mgnMode: 'cross',
+        //            mgnRatio: '69.00363001456147',
+        //            mmr: '0.26346',
+        //            notionalUsd: '52.68620388000001',
+        //            optVal: '',
+        //            pTime: '1693151906023',
+        //            pendingCloseOrdLiabVal: '',
+        //            pos: '1',
+        //            posCcy: '',
+        //            posId: '616057041198907393',
+        //            posSide: 'net',
+        //            quoteBal: '',
+        //            quoteBorrowed: '',
+        //            quoteInterest: '',
+        //            spotInUseAmt: '',
+        //            spotInUseCcy: '',
+        //            thetaBS: '',
+        //            thetaPA: '',
+        //            tradeId: '138745402',
+        //            uTime: '1693151444408',
+        //            upl: '0.0240000000000018',
+        //            uplLastPx: '0.0229999999999952',
+        //            uplRatio: '0.0013670539986328',
+        //            uplRatioLastPx: '0.001310093415356',
+        //            usdPx: '',
+        //            vegaBS: '',
+        //            vegaPA: ''
+        //        }]
+        //    }
+        //
+        const arg = this.safeValue (message, 'arg', {});
+        const channel = this.safeString (arg, 'channel', '');
+        const data = this.safeValue (message, 'data', []);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const rawPosition = data[i];
+            const position = this.parsePosition (rawPosition);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, channel + '::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+    }
+
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -1361,6 +1482,7 @@ export default class okx extends okxRest {
                 'books50-l2-tbt': this.handleOrderBook, // only users who're VIP4 and above can subscribe, identity verification required before subscription
                 'books-l2-tbt': this.handleOrderBook, // only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': this.handleTicker,
+                'positions': this.handlePositions,
                 'index-tickers': this.handleTicker,
                 'sprd-tickers': this.handleTicker,
                 'block-tickers': this.handleTicker,
