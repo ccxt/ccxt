@@ -256,6 +256,7 @@ export default class whitebit extends Exchange {
                     '422': OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
+                    'This action is unauthorized': PermissionDenied,
                     'Given amount is less than min amount': InvalidOrder,
                     'Total is less than': InvalidOrder,
                     'fee must be no less than': InvalidOrder,
