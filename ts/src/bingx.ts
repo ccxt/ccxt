@@ -1114,9 +1114,9 @@ export default class bingx extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
-            response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
+            response = await this.spotV1PrivateGetTicker24hr (this.extend (request, params));
         } else {
-            response = await this.spotV1PublicGetCommonSymbols (this.extend (request, params));
+            response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
         }
         //
         //    {
@@ -1139,7 +1139,8 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseTicker (data, market);
+        const ticker = this.safeValue (data, 0, data);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
@@ -1190,6 +1191,20 @@ export default class bingx extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
+        // spot
+        //    {
+        //        symbol: 'BTC-USDT',
+        //        openPrice: '26032.08',
+        //        highPrice: '26178.86',
+        //        lowPrice: '25968.18',
+        //        lastPrice: '26113.60',
+        //        volume: '1161.79',
+        //        quoteVolume: '30288466.44',
+        //        openTime: '1693081020762',
+        //        closeTime: '1693167420762'
+        //    }
+        // swap
+        //
         //    {
         //        "symbol": "BTC-USDT",
         //        "priceChange": "52.5",
@@ -1206,15 +1221,15 @@ export default class bingx extends Exchange {
         //    }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const defaultType = this.safeString (this.options, 'defaultType', 'swap');
-        const symbol = this.safeSymbol (marketId, market, '-', defaultType);
+        const change = this.safeString (ticker, 'priceChange');
+        const type = (change === undefined) ? 'spot' : 'swap';
+        const symbol = this.safeSymbol (marketId, market, undefined, type);
         const open = this.safeString (ticker, 'openPrice');
         const high = this.safeString (ticker, 'highPrice');
         const low = this.safeString (ticker, 'lowPrice');
         const close = this.safeString (ticker, 'lastPrice');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const baseVolume = this.safeString (ticker, 'volume');
-        const change = this.safeString (ticker, 'chapriceChangenge');
         const percentage = this.safeString (ticker, 'priceChangePercent');
         const ts = this.safeInteger (ticker, 'closeTime');
         const datetime = this.iso8601 (ts);
