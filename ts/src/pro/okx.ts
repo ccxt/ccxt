@@ -23,6 +23,7 @@ export default class okx extends okxRest {
                 'watchOHLCV': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
+                'watchPositions': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
