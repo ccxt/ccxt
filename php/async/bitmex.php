@@ -742,7 +742,7 @@ class bitmex extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1734,7 +1734,7 @@ class bitmex extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2342,14 +2342,14 @@ class bitmex extends Exchange {
              * Fetches the history of funding rates
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
              * @param {int} [$params->until] timestamp in ms for ending date filter
              * @param {bool} [$params->reverse] if true, will sort results newest first
              * @param {int} [$params->start] starting point for results
              * @param {string} [$params->columns] array of column names to fetch in info, if omitted, will return all columns
              * @param {string} [$params->filter] generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the {@link https://www.bitmex.com/app/restAPI#Timestamp-Filters timestamp docs} for more details
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -2586,7 +2586,7 @@ class bitmex extends Exchange {
              * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
              */
             Async\await($this->load_markets());
             $assets = Async\await($this->publicGetWalletAssets ($params));

@@ -168,7 +168,7 @@ class okx extends \ccxt\async\okx {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -659,7 +659,7 @@ class okx extends \ccxt\async\okx {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -1019,7 +1019,7 @@ class okx extends \ccxt\async\okx {
              * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the okx api endpoint
              * @param {boolean} $params->test test order, default false
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -1090,7 +1090,7 @@ class okx extends \ccxt\async\okx {
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -1117,7 +1117,7 @@ class okx extends \ccxt\async\okx {
              * @param {string} $symbol unified market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the okx api endpoint
              * @param {string} [$params->clOrdId] client order $id
-             * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' cancelOrderWs() requires a $symbol argument');
@@ -1153,7 +1153,7 @@ class okx extends \ccxt\async\okx {
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $idsLength = count($ids);
             if ($idsLength > 20) {
@@ -1190,7 +1190,7 @@ class okx extends \ccxt\async\okx {
              * cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' cancelAllOrdersWs() requires a $symbol argument');

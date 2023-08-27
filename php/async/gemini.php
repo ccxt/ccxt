@@ -959,7 +959,7 @@ class gemini extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the gemini api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1068,7 +1068,7 @@ class gemini extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the gemini api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostV1Balances ($params));
@@ -1668,7 +1668,7 @@ class gemini extends Exchange {
              * @param {string} $code unified currency $code
              * @param {array} [$params] extra parameters specific to the endpoint
              * @param {string} [$params->network]  *required* The chain of currency
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
              */
             Async\await($this->load_markets());
             $groupedByNetwork = Async\await($this->fetch_deposit_addresses_by_network($code, $params));

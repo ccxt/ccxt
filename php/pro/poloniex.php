@@ -193,7 +193,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @see https://docs.poloniex.com/#public-channels-market-data-ticker
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -209,7 +209,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @see https://docs.poloniex.com/#public-channels-market-data-ticker
              * @param {string} symbol unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $name = 'ticker';
@@ -231,7 +231,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -252,7 +252,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by poloniex watchOrderBook
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
              */
             Async\await($this->load_markets());
             $watchOrderBookOptions = $this->safe_value($this->options, 'watchOrderBook');
@@ -272,7 +272,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {int} [$since] not used by poloniex watchOrders
              * @param {int} [$limit] not used by poloniex watchOrders
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $name = 'orders';
@@ -322,7 +322,7 @@ class poloniex extends \ccxt\async\poloniex {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $name = 'balances';

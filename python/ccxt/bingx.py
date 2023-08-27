@@ -677,7 +677,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns [dict]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -958,9 +958,9 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns [dict]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
@@ -1197,7 +1197,7 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param boolean [params.standard]: whether to fetch standard contract balances
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         response = None
@@ -2622,7 +2622,7 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
         :param [str]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         self.load_markets()
         response = self.walletsV1PrivateGetCapitalConfigGetall(params)

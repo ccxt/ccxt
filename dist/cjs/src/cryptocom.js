@@ -726,7 +726,7 @@ class cryptocom extends cryptocom$1 {
          * @param {int} [limit] the maximum number of trades to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -892,7 +892,7 @@ class cryptocom extends cryptocom$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const response = await this.v1PrivatePostPrivateUserBalance(params);
@@ -2431,7 +2431,7 @@ class cryptocom extends cryptocom$1 {
          * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets();
         const response = await this.v2PrivatePostPrivateGetCurrencyNetworks(params);
@@ -2450,7 +2450,7 @@ class cryptocom extends cryptocom$1 {
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2761,7 +2761,7 @@ class cryptocom extends cryptocom$1 {
          * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();

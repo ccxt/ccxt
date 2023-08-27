@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.75'
+__version__ = '4.0.76'
 
 # -----------------------------------------------------------------------------
 
@@ -2323,7 +2323,7 @@ class Exchange(BaseExchange):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
@@ -2981,7 +2981,7 @@ class Exchange(BaseExchange):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         if self.has['fetchDepositsWithdrawals']:
             return await self.fetchDepositsWithdrawals(code, since, limit, params)

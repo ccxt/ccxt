@@ -915,7 +915,7 @@ class poloniex extends poloniex$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1156,7 +1156,7 @@ class poloniex extends poloniex$1 {
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @param {boolean} [params.stop] set true to fetch trigger orders instead of regular orders
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1218,7 +1218,7 @@ class poloniex extends poloniex$1 {
         // @param {object} [params] extra parameters specific to the poloniex api endpoint
         // <<<<<<< HEAD
         // @param {float} [params.triggerPrice] *spot only* The price at which a trigger order is triggered at
-        // @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // =======
         // @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
@@ -1306,7 +1306,7 @@ class poloniex extends poloniex$1 {
         // @param {object} [params] extra parameters specific to the poloniex api endpoint
         // <<<<<<< HEAD
         // @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        // @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // =======
         // @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
@@ -1352,7 +1352,7 @@ class poloniex extends poloniex$1 {
         // @param {object} [params] extra parameters specific to the poloniex api endpoint
         // <<<<<<< HEAD
         // @param {boolean} [params.trigger] true if canceling a trigger order
-        // @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // =======
         // @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
@@ -1395,7 +1395,7 @@ class poloniex extends poloniex$1 {
         // @param {object} [params] extra parameters specific to the poloniex api endpoint
         // <<<<<<< HEAD
         // @param {boolean} [params.trigger] true if canceling trigger orders
-        // @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // =======
         // @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
@@ -1452,7 +1452,7 @@ class poloniex extends poloniex$1 {
         // @param {object} [params] extra parameters specific to the poloniex api endpoint
         // <<<<<<< HEAD
         // @param {boolean} [params.trigger] true if fetching a trigger order
-        // @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // =======
         // @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         // >>>>>>> 1e1c747220aa06f7c710fc71e9b6658d1260c4d1
@@ -1572,7 +1572,7 @@ class poloniex extends poloniex$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const request = {

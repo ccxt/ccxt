@@ -720,6 +720,7 @@ class mexc extends Exchange {
                     '2003' => '\\ccxt\\InvalidOrder',
                     '2005' => '\\ccxt\\InsufficientFunds',
                     '400' => '\\ccxt\\BadRequest', // array("msg":"The start time cannot be earlier than 90 days","code":400)
+                    // '500' => '\\ccxt\\OnMaintenance', // array("code" => 500,"message" => "Under maintenance, please try again later","announcement" => "https://www.mexc.com/support/articles/17827791510263")
                     '600' => '\\ccxt\\BadRequest',
                     '70011' => '\\ccxt\\PermissionDenied', // array("code":70011,"msg":"Pair user ban trade apikey.")
                     '88004' => '\\ccxt\\InsufficientFunds', // array("msg":"超出最大可借，最大可借币为:18.09833211","code":88004)
@@ -814,6 +815,7 @@ class mexc extends Exchange {
                     'Bid price is great than max allow price' => '\\ccxt\\InvalidOrder', // code:2003
                     'Invalid symbol.' => '\\ccxt\\BadSymbol', // code:-1121
                     'Param error!' => '\\ccxt\\BadRequest', // code:600
+                    'maintenance' => '\\ccxt\\OnMaintenance', // array("code" => 500,"message" => "Under maintenance, please try again later","announcement" => "https://www.mexc.com/support/articles/17827791510263")
                 ),
             ),
         ));
@@ -1372,7 +1374,7 @@ class mexc extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3426,7 +3428,7 @@ class mexc extends Exchange {
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->symbols] // required for margin, $market id's separated by commas
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $marketType = null;
@@ -3954,7 +3956,7 @@ class mexc extends Exchange {
              * @param {int} [$since] not used by mexc, but filtered internally by ccxt
              * @param {int} [$limit] mexc $limit is page_size default 20, maximum is 100
              * @param {array} [$params] extra parameters specific to the mexc api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');

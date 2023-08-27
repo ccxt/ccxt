@@ -142,7 +142,7 @@ class krakenfutures extends krakenfutures$1 {
          * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const options = this.safeValue(this.options, 'watchTicker');
         const method = this.safeString(options, 'method', 'ticker'); // or ticker_lite
@@ -158,7 +158,7 @@ class krakenfutures extends krakenfutures$1 {
          * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const method = this.safeString(this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
         const name = this.safeString2(params, 'method', 'watchTickerMethod', method);
@@ -175,7 +175,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const name = 'trade';
@@ -194,7 +194,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] not used by krakenfutures watchOrderBook
          * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const orderbook = await this.subscribePublic('book', [symbol], params);
         return orderbook.limit();
@@ -210,7 +210,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {int} [since] not used by krakenfutures watchOrders
          * @param {int} [limit] not used by krakenfutures watchOrders
          * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const name = 'open_orders';

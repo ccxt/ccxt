@@ -131,7 +131,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -415,7 +415,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             $messageHash = 'user.balance';
             return Async\await($this->watch_private_subscribe($messageHash, $params));
@@ -498,7 +498,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $params = $this->createOrderRequest ($symbol, $type, $side, $amount, $price, $params);

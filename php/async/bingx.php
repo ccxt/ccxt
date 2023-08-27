@@ -705,7 +705,7 @@ class bingx extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1003,9 +1003,9 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
@@ -1262,7 +1262,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @param {boolean} [$params->standard] whether to fetch $standard contract balances
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $response = null;
@@ -2799,7 +2799,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
              * @param {[string]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->walletsV1PrivateGetCapitalConfigGetall ($params));

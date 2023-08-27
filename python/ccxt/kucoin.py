@@ -1169,7 +1169,7 @@ class kucoin(Exchange, ImplicitAPI):
         see https://docs.kucoin.com/#get-withdrawal-quotas
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -2441,7 +2441,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2946,7 +2946,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the kucoin api endpoint
         :param dict [params.marginMode]: 'cross' or 'isolated', margin type for fetching margin balance
         :param dict [params.type]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         code = self.safe_string(params, 'code')
@@ -3766,7 +3766,7 @@ class kucoin(Exchange, ImplicitAPI):
         see https://docs.kucoin.com/#get-currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         self.load_markets()
         response = self.publicGetCurrencies(params)

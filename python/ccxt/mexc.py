@@ -21,6 +21,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -731,6 +732,7 @@ class mexc(Exchange, ImplicitAPI):
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
                     '400': BadRequest,  # {"msg":"The start time cannot be earlier than 90 days","code":400}
+                    # '500': OnMaintenance,  # {"code": 500,"message": "Under maintenance, please try again later","announcement": "https://www.mexc.com/support/articles/17827791510263"}
                     '600': BadRequest,
                     '70011': PermissionDenied,  # {"code":70011,"msg":"Pair user ban trade apikey."}
                     '88004': InsufficientFunds,  # {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
@@ -825,6 +827,7 @@ class mexc(Exchange, ImplicitAPI):
                     'Bid price is great than max allow price': InvalidOrder,  # code:2003
                     'Invalid symbol.': BadSymbol,  # code:-1121
                     'Param error!': BadRequest,  # code:600
+                    'maintenance': OnMaintenance,  # {"code": 500,"message": "Under maintenance, please try again later","announcement": "https://www.mexc.com/support/articles/17827791510263"}
                 },
             },
         })
@@ -1340,7 +1343,7 @@ class mexc(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3222,7 +3225,7 @@ class mexc(Exchange, ImplicitAPI):
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :param str [params.symbols]:  # required for margin, market id's separated by commas
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         marketType = None
@@ -3703,7 +3706,7 @@ class mexc(Exchange, ImplicitAPI):
         :param int [since]: not used by mexc, but filtered internally by ccxt
         :param int [limit]: mexc limit is page_size default 20, maximum is 100
         :param dict [params]: extra parameters specific to the mexc api endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
