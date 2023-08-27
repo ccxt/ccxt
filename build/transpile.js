@@ -96,6 +96,7 @@ class Transpiler {
             [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
+            [ /\.parseWsOHLCVs\s/g, '.parse_ws_ohlcvs'],
             [ /\.parseWsOHLCV\s/g, '.parse_ws_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
             [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
@@ -285,6 +286,7 @@ class Transpiler {
             [ /\.fetchRestOrderBookSafe\s/g, '.fetch_rest_order_book_safe'],
             [ /\.customParseBidAsk\s/g, '.custom_parse_bid_ask'],
             [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
+            [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 

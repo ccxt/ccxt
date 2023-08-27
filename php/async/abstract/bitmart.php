@@ -22,11 +22,32 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function public_get_spot_v1_symbols_details($params = array()) {
         return $this->request('spot/v1/symbols/details', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_spot_quotation_v3_tickers($params = array()) {
+        return $this->request('spot/quotation/v3/tickers', 'public', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function public_get_spot_quotation_v3_ticker($params = array()) {
+        return $this->request('spot/quotation/v3/ticker', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_spot_quotation_v3_lite_klines($params = array()) {
+        return $this->request('spot/quotation/v3/lite-klines', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_spot_quotation_v3_klines($params = array()) {
+        return $this->request('spot/quotation/v3/klines', 'public', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function public_get_spot_quotation_v3_books($params = array()) {
+        return $this->request('spot/quotation/v3/books', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_spot_quotation_v3_trades($params = array()) {
+        return $this->request('spot/quotation/v3/trades', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function public_get_spot_v1_ticker($params = array()) {
         return $this->request('spot/v1/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_spot_v2_ticker($params = array()) {
         return $this->request('spot/v2/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_spot_v1_ticker_detail($params = array()) {
+        return $this->request('spot/v1/ticker_detail', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_spot_v1_steps($params = array()) {
         return $this->request('spot/v1/steps', 'public', 'GET', $params, null, null, array("cost" => 30));
@@ -172,6 +193,24 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function private_post_spot_v1_cancel_orders($params = array()) {
         return $this->request('spot/v1/cancel_orders', 'private', 'POST', $params, null, null, array("cost" => 15));
     }
+    public function private_post_spot_v4_query_order($params = array()) {
+        return $this->request('spot/v4/query/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_spot_v4_query_client_order($params = array()) {
+        return $this->request('spot/v4/query/client-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_spot_v4_query_open_orders($params = array()) {
+        return $this->request('spot/v4/query/open-orders', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_spot_v4_query_history_orders($params = array()) {
+        return $this->request('spot/v4/query/history-orders', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_spot_v4_query_trades($params = array()) {
+        return $this->request('spot/v4/query/trades', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_spot_v4_query_order_trades($params = array()) {
+        return $this->request('spot/v4/query/order-trades', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_spot_v3_cancel_order($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -211,11 +250,32 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function publicGetSpotV1SymbolsDetails($params = array()) {
         return $this->request('spot/v1/symbols/details', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function publicGetSpotQuotationV3Tickers($params = array()) {
+        return $this->request('spot/quotation/v3/tickers', 'public', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function publicGetSpotQuotationV3Ticker($params = array()) {
+        return $this->request('spot/quotation/v3/ticker', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetSpotQuotationV3LiteKlines($params = array()) {
+        return $this->request('spot/quotation/v3/lite-klines', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetSpotQuotationV3Klines($params = array()) {
+        return $this->request('spot/quotation/v3/klines', 'public', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function publicGetSpotQuotationV3Books($params = array()) {
+        return $this->request('spot/quotation/v3/books', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetSpotQuotationV3Trades($params = array()) {
+        return $this->request('spot/quotation/v3/trades', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function publicGetSpotV1Ticker($params = array()) {
         return $this->request('spot/v1/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetSpotV2Ticker($params = array()) {
         return $this->request('spot/v2/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetSpotV1TickerDetail($params = array()) {
+        return $this->request('spot/v1/ticker_detail', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetSpotV1Steps($params = array()) {
         return $this->request('spot/v1/steps', 'public', 'GET', $params, null, null, array("cost" => 30));
@@ -360,6 +420,24 @@ abstract class bitmart extends \ccxt\async\Exchange {
     }
     public function privatePostSpotV1CancelOrders($params = array()) {
         return $this->request('spot/v1/cancel_orders', 'private', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function privatePostSpotV4QueryOrder($params = array()) {
+        return $this->request('spot/v4/query/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSpotV4QueryClientOrder($params = array()) {
+        return $this->request('spot/v4/query/client-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSpotV4QueryOpenOrders($params = array()) {
+        return $this->request('spot/v4/query/open-orders', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostSpotV4QueryHistoryOrders($params = array()) {
+        return $this->request('spot/v4/query/history-orders', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostSpotV4QueryTrades($params = array()) {
+        return $this->request('spot/v4/query/trades', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostSpotV4QueryOrderTrades($params = array()) {
+        return $this->request('spot/v4/query/order-trades', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostSpotV3CancelOrder($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
