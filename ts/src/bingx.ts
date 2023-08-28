@@ -2906,6 +2906,7 @@ export default class bingx extends Exchange {
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (access === 'public') {
+            params['timestamp'] = this.nonce ();
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
