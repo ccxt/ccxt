@@ -129,7 +129,7 @@ async def call_method(testFiles, methodName, exchange, skippedProperties, args):
 
 
 def exception_message(exc):
-    return '[' + type(exc).__name__ + '] ' + "".join(format_exception(exc, limit=6))
+    return '[' + type(exc).__name__ + '] ' + "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6))
 
 
 def exit_script():
