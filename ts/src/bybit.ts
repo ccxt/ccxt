@@ -2529,7 +2529,8 @@ export default class bybit extends Exchange {
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
             market = this.market (symbols[0]);
-            if (symbols.length === 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
                 request['symbol'] = market['id'];
             }
         }

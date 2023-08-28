@@ -2485,7 +2485,8 @@ export default class wavesexchange extends Exchange {
         let isErc20 = true;
         const noPrefix = this.remove0xPrefix (address);
         const lower = noPrefix.toLowerCase ();
-        for (let i = 0; i < lower.length + 0; i++) {
+        const stringLength = lower.length * 1;
+        for (let i = 0; i < stringLength; i++) {
             const character = lower[i];
             if (!(character in set)) {
                 isErc20 = false;
